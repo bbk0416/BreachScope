@@ -128,12 +128,15 @@ def correlate_events(
         # 시간순 정렬 (한 번만)
         indexed_events.sort(key=lambda x: x[2])
         sorted_events = [event for _, event, _ in indexed_events]
-        event_indices = {event: idx for idx, (orig_idx, event, _) in enumerate(indexed_events)}
+        event_indices = {get_event_key(event): idx for idx, (orig_idx, event, _) in enumerate(indexed_events)}
+        
+        # 타임스탬프 리스트 생성 (bisect를 위한)
+        timestamps = [ts for _, _, ts in indexed_events]
 
         # 2. Finding을 이벤트 인덱스로 매핑 (고유 키 기반)
         finding_map: Dict[int, List[Finding]] = defaultdict(list)
         for finding in findings:
-            event_idx = event_indices.get(finding.event)
+            event_idx = event_indices.get(get_event_key(finding.event))
             if event_idx is None:
                 # 고유 키로 재시도
                 for idx, event in enumerate(sorted_events):
@@ -165,13 +168,12 @@ def correlate_events(
                 # 시간 윈도우 계산
                 window_end = ts_a + timedelta(seconds=rule.time_window_seconds)
 
-                # 이진 검색으로 윈도우 내 이벤트 찾기
+                # 이진 검색으로 윈도우 내 이벤트 찾기 (타임스탬프 리스트 사용)
                 window_start_idx = i + 1
                 window_end_idx = bisect.bisect_right(
-                    indexed_events,
-                    (0, None, window_end),
-                    lo=window_start_idx,
-                    key=lambda x: x[2]
+                    timestamps,
+                    window_end,
+                    lo=window_start_idx
                 )
 
                 chain_events = [event_a]
