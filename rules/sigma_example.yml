@@ -1,0 +1,15 @@
+title: EncodedCommand Generic (Safe)
+id: sigma-enc-generic
+tags:
+  - attack.t1059.001
+status: test
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    CommandLine|contains:
+      - "-encodedcommand"
+      - " -enc "
+  condition: selection
+level: medium

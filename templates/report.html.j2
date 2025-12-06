@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>BreachScope 자동 리포트</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+    h1 { margin: 0 0 12px 0; }
+    .summary { margin-bottom: 16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px; }
+    th { background: #f2f2f2; }
+    .sev-high { color: #b00020; font-weight: bold; }
+    .sev-medium { color: #ad6800; font-weight: bold; }
+    .sev-low { color: #1765ad; font-weight: bold; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .bars { margin: 10px 0; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+    .bar-wrap { background: #eee; width: 220px; height: 10px; }
+    .bar { background: #4a90e2; height: 10px; }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="generator" content="BreachScope MVP" />
+  <meta name="description" content="자동화된 DFIR 분석 보고서" />
+  <meta name="created" content="{{ report.summary.get('generated_at', '') }}" />
+</head>
+<body>
+  <h1>BreachScope 자동화 보고서</h1>
+  <div class="summary">
+    <p>총 탐지 건수: <b>{{ report.summary.get('total_findings', 0) }}</b></p>
+    {% set rules = report.summary.get('rules', {}) or {} %}
+    <p>적용 규칙 수: <b>{{ rules.get('count', 0) }}</b></p>
+    <table style="width:auto; margin-top:8px">
+      <thead>
+        <tr><th>Severity</th><th>Count</th><th>MITRE</th><th>Count</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {% for sev, cnt in (report.summary.get('severity_counts', {}) or {}).items() %}
+              <span class="sev-{{ sev }}">{{ sev }}</span>: {{ cnt }}&nbsp;&nbsp;
+            {% endfor %}
+          </td>
+          <td></td>
+          <td>
+            {% for tech, cnt in (report.summary.get('mitre_counts', {}) or {}).items() %}
+              <span class="mono">{{ tech }}</span>: {{ cnt }}&nbsp;&nbsp;
+            {% endfor %}
+          </td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    {% set filters = report.summary.get('filters', {}) or {} %}
+    <p style="margin-top:6px;color:#555">필터:
+      최소 심각도={{ filters.get('min_severity','') or '없음' }},
+      포함 TTP={{ (filters.get('mitre_include') or []) | join(', ') or '없음' }},
+      제외 TTP={{ (filters.get('mitre_exclude') or []) | join(', ') or '없음' }},
+      호스트={{ (filters.get('host_include') or []) | join(', ') or '전체' }}
+    </p>
+  </div>
+
+  <h2>요약 차트</h2>
+  <div class="bars">
+    <div><b>심각도 분포</b></div>
+    {% set sc = report.summary.get('severity_counts', {}) or {} %}
+    {% set sc_max = report.summary.get('max_severity', 0) %}
+    {% for sev, cnt in sc.items() %}
+    {% set perc = (cnt / sc_max * 100) if sc_max else 0 %}
+    <div class="bar-row">
+      <span class="sev-{{ sev }}" style="width:80px;">{{ sev }}</span>
+      <div class="bar-wrap"><div class="bar" style="width: {{ '%.0f' % perc }}%"></div></div>
+      <span>{{ cnt }}</span>
+    </div>
+    {% endfor %}
+
+    <div style="margin-top:8px"><b>호스트 분포</b></div>
+    {% set hc = report.summary.get('host_counts', {}) or {} %}
+    {% set hc_max = report.summary.get('max_host', 0) %}
+    {% for host, cnt in hc.items() %}
+    {% set perc = (cnt / hc_max * 100) if hc_max else 0 %}
+    <div class="bar-row">
+      <span class="mono" style="width:120px;">{{ host }}</span>
+      <div class="bar-wrap"><div class="bar" style="width: {{ '%.0f' % perc }}%"></div></div>
+      <span>{{ cnt }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h2>탐지 목록</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Severity</th>
+        <th>Rule</th>
+        <th>MITRE</th>
+        <th>Time</th>
+        <th>Host</th>
+        <th>Command</th>
+        <th>Context</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in report.findings %}
+      <tr>
+        <td class="sev-{{ f.severity }}">{{ f.severity }}</td>
+        <td>{{ f.rule_name }}</td>
+        <td>{{ f.mitre_technique or '' }}</td>
+        <td class="mono">{{ f.event.timestamp }}</td>
+        <td class="mono">{{ f.event.host }}</td>
+        <td class="mono">{{ (f.event.command_line or '')[:140] }}</td>
+        <td class="mono">{{ (f.matched_context or '')[:140] }}</td>
+      </tr>
+      <tr>
+        <td colspan="7">
+          <details>
+            <summary>세부 보기</summary>
+            <div style="margin:8px 0">
+              <div><b>룰 설명:</b> {{ f.rule_name }}</div>
+              <div><b>ATT&CK:</b> {{ f.mitre_technique or 'unknown' }}</div>
+              <div><b>매치 값:</b> <span class="mono">{{ (f.matched_value or '')[:200] }}</span></div>
+              <div><b>원본 커맨드:</b> <span class="mono">{{ f.event.command_line or '' }}</span></div>
+            </div>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>호스트 요약</h2>
+  <table style="width:auto">
+    <thead>
+      <tr>
+        <th>Host</th>
+        <th>Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set hc = report.summary.get('host_counts', {}) or {} %}
+      {% for host, cnt in hc.items() %}
+      <tr>
+        <td class="mono">{{ host }}</td>
+        <td>{{ cnt }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>시간 요약(시간 단위)</h2>
+  <table style="width:auto">
+    <thead>
+      <tr>
+        <th>Hour</th>
+        <th>Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set th = report.summary.get('time_histogram', {}) or {} %}
+      {% for hour, cnt in th.items() %}
+      <tr>
+        <td class="mono">{{ hour }}</td>
+        <td>{{ cnt }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>ATT&CK 요약</h2>
+  <table style="width:auto">
+    <thead>
+      <tr>
+        <th>Technique</th>
+        <th>Name</th>
+        <th>Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set mc = report.summary.get('mitre_counts', {}) or {} %}
+      {% set mn = report.summary.get('mitre_names', {}) or {} %}
+      {% for tech, cnt in mc.items() %}
+      <tr>
+        <td class="mono">{{ tech }}</td>
+        <td>{{ mn.get(tech, 'Unknown') }}</td>
+        <td>{{ cnt }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% set chain_summary = report.summary.get('chains', {}) or {} %}
+  {% if chain_summary.get('total_chains', 0) > 0 %}
+  <h2>이벤트 체인 분석</h2>
+  <div class="summary">
+    <p>총 체인 수: <b>{{ chain_summary.get('total_chains', 0) }}</b></p>
+    <p>평균 신뢰도: <b>{{ "%.2f" | format(chain_summary.get('avg_confidence', 0)) }}</b></p>
+    <p>체인 내 총 이벤트 수: <b>{{ chain_summary.get('total_events_in_chains', 0) }}</b></p>
+    <table style="width:auto; margin-top:8px">
+      <thead>
+        <tr><th>체인 타입</th><th>개수</th></tr>
+      </thead>
+      <tbody>
+        {% for chain_type, cnt in (chain_summary.get('by_type', {}) or {}).items() %}
+        <tr>
+          <td>{{ chain_type }}</td>
+          <td>{{ cnt }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>상세 체인 목록</h3>
+  {% for chain in report.chains %}
+  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
+    <h4>{{ chain.chain_id }} - {{ chain.chain_type }} (신뢰도: {{ "%.2f" | format(chain.confidence) }})</h4>
+    <p><b>설명:</b> {{ chain.description }}</p>
+    <p><b>시작:</b> {{ chain.start_time or 'N/A' }} | <b>종료:</b> {{ chain.end_time or 'N/A' }}</p>
+    <p><b>이벤트 수:</b> {{ chain.events | length }} | <b>탐지 수:</b> {{ chain.findings | length }}</p>
+    <details>
+      <summary>이벤트 상세 ({{ chain.events | length }}개)</summary>
+      <table style="margin-top:8px; font-size:0.9em;">
+        <thead>
+          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
+        </thead>
+        <tbody>
+          {% for event in chain.events %}
+          <tr>
+            <td class="mono">{{ event.timestamp }}</td>
+            <td class="mono">{{ event.host }}</td>
+            <td>{{ event.source }}</td>
+            <td class="mono">{{ (event.command_line or '')[:100] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% set scenario_summary = report.summary.get('scenarios', {}) or {} %}
+  {% if scenario_summary.get('total_scenarios', 0) > 0 %}
+  <h2>공격 시나리오 추론</h2>
+  <div class="summary">
+    <p>총 시나리오 수: <b>{{ scenario_summary.get('total_scenarios', 0) }}</b></p>
+    <p>평균 신뢰도: <b>{{ "%.2f" | format(scenario_summary.get('avg_confidence', 0)) }}</b></p>
+    <p>고유 MITRE 기법 수: <b>{{ (scenario_summary.get('unique_techniques', []) | length) }}</b></p>
+    <table style="width:auto; margin-top:8px">
+      <thead>
+        <tr><th>공격 단계</th><th>개수</th></tr>
+      </thead>
+      <tbody>
+        {% for stage, cnt in (scenario_summary.get('by_stage', {}) or {}).items() %}
+        <tr>
+          <td>{{ stage }}</td>
+          <td>{{ cnt }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>상세 시나리오 목록</h3>
+  {% for scenario in report.scenarios %}
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>{{ scenario.name }} (신뢰도: {{ "%.2f" | format(scenario.confidence) }})</h4>
+    <p><b>시나리오 ID:</b> {{ scenario.scenario_id }}</p>
+    <p><b>공격 단계:</b> {{ scenario.attack_stage }}</p>
+    <p><b>설명:</b> {{ scenario.description }}</p>
+    <p><b>관련 MITRE 기법:</b>
+      {% for tech in scenario.mitre_techniques %}
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">{{ tech }}</span>
+      {% endfor %}
+    </p>
+    <p><b>연관 체인 수:</b> {{ scenario.chains | length }}</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      {% for chain in scenario.chains %}
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>{{ chain.chain_id }}</b> - {{ chain.chain_type }}<br>
+        <small>{{ chain.description }}</small>
+      </div>
+      {% endfor %}
+    </details>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <h2>원시 이벤트 (샘플)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Host</th>
+        <th>Source</th>
+        <th>EventID</th>
+        <th>Command</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in report.events[:100] %}
+      <tr>
+        <td class="mono">{{ e.timestamp }}</td>
+        <td class="mono">{{ e.host }}</td>
+        <td>{{ e.source }}</td>
+        <td>{{ e.event_id }}</td>
+        <td class="mono">{{ (e.command_line or '')[:140] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p style="margin-top:24px;color:#666">Generated by BreachScope MVP</p>
+</body>
+</html>

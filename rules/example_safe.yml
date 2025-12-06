@@ -1,0 +1,73 @@
+## 안전 예시 규칙 (네이티브 스키마)
+
+- id: R-ENC
+  name: Encoded PowerShell Command
+  description: Powershell 인코딩 명령 사용 (-encodedcommand, -enc)
+  field: command_line
+  operator: contains
+  pattern: "-encodedcommand|-enc"
+  severity: medium
+  mitre_technique: T1059.001
+
+- id: R-DL
+  name: Suspicious Web Download
+  description: 웹 요청/다운로드 도구 사용 (일반 패턴)
+  field: command_line
+  operator: contains
+  pattern: "invoke-webrequest|wget|curl|net.webclient"
+  severity: medium
+  mitre_technique: T1105
+
+- id: R-WMI-Create
+  name: WMI Process Creation
+  description: wmic 를 이용한 프로세스 생성 호출
+  field: command_line
+  operator: contains
+  pattern: "wmic process call create"
+  severity: low
+  mitre_technique: T1047
+
+- id: R-MSHTA-Remote
+  name: MSHTA Remote Load
+  description: mshta 로 원격 리소스 로드 시도
+  field: command_line
+  operator: contains
+  pattern: "mshta http"
+  severity: medium
+  mitre_technique: T1218.005
+
+- id: R-REG-RunKey
+  name: Registry Run Key Modification
+  description: Run 키 기반 지속성 추가 정황 (일반 문자열)
+  field: command_line
+  operator: contains
+  pattern: "reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+  severity: low
+  mitre_technique: T1547.001
+
+- id: R-PS-Bypass
+  name: PowerShell Bypass/Hidden Flags
+  description: PowerShell의 숨김/바이패스 플래그 사용 흔적
+  field: command_line
+  operator: contains
+  pattern: "-noprofile|-nop|-windowstyle hidden|-executionpolicy bypass"
+  severity: medium
+  mitre_technique: T1059.001
+
+- id: R-SCHTASKS-Create
+  name: Scheduled Task Creation
+  description: schtasks를 이용한 작업 생성
+  field: command_line
+  operator: contains
+  pattern: "schtasks /create"
+  severity: low
+  mitre_technique: T1053.005
+
+- id: R-BITS-Transfer
+  name: BITSAdmin Transfer
+  description: bitsadmin을 이용한 전송 작업
+  field: command_line
+  operator: contains
+  pattern: "bitsadmin /transfer|bitsadmin /addfile"
+  severity: low
+  mitre_technique: T1197
