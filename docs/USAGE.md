@@ -71,7 +71,7 @@ run_web_fastapi.bat
 
 또는 직접 실행:
 ```bash
-python -m uvicorn web.app_fastapi:app --host 0.0.0.0 --port 8501
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 브라우저에서 `http://localhost:8501` 접속
@@ -260,7 +260,7 @@ python -m breachscope.cli --validate-input --input logs --rules rules
 
 ### 실행
 ```bash
-python -m uvicorn web.app_fastapi:app --host 0.0.0.0 --port 8501
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 ### 기능
@@ -286,6 +286,44 @@ export_csv: true
 
 CLI 인자가 설정 파일보다 우선합니다.
 
+## ⚡ 성능 최적화 옵션
+
+### 병렬 처리 활성화
+```python
+from breachscope.pipeline import Pipeline
+
+pipeline = Pipeline(
+    rules_dir=Path("rules"),
+    enable_parallel=True,      # 병렬 처리 활성화
+    max_workers=4,             # 워커 수 (기본값: CPU 코어 수)
+)
+```
+
+### SQLite 최적화
+- WAL 모드 자동 활성화
+- 배치 삽입 최적화
+- 복합 인덱스 자동 생성
+
+### 이벤트 수 제한
+```python
+pipeline = Pipeline(
+    rules_dir=Path("rules"),
+    max_events=10000,  # 최대 10,000개 이벤트만 처리
+)
+```
+
+## 🧹 임시 파일 정리
+
+분석 후 생성된 임시 파일을 정리:
+
+```bash
+# 대화형 모드
+python scripts/cleanup_temp.py
+
+# 자동 정리
+python scripts/cleanup_temp.py --yes
+```
+
 ## 🐛 문제 해결
 
 ### 규칙이 로드되지 않음
@@ -306,9 +344,12 @@ CLI 인자가 설정 파일보다 우선합니다.
 - WeasyPrint 패키지 설치 필요
 - 또는 `--pdf` 옵션 제거
 
+### 임시 파일이 계속 쌓임
+- `python scripts/cleanup_temp.py --yes`로 정기적으로 정리
+- 웹 UI 사용 시 자동 정리 기능 활용
+
 ## 📚 추가 정보
 
-- 상세 문서: `PROGRESS.md`
-- 변경 이력: `CHANGELOG.md`
-- 개선 사항: `IMPROVEMENTS.md`
-- 리팩토링: `REFACTORING.md`
+- 상세 문서: `docs/PROGRESS.md`
+- 변경 이력: `docs/CHANGELOG.md`
+- 개선 사항: `docs/IMPROVEMENTS_SUMMARY.md`

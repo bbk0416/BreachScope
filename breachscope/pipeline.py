@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 from .collector import load_jsonl_events
 from .normalizer import normalize
-from .analyzer import apply_rules
+from .analyzer import apply_rules, apply_rules_parallel
 from .correlator import correlate_events, get_chain_summary
 from .scenario import infer_scenarios, get_scenario_summary
 from .reporting import build_summary, render_html, maybe_render_pdf, export_json, export_csv
@@ -43,6 +43,9 @@ class Pipeline:
         mitre_exclude: Optional[List[str]] = None,
         host_include: Optional[List[str]] = None,
         max_events: Optional[int] = None,
+        enable_parallel: bool = True,
+        max_workers: Optional[int] = None,
+        custom_scenario_templates_dir: Optional[Path] = None,
     ):
         """
         파이프라인 초기화
@@ -54,6 +57,9 @@ class Pipeline:
             mitre_exclude: 제외할 MITRE 기법 목록
             host_include: 포함할 호스트 목록
             max_events: 최대 이벤트 수 (None이면 제한 없음, 대용량 파일 처리 시 유용)
+            enable_parallel: 병렬 처리 활성화 여부
+            max_workers: 병렬 처리 워커 수 (None이면 자동 결정)
+            custom_scenario_templates_dir: 사용자 정의 시나리오 템플릿 디렉토리 (선택적)
         """
         self.rules_dir = rules_dir
         self.min_severity = min_severity
@@ -61,6 +67,9 @@ class Pipeline:
         self.mitre_exclude = mitre_exclude
         self.host_include = host_include
         self.max_events = max_events
+        self.enable_parallel = enable_parallel
+        self.max_workers = max_workers
+        self.custom_scenario_templates_dir = custom_scenario_templates_dir
 
         # 파이프라인 상태
         self.rules: Optional[List[Rule]] = None
@@ -140,7 +149,13 @@ class Pipeline:
             self.load_rules()
 
         logger.info(f"규칙 기반 분석 시작: {len(self.rules)}개 규칙, {len(self.events)}개 이벤트")
-        findings = list(apply_rules(self.events, self.rules))
+
+        # 병렬 처리 옵션이 활성화되고 이벤트가 충분히 많으면 병렬 처리 사용
+        if self.enable_parallel and len(self.events) > 1000:
+            findings = apply_rules_parallel(self.events, self.rules, max_workers=self.max_workers)
+        else:
+            findings = list(apply_rules(self.events, self.rules))
+
         self.findings = self._filter_findings(findings)
         logger.info(f"분석 완료: {len(self.findings)}개 탐지 결과")
         return self.findings
@@ -188,7 +203,11 @@ class Pipeline:
 
         try:
             logger.info(f"시나리오 추론 시작: {len(self.chains)}개 체인")
-            self.scenarios = infer_scenarios(self.chains, self.findings)
+            self.scenarios = infer_scenarios(
+                self.chains,
+                self.findings,
+                custom_templates_dir=self.custom_scenario_templates_dir
+            )
             logger.info(f"시나리오 추론 완료: {len(self.scenarios)}개 시나리오 생성")
             return self.scenarios
         except Exception as e:

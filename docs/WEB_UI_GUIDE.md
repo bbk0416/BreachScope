@@ -17,7 +17,7 @@ chmod +x run_web_fastapi.sh
 
 #### 직접 실행
 ```bash
-python -m uvicorn web.app_fastapi:app --host 0.0.0.0 --port 8501 --reload
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 ### 접속

@@ -6,11 +6,12 @@
 
 - 🔍 **규칙 기반 탐지**: YAML 기반 탐지 규칙으로 의심스러운 활동 자동 탐지
 - 🔗 **시간 기반 상관분석**: 이벤트 간 시간적 연관성을 분석하여 공격 체인 생성
-- 🎯 **시나리오 추론**: MITRE ATT&CK 기반 공격 시나리오 자동 추론
-- 📊 **시각화 리포트**: HTML, JSON, CSV 형식의 상세 분석 리포트 생성
+- 🎯 **시나리오 추론**: MITRE ATT&CK 기반 공격 시나리오 자동 추론 (12개 기본 템플릿 + 사용자 정의 템플릿 지원)
+- 📊 **시각화 리포트**: HTML, JSON, CSV 형식의 상세 분석 리포트 생성 (인터랙티브 타임라인 포함)
 - 🪟 **Windows 이벤트 로그 수집**: `wevtutil.exe`를 사용한 자동 로그 수집
 - 🌐 **웹 UI**: FastAPI 기반 웹 인터페이스 제공
-- ⚡ **고성능**: O(n log n) 복잡도의 최적화된 상관분석 알고리즘
+- ⚡ **고성능**: O(n log n) 복잡도의 최적화된 상관분석 알고리즘, SQLite WAL 모드, 병렬 처리 지원
+- 🧹 **자동 정리**: 임시 파일 자동 정리 기능
 
 ## 빠른 시작
 
@@ -49,6 +50,9 @@ run_web_fastapi.bat
 
 # Linux/Mac
 ./run_web_fastapi.sh
+
+# 또는 직접 실행
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 브라우저에서 `http://localhost:8501`로 접속하세요.
@@ -57,7 +61,7 @@ run_web_fastapi.bat
 
 ```
 BreachScope/
-├── breachscope/          # 핵심 모듈
+├── breachscope/          # 핵심 모듈 패키지
 │   ├── pipeline.py       # 메인 파이프라인
 │   ├── collector.py      # 이벤트 수집
 │   ├── analyzer.py       # 규칙 기반 분석
@@ -65,9 +69,18 @@ BreachScope/
 │   ├── scenario.py       # 시나리오 추론
 │   ├── reporting.py      # 리포트 생성
 │   └── ...
+├── api/                  # API 애플리케이션
+│   ├── main.py          # FastAPI 앱 진입점
+│   ├── routers/         # API 라우터
+│   ├── services/        # 비즈니스 로직 서비스
+│   └── dependencies.py  # 의존성 주입
 ├── rules/                # 탐지 규칙 (YAML)
 ├── templates/            # 리포트 템플릿
-├── web/                  # 웹 UI (FastAPI)
+├── scripts/              # 실행 스크립트
+│   ├── run.py           # CLI 실행 스크립트
+│   ├── run_demo.ps1     # 데모 실행 (PowerShell)
+│   └── cleanup_temp.py  # 임시 파일 정리 스크립트
+├── tests/                # 테스트 코드
 └── docs/                 # 문서
 ```
 
@@ -81,6 +94,7 @@ BreachScope/
 - [웹 UI 가이드](docs/WEB_UI_GUIDE.md)
 - [API 문서](docs/API_DOCUMENTATION.md)
 - [성능 가이드](docs/PERFORMANCE.md)
+- [시스템 아키텍처 기획 및 설계 연구](docs/ARCHITECTURE.md)
 
 ### 개발
 - [개선 사항 요약](docs/IMPROVEMENTS_SUMMARY.md)
@@ -154,6 +168,17 @@ export BS_MAX_EVENTS=10000 # 최대 이벤트 수 (기본값: 무제한)
 ## 변경 이력
 
 주요 변경 사항은 [CHANGELOG.md](docs/CHANGELOG.md)를 참조하세요.
+
+## 유지보수
+
+### 임시 파일 정리
+
+```bash
+# 임시 파일 정리 스크립트 실행
+python scripts/cleanup_temp.py --yes
+```
+
+프로젝트 내 및 시스템 임시 디렉토리의 BreachScope 관련 임시 파일을 자동으로 정리합니다.
 
 ## 참고 자료
 

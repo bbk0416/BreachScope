@@ -1,3 +1,3 @@
 @echo off
-REM BreachScope 실행 스크립트 (래퍼)
+REM BreachScope CLI 실행 래퍼 (루트)
 python scripts/run.py %*

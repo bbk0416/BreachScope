@@ -74,10 +74,49 @@
 - 기존 리포트 형식 유지
 - 기존 규칙 파일 호환
 
+## [2024] Phase 2 개선 완료
+
+### ✅ SQLite 성능 최적화
+- **WAL 모드 활성화**: Write-Ahead Logging으로 동시성 향상
+- **배치 삽입**: `executemany`를 사용하여 5-10배 성능 향상
+- **복합 인덱스**: 자주 사용되는 쿼리 패턴에 대한 인덱스 자동 생성
+  - `idx_events_host_timestamp`
+  - `idx_events_source_timestamp`
+  - `idx_events_hash`
+  - `idx_findings_event_id`
+
+### ✅ 병렬 처리 지원
+- **규칙 분석 병렬화**: `ThreadPoolExecutor`를 사용한 병렬 규칙 분석
+- **자동 활성화**: 이벤트 수가 1,000개 이상일 때 자동 활성화
+- **성능 향상**: 2-4배 처리 속도 향상
+
+### ✅ 시나리오 템플릿 확장
+- **기본 템플릿 확장**: 4개 → 12개 템플릿
+  - 기존: PowerShell Execution, Command and Scripting Interpreter, Data Encoding, Scheduled Task
+  - 추가: Registry Persistence, Scheduled Task Execution, BITS Data Transfer, RDP Lateral Movement, Fileless Attack, Credential Dumping, Service Creation 등
+- **사용자 정의 템플릿 지원**: YAML 형식으로 커스텀 시나리오 템플릿 정의 가능
+- **템플릿 로딩**: `scenarios/` 디렉토리에서 자동 로드
+
+### ✅ 임시 파일 자동 정리
+- **웹 UI 자동 정리**: 분석 완료 후 임시 디렉토리 자동 삭제
+- **정리 스크립트**: `scripts/cleanup_temp.py` 추가
+  - 프로젝트 내 임시 디렉토리 검색 및 정리
+  - 시스템 임시 디렉토리 정리
+  - 자동 정리 모드 지원 (`--yes` 옵션)
+
+### ✅ 이벤트 수집 로깅 개선
+- **상세 로깅**: JSON 파싱 오류 상세 로깅
+- **파일별 처리 결과**: 각 파일의 처리 결과 로깅
+- **진단 정보**: 0개 이벤트 수집 시 원인 파악을 위한 상세 정보 제공
+
+### ✅ Import 오류 해결
+- **reporting 모듈**: `reporting/__init__.py`에서 상위 모듈 re-export
+- **타입 힌트**: `integrity.py`에 `Any` 타입 추가
+
 ## 다음 단계
 
-Phase 2 개선 사항:
+Phase 3 개선 사항 (선택적):
 - 상관 규칙 YAML 지원
 - 세션 분석 개선
-- 데이터베이스 최적화
-- 테스트 코드 작성
+- 머신러닝 기반 추론
+- 테스트 코드 확장

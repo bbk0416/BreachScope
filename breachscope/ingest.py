@@ -12,6 +12,25 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# 다계층 아티팩트 수집 모듈
+try:
+    from .artifacts import (
+        collect_prefetch,
+        collect_registry,
+        collect_usb_history,
+        collect_browser_history,
+    )
+except ImportError:
+    # 모듈이 없을 경우 빈 함수로 대체
+    def collect_prefetch(*args, **kwargs):
+        return []
+    def collect_registry(*args, **kwargs):
+        return []
+    def collect_usb_history(*args, **kwargs):
+        return []
+    def collect_browser_history(*args, **kwargs):
+        return []
+
 
 def _extract_from_xml(xml_text: str) -> dict:
     try:
@@ -333,3 +352,100 @@ def collect_windows_logs(
         logger.warning(f"수집 실패한 로그: {', '.join(failed_logs)}")
 
     return output_dir
+
+
+def collect_multi_layer_artifacts(
+    output_dir: Optional[Path] = None,
+    profile: str = "default",
+    include_prefetch: bool = True,
+    include_registry: bool = True,
+    include_usb: bool = True,
+    include_browser: bool = True,
+) -> Optional[Path]:
+    """
+    다계층 아티팩트 수집 (Prefetch, Registry, USB, 브라우저 등)
+
+    Args:
+        output_dir: 수집된 아티팩트를 저장할 디렉토리 (None이면 임시 디렉토리)
+        profile: 수집 프로파일 ("default", "comprehensive", "minimal")
+        include_prefetch: Prefetch 파일 수집 여부
+        include_registry: 레지스트리 수집 여부
+        include_usb: USB 기록 수집 여부
+        include_browser: 브라우저 이력 수집 여부
+
+    Returns:
+        수집된 아티팩트가 JSONL로 저장된 디렉토리 경로, 실패 시 None
+    """
+    import json
+
+    # 출력 디렉토리 설정
+    if output_dir is None:
+        import tempfile
+        output_dir = Path(tempfile.mkdtemp(prefix="breachscope_artifacts_"))
+    else:
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    all_events = []
+
+    # Prefetch 수집
+    if include_prefetch:
+        try:
+            prefetch_events = collect_prefetch(output_dir=output_dir)
+            all_events.extend(prefetch_events)
+            logger.info(f"Prefetch 이벤트 {len(prefetch_events)}개 수집")
+        except Exception as e:
+            logger.warning(f"Prefetch 수집 실패: {e}")
+
+    # Registry 수집
+    if include_registry:
+        try:
+            registry_events = collect_registry(output_dir=output_dir)
+            all_events.extend(registry_events)
+            logger.info(f"Registry 이벤트 {len(registry_events)}개 수집")
+        except Exception as e:
+            logger.warning(f"Registry 수집 실패: {e}")
+
+    # USB 기록 수집
+    if include_usb:
+        try:
+            usb_events = collect_usb_history(output_dir=output_dir)
+            all_events.extend(usb_events)
+            logger.info(f"USB 이벤트 {len(usb_events)}개 수집")
+        except Exception as e:
+            logger.warning(f"USB 기록 수집 실패: {e}")
+
+    # 브라우저 이력 수집
+    if include_browser:
+        try:
+            browser_events = collect_browser_history(output_dir=output_dir)
+            all_events.extend(browser_events)
+            logger.info(f"브라우저 이벤트 {len(browser_events)}개 수집")
+        except Exception as e:
+            logger.warning(f"브라우저 이력 수집 실패: {e}")
+
+    # 수집된 이벤트를 JSONL 파일로 저장
+    if all_events:
+        jsonl_path = output_dir / "artifacts.jsonl"
+        with jsonl_path.open("w", encoding="utf-8") as f:
+            for event in all_events:
+                f.write(json.dumps(event, ensure_ascii=False) + "\n")
+
+        logger.info(f"총 {len(all_events)}개 아티팩트 이벤트 수집 완료: {output_dir}")
+
+        # 아티팩트 분류 (KAPE 스타일)
+        try:
+            from .artifacts.classifier import classify_and_organize
+            classification_result = classify_and_organize(
+                all_events,
+                output_dir / "classified",
+                create_directories=True,
+            )
+            logger.info(f"아티팩트 분류 완료: {len(classification_result['summary']['categories'])}개 카테고리")
+        except Exception as e:
+            logger.debug(f"아티팩트 분류 실패: {e}")
+
+        return output_dir
+    else:
+        logger.warning("수집된 아티팩트가 없습니다.")
+        return None

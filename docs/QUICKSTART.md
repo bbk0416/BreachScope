@@ -102,7 +102,7 @@ run_web_fastapi.bat
 
 또는 직접 실행:
 ```bash
-python -m uvicorn web.app_fastapi:app --host 0.0.0.0 --port 8501
+python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ```
 
 브라우저에서 `http://localhost:8501`로 접속하여 파일 업로드 → 분석 → 리포트 다운로드
@@ -124,8 +124,23 @@ min_severity: medium
 python run.py --input logs
 ```
 
+## 🧹 임시 파일 정리
+
+분석 후 생성된 임시 파일을 정리하려면:
+
+```bash
+# 대화형 모드 (확인 후 정리)
+python scripts/cleanup_temp.py
+
+# 자동 정리 (확인 없이 정리)
+python scripts/cleanup_temp.py --yes
+```
+
+프로젝트 내 및 시스템 임시 디렉토리의 BreachScope 관련 임시 파일을 자동으로 검색하고 정리합니다.
+
 ## 💡 팁
 
 1. **가장 빠른 테스트**: `python run.py --demo`
 2. **웹 UI가 가장 편함**: `run_web_fastapi.bat` (Windows) 또는 `./run_web_fastapi.sh` (Linux/Mac)
 3. **자주 쓰는 옵션은 설정 파일에**: `breachscope.yaml`
+4. **분석 후 정리**: `python scripts/cleanup_temp.py --yes`로 임시 파일 정리

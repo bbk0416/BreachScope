@@ -129,7 +129,7 @@ def correlate_events(
         indexed_events.sort(key=lambda x: x[2])
         sorted_events = [event for _, event, _ in indexed_events]
         event_indices = {get_event_key(event): idx for idx, (orig_idx, event, _) in enumerate(indexed_events)}
-        
+
         # 타임스탬프 리스트 생성 (bisect를 위한)
         timestamps = [ts for _, _, ts in indexed_events]
 

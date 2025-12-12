@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "breachscope"
+version = "1.0.0"
+description = "디지털 포렌식 로그 분석 시스템"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "BreachScope Team"}
+]
+keywords = ["forensics", "dfir", "security", "log-analysis", "mitre-attack"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "fastapi>=0.104",
+    "uvicorn[standard]>=0.24",
+    "python-multipart>=0.0.6",
+    "python-evtx>=0.6",
+]
+
+[project.optional-dependencies]
+pdf = ["weasyprint>=62"]
+evtx = ["python-evtx>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/bbk0416/BreachScope"
+Documentation = "https://github.com/bbk0416/BreachScope"
+Repository = "https://github.com/bbk0416/BreachScope"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["breachscope*", "api*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yml", "*.yaml", "*.txt", "*.html", "*.j2"]

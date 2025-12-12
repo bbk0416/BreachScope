@@ -6,6 +6,12 @@ import re
 
 from .schemas import Report, Finding, Event
 from .attack import get_mitre_name
+from .reporting.nlg import NLGTemplate
+from .reporting.integrity import (
+    generate_evidence_hash_list,
+    generate_report_hash,
+    calculate_file_hash,
+)
 
 
 def build_summary(findings: List[Finding]) -> Dict[str, object]:

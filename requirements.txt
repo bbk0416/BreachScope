@@ -7,4 +7,4 @@ python-multipart>=0.0.6
 # Optional (PDF export):
 # weasyprint>=62
 # Optional (EVTX ingestion):
-# python-evtx>=0.6
+python-evtx>=0.6

@@ -1,3 +1,3 @@
 #!/bin/bash
-# BreachScope 실행 스크립트 (래퍼)
+# BreachScope CLI 실행 래퍼 (루트)
 python scripts/run.py "$@"
