@@ -72,6 +72,8 @@ BreachScope/
 │   └── report.*             # 생성된 리포트
 │
 ├── .gitignore               # Git 제외 파일 목록
+├── LICENSE                  # MIT 라이선스
+├── CONTRIBUTING.md          # 기여 가이드
 ├── requirements.txt         # Python 의존성
 └── README.md                # 프로젝트 개요
 ```

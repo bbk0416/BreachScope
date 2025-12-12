@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "BreachScope Team"}
+    {name = "bbk0416", email = "bbk0416@gmail.com"}
 ]
 keywords = ["forensics", "dfir", "security", "log-analysis", "mitre-attack"]
 classifiers = [

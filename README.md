@@ -2,6 +2,8 @@
 
 **BreachScope**는 디지털 포렌식 및 사고 대응(DFIR)을 위한 자동화된 로그 분석 도구입니다. Windows 이벤트 로그와 다양한 보안 로그를 분석하여 공격 시나리오를 자동으로 탐지하고 시각화합니다.
 
+**작성자**: bbk0416 (bbk0416@gmail.com)
+
 ## 주요 기능
 
 - 🔍 **규칙 기반 탐지**: YAML 기반 탐지 규칙으로 의심스러운 활동 자동 탐지
@@ -19,7 +21,7 @@
 
 ```bash
 # 저장소 클론
-git clone <repository-url>
+git clone https://github.com/bbk0416/BreachScope.git
 cd BreachScope
 
 # 의존성 설치
@@ -159,11 +161,22 @@ export BS_MAX_EVENTS=10000 # 최대 이벤트 수 (기본값: 무제한)
 
 ## 라이선스
 
-[라이선스 정보 추가]
+이 프로젝트는 [MIT License](LICENSE)를 따릅니다.
+
+MIT License는 자유롭게 사용, 수정, 배포할 수 있는 오픈소스 라이선스입니다. 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 ## 기여
 
-[기여 가이드 추가]
+BreachScope 프로젝트에 기여를 환영합니다! 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md)를 참조하세요.
+
+### 기여 방법
+
+1. **이슈 리포트**: 버그나 기능 개선 아이디어를 [GitHub Issues](https://github.com/bbk0416/BreachScope/issues)에 등록
+2. **코드 기여**: Pull Request를 통해 코드 기여
+3. **문서 개선**: 문서 오류 수정 또는 개선
+4. **테스트 코드**: 테스트 커버리지 향상
+
+자세한 내용은 [기여 가이드](CONTRIBUTING.md)를 확인해주세요.
 
 ## 변경 이력
 
@@ -188,7 +201,13 @@ python scripts/cleanup_temp.py --yes
 
 ## 지원
 
-[지원 채널 정보 추가]
+### 이슈 리포트
+
+버그 리포트나 기능 요청은 [GitHub Issues](https://github.com/bbk0416/BreachScope/issues)를 사용해주세요.
+
+### 질문
+
+기술적 질문이나 사용법 문의도 GitHub Issues를 통해 남겨주시면 도와드리겠습니다.
 
 ---
 

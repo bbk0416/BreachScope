@@ -9,7 +9,8 @@ BreachScope: 자동화된 디지털 포렌식 분석 도구
 """
 
 __version__ = "1.0.0"
-__author__ = "BreachScope Team"
+__author__ = "bbk0416"
+__email__ = "bbk0416@gmail.com"
 __description__ = "자동화된 디지털 포렌식 및 사고 대응 로그 분석 도구"
 
 __all__ = [
