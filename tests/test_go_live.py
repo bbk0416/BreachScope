@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 from fastapi.testclient import TestClient
 
@@ -54,7 +55,8 @@ def test_write_env_refuses_overwrite_without_force(tmp_path):
         raise AssertionError("expected FileExistsError")
     result = write_env_file(output, template, production=True, force=True)
     assert result["output"] == str(output)
-    assert output.stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":
+        assert output.stat().st_mode & 0o777 == 0o600
 
 
 def test_go_live_check_passes_with_production_env(tmp_path, monkeypatch):

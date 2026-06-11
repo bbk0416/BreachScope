@@ -1,4 +1,4 @@
-"""Static showcase/landing-page builder for BreachScope.
+﻿"""Static showcase/landing-page builder for BreachScope.
 
 The demo pack is meant to be downloaded and reviewed offline. The showcase is
 meant to be published as a tiny static site, for example with GitHub Pages, so a
@@ -162,7 +162,7 @@ def _index_html(meta: dict[str, Any], demo: dict[str, Any], readiness: dict[str,
     )
     tactics = demo.get("top_tactics") or []
     tactic_html = "\n".join(
-        f'<li><b>{esc(row.get("tactic", "unknown"))}</b><span>{esc(row.get("count", 0))} findings</span></li>'
+        f'<li><b>{esc(row.get("tactic", "unknown"))}</b><span>{esc(row.get("findings", row.get("count", 0)))} findings</span></li>'
         for row in tactics
     ) or "<li><b>No findings</b><span>Run the demo scenario first.</span></li>"
     return f'''<!doctype html>

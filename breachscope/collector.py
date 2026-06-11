@@ -102,5 +102,5 @@ def load_jsonl_events(path: Path, include_artifacts: bool = False) -> Iterator[E
             continue
 
     if total_events > 0:
-        total_time = time.time() - file_start_time
+        total_time = max(time.time() - file_start_time, 1e-9)
         logger.info(f"총 {total_events}개 이벤트 수집 완료 (총 {total_time:.2f}초, 평균 {total_events/total_time:.0f} 이벤트/초)")

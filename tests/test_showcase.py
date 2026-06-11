@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
@@ -61,3 +61,4 @@ def test_showcase_preview_api():
     assert payload["showcase"]["rule_count"] >= 50
     assert payload["showcase"]["entrypoint"] == "index.html"
     assert "python scripts/build_showcase.py" in payload["showcase"]["recommended_command"]
+
