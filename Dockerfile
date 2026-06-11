@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+﻿FROM python:3.11-slim
 
 ARG VERSION=local
 ARG VCS_REF=unknown
@@ -38,13 +38,14 @@ COPY templates ./templates
 COPY run.sh run_web_fastapi.sh ./
 
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e . "reportlab>=4"
+    && pip install --no-cache-dir -e ".[dev]"
 
 RUN useradd --create-home --uid 10001 breachscope \
     && mkdir -p /data \
     && chown -R breachscope:breachscope /data /app
 
 USER breachscope
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

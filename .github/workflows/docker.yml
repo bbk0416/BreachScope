@@ -1,4 +1,4 @@
-name: Docker Build
+﻿name: Docker Build
 
 on:
   push:
@@ -13,6 +13,7 @@ permissions:
 jobs:
   docker-build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,12 +40,14 @@ jobs:
             -e BS_ADMIN_PASSWORD=ci-password \
             -e BS_SESSION_SECRET=ci-session-secret-please-change \
             breachscope:ci
+
           for i in {1..30}; do
             if curl -fsS http://127.0.0.1:8000/api/health/live; then
               break
             fi
             sleep 2
           done
+
           curl -fsS http://127.0.0.1:8000/api/health/ready
           curl -fsS -H 'X-API-Key: ci-key' http://127.0.0.1:8000/api/info
           curl -fsS -H 'X-API-Key: ci-key' http://127.0.0.1:8000/api/ops/release-info
