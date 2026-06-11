@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "tool": "BreachScope",
-  "generated_at": "2026-06-11T16:04:58.557927+00:00",
+  "generated_at": "2026-06-11T16:24:55.644330+00:00",
   "case": {
     "total_events": 48,
     "total_findings": 53,
@@ -22,7 +22,7 @@
       "WS-701"
     ]
   },
-  "report_sha256": "384ceda782980582ec3cb781d3958a9d915d1b3e5433ce2bedf05abcfac8b541",
+  "report_sha256": "a55dfec95c8336e4c6029b1cb3877ae282fe7e546dc117b97d75053495c1250e",
   "evidence_hashes": {
     "events": [
       {
@@ -871,19 +871,13 @@
       "name": "breachscope_showcase_report.html",
       "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.html",
       "size_bytes": 207471,
-      "sha256": "986f3be73a1597afe5a715eafa43fdc022bb8071b0e8b1a3ced9bcf48a06133e"
-    },
-    {
-      "name": "breachscope_showcase_report.pdf",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.pdf",
-      "size_bytes": 116009,
-      "sha256": "518409d4769c294a96727282b11e62872d00bf6a8963ab8f8347ab4cf821fbe4"
+      "sha256": "0149ec8d752f49c5ad2c92717f459555865615c6e2140ba5cdd3175317f4dca1"
     },
     {
       "name": "breachscope_showcase_report.json",
       "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.json",
       "size_bytes": 104632,
-      "sha256": "61e7984bfb6a2ffdb5fbd47575799c16aed17b394d32c4522213978a25436760"
+      "sha256": "c2b255e0f3438658f25eb3952f28c6d60e5158e0ebc670225f4971a86b4cf027"
     },
     {
       "name": "breachscope_showcase_report.csv",

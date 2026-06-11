@@ -1,15 +1,15 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T16:04:59Z",
+  "generated_at": "2026-06-11T16:24:56Z",
   "metadata": {
     "name": "breachscope",
     "version": "1.0.0",
-    "description": "디지털 포렌식 로그 분석 시스템",
+    "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T16:04:59Z",
-    "git_sha": "7d8142f",
-    "git_tag": "v1.0.0",
+    "generated_at": "2026-06-11T16:24:56Z",
+    "git_sha": "ff6b31b",
+    "git_tag": null,
     "build_number": null
   },
   "demo_summary": {

@@ -1,15 +1,15 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T16:04:59Z",
+  "generated_at": "2026-06-11T16:24:56Z",
   "metadata": {
     "name": "breachscope",
     "version": "1.0.0",
-    "description": "디지털 포렌식 로그 분석 시스템",
+    "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T16:04:59Z",
-    "git_sha": "7d8142f",
-    "git_tag": "v1.0.0",
+    "generated_at": "2026-06-11T16:24:56Z",
+    "git_sha": "ff6b31b",
+    "git_tag": null,
     "build_number": null
   },
   "demo_summary": {
@@ -389,7 +389,7 @@
     {
       "path": "index.html",
       "size_bytes": 5090,
-      "sha256": "1f6b63c11846d876daabd5df5fa7c80548a53d13b8f6c8a622ccd4ec77c1c662",
+      "sha256": "ad89aab37740d778d580395c30e4c237887427322f30f09206ca7d0532d9c33b",
       "purpose": "static showcase landing page"
     },
     {
@@ -400,8 +400,8 @@
     },
     {
       "path": "data/showcase_summary.json",
-      "size_bytes": 9814,
-      "sha256": "1747a0fa527409226c7db010e0f9a59c6d768807ae72a8e15f11825be9e0827e",
+      "size_bytes": 9827,
+      "sha256": "2f7673144fdb9634bd84796cc8ac96b0907eb5f85b90f1ca3783afe605081e79",
       "purpose": "machine-readable demo and readiness metrics"
     },
     {
@@ -419,13 +419,13 @@
     {
       "path": "reports/breachscope_showcase_report.html",
       "size_bytes": 207471,
-      "sha256": "986f3be73a1597afe5a715eafa43fdc022bb8071b0e8b1a3ced9bcf48a06133e",
+      "sha256": "0149ec8d752f49c5ad2c92717f459555865615c6e2140ba5cdd3175317f4dca1",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.json",
       "size_bytes": 104632,
-      "sha256": "61e7984bfb6a2ffdb5fbd47575799c16aed17b394d32c4522213978a25436760",
+      "sha256": "c2b255e0f3438658f25eb3952f28c6d60e5158e0ebc670225f4971a86b4cf027",
       "purpose": "generated demo report artifact"
     },
     {
@@ -448,20 +448,14 @@
     },
     {
       "path": "reports/breachscope_showcase_report.manifest.json",
-      "size_bytes": 30693,
-      "sha256": "d872cd3662807efebfeaf64a69f27520bfd3bd6c602748586acd1ee3787aabd5",
+      "size_bytes": 30381,
+      "sha256": "6b5df9bd58c78c7b9029610209b7ef55a2831711cf3347cfa8e03c364cfd3fd2",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.zip",
-      "size_bytes": 163911,
-      "sha256": "b010a875d393ce7f38fdbac015f35e43205d7132be177be6417b9682a0d07a6b",
-      "purpose": "generated demo report artifact"
-    },
-    {
-      "path": "reports/breachscope_showcase_report.pdf",
-      "size_bytes": 116009,
-      "sha256": "518409d4769c294a96727282b11e62872d00bf6a8963ab8f8347ab4cf821fbe4",
+      "size_bytes": 53885,
+      "sha256": "2fcd02c81c1f74483616f20d6e40570fb4a488b07a543cc18f0b6cc024d8b000",
       "purpose": "generated demo report artifact"
     }
   ]
