@@ -1,0 +1,33 @@
+services:
+  breachscope:
+    build:
+      context: .
+      args:
+        VERSION: ${BS_BUILD_VERSION:-local}
+        VCS_REF: ${BS_BUILD_SHA:-local}
+        BUILD_DATE: ${BS_BUILD_TIME:-local}
+    image: breachscope:local
+    container_name: breachscope
+    env_file:
+      - .env
+    environment:
+      BS_CASES_ROOT: /data/cases
+      BS_CASE_HISTORY_PATH: /data/case_history.json
+      BS_AUDIT_LOG_PATH: /data/audit.jsonl
+      BS_AUTH_RATE_LIMIT_PATH: /data/auth_rate_limit.json
+      BS_BACKUP_ROOT: /data/backups
+    ports:
+      - "8000:8000"
+    volumes:
+      - breachscope-data:/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  breachscope-data:

@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible BreachScope defect
+title: "[Bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve BreachScope. Please avoid uploading real secrets, credentials, or sensitive customer logs.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+      placeholder: The analyzer returned ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command/API call and a sanitized sample when possible.
+      placeholder: |
+        1. Run `python scripts/run.py ...`
+        2. Open `out/report.html`
+        3. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      placeholder: v1.0.0 or git SHA
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - CLI
+        - Web console
+        - Rules / detections
+        - Report / PDF
+        - Case workflow
+        - Auth / audit / backups
+        - Docker / deployment
+        - CI/CD
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or screenshots
+      render: shell

@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# BreachScope 임시 파일
+.breachscope_temp/
+.breachscope_web_temp/
+.breachscope_collect_temp/
+.breachscope_evtx_*/
+breachscope_evtx_*/
+breachscope_collect_*/
+bs_web_*/
+
+# 출력 파일
+out/
+*.html
+*.json
+*.csv
+*.pdf
+!templates/*.html
+!docs/**/*.md
+
+# 로그 파일
+*.log
+performance.log
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 설정 파일 (선택적)
+breachscope.yaml
+breachscope.db
+
+# 테스트
+.pytest_cache/
+.coverage
+htmlcov/

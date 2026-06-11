@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BreachScope Web UI - BreachScope Web Console</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #eef2f7;
+      color: #172033;
+    }
+    .shell { max-width: 1320px; margin: 0 auto; padding: 28px 18px 48px; }
+    .hero {
+      background: linear-gradient(135deg, #14213d 0%, #243b70 55%, #375a9e 100%);
+      color: white;
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 18px 40px rgba(20,33,61,.18);
+      margin-bottom: 18px;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -.03em; }
+    .hero p { margin: 0; color: #dbe7ff; }
+    .layout { display: grid; grid-template-columns: minmax(330px, 420px) 1fr; gap: 18px; align-items: start; }
+    .panel {
+      background: white;
+      border: 1px solid #dde5f0;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(20,33,61,.07);
+      overflow: hidden;
+    }
+    .panel-header { padding: 18px 20px; border-bottom: 1px solid #edf1f6; }
+    .panel-header h2 { margin: 0; font-size: 18px; }
+    .panel-body { padding: 20px; }
+    .section { margin-bottom: 22px; }
+    .section-title { font-weight: 800; font-size: 14px; color: #33415c; margin-bottom: 12px; display:flex; gap:6px; align-items:center; }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 700; color: #4d5b73; margin-bottom: 6px; }
+    input[type="file"], input[type="text"], input[type="password"], input[type="number"], select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #cfd8e6; border-radius: 10px; background: #fff; font-size: 14px;
+    }
+    input[type="file"] { border-style: dashed; background: #f8fbff; }
+    textarea { min-height: 84px; resize: vertical; font-family: inherit; }
+    .check { display: flex; align-items: center; gap: 9px; margin: 9px 0; }
+    .check input { width: 18px; height: 18px; }
+    .check label { margin: 0; font-weight: 600; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hint { color: #718096; font-size: 12px; line-height: 1.45; margin-top: 6px; }
+    .btn {
+      border: 0; border-radius: 12px; padding: 12px 16px; cursor: pointer; font-weight: 800; font-size: 14px;
+      text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { width: 100%; background: #2563eb; color: white; box-shadow: 0 10px 22px rgba(37,99,235,.22); }
+    .btn-primary:disabled { background: #a6b3c8; box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn-download { background: #ecfdf5; color: #047857; border: 1px solid #bbf7d0; margin: 4px; }
+    .btn-open { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; margin: 4px; }
+    .empty-state {
+      padding: 46px 28px; text-align: center; color: #667085;
+    }
+    .empty-state .icon { font-size: 42px; margin-bottom: 10px; }
+    .loading { display: none; padding: 30px; text-align: center; }
+    .spinner { width: 42px; height: 42px; border: 4px solid #e6edf7; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .alert { padding: 13px 15px; border-radius: 12px; margin-bottom: 14px; line-height: 1.45; }
+    .alert-success { background: #ecfdf3; color: #065f46; border: 1px solid #bbf7d0; }
+    .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .alert-info { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+    .cards { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; }
+    .card .label { color: #64748b; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+    .card .value { margin-top: 5px; font-size: 28px; font-weight: 900; letter-spacing: -.04em; }
+    .risk-none { color: #64748b; } .risk-low { color: #2563eb; } .risk-medium { color: #b45309; } .risk-high { color: #c2410c; } .risk-critical { color: #b91c1c; }
+    .riskbar { height: 12px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 10px; }
+    .riskfill { height: 100%; width: 0%; background: linear-gradient(90deg,#38bdf8,#f59e0b,#ef4444); border-radius: 999px; }
+    .subgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .box { border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; background: #fff; }
+    .box h3 { margin: 0 0 10px; font-size: 15px; }
+    .list { margin: 0; padding-left: 19px; color: #334155; }
+    .list li { margin: 5px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #edf1f6; vertical-align: top; }
+    th { color: #475569; background: #f8fafc; font-size: 12px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .pill { display: inline-block; border-radius: 999px; padding: 3px 8px; font-size: 12px; font-weight: 800; margin: 2px 4px 2px 0; background: #eef2ff; color: #3730a3; }
+    .sev-low { color:#1d4ed8; font-weight:800; } .sev-medium { color:#b45309; font-weight:800; } .sev-high { color:#c2410c; font-weight:800; } .sev-critical { color:#b91c1c; font-weight:900; }
+    .bars { display: grid; gap: 8px; }
+    .barrow { display: grid; grid-template-columns: 96px 1fr 36px; gap: 8px; align-items: center; }
+    .barwrap { height: 9px; background:#e5e7eb; border-radius:999px; overflow:hidden; }
+    .barfill { height: 100%; background:#2563eb; border-radius:999px; }
+    .downloads { margin-top: 12px; display: flex; flex-wrap: wrap; }
+    .case-list { display: grid; gap: 8px; margin-top: 10px; }
+    .case-item { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; background: #f8fafc; cursor: pointer; }
+    .case-item:hover { border-color: #93c5fd; background: #eff6ff; }
+    .case-title { display:flex; justify-content:space-between; gap:8px; align-items:center; font-weight:900; }
+    .case-meta { margin-top:4px; color:#64748b; font-size:12px; }
+    .case-actions { display:flex; gap:6px; margin-top:8px; }
+    .audit-list { display:grid; gap:8px; margin-top:10px; max-height:260px; overflow:auto; }
+    .ops-list { display:grid; gap:8px; margin-top:10px; }
+    .audit-item { border:1px solid #e2e8f0; border-radius:12px; padding:9px; background:#fbfdff; }
+    .audit-title { display:flex; justify-content:space-between; gap:8px; font-weight:900; font-size:12px; }
+    .audit-meta { margin-top:4px; color:#64748b; font-size:11px; }
+    .btn-mini { padding:5px 8px; font-size:12px; border-radius:8px; }
+    .tabs { display:flex; gap:8px; flex-wrap:wrap; margin: 14px 0; }
+    .tab { background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; padding:8px 11px; border-radius:999px; cursor:pointer; font-weight:800; }
+    .tab.active { background:#1d4ed8; color:white; border-color:#1d4ed8; }
+    .tabpane { display:none; } .tabpane.active { display:block; }
+    @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } .cards { grid-template-columns: repeat(2, 1fr); } .subgrid { grid-template-columns: 1fr; } }
+    @media (max-width: 540px) { .cards, .grid2 { grid-template-columns: 1fr; } .hero h1 { font-size: 26px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="hero">
+      <h1>🛡️ BreachScope Web Console</h1>
+      <p>로그 업로드 → DFIR 분석 → 리스크/타임라인/IOC/ATT&CK 커버리지 즉시 확인</p>
+    </div>
+
+    <div class="layout">
+      <form id="analyzeForm" class="panel" enctype="multipart/form-data">
+        <div class="panel-header"><h2>분석 설정</h2></div>
+        <div class="panel-body">
+          <div class="section">
+            <div class="section-title">① 로그 입력</div>
+            <div class="check">
+              <input type="checkbox" id="collectEvtx">
+              <label for="collectEvtx">Windows 이벤트 로그 자동 수집</label>
+            </div>
+            <div id="collectOptions" style="display:none">
+              <div class="form-group">
+                <label for="collectLogs">수집 로그</label>
+                <input type="text" id="collectLogs" placeholder="Security,System,Application,PowerShell">
+              </div>
+              <div class="form-group">
+                <label for="collectHours">최근 N시간</label>
+                <input type="number" id="collectHours" min="1" placeholder="예: 24">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="logFiles">JSONL/EVTX 파일 업로드</label>
+              <input type="file" id="logFiles" multiple accept=".jsonl,.evtx,.json">
+              <div class="hint">업로드가 없고 자동 수집도 꺼져 있으면 빈 분석 리포트가 생성됩니다.</div>
+            </div>
+            <div class="form-group">
+              <label for="workDirPath">작업 디렉토리 경로</label>
+              <input type="text" id="workDirPath" placeholder="선택사항. 예: D:\\breachscope_work">
+              <div class="hint">비워두면 시스템 임시 디렉토리를 사용하고, 분석 후 다운로드를 위해 보존합니다.</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">② 룰/필터</div>
+            <div class="check">
+              <input type="checkbox" id="useRepoRules" checked>
+              <label for="useRepoRules">저장소 rules/ 룰팩 사용</label>
+            </div>
+            <div class="grid2">
+              <div class="form-group">
+                <label for="minSeverity">최소 심각도</label>
+                <select id="minSeverity">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="hostInclude">호스트 포함</label>
+                <input type="text" id="hostInclude" placeholder="WS-01,WS-02">
+              </div>
+            </div>
+            <div class="grid2">
+              <div class="form-group">
+                <label for="mitreInclude">포함 TTP</label>
+                <input type="text" id="mitreInclude" placeholder="T1059.001,T1105">
+              </div>
+              <div class="form-group">
+                <label for="mitreExclude">제외 TTP</label>
+                <input type="text" id="mitreExclude" placeholder="T1003">
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">③ 출력 옵션</div>
+            <div class="check"><input type="checkbox" id="redact" checked><label for="redact">보고서 마스킹 활성화</label></div>
+            <div class="check"><input type="checkbox" id="renderPdf"><label for="renderPdf">PDF 생성</label></div>
+            <div class="check"><input type="checkbox" id="doEvtx"><label for="doEvtx">업로드 EVTX 자동 변환</label></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">④ 배포 보안</div>
+            <div class="form-group">
+              <label for="apiKey">API Key</label>
+              <input type="text" id="apiKey" placeholder="BS_API_KEY 설정 시 입력">
+              <div class="hint">자동화/API 클라이언트용입니다. 브라우저 사용자는 아래 관리자 로그인(HttpOnly 쿠키)을 권장합니다.</div>
+            </div>
+            <div class="form-group">
+              <label for="adminPassword">관리자 로그인</label>
+              <input type="password" id="adminPassword" placeholder="BS_ADMIN_PASSWORD 설정 시 입력" autocomplete="current-password">
+              <div class="case-actions">
+                <button type="button" class="btn btn-mini btn-open" id="loginBtn">로그인</button>
+                <button type="button" class="btn btn-mini btn-download" id="logoutBtn">로그아웃</button>
+              </div>
+              <div class="hint" id="authStatus">인증 상태 확인 중...</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="analyzeBtn">분석 실행</button>
+
+          <div class="section">
+            <div class="section-title">⑤ 최근 분석 이력</div>
+            <div class="hint">분석 완료 후 케이스 ID로 다시 열 수 있습니다.</div>
+            <div id="caseHistory" class="case-list"><div class="hint">이력 불러오는 중...</div></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">⑥ 운영 관리</div>
+            <div class="hint">케이스 백업과 오래된 케이스 정리를 수행합니다. 정리는 기본 dry-run으로 먼저 후보를 확인하세요.</div>
+            <div class="case-actions">
+              <button type="button" class="btn btn-mini btn-open" id="createBackupBtn">백업 생성</button>
+              <button type="button" class="btn btn-mini btn-download" id="refreshBackupsBtn">백업 목록</button>
+            </div>
+            <div class="case-actions">
+              <button type="button" class="btn btn-mini btn-open" id="pruneDryRunBtn">정리 후보 확인</button>
+              <button type="button" class="btn btn-mini btn-download" id="pruneApplyBtn">오래된 케이스 정리</button>
+            </div>
+            <div class="hint" id="opsStatus">대기 중</div>
+            <div id="backupList" class="ops-list"><div class="hint">백업 목록을 불러오지 않았습니다.</div></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">⑦ 상태/진단</div>
+            <div class="hint">배포 상태, 메트릭, 설정 위험요소, 자체 테스트 결과를 확인합니다.</div>
+            <div class="case-actions">
+              <button type="button" class="btn btn-mini btn-open" id="refreshMetricsBtn">메트릭</button>
+              <button type="button" class="btn btn-mini btn-open" id="configCheckBtn">설정 진단</button>
+              <button type="button" class="btn btn-mini btn-download" id="selfTestBtn">셀프테스트</button>
+              <button type="button" class="btn btn-mini btn-open" id="qualityGateBtn">품질 게이트</button>
+              <button type="button" class="btn btn-mini btn-download" id="goLiveBtn">Go-Live 점검</button>
+              <button type="button" class="btn btn-mini btn-open" id="showcasePreviewBtn">쇼케이스</button>
+            </div>
+            <div id="opsDiagnostics" class="ops-list"><div class="hint">진단을 실행하지 않았습니다.</div></div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">⑧ 감사 로그</div>
+            <div class="hint">로그인, 분석, 다운로드, 삭제 같은 운영 흔적을 최근순으로 표시합니다.</div>
+            <div class="case-actions">
+              <button type="button" class="btn btn-mini btn-open" id="refreshAuditBtn">새로고침</button>
+              <a class="btn btn-mini btn-download" id="auditCsvLink" href="/api/audit/export?file_type=csv" download>CSV</a>
+              <a class="btn btn-mini btn-download" id="auditJsonlLink" href="/api/audit/export?file_type=jsonl" download>JSONL</a>
+            </div>
+            <div id="auditLog" class="audit-list"><div class="hint">감사 로그 불러오는 중...</div></div>
+          </div>
+        </div>
+      </form>
+
+      <main class="panel">
+        <div class="panel-header"><h2>결과 대시보드</h2></div>
+        <div class="loading" id="loading"><div class="spinner"></div><b>분석 중...</b><div class="hint">대용량 EVTX는 시간이 걸릴 수 있습니다.</div></div>
+        <div id="results" class="panel-body">
+          <div class="empty-state">
+            <div class="icon">📊</div>
+            <b>분석 결과가 여기에 표시됩니다.</b>
+            <p>완료 후 리스크 카드, ATT&CK 커버리지, IOC 요약, 타임라인, 다운로드 링크가 바로 나옵니다.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('analyzeForm');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const caseHistory = document.getElementById('caseHistory');
+    const auditLog = document.getElementById('auditLog');
+    const refreshAuditBtn = document.getElementById('refreshAuditBtn');
+    const auditCsvLink = document.getElementById('auditCsvLink');
+    const auditJsonlLink = document.getElementById('auditJsonlLink');
+    const createBackupBtn = document.getElementById('createBackupBtn');
+    const refreshBackupsBtn = document.getElementById('refreshBackupsBtn');
+    const pruneDryRunBtn = document.getElementById('pruneDryRunBtn');
+    const pruneApplyBtn = document.getElementById('pruneApplyBtn');
+    const refreshMetricsBtn = document.getElementById('refreshMetricsBtn');
+    const configCheckBtn = document.getElementById('configCheckBtn');
+    const selfTestBtn = document.getElementById('selfTestBtn');
+    const qualityGateBtn = document.getElementById('qualityGateBtn');
+    const goLiveBtn = document.getElementById('goLiveBtn');
+    const showcasePreviewBtn = document.getElementById('showcasePreviewBtn');
+    const opsDiagnostics = document.getElementById('opsDiagnostics');
+    const opsStatus = document.getElementById('opsStatus');
+    const backupList = document.getElementById('backupList');
+    const apiKeyInput = document.getElementById('apiKey');
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authStatus = document.getElementById('authStatus');
+    apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
+    apiKeyInput.addEventListener('change', () => {
+      localStorage.setItem('breachscope_api_key', apiKeyInput.value.trim());
+      refreshAuditLinks();
+      fetchAuthStatus();
+    });
+
+    function authHeaders() {
+      const key = apiKeyInput.value.trim();
+      return key ? {'X-API-Key': key} : {};
+    }
+
+    function authFetch(url, options = {}) {
+      const headers = Object.assign({}, options.headers || {}, authHeaders());
+      return fetch(url, Object.assign({credentials: 'same-origin'}, options, {headers}));
+    }
+
+    function withApiKey(url) {
+      const key = apiKeyInput.value.trim();
+      if (!key) return url;
+      const joiner = url.includes('?') ? '&' : '?';
+      return `${url}${joiner}api_key=${encodeURIComponent(key)}`;
+    }
+
+    function refreshAuditLinks() {
+      if (auditCsvLink) auditCsvLink.href = withApiKey('/api/audit/export?file_type=csv');
+      if (auditJsonlLink) auditJsonlLink.href = withApiKey('/api/audit/export?file_type=jsonl');
+    }
+
+    function renderAuthStatus(payload) {
+      if (!payload || !payload.auth_required) {
+        authStatus.innerHTML = '인증 비활성화: 로컬 데모 모드입니다.';
+        return;
+      }
+      if (payload.authenticated) {
+        const via = payload.auth_method === 'session' ? '세션 로그인' : 'API Key';
+        authStatus.innerHTML = `인증됨: ${escapeHtml(via)}`;
+      } else if (payload.password_login_enabled) {
+        authStatus.innerHTML = '인증 필요: 관리자 비밀번호로 로그인하거나 API Key를 입력하세요.';
+      } else {
+        authStatus.innerHTML = '인증 필요: API Key를 입력하세요.';
+      }
+    }
+
+    async function fetchAuthStatus() {
+      try {
+        const response = await authFetch('/api/auth/status');
+        const payload = await response.json();
+        renderAuthStatus(payload);
+      } catch (error) {
+        authStatus.innerHTML = `인증 상태 확인 실패: ${escapeHtml(error.message || error)}`;
+      }
+    }
+
+    loginBtn.addEventListener('click', async () => {
+      try {
+        const password = adminPasswordInput.value;
+        const response = await authFetch('/api/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({password})
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || payload.message || '로그인 실패');
+        adminPasswordInput.value = '';
+        await fetchAuthStatus();
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        authStatus.innerHTML = `로그인 실패: ${escapeHtml(error.message || error)}`;
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await authFetch('/api/auth/logout', {method: 'POST'});
+        await fetchAuthStatus();
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        authStatus.innerHTML = `로그아웃 실패: ${escapeHtml(error.message || error)}`;
+      }
+    });
+
+    const escapeHtml = (value) => String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+
+    const sevClass = (value) => `sev-${String(value || 'unknown').toLowerCase()}`;
+    const riskClass = (value) => `risk-${String(value || 'none').toLowerCase()}`;
+
+    document.getElementById('collectEvtx').addEventListener('change', (e) => {
+      document.getElementById('collectOptions').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    function addField(fd, name, value) {
+      if (value !== undefined && value !== null && String(value).length > 0) fd.append(name, value);
+    }
+
+    function buildFormData() {
+      const fd = new FormData();
+      for (const file of document.getElementById('logFiles').files) fd.append('files', file);
+      fd.append('use_repo_rules', document.getElementById('useRepoRules').checked ? 'true' : 'false');
+      fd.append('min_severity', document.getElementById('minSeverity').value);
+      fd.append('mitre_include', document.getElementById('mitreInclude').value.trim());
+      fd.append('mitre_exclude', document.getElementById('mitreExclude').value.trim());
+      fd.append('host_include', document.getElementById('hostInclude').value.trim());
+      fd.append('redact', document.getElementById('redact').checked ? 'true' : 'false');
+      fd.append('render_pdf', document.getElementById('renderPdf').checked ? 'true' : 'false');
+      fd.append('do_evtx', document.getElementById('doEvtx').checked ? 'true' : 'false');
+      fd.append('collect_evtx', document.getElementById('collectEvtx').checked ? 'true' : 'false');
+      addField(fd, 'collect_logs', document.getElementById('collectLogs').value.trim());
+      addField(fd, 'collect_hours', document.getElementById('collectHours').value.trim());
+      addField(fd, 'work_dir', document.getElementById('workDirPath').value.trim());
+      return fd;
+    }
+
+    function renderBars(title, rows) {
+      const list = Array.isArray(rows) ? rows : [];
+      const max = Math.max(1, ...list.map(r => Number(r.count || 0)));
+      return `<div class="box"><h3>${escapeHtml(title)}</h3><div class="bars">${list.map(r => {
+        const pct = Math.round(Number(r.count || 0) / max * 100);
+        return `<div class="barrow"><span class="mono">${escapeHtml(r.name)}</span><div class="barwrap"><div class="barfill" style="width:${pct}%"></div></div><b>${escapeHtml(r.count)}</b></div>`;
+      }).join('') || '<div class="hint">데이터 없음</div>'}</div></div>`;
+    }
+
+    function renderDownloads(data) {
+      const artifacts = (data.case && data.case.artifacts) || {};
+      const caseId = data.case_id || (data.case && data.case.case_id);
+      const work = encodeURIComponent(data.work_dir || (data.case && data.case.work_dir) || '');
+      const base = caseId ? `/api/cases/${encodeURIComponent(caseId)}/report` : `/api/report/${work}`;
+      const link = (type, label, cls='btn-download', download=true) => `<a href="${withApiKey(`${base}?file_type=${type}`)}" class="btn ${cls}" ${download ? 'download' : 'target="_blank" rel="noopener"'}>${label}</a>`;
+      const has = (type, pathField) => Boolean(data[pathField] || artifacts[type]);
+      let html = '<div class="downloads">';
+      html += link('html', 'HTML 열기', 'btn-open', false);
+      html += link('html', 'HTML 다운로드');
+      if (has('json', 'json_path')) html += link('json', 'JSON');
+      if (has('csv', 'csv_path')) html += link('csv', 'CSV');
+      if (has('iocs', 'iocs_path')) html += link('iocs', 'IOC CSV');
+      if (has('rules', 'rule_catalog_path')) html += link('rules', '룰 CSV');
+      if (has('manifest', 'manifest_path')) html += link('manifest', 'Manifest');
+      if (has('zip', 'package_path')) html += link('zip', '케이스 ZIP');
+      if (has('pdf', 'pdf_path')) html += link('pdf', 'PDF');
+      html += '</div>';
+      return html;
+    }
+
+    function renderTopFindings(rows) {
+      return `<table><thead><tr><th>Severity</th><th>Rule</th><th>MITRE</th><th>Host</th><th>Time</th><th>Context</th></tr></thead><tbody>${(rows || []).map(r => `
+        <tr><td class="${sevClass(r.severity)}">${escapeHtml(r.severity)}</td><td>${escapeHtml(r.rule)}</td><td class="mono">${escapeHtml(r.mitre_technique)}</td><td class="mono">${escapeHtml(r.host)}</td><td class="mono">${escapeHtml(r.timestamp)}</td><td class="mono">${escapeHtml(r.context)}</td></tr>
+      `).join('') || '<tr><td colspan="6">탐지 없음</td></tr>'}</tbody></table>`;
+    }
+
+    function renderTimeline(rows) {
+      return `<table><thead><tr><th>Time</th><th>Δ</th><th>Host</th><th>User</th><th>Severity</th><th>Tactic</th><th>Rule</th></tr></thead><tbody>${(rows || []).map(r => `
+        <tr><td class="mono">${escapeHtml(r.timestamp)}</td><td>${escapeHtml(r.delta_seconds ?? '-')}</td><td class="mono">${escapeHtml(r.host)}</td><td class="mono">${escapeHtml(r.user)}</td><td class="${sevClass(r.severity)}">${escapeHtml(r.severity)}</td><td>${escapeHtml(r.tactic)}</td><td>${escapeHtml(r.rule)}</td></tr>
+      `).join('') || '<tr><td colspan="7">타임라인 없음</td></tr>'}</tbody></table>`;
+    }
+
+    function renderAttackCoverage(rows) {
+      return `<table><thead><tr><th>Tactic</th><th>Findings</th><th>Highest</th><th>Techniques</th><th>Hosts</th></tr></thead><tbody>${(rows || []).map(r => `
+        <tr><td>${escapeHtml(r.tactic)}</td><td>${escapeHtml(r.findings)}</td><td class="${sevClass(r.highest_severity)}">${escapeHtml(r.highest_severity)}</td><td>${(r.techniques || []).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('')}</td><td class="mono">${escapeHtml((r.hosts || []).join(', '))}</td></tr>
+      `).join('') || '<tr><td colspan="5">데이터 없음</td></tr>'}</tbody></table>`;
+    }
+
+    function renderHostRisk(rows) {
+      return `<table><thead><tr><th>Host</th><th>Risk</th><th>Level</th><th>Findings</th><th>Techniques</th><th>Top Rule</th></tr></thead><tbody>${(rows || []).map(r => `
+        <tr><td class="mono">${escapeHtml(r.host)}</td><td><b>${escapeHtml(r.score)}</b>/100</td><td class="${riskClass(r.level)}"><b>${escapeHtml(r.level)}</b></td><td>${escapeHtml(r.findings)}</td><td>${(r.techniques || []).slice(0,5).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('')}</td><td>${escapeHtml(r.top_rule)}</td></tr>
+      `).join('') || '<tr><td colspan="6">데이터 없음</td></tr>'}</tbody></table>`;
+    }
+
+    function renderScenarioRows(rows) {
+      if (!rows || rows.length === 0) return '';
+      return `<div class="box"><h3>내장 데모 시나리오 검증</h3><table><thead><tr><th>ID</th><th>Events</th><th>Findings</th><th>Matched</th></tr></thead><tbody>${rows.map(r => `
+        <tr><td class="mono">${escapeHtml(r.id || r.name)}</td><td>${escapeHtml(r.events)}</td><td><b>${escapeHtml(r.findings)}</b></td><td class="mono">${escapeHtml((r.matched_techniques || []).join(', '))}</td></tr>
+      `).join('')}</tbody></table></div>`;
+    }
+
+
+    function renderWorkflowBox(data) {
+      const c = data.case || {};
+      const caseId = data.case_id || c.case_id;
+      if (!caseId) return '';
+      const status = c.workflow_status || 'new';
+      const sev = c.severity_override || '';
+      const tags = (c.tags || []).join(', ');
+      return `<div class="box" id="workflowBox" data-case-id="${escapeHtml(caseId)}" style="margin:14px 0">
+        <h3>케이스 워크플로</h3>
+        <div class="grid2">
+          <div class="form-group"><label for="wfTitle">케이스 제목</label><input type="text" id="wfTitle" value="${escapeHtml(c.title || '')}"></div>
+          <div class="form-group"><label for="wfAssignee">담당자</label><input type="text" id="wfAssignee" value="${escapeHtml(c.assignee || '')}" placeholder="예: analyst-a"></div>
+        </div>
+        <div class="grid2">
+          <div class="form-group"><label for="wfStatus">상태</label><select id="wfStatus">
+            ${['new','triage','investigating','contained','resolved','false_positive'].map(x => `<option value="${x}" ${x === status ? 'selected' : ''}>${x}</option>`).join('')}
+          </select></div>
+          <div class="form-group"><label for="wfSeverity">심각도 Override</label><select id="wfSeverity">
+            ${['','low','medium','high','critical'].map(x => `<option value="${x}" ${x === sev ? 'selected' : ''}>${x || 'none'}</option>`).join('')}
+          </select></div>
+        </div>
+        <div class="form-group"><label for="wfTags">태그</label><input type="text" id="wfTags" value="${escapeHtml(tags)}" placeholder="powershell, urgent, customer-a"></div>
+        <div class="form-group"><label for="wfNotes">분석 메모</label><textarea id="wfNotes" placeholder="조사 내용, 확인한 근거, 남은 작업">${escapeHtml(c.notes || '')}</textarea></div>
+        <div class="form-group"><label for="wfClosure">종결 요약</label><textarea id="wfClosure" placeholder="조치 결과, 오탐 근거, 재발 방지 항목">${escapeHtml(c.closure_summary || '')}</textarea></div>
+        <div class="case-actions"><button type="button" class="btn btn-mini btn-open" id="saveWorkflowBtn">워크플로 저장</button><span class="hint" id="workflowSaveStatus">updated by ${escapeHtml(c.updated_by || 'system')}</span></div>
+      </div>`;
+    }
+
+    async function saveCaseWorkflow() {
+      const box = document.getElementById('workflowBox');
+      if (!box) return;
+      const statusEl = document.getElementById('workflowSaveStatus');
+      const caseId = box.dataset.caseId;
+      const payload = {
+        title: document.getElementById('wfTitle').value,
+        workflow_status: document.getElementById('wfStatus').value,
+        assignee: document.getElementById('wfAssignee').value,
+        severity_override: document.getElementById('wfSeverity').value,
+        tags: document.getElementById('wfTags').value,
+        notes: document.getElementById('wfNotes').value,
+        closure_summary: document.getElementById('wfClosure').value,
+      };
+      try {
+        statusEl.innerHTML = '저장 중...';
+        const response = await authFetch(`/api/cases/${encodeURIComponent(caseId)}/workflow`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || '워크플로 저장 실패');
+        statusEl.innerHTML = `저장 완료 · ${escapeHtml(data.case.updated_at || '')}`;
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        statusEl.innerHTML = `저장 실패: ${escapeHtml(error.message || error)}`;
+      }
+    }
+
+    function bindWorkflow() {
+      const btn = document.getElementById('saveWorkflowBtn');
+      if (btn) btn.addEventListener('click', saveCaseWorkflow);
+    }
+
+    function renderPreview(data) {
+      const p = data.preview || {};
+      const risk = p.risk || {score: data.risk_score || 0, level: data.risk_level || 'none'};
+      const indicatorTotals = p.indicator_totals || {};
+      const indicatorText = Object.entries(indicatorTotals).map(([k,v]) => `${escapeHtml(k)} ${escapeHtml(v)}`).join(' · ') || '0';
+      const rp = p.rule_pack || {};
+
+      return `
+        <div class="alert alert-success"><b>분석 완료!</b> 탐지 ${escapeHtml(data.count)}건 · Risk ${escapeHtml(risk.score)}/100 (${escapeHtml(risk.level)})</div>
+        <div class="cards">
+          <div class="card"><div class="label">Risk Score</div><div class="value ${riskClass(risk.level)}">${escapeHtml(risk.score)}</div><div class="riskbar"><div class="riskfill" style="width:${Math.min(100, Number(risk.score || 0))}%"></div></div></div>
+          <div class="card"><div class="label">Findings</div><div class="value">${escapeHtml(p.total_findings ?? data.count)}</div></div>
+          <div class="card"><div class="label">Hosts / TTPs</div><div class="value">${escapeHtml(risk.unique_hosts || 0)} / ${escapeHtml(risk.unique_techniques || 0)}</div></div>
+          <div class="card"><div class="label">Rule Coverage</div><div class="value">${escapeHtml(rp.coverage_percent_core_windows ?? 0)}%</div><div class="hint">${escapeHtml(rp.total_rules || 0)} rules · ${escapeHtml(rp.unique_techniques || 0)} techniques</div></div>
+        </div>
+        <div class="box"><h3>Executive Summary</h3><ul class="list">${(p.executive_summary || data.executive_summary || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>요약 없음</li>'}</ul></div>
+        ${renderWorkflowBox(data)}
+        <div class="subgrid">
+          <div class="box"><h3>우선 조치 권고</h3><ol class="list">${(p.recommended_actions || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>권고 없음</li>'}</ol></div>
+          <div class="box"><h3>IOC 후보</h3><p>${indicatorText}</p><div class="hint">상세 IOC는 IOC CSV에서 확인 가능합니다.</div></div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="findings">우선 탐지</button>
+          <button class="tab" data-tab="timeline">타임라인</button>
+          <button class="tab" data-tab="attack">ATT&CK</button>
+          <button class="tab" data-tab="hosts">호스트</button>
+          <button class="tab" data-tab="charts">요약 차트</button>
+        </div>
+        <div id="tab-findings" class="tabpane active">${renderTopFindings(p.top_findings)}</div>
+        <div id="tab-timeline" class="tabpane">${renderTimeline(p.incident_timeline)}</div>
+        <div id="tab-attack" class="tabpane">${renderAttackCoverage(p.attack_coverage)}</div>
+        <div id="tab-hosts" class="tabpane">${renderHostRisk(p.host_risk_summary)}</div>
+        <div id="tab-charts" class="tabpane"><div class="subgrid">${renderBars('심각도 분포', p.severity_counts)}${renderBars('호스트 분포', p.host_counts)}${renderBars('MITRE 분포', p.mitre_counts)}${renderScenarioRows(p.sample_scenarios)}</div></div>
+        <div class="subgrid" style="margin-top:14px">
+          <div class="box"><h3>초동대응 체크리스트</h3><ol class="list">${(p.containment_checklist || []).map(x => `<li><b>${escapeHtml(x.priority || '')}</b> ${escapeHtml(x.task || '')}<div class="hint">${escapeHtml(x.why || '')}</div></li>`).join('') || '<li>없음</li>'}</ol></div>
+          <div class="box"><h3>오탐 확인 질문</h3><ol class="list">${(p.false_positive_questions || []).map(x => `<li>${escapeHtml(x)}</li>`).join('') || '<li>없음</li>'}</ol></div>
+        </div>
+        ${renderDownloads(data)}
+      `;
+    }
+
+    function bindTabs() {
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tabpane').forEach(p => p.classList.remove('active'));
+          btn.classList.add('active');
+          const pane = document.getElementById(`tab-${btn.dataset.tab}`);
+          if (pane) pane.classList.add('active');
+        });
+      });
+    }
+
+    function renderCaseHistory(rows) {
+      const cases = Array.isArray(rows) ? rows : [];
+      if (!cases.length) {
+        caseHistory.innerHTML = '<div class="hint">아직 저장된 케이스가 없습니다.</div>';
+        return;
+      }
+      caseHistory.innerHTML = cases.map(c => {
+        const level = c.risk_level || 'none';
+        const hosts = (c.hosts || []).slice(0, 3).join(', ') || 'host 없음';
+        const missing = c.exists === false ? ' · 파일 없음' : '';
+        const workflow = c.workflow_status || 'new';
+        const assignee = c.assignee || 'unassigned';
+        return `<div class="case-item" data-case-id="${escapeHtml(c.case_id)}">
+          <div class="case-title"><span>${escapeHtml(c.title || c.case_id)}</span><span class="${riskClass(level)}">${escapeHtml(c.risk_score)}/100</span></div>
+          <div class="case-meta mono">${escapeHtml(c.created_at)} · ${escapeHtml(hosts)}${escapeHtml(missing)}</div>
+          <div class="case-meta"><span class="pill">${escapeHtml(workflow)}</span><span class="pill">${escapeHtml(assignee)}</span></div>
+          <div class="case-actions">
+            <button type="button" class="btn btn-mini btn-open" data-open-case="${escapeHtml(c.case_id)}">열기</button>
+            <button type="button" class="btn btn-mini btn-download" data-delete-case="${escapeHtml(c.case_id)}">삭제</button>
+          </div>
+        </div>`;
+      }).join('');
+      caseHistory.querySelectorAll('[data-open-case]').forEach(btn => btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await openCase(btn.dataset.openCase);
+      }));
+      caseHistory.querySelectorAll('[data-delete-case]').forEach(btn => btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await deleteCase(btn.dataset.deleteCase);
+      }));
+      caseHistory.querySelectorAll('.case-item').forEach(card => card.addEventListener('click', async () => openCase(card.dataset.caseId)));
+    }
+
+    async function fetchCases() {
+      try {
+        const response = await authFetch('/api/cases?limit=10');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '이력 조회 실패');
+        renderCaseHistory(payload.cases || []);
+      } catch (error) {
+        caseHistory.innerHTML = `<div class="hint">이력 조회 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+    function renderBackups(backups) {
+      const rows = Array.isArray(backups) ? backups : [];
+      if (!rows.length) {
+        backupList.innerHTML = '<div class="hint">생성된 백업이 없습니다.</div>';
+        return;
+      }
+      backupList.innerHTML = rows.slice(0, 8).map(b => {
+        const url = withApiKey(`/api/backups/${encodeURIComponent(b.backup_id)}/download`);
+        const size = Math.round(Number(b.size_bytes || 0) / 1024);
+        return `<div class="audit-item">
+          <div class="audit-title"><span>${escapeHtml(b.label || b.backup_id)}</span><span>${escapeHtml(size)} KB</span></div>
+          <div class="audit-meta mono">${escapeHtml(b.created_at || '-')} · ${escapeHtml(b.file_count || 0)} files</div>
+          <div class="case-actions"><a class="btn btn-mini btn-download" href="${url}" download>ZIP 다운로드</a></div>
+        </div>`;
+      }).join('');
+    }
+
+    async function fetchBackups() {
+      try {
+        const response = await authFetch('/api/backups?limit=8');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '백업 목록 조회 실패');
+        renderBackups(payload.backups || []);
+        opsStatus.innerHTML = '백업 목록 갱신 완료';
+      } catch (error) {
+        opsStatus.innerHTML = `백업 목록 조회 실패: ${escapeHtml(error.message || error)}`;
+      }
+    }
+
+    async function createBackup() {
+      try {
+        opsStatus.innerHTML = '백업 생성 중...';
+        const response = await authFetch('/api/backups?include_cases=true&include_audit=true', {method: 'POST'});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '백업 생성 실패');
+        const b = payload.backup || {};
+        opsStatus.innerHTML = `백업 생성 완료: ${escapeHtml(b.backup_id || '')}`;
+        await fetchBackups();
+        await fetchAudit();
+      } catch (error) {
+        opsStatus.innerHTML = `백업 생성 실패: ${escapeHtml(error.message || error)}`;
+      }
+    }
+
+    async function pruneCases(dryRun) {
+      try {
+        const params = `keep_last=50&older_than_days=30&dry_run=${dryRun ? 'true' : 'false'}&remove_files=true`;
+        const response = await authFetch(`/api/cases/prune?${params}`, {method: 'POST'});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '케이스 정리 실패');
+        const verb = dryRun ? '정리 후보' : '정리 완료';
+        opsStatus.innerHTML = `${verb}: ${escapeHtml(payload.candidate_count || 0)}건 · 파일 삭제 ${escapeHtml(payload.removed_files || 0)}건`;
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        opsStatus.innerHTML = `케이스 정리 실패: ${escapeHtml(error.message || error)}`;
+      }
+    }
+
+    function renderMetricsBox(metrics) {
+      const m = metrics || {};
+      const rp = m.rulepack || {};
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>운영 메트릭</span><span>${escapeHtml(Math.round(Number(m.uptime_seconds || 0)))}s</span></div>
+        <div class="audit-meta mono">cases ${escapeHtml(m.cases_total || 0)} · findings ${escapeHtml(m.findings_total_indexed || 0)} · backups ${escapeHtml(m.backups_total || 0)} · audit ${escapeHtml(m.audit_events_total || 0)}</div>
+        <div class="audit-meta mono">rules ${escapeHtml(rp.total_rules || 0)} · techniques ${escapeHtml(rp.unique_techniques || 0)} · coverage ${escapeHtml(rp.coverage_percent_core_windows || 0)}%</div>
+      </div>`;
+    }
+
+    function renderConfigChecks(payload) {
+      const checks = payload.checks || [];
+      const statusClass = payload.status === 'pass' ? 'risk-low' : payload.status === 'warn' ? 'risk-medium' : 'risk-critical';
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>설정 진단</span><span class="${statusClass}">${escapeHtml(payload.status || '-')}</span></div>
+        <div class="audit-meta mono">pass ${escapeHtml((payload.summary || {}).pass || 0)} · warn ${escapeHtml((payload.summary || {}).warn || 0)} · fail ${escapeHtml((payload.summary || {}).fail || 0)}</div>
+      </div>` + checks.slice(0, 10).map(c => {
+        const cls = c.status === 'pass' ? 'risk-low' : c.status === 'warn' ? 'risk-medium' : 'risk-critical';
+        return `<div class="audit-item"><div class="audit-title"><span>${escapeHtml(c.name)}</span><span class="${cls}">${escapeHtml(c.status)}</span></div><div class="audit-meta">${escapeHtml(c.message)}</div></div>`;
+      }).join('');
+    }
+
+    function renderSelfTest(payload) {
+      const cls = payload.success ? 'risk-low' : 'risk-critical';
+      const artifacts = payload.artifacts || {};
+      const artifactText = Object.entries(artifacts).filter(([_,v]) => v).map(([k]) => k).join(', ') || 'none';
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>셀프테스트</span><span class="${cls}">${payload.success ? 'success' : 'failure'}</span></div>
+        <div class="audit-meta mono">${escapeHtml(payload.scenario)} · findings ${escapeHtml(payload.findings || 0)} · risk ${escapeHtml(payload.risk_score || 0)}/100 (${escapeHtml(payload.risk_level || 'none')})</div>
+        <div class="audit-meta mono">artifacts: ${escapeHtml(artifactText)} · ${escapeHtml(payload.elapsed_seconds || 0)}s</div>
+      </div>`;
+    }
+
+    async function fetchMetrics() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">메트릭 조회 중...</div>';
+        const response = await authFetch('/api/metrics.json');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '메트릭 조회 실패');
+        renderMetricsBox(payload.metrics || {});
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">메트릭 조회 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+    async function fetchConfigCheck() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">설정 진단 중...</div>';
+        const response = await authFetch('/api/ops/config-check');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '설정 진단 실패');
+        renderConfigChecks(payload);
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">설정 진단 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+
+    function renderQualityGate(payload) {
+      const checks = payload.checks || [];
+      const statusClass = payload.status === 'pass' ? 'risk-low' : payload.status === 'warn' ? 'risk-medium' : 'risk-critical';
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>품질 게이트</span><span class="${statusClass}">${escapeHtml(payload.status || '-')} · ${escapeHtml(payload.score || 0)}/100</span></div>
+        <div class="audit-meta mono">pass ${escapeHtml((payload.summary || {}).passed || 0)} · warn ${escapeHtml((payload.summary || {}).warnings || 0)} · fail ${escapeHtml((payload.summary || {}).failed || 0)} · scanned ${escapeHtml(payload.scanned_files || 0)}</div>
+      </div>` + checks.map(c => {
+        const cls = c.status === 'pass' ? 'risk-low' : c.status === 'warn' ? 'risk-medium' : 'risk-critical';
+        return `<div class="audit-item"><div class="audit-title"><span>${escapeHtml(c.name)}</span><span class="${cls}">${escapeHtml(c.status)}</span></div><div class="audit-meta">${escapeHtml(c.message)}</div></div>`;
+      }).join('');
+    }
+
+    async function fetchQualityGate() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">품질 게이트 실행 중...</div>';
+        const response = await authFetch('/api/ops/quality-gate');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '품질 게이트 실패');
+        renderQualityGate(payload);
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">품질 게이트 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+
+
+    function renderGoLive(payload) {
+      const checks = payload.checks || [];
+      const statusClass = payload.status === 'pass' ? 'risk-low' : payload.status === 'warn' ? 'risk-medium' : 'risk-critical';
+      const next = (payload.next_steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join('');
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>Go-Live 점검</span><span class="${statusClass}">${escapeHtml(payload.status || '-')} · ${escapeHtml(payload.score || 0)}/100</span></div>
+        <div class="audit-meta mono">mode ${escapeHtml(payload.deployment_mode || 'local')} · pass ${escapeHtml((payload.summary || {}).passed || 0)} · warn ${escapeHtml((payload.summary || {}).warnings || 0)} · fail ${escapeHtml((payload.summary || {}).failed || 0)}</div>
+        <ul class="list">${next}</ul>
+      </div>` + checks.map(c => {
+        const cls = c.status === 'pass' ? 'risk-low' : c.status === 'warn' ? 'risk-medium' : 'risk-critical';
+        return `<div class="audit-item"><div class="audit-title"><span>${escapeHtml(c.name)}</span><span class="${cls}">${escapeHtml(c.status)}</span></div><div class="audit-meta">${escapeHtml(c.message)}</div></div>`;
+      }).join('');
+    }
+
+    async function fetchGoLive() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">Go-Live 점검 중...</div>';
+        const response = await authFetch('/api/ops/go-live?deployment_mode=production');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || 'Go-Live 점검 실패');
+        renderGoLive(payload);
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">Go-Live 점검 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+    function renderShowcasePreview(payload) {
+      const data = payload.showcase || {};
+      const assets = (data.included_assets || []).map(a => `<li class="mono">${escapeHtml(a)}</li>`).join('');
+      opsDiagnostics.innerHTML = `<div class="audit-item">
+        <div class="audit-title"><span>정적 쇼케이스</span><span class="risk-low">GitHub Pages ready</span></div>
+        <div class="audit-meta mono">${escapeHtml(data.recommended_command || '')}</div>
+        <div class="audit-meta">${escapeHtml(data.scenario_count || 0)} scenarios · ${escapeHtml(data.scenario_events || 0)} events · ${escapeHtml(data.rule_count || 0)} rules · ${escapeHtml(data.coverage_percent_core_windows || 0)}% coverage</div>
+        <ul class="list">${assets}</ul>
+      </div>`;
+    }
+
+    async function fetchShowcasePreview() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">쇼케이스 정보 조회 중...</div>';
+        const response = await authFetch('/api/ops/showcase-preview');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '쇼케이스 조회 실패');
+        renderShowcasePreview(payload);
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">쇼케이스 조회 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+    async function runSelfTestFromUi() {
+      try {
+        opsDiagnostics.innerHTML = '<div class="hint">셀프테스트 실행 중...</div>';
+        const response = await authFetch('/api/ops/self-test', {method: 'POST'});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '셀프테스트 실패');
+        renderSelfTest(payload);
+        await fetchAudit();
+      } catch (error) {
+        opsDiagnostics.innerHTML = `<div class="hint">셀프테스트 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+    function renderAudit(events) {
+      const rows = Array.isArray(events) ? events : [];
+      if (!rows.length) {
+        auditLog.innerHTML = '<div class="hint">아직 감사 로그가 없습니다.</div>';
+        return;
+      }
+      auditLog.innerHTML = rows.slice(0, 12).map(e => {
+        const req = e.request || {};
+        const status = e.status === 'success' ? 'risk-low' : 'risk-critical';
+        const caseText = e.case_id ? ` · ${escapeHtml(e.case_id)}` : '';
+        return `<div class="audit-item">
+          <div class="audit-title"><span>${escapeHtml(e.action)}</span><span class="${status}">${escapeHtml(e.status)}</span></div>
+          <div class="audit-meta mono">${escapeHtml(e.timestamp)} · ${escapeHtml(e.actor)} via ${escapeHtml(e.auth_method)}${caseText}</div>
+          <div class="audit-meta mono">${escapeHtml(req.method || '')} ${escapeHtml(req.path || '')} · ${escapeHtml(req.ip || '')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function fetchAudit() {
+      refreshAuditLinks();
+      try {
+        const response = await authFetch('/api/audit?limit=12');
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '감사 로그 조회 실패');
+        renderAudit(payload.events || []);
+      } catch (error) {
+        auditLog.innerHTML = `<div class="hint">감사 로그 조회 실패: ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+
+    async function openCase(caseId) {
+      loading.style.display = 'block';
+      try {
+        const response = await authFetch(`/api/cases/${encodeURIComponent(caseId)}`);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || '케이스 조회 실패');
+        const c = payload.case || {};
+        results.innerHTML = renderPreview({
+          success: true,
+          count: c.finding_count || 0,
+          case_id: c.case_id,
+          case: c,
+          work_dir: c.work_dir,
+          risk_score: c.risk_score || 0,
+          risk_level: c.risk_level || 'none',
+          preview: payload.preview || {},
+          json_path: c.artifacts && c.artifacts.json,
+          csv_path: c.artifacts && c.artifacts.csv,
+          iocs_path: c.artifacts && c.artifacts.iocs,
+          rule_catalog_path: c.artifacts && c.artifacts.rules,
+          manifest_path: c.artifacts && c.artifacts.manifest,
+          package_path: c.artifacts && c.artifacts.zip,
+          pdf_path: c.artifacts && c.artifacts.pdf,
+        });
+        bindTabs();
+        bindWorkflow();
+      } catch (error) {
+        results.innerHTML = `<div class="alert alert-error"><b>케이스 열기 실패:</b> ${escapeHtml(error.message || error)}</div>`;
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    async function deleteCase(caseId) {
+      try {
+        const response = await authFetch(`/api/cases/${encodeURIComponent(caseId)}`, { method: 'DELETE' });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || '삭제 실패');
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        results.innerHTML = `<div class="alert alert-error"><b>케이스 삭제 실패:</b> ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      analyzeBtn.disabled = true;
+      loading.style.display = 'block';
+      results.innerHTML = '';
+      try {
+        const response = await authFetch('/api/analyze', { method: 'POST', body: buildFormData() });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || payload.message || '분석 실패');
+        results.innerHTML = renderPreview(payload);
+        bindTabs();
+        bindWorkflow();
+        fetchAuthStatus();
+        fetchCases();
+        fetchAudit();
+      } catch (error) {
+        results.innerHTML = `<div class="alert alert-error"><b>오류 발생:</b> ${escapeHtml(error.message || error)}</div>`;
+      } finally {
+        analyzeBtn.disabled = false;
+        loading.style.display = 'none';
+      }
+    });
+
+    if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', fetchAudit);
+    if (createBackupBtn) createBackupBtn.addEventListener('click', createBackup);
+    if (refreshBackupsBtn) refreshBackupsBtn.addEventListener('click', fetchBackups);
+    if (refreshMetricsBtn) refreshMetricsBtn.addEventListener('click', fetchMetrics);
+    if (configCheckBtn) configCheckBtn.addEventListener('click', fetchConfigCheck);
+    if (selfTestBtn) selfTestBtn.addEventListener('click', runSelfTestFromUi);
+    if (qualityGateBtn) qualityGateBtn.addEventListener('click', fetchQualityGate);
+    if (goLiveBtn) goLiveBtn.addEventListener('click', fetchGoLive);
+    if (showcasePreviewBtn) showcasePreviewBtn.addEventListener('click', fetchShowcasePreview);
+    if (pruneDryRunBtn) pruneDryRunBtn.addEventListener('click', () => pruneCases(true));
+    if (pruneApplyBtn) pruneApplyBtn.addEventListener('click', () => pruneCases(false));
+    refreshAuditLinks();
+    fetchAuthStatus();
+    fetchCases();
+    fetchBackups();
+    fetchMetrics();
+    fetchAudit();
+  </script>
+</body>
+</html>

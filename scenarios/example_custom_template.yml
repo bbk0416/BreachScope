@@ -1,0 +1,61 @@
+# 사용자 정의 시나리오 템플릿 예제
+# 이 파일은 사용자 정의 공격 시나리오 템플릿을 정의하는 방법을 보여줍니다.
+
+# 템플릿 1: DLL 하이재킹 공격
+- template_id: dll_hijacking
+  name: DLL 하이재킹 공격
+  description: DLL 검색 순서를 악용한 DLL 하이재킹 공격
+  required_techniques:
+    - T1574.001  # DLL Search Order Hijacking
+  optional_techniques:
+    - T1059.001  # PowerShell
+    - T1547.001  # Registry Run Keys
+  chain_patterns: []
+  attack_stage: persistence
+
+# 템플릿 2: COM 하이재킹
+- template_id: com_hijacking
+  name: COM 하이재킹
+  description: Component Object Model (COM) 하이재킹을 통한 영구성
+  required_techniques:
+    - T1546.015  # Component Object Model Hijacking
+  optional_techniques:
+    - T1059.001  # PowerShell
+  chain_patterns: []
+  attack_stage: persistence
+
+# 템플릿 3: 부트 또는 로그온 자동 시작 실행
+- template_id: boot_logon_autostart
+  name: 부트/로그온 자동 시작 실행
+  description: 시스템 부팅 또는 사용자 로그온 시 자동 실행되는 악성 코드
+  required_techniques:
+    - T1547.001  # Registry Run Keys
+  optional_techniques:
+    - T1053.005  # Scheduled Task
+    - T1543.003  # Windows Service
+  chain_patterns: []
+  attack_stage: persistence
+
+# 템플릿 4: 프로세스 인젝션
+- template_id: process_injection
+  name: 프로세스 인젝션
+  description: 정상 프로세스에 악성 코드를 주입하여 실행
+  required_techniques:
+    - T1055  # Process Injection
+  optional_techniques:
+    - T1059.001  # PowerShell
+    - T1218.005  # Mshta
+  chain_patterns: []
+  attack_stage: defense_evasion
+
+# 템플릿 5: 원격 서비스 (SMB/Windows Admin Shares)
+- template_id: smb_lateral
+  name: SMB를 통한 측면 이동
+  description: SMB 공유를 이용한 원격 시스템 접근 및 실행
+  required_techniques:
+    - T1021.002  # SMB/Windows Admin Shares
+  optional_techniques:
+    - T1078  # Valid Accounts
+    - T1003  # OS Credential Dumping
+  chain_patterns: []
+  attack_stage: lateral_movement

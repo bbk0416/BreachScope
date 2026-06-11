@@ -1,0 +1,442 @@
+## 안전 예시 규칙 (네이티브 스키마)
+
+- id: R-ENC
+  name: Encoded PowerShell Command
+  description: Powershell 인코딩 명령 사용 (-encodedcommand, -enc)
+  field: command_line
+  operator: contains
+  pattern: "-encodedcommand|-enc"
+  severity: medium
+  mitre_technique: T1059.001
+
+- id: R-DL
+  name: Suspicious Web Download
+  description: 웹 요청/다운로드 도구 사용 (일반 패턴)
+  field: command_line
+  operator: contains
+  pattern: "invoke-webrequest|wget|curl|net.webclient"
+  severity: medium
+  mitre_technique: T1105
+
+- id: R-WMI-Create
+  name: WMI Process Creation
+  description: wmic 를 이용한 프로세스 생성 호출
+  field: command_line
+  operator: contains
+  pattern: "wmic process call create"
+  severity: low
+  mitre_technique: T1047
+
+- id: R-MSHTA-Remote
+  name: MSHTA Remote Load
+  description: mshta 로 원격 리소스 로드 시도
+  field: command_line
+  operator: contains
+  pattern: "mshta http"
+  severity: medium
+  mitre_technique: T1218.005
+
+- id: R-REG-RunKey
+  name: Registry Run Key Modification
+  description: Run 키 기반 지속성 추가 정황 (일반 문자열)
+  field: command_line
+  operator: contains
+  pattern: "reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+  severity: low
+  mitre_technique: T1547.001
+
+- id: R-PS-Bypass
+  name: PowerShell Bypass/Hidden Flags
+  description: PowerShell의 숨김/바이패스 플래그 사용 흔적
+  field: command_line
+  operator: contains
+  pattern: "-noprofile|-nop|-windowstyle hidden|-executionpolicy bypass"
+  severity: medium
+  mitre_technique: T1059.001
+
+- id: R-SCHTASKS-Create
+  name: Scheduled Task Creation
+  description: schtasks를 이용한 작업 생성
+  field: command_line
+  operator: contains
+  pattern: "schtasks /create"
+  severity: low
+  mitre_technique: T1053.005
+
+- id: R-BITS-Transfer
+  name: BITSAdmin Transfer
+  description: bitsadmin을 이용한 전송 작업
+  field: command_line
+  operator: contains
+  pattern: "bitsadmin /transfer|bitsadmin /addfile"
+  severity: low
+  mitre_technique: T1197
+
+- id: R-CERTUTIL-Download
+  name: Certutil Download Or Decode
+  description: certutil을 이용한 파일 다운로드 또는 디코딩 의심 행위
+  field: command_line
+  operator: contains
+  pattern: "certutil -urlcache|certutil.exe -urlcache|certutil -decode|certutil.exe -decode"
+  severity: medium
+  mitre_technique: T1105
+
+- id: R-RUNDLL32-Remote
+  name: Rundll32 Remote Scriptlet
+  description: rundll32와 스크립트 핸들러를 이용한 원격 실행 의심 행위
+  field: command_line
+  operator: contains
+  pattern: "rundll32 javascript:|rundll32.exe javascript:|rundll32 url.dll,FileProtocolHandler http"
+  severity: high
+  mitre_technique: T1218.011
+
+- id: R-LSASS-Dump
+  name: LSASS Dump Attempt
+  description: LSASS 메모리 덤프 또는 자격증명 탈취 도구 실행 의심 행위
+  field: command_line
+  operator: contains
+  pattern: "lsass.exe|comsvcs.dll, MiniDump|sekurlsa::logonpasswords|procdump -ma lsass"
+  severity: high
+  mitre_technique: T1003.001
+
+- id: R-EVENTLOG-Clear
+  name: Windows Event Log Clear
+  description: Windows 이벤트 로그 삭제 또는 은폐 정황
+  field: command_line
+  operator: contains
+  pattern: "wevtutil cl|Clear-EventLog|Remove-EventLog"
+  severity: high
+  mitre_technique: T1070.001
+
+- id: R-RECOVERY-Disable
+  name: Recovery Inhibition
+  description: 복구 기능 비활성화 또는 섀도 복사본 삭제 정황
+  field: command_line
+  operator: contains
+  pattern: "vssadmin delete shadows|wmic shadowcopy delete|bcdedit /set recoveryenabled no|wbadmin delete catalog"
+  severity: high
+  mitre_technique: T1490
+
+- id: R-DISCOVERY-Account-System
+  name: Account Or System Discovery
+  description: 계정, 시스템, 네트워크 정보 수집 명령
+  field: command_line
+  operator: contains
+  pattern: "whoami /all|net user|net localgroup administrators|systeminfo|ipconfig /all|nltest /domain_trusts"
+  severity: low
+  mitre_technique: T1087.001
+
+- id: R-PS-DownloadString
+  name: PowerShell DownloadString Execution
+  description: PowerShell DownloadString 기반 원격 스크립트 로드 의심
+  field: command_line
+  operator: contains
+  pattern: "downloadstring(|.downloadstring(|invoke-expression|iex (new-object"
+  severity: high
+  mitre_technique: T1059.001
+
+- id: R-PS-FromBase64String
+  name: PowerShell Base64 Decode
+  description: PowerShell에서 Base64 디코딩 후 실행 또는 로드하는 행위
+  field: command_line
+  operator: contains
+  pattern: "frombase64string|text.encoding]::unicode.getstring|text.encoding]::utf8.getstring"
+  severity: medium
+  mitre_technique: T1140
+
+- id: R-PS-InvokeExpression
+  name: PowerShell Invoke-Expression
+  description: PowerShell IEX/Invoke-Expression 사용 정황
+  field: command_line
+  operator: contains
+  pattern: "invoke-expression|iex "
+  severity: medium
+  mitre_technique: T1059.001
+
+- id: R-REGSVR32-Scriptlet
+  name: Regsvr32 Scriptlet Execution
+  description: regsvr32를 이용한 스크립틀릿 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "regsvr32 /s /n /u /i:http|regsvr32.exe /s /n /u /i:http|scrobj.dll"
+  severity: high
+  mitre_technique: T1218.010
+
+- id: R-INSTALLUTIL-ProxyExec
+  name: InstallUtil Proxy Execution
+  description: InstallUtil을 이용한 서명 바이너리 프록시 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "installutil.exe|installutil /logfile=|installutil /u"
+  severity: medium
+  mitre_technique: T1218.004
+
+- id: R-MSBUILD-InlineTask
+  name: MSBuild Inline Task Execution
+  description: MSBuild 프로젝트/인라인 태스크 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "msbuild.exe|/target:|/property:configuration="
+  severity: medium
+  mitre_technique: T1127.001
+
+- id: R-CMSTP-Bypass
+  name: CMSTP UAC Bypass Pattern
+  description: cmstp를 이용한 프로파일 설치/UAC 우회 의심
+  field: command_line
+  operator: contains
+  pattern: "cmstp.exe /s|cmstp /s|cmstp.exe /au|cmstp /au"
+  severity: high
+  mitre_technique: T1218.003
+
+- id: R-CONTROL-CPL
+  name: Control Panel CPL Execution
+  description: control.exe/rundll32를 이용한 CPL 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "control.exe *.cpl|control *.cpl|rundll32.exe shell32.dll,Control_RunDLL"
+  severity: low
+  mitre_technique: T1218.002
+
+- id: R-FORFILES-ProxyExec
+  name: Forfiles Proxy Execution
+  description: forfiles를 이용한 명령 프록시 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "forfiles /p|forfiles.exe /p|/c cmd /c"
+  severity: low
+  mitre_technique: T1202
+
+- id: R-SC-Service-Create
+  name: Windows Service Creation
+  description: sc.exe를 이용한 서비스 생성/수정 정황
+  field: command_line
+  operator: contains
+  pattern: "sc create|sc.exe create|sc config|sc.exe config"
+  severity: medium
+  mitre_technique: T1543.003
+
+- id: R-PS-New-Service
+  name: PowerShell New-Service Persistence
+  description: PowerShell New-Service 기반 서비스 생성 정황
+  field: command_line
+  operator: contains
+  pattern: "new-service|set-service|start-service"
+  severity: medium
+  mitre_technique: T1543.003
+
+- id: R-PSEXEC-RemoteService
+  name: PsExec Remote Service Pattern
+  description: PsExec/PAExec류 원격 서비스 실행 정황
+  field: command_line
+  operator: contains
+  pattern: "psexec|paexec|\\admin$|psexesvc"
+  severity: high
+  mitre_technique: T1569.002
+
+- id: R-WINRM-RemoteCommand
+  name: WinRM Remote Command
+  description: WinRM/PowerShell Remoting 기반 원격 명령 실행 정황
+  field: command_line
+  operator: contains
+  pattern: "enter-pssession|invoke-command|winrs -r:|winrm invoke"
+  severity: medium
+  mitre_technique: T1021.006
+
+- id: R-RDP-Enable
+  name: RDP Enablement
+  description: 원격 데스크톱 활성화 또는 방화벽 규칙 변경 정황
+  field: command_line
+  operator: contains
+  pattern: "fdenytsconnections /d 0|remote desktop|netsh advfirewall firewall set rule group=\"remote desktop\" new enable=yes"
+  severity: medium
+  mitre_technique: T1021.001
+
+- id: R-NETSH-Firewall-Modify
+  name: Firewall Rule Modification
+  description: netsh를 이용한 방화벽 규칙 추가/변경 정황
+  field: command_line
+  operator: contains
+  pattern: "netsh advfirewall firewall add rule|netsh firewall add portopening|set rule group="
+  severity: medium
+  mitre_technique: T1562.004
+
+- id: R-DEFENDER-Disable
+  name: Microsoft Defender Disable Attempt
+  description: Defender 실시간 감시/보안 기능 비활성화 시도
+  field: command_line
+  operator: contains
+  pattern: "set-mppreference -disablerealtimemonitoring $true|set-mppreference -disableioavprotection $true|add-mppreference -exclusionpath|windows defender\\exclusions"
+  severity: high
+  mitre_technique: T1562.001
+
+- id: R-AMSI-Bypass
+  name: AMSI Bypass String
+  description: AMSI 우회 관련 문자열 사용 정황
+  field: command_line
+  operator: contains
+  pattern: "amsiutils|amsiinitfailed|amsiscanbuffer|system.management.automation.amsi"
+  severity: high
+  mitre_technique: T1562.001
+
+- id: R-AUDITPOL-Disable
+  name: Windows Audit Policy Disable
+  description: auditpol을 이용한 감사 정책 비활성화 정황
+  field: command_line
+  operator: contains
+  pattern: "auditpol /set /success:disable|auditpol /set /failure:disable|auditpol /clear"
+  severity: high
+  mitre_technique: T1562.002
+
+- id: R-WDIGEST-Enable
+  name: WDigest Credential Exposure
+  description: WDigest UseLogonCredential 활성화로 평문 자격증명 노출 가능성
+  field: command_line
+  operator: contains
+  pattern: "wdigest|uselogoncredential|securityproviders\\wdigest"
+  severity: high
+  mitre_technique: T1003.001
+
+- id: R-SAM-SYSTEM-Save
+  name: SAM SYSTEM Hive Save
+  description: reg save를 이용한 SAM/SYSTEM/SECURITY 하이브 저장 정황
+  field: command_line
+  operator: contains
+  pattern: "reg save hklm\\sam|reg save hklm\\system|reg save hklm\\security"
+  severity: high
+  mitre_technique: T1003.002
+
+- id: R-NTDSUTIL-Dump
+  name: NTDS.dit Dump Attempt
+  description: ntdsutil/vssadmin 기반 도메인 자격증명 덤프 정황
+  field: command_line
+  operator: contains
+  pattern: "ntdsutil|ifm|create full|ntds.dit"
+  severity: critical
+  mitre_technique: T1003.003
+
+- id: R-LAZAGNE-CredDump
+  name: LaZagne Credential Dumping Tool
+  description: LaZagne 등 자격증명 수집 도구 실행 의심
+  field: command_line
+  operator: contains
+  pattern: "lazagne|all passwords|browsers -firefox|browsers -chrome"
+  severity: high
+  mitre_technique: T1555
+
+- id: R-BROWSER-CredStore
+  name: Browser Credential Store Access
+  description: 브라우저 자격증명 저장소 접근/복사 정황
+  field: command_line
+  operator: contains
+  pattern: "login data|web data|cookies|key4.db|logins.json"
+  severity: medium
+  mitre_technique: T1555.003
+
+- id: R-ARCHIVE-Collection
+  name: Archive Collected Files
+  description: 압축 도구를 이용한 자료 수집/묶음 정황
+  field: command_line
+  operator: contains
+  pattern: "7z a|rar a|makecab|compress-archive|tar -cf"
+  severity: low
+  mitre_technique: T1560.001
+
+- id: R-RCLONE-Exfil
+  name: Rclone Cloud Exfiltration Tool
+  description: rclone을 이용한 외부 클라우드 전송 가능성
+  field: command_line
+  operator: contains
+  pattern: "rclone copy|rclone sync|rclone.exe copy|rclone.exe sync"
+  severity: high
+  mitre_technique: T1567.002
+
+- id: R-MEGA-Exfil
+  name: MEGA CLI Exfiltration Tool
+  description: MEGA CLI를 이용한 외부 업로드 가능성
+  field: command_line
+  operator: contains
+  pattern: "megacmd|mega-put|mega-login|mega-sync"
+  severity: high
+  mitre_technique: T1567.002
+
+- id: R-NSLOOKUP-Discovery
+  name: DNS Lookup Discovery
+  description: nslookup을 이용한 내부/외부 도메인 탐색 정황
+  field: command_line
+  operator: contains
+  pattern: "nslookup -type=|nslookup _ldap|nslookup _kerberos|nslookup "
+  severity: low
+  mitre_technique: T1018
+
+- id: R-NLTEST-DomainTrust
+  name: Domain Trust Discovery
+  description: nltest를 이용한 도메인 신뢰 관계 탐색
+  field: command_line
+  operator: contains
+  pattern: "nltest /domain_trusts|nltest /dclist|nltest /dsgetdc"
+  severity: low
+  mitre_technique: T1482
+
+- id: R-NET-View-Share
+  name: Network Share Discovery
+  description: net view/share 기반 네트워크 공유 탐색
+  field: command_line
+  operator: contains
+  pattern: "net view|net view /domain|net share|net use"
+  severity: low
+  mitre_technique: T1135
+
+- id: R-ADFind-Discovery
+  name: ADFind Active Directory Discovery
+  description: ADFind를 이용한 AD 사용자/그룹/컴퓨터 조회 정황
+  field: command_line
+  operator: contains
+  pattern: "adfind|objectcategory=person|objectcategory=computer|objectcategory=group"
+  severity: medium
+  mitre_technique: T1087.002
+
+- id: R-PROCESS-Discovery
+  name: Process Discovery
+  description: 실행 중인 프로세스/서비스 조회 정황
+  field: command_line
+  operator: contains
+  pattern: "tasklist /v|tasklist /svc|get-process|wmic process list"
+  severity: low
+  mitre_technique: T1057
+
+- id: R-SECURITY-SOFTWARE-Discovery
+  name: Security Software Discovery
+  description: 백신/보안제품/EDR 존재 여부 탐색 정황
+  field: command_line
+  operator: contains
+  pattern: "wmic /namespace:\\\\root\\securitycenter2|antivirusproduct|get-mppreference|get-ciminstance -namespace root/securitycenter2"
+  severity: medium
+  mitre_technique: T1518.001
+
+- id: R-CLIPBOARD-Access
+  name: Clipboard Data Access
+  description: 클립보드 데이터 조회/수집 정황
+  field: command_line
+  operator: contains
+  pattern: "get-clipboard|powershell get-clipboard|clip.exe"
+  severity: low
+  mitre_technique: T1115
+
+- id: R-SCREENSHOT-Capture
+  name: Screen Capture
+  description: 스크린샷/화면 캡처 관련 스크립트 실행 정황
+  field: command_line
+  operator: contains
+  pattern: "copyfromscreen|graphics.copyfromscreen|screenshot|bitblt"
+  severity: medium
+  mitre_technique: T1113
+
+- id: R-RANSOM-Delete-Shadows
+  name: Ransomware Shadow Copy Removal Variant
+  description: 랜섬웨어에서 자주 보이는 복구 방해 명령 변형
+  field: command_line
+  operator: contains
+  pattern: "delete shadows /all /quiet|resize shadowstorage|shadowcopy delete|delete catalog -quiet"
+  severity: critical
+  mitre_technique: T1490

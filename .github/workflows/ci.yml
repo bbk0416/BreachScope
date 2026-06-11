@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install system packages for Korean PDF rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-nanum fontconfig
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . reportlab pytest httpx
+
+      - name: Static compile check
+        run: python -m compileall -q breachscope api scripts tests
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: CLI smoke test
+        run: |
+          python scripts/run.py --demo-scenario all --out out_ci/report --export-json --export-csv --pdf
+          test -f out_ci/report.html
+          test -f out_ci/report.json
+          test -f out_ci/report.csv
+          test -f out_ci/report.iocs.csv
+          test -f out_ci/report.rules.csv
+          test -f out_ci/report.manifest.json
+          test -f out_ci/report.zip
+          test -f out_ci/report.pdf
+
+      - name: Rulepack validation
+        run: python scripts/run.py --validate-rules
+
+      - name: Project readiness check
+        run: python scripts/project_check.py --strict
+
+      - name: Quality gate
+        run: python scripts/quality_gate.py --strict
+
+      - name: Go-live check
+        run: |
+          python scripts/init_env.py --production --https --output .env.ci
+          set -a
+          . ./.env.ci
+          set +a
+          python scripts/go_live_check.py --deployment-mode production
+
+      - name: Static showcase build
+        if: matrix.python-version == '3.11'
+        run: |
+          python scripts/build_showcase.py --clean --no-pdf
+          test -f out/showcase/index.html
+          test -f out/showcase/assets/social-preview.svg
+          test -f out/showcase/data/showcase_summary.json
+          test -f out/showcase/breachscope-showcase.zip
+
+      - name: Public publish prep build
+        if: matrix.python-version == '3.11'
+        run: |
+          python scripts/publish_prep.py --clean --no-pdf
+          test -f out/publish/PUBLIC_LAUNCH_SUMMARY.md
+          test -f out/publish/GITHUB_PUBLISH_COMMANDS.md
+          test -f out/publish/RELEASE_NOTE_DRAFT.md
+          test -f out/publish/publish_manifest.json
+          test -f out/publish/breachscope-public-launch-pack.zip
+
+      - name: Upload demo report artifacts
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: breachscope-demo-report
+          path: |
+            out_ci/report.html
+            out_ci/report.json
+            out_ci/report.csv
+            out_ci/report.iocs.csv
+            out_ci/report.rules.csv
+            out_ci/report.manifest.json
+            out_ci/report.zip
+            out_ci/report.pdf
+            out/showcase/index.html
+            out/showcase/assets/social-preview.svg
+            out/showcase/data/showcase_summary.json
+            out/showcase/breachscope-showcase.zip
+            out/publish/PUBLIC_LAUNCH_SUMMARY.md
+            out/publish/GITHUB_PUBLISH_COMMANDS.md
+            out/publish/RELEASE_NOTE_DRAFT.md
+            out/publish/publish_manifest.json
+            out/publish/breachscope-public-launch-pack.zip
+          if-no-files-found: error

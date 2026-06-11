@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an improvement or new detection/reporting capability
+title: "[Feature]: "
+labels: [enhancement, triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What workflow would this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature, API, UI, rule, or report change.
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact area
+      options:
+        - Detection coverage
+        - Analyst workflow
+        - Reporting / PDF
+        - Deployment / operations
+        - Security hardening
+        - Documentation
+        - Other
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

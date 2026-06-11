@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Optional version label for a manual release build
+        required: false
+        default: manual
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fonts-nanum fontconfig
+          python -m pip install --upgrade pip build
+          python -m pip install -e . reportlab pytest httpx
+
+      - name: Test before release
+        run: |
+          python -m compileall -q breachscope api scripts tests
+          pytest -q
+          python scripts/run.py --demo-scenario all --out out_release/report --export-json --export-csv --pdf
+          python scripts/run.py --validate-rules
+
+      - name: Build source release bundle
+        env:
+          BS_BUILD_SHA: ${{ github.sha }}
+          BS_BUILD_TAG: ${{ github.ref_name }}
+          BS_BUILD_VERSION: ${{ github.ref_name }}
+        run: python scripts/build_release.py --clean
+
+      - name: Build Python package
+        run: python -m build
+
+      - name: Add Python distribution checksums and refresh manifest
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from breachscope.release import ReleaseArtifact, sha256_file, write_release_manifest
+          dist = Path('dist')
+          artifacts = []
+          for path in sorted(dist.glob('*')):
+              if path.name in {'SHA256SUMS.txt', 'release_manifest.json'} or path.is_dir():
+                  continue
+              artifacts.append(ReleaseArtifact(path=str(path), size_bytes=path.stat().st_size, sha256=sha256_file(path)))
+          lines = [f'{artifact.sha256}  {Path(artifact.path).name}' for artifact in artifacts]
+          checksums = dist / 'SHA256SUMS.txt'
+          checksums.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          artifacts.append(ReleaseArtifact(path=str(checksums), size_bytes=checksums.stat().st_size, sha256=sha256_file(checksums)))
+          write_release_manifest('.', artifacts, dist / 'release_manifest.json')
+          PY
+
+      - name: Upload release build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: breachscope-release-artifacts
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
