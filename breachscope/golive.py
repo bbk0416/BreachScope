@@ -284,7 +284,8 @@ def render_markdown(result: dict[str, Any]) -> str:
         "|---|---|---|",
     ]
     for check in result.get("checks", []):
-        lines.append(f"| {str(check.get('status', '')).upper()} | `{check.get('name', '')}` | {str(check.get('message', '')).replace('|', '\\|')} |")
+        message = str(check.get("message", "")).replace("|", "\\|")
+        lines.append(f"| {str(check.get('status', '')).upper()} | `{check.get('name', '')}` | {message} |")
     lines.extend(["", "## Next steps", ""])
     for step in result.get("next_steps", []):
         lines.append(f"- {step}")

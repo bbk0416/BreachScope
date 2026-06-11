@@ -69,10 +69,15 @@ jobs:
 
       - name: Go-live check
         run: |
-          python scripts/init_env.py --production --https --output .env.ci
+          mkdir -p "$RUNNER_TEMP/breachscope/cases" "$RUNNER_TEMP/breachscope/backups"
+          python scripts/init_env.py --production --https --output "$RUNNER_TEMP/.env.ci"
           set -a
-          . ./.env.ci
+          . "$RUNNER_TEMP/.env.ci"
           set +a
+          export BS_CASES_ROOT="$RUNNER_TEMP/breachscope/cases"
+          export BS_CASE_HISTORY_PATH="$RUNNER_TEMP/breachscope/case_history.json"
+          export BS_AUDIT_LOG_PATH="$RUNNER_TEMP/breachscope/audit.jsonl"
+          export BS_BACKUP_ROOT="$RUNNER_TEMP/breachscope/backups"
           python scripts/go_live_check.py --deployment-mode production
 
       - name: Static showcase build
