@@ -1,13 +1,13 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T15:46:16Z",
+  "generated_at": "2026-06-11T16:04:59Z",
   "metadata": {
     "name": "breachscope",
     "version": "1.0.0",
     "description": "디지털 포렌식 로그 분석 시스템",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T15:46:16Z",
+    "generated_at": "2026-06-11T16:04:59Z",
     "git_sha": "7d8142f",
     "git_tag": "v1.0.0",
     "build_number": null

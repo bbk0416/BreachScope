@@ -1,13 +1,13 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T15:46:16Z",
+  "generated_at": "2026-06-11T16:04:59Z",
   "metadata": {
     "name": "breachscope",
     "version": "1.0.0",
     "description": "디지털 포렌식 로그 분석 시스템",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T15:46:16Z",
+    "generated_at": "2026-06-11T16:04:59Z",
     "git_sha": "7d8142f",
     "git_tag": "v1.0.0",
     "build_number": null
@@ -387,12 +387,12 @@
   ],
   "output_dir": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase",
   "zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\breachscope-showcase.zip",
-  "zip_sha256": "3f49ac9b5a6d8c911857ffc413bcc410f2517d34ca6b218115de078da3faefc3",
+  "zip_sha256": "42675cf1660fff4dfe3da10279d866c0759854d6bf97bc7596ca74d82adeb02a",
   "artifacts": [
     {
       "path": "index.html",
-      "size_bytes": 5089,
-      "sha256": "78e1ecda3abeddf3357e0168dfe0928dd2e93e078f817edc6ff209ebc052fe13",
+      "size_bytes": 5090,
+      "sha256": "1f6b63c11846d876daabd5df5fa7c80548a53d13b8f6c8a622ccd4ec77c1c662",
       "purpose": "static showcase landing page"
     },
     {
@@ -404,7 +404,7 @@
     {
       "path": "data/showcase_summary.json",
       "size_bytes": 9814,
-      "sha256": "9846c9a083b61eaf6f6b08a5be247e7c37f7cf44fbe56f61aece1d3ad7a53dc6",
+      "sha256": "1747a0fa527409226c7db010e0f9a59c6d768807ae72a8e15f11825be9e0827e",
       "purpose": "machine-readable demo and readiness metrics"
     },
     {
@@ -422,13 +422,13 @@
     {
       "path": "reports/breachscope_showcase_report.html",
       "size_bytes": 207471,
-      "sha256": "229d6988387dde1041ee70526fbbae888819e502641b75281bd7a576939ac827",
+      "sha256": "986f3be73a1597afe5a715eafa43fdc022bb8071b0e8b1a3ced9bcf48a06133e",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.json",
       "size_bytes": 104632,
-      "sha256": "77c98e85d60c8f0b3cdc2cd89cd55a6e16f6efffd8bd8ea6bed1d4b65231a9d8",
+      "sha256": "61e7984bfb6a2ffdb5fbd47575799c16aed17b394d32c4522213978a25436760",
       "purpose": "generated demo report artifact"
     },
     {
@@ -451,32 +451,38 @@
     },
     {
       "path": "reports/breachscope_showcase_report.manifest.json",
-      "size_bytes": 30381,
-      "sha256": "335d4164a573aa2601149f397f576d04628448bbd5042a83762f5705737b300d",
+      "size_bytes": 30693,
+      "sha256": "d872cd3662807efebfeaf64a69f27520bfd3bd6c602748586acd1ee3787aabd5",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.zip",
-      "size_bytes": 53881,
-      "sha256": "3af9c46d8579171b77c17713993dd35119e44acab2ea34675b7ca1fe86eadac1",
+      "size_bytes": 163911,
+      "sha256": "b010a875d393ce7f38fdbac015f35e43205d7132be177be6417b9682a0d07a6b",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.pdf",
+      "size_bytes": 116009,
+      "sha256": "518409d4769c294a96727282b11e62872d00bf6a8963ab8f8347ab4cf821fbe4",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "showcase_manifest.json",
-      "size_bytes": 12585,
-      "sha256": "631741196d283a3e00acf6bba3ae047ed6a276cbc3260eee273fa039f7191975",
+      "size_bytes": 12824,
+      "sha256": "53401b706257c338f5b38d0271076b5640d6ad546202b895d40d65ea42284e71",
       "purpose": "artifact manifest with SHA-256 metadata"
     },
     {
       "path": "SHA256SUMS.txt",
-      "size_bytes": 1291,
-      "sha256": "1a4ffa1d1a507be4cd900bddd4fc06ad97b0b6d74ffac7ac701f7c096ce39fbd",
+      "size_bytes": 1398,
+      "sha256": "8abc60cdc665569c94eb88b5a19196041a107c37d70c53c60015f0aaa5f41df2",
       "purpose": "checksum list"
     },
     {
       "path": "breachscope-showcase.zip",
-      "size_bytes": 119379,
-      "sha256": "3f49ac9b5a6d8c911857ffc413bcc410f2517d34ca6b218115de078da3faefc3",
+      "size_bytes": 339631,
+      "sha256": "42675cf1660fff4dfe3da10279d866c0759854d6bf97bc7596ca74d82adeb02a",
       "purpose": "shareable static showcase archive"
     }
   ]
