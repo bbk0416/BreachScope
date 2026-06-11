@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BreachScope Showcase</title>
+  <meta name="description" content="BreachScope static portfolio showcase for a product-style DFIR console." />
+  <meta property="og:title" content="BreachScope DFIR Console" />
+  <meta property="og:description" content="ATT&CK detection, IOC extraction, case workflow, Korean PDF reporting, and operational controls." />
+  <meta property="og:image" content="assets/social-preview.svg" />
+  <link rel="stylesheet" href="assets/showcase.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Static showcase · generated 2026-06-11T15:49:31Z</p>
+      <h1>BreachScope</h1>
+      <p class="lead">Windows 로그를 분석해 ATT&CK 탐지, IOC 후보, 사고 타임라인, 케이스 워크플로, 한글 PDF 보고서까지 생성하는 제품형 DFIR 콘솔입니다.</p>
+      <div class="actions">
+        <a href="reports/breachscope_showcase_report.html">HTML 리포트 열기</a>
+        <a href="reports/breachscope_showcase_report.pdf">PDF 리포트 열기</a>
+        <a href="data/showcase_summary.json">요약 JSON</a>
+      </div>
+    </section>
+
+    <section class="grid metrics"><article class="metric"><span>Risk Score</span><strong>100/100</strong><small>critical</small></article>
+<article class="metric"><span>Findings</span><strong>53</strong><small>48 demo events</small></article>
+<article class="metric"><span>Rulepack</span><strong>50</strong><small>40 ATT&amp;CK techniques</small></article>
+<article class="metric"><span>Coverage</span><strong>96.9%</strong><small>Core Windows techniques</small></article>
+<article class="metric"><span>Scenarios</span><strong>10</strong><small>safe synthetic logs</small></article>
+<article class="metric"><span>Quality</span><strong>100/100</strong><small>readiness 100/100</small></article></section>
+
+    <section class="grid two">
+      <article class="panel">
+        <h2>What it proves</h2>
+        <ul class="feature-list">
+          <li>50개 룰팩과 ATT&CK 전술/기법 커버리지</li>
+          <li>IOC CSV, 룰 카탈로그, manifest, case ZIP 산출물</li>
+          <li>케이스 이력, 담당자, 상태, 분석 메모, 종결 요약</li>
+          <li>인증, 감사 로그, 백업, 헬스체크, 메트릭, 셀프테스트</li>
+          <li>CI/CD, Docker smoke test, 릴리즈 checksum/manifest</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Top ATT&CK tactics in demo</h2>
+        <ul class="split-list"><li><b>Credential Access</b><span>0 findings</span></li>
+<li><b>Impact</b><span>0 findings</span></li>
+<li><b>Defense Evasion</b><span>0 findings</span></li>
+<li><b>Execution</b><span>0 findings</span></li>
+<li><b>Exfiltration</b><span>0 findings</span></li>
+<li><b>Discovery</b><span>0 findings</span></li></ul>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Safe built-in demo scenarios</h2>
+      <p>시연 데이터는 실제 악성코드가 아니라 합성 JSONL 로그입니다. 외부 공유와 면접 시연에 안전하게 사용할 수 있습니다.</p>
+      <ul class="scenario-list"><li><b>powershell_downloader</b><span>4 events · T1059.001, T1105</span></li>
+<li><b>credential_dump_triage</b><span>5 events · T1003.001, T1003.002, T1003.003</span></li>
+<li><b>ransomware_preparation</b><span>5 events · T1490, T1562.001, T1070.001</span></li>
+<li><b>lateral_movement_remote_admin</b><span>4 events · T1021.006, T1569.002, T1543.003, T1047</span></li>
+<li><b>active_directory_discovery</b><span>7 events · T1087.001, T1087.002, T1482, T1135, T1057, T1518.001</span></li>
+<li><b>lolbin_proxy_execution</b><span>7 events · T1218.005, T1218.011, T1218.010, T1218.003, T1127.001, T1218.004, T1202</span></li>
+<li><b>cloud_exfiltration_staging</b><span>4 events · T1560.001, T1567.002</span></li>
+<li><b>persistence_mechanisms</b><span>4 events · T1547.001, T1053.005, T1543.003</span></li>
+<li><b>defense_evasion_controls</b><span>4 events · T1562.001, T1562.002, T1562.004</span></li>
+<li><b>user_data_collection</b><span>4 events · T1555.003, T1115, T1113, T1560.001</span></li></ul>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <h2>Run locally</h2>
+        <pre><code>python scripts/run.py --demo-scenario all --out out/report --export-json --export-csv --pdf
+uvicorn api.main:app --host 127.0.0.1 --port 8000</code></pre>
+      </article>
+      <article class="panel">
+        <h2>Publish this showcase</h2>
+        <pre><code>python scripts/build_showcase.py --clean
+# publish out/showcase to GitHub Pages or attach out/showcase/breachscope-showcase.zip</code></pre>
+      </article>
+    </section>
+
+    <footer>
+      <span>Version 1.0.0</span>
+      <span>Project readiness 100/100</span>
+      <span>Quality gate 100/100</span>
+    </footer>
+  </main>
+</body>
+</html>

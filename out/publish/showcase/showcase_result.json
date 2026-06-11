@@ -1,0 +1,489 @@
+{
+  "success": true,
+  "kind": "breachscope_static_showcase",
+  "generated_at": "2026-06-11T15:49:31Z",
+  "metadata": {
+    "name": "breachscope",
+    "version": "1.0.0",
+    "description": "디지털 포렌식 로그 분석 시스템",
+    "python_requires": ">=3.10",
+    "generated_at": "2026-06-11T15:49:31Z",
+    "git_sha": "7d8142f",
+    "git_tag": "v1.0.0",
+    "build_number": null
+  },
+  "demo_summary": {
+    "events": 48,
+    "findings": 53,
+    "risk_score": 100,
+    "risk_level": "critical",
+    "affected_hosts": 12,
+    "finding_techniques": 35,
+    "rule_count": 50,
+    "rule_techniques": 40,
+    "rule_coverage": 96.9,
+    "scenario_count": 10,
+    "indicator_totals": {
+      "domain": 1,
+      "ip": 1,
+      "md5": 1,
+      "path": 27,
+      "url": 7
+    },
+    "top_hosts": [
+      {
+        "host": "WS-301",
+        "score": 100,
+        "level": "critical",
+        "findings": 8,
+        "highest_severity": "medium",
+        "techniques": [
+          "T1018",
+          "T1057",
+          "T1087.001",
+          "T1087.002",
+          "T1135",
+          "T1482",
+          "T1518.001"
+        ],
+        "severity_counts": {
+          "low": 6,
+          "medium": 2
+        },
+        "top_rule": "Account Or System Discovery"
+      },
+      {
+        "host": "WS-401",
+        "score": 100,
+        "level": "critical",
+        "findings": 7,
+        "highest_severity": "high",
+        "techniques": [
+          "T1127.001",
+          "T1202",
+          "T1218.003",
+          "T1218.004",
+          "T1218.005",
+          "T1218.010",
+          "T1218.011"
+        ],
+        "severity_counts": {
+          "medium": 3,
+          "high": 3,
+          "low": 1
+        },
+        "top_rule": "MSHTA Remote Load"
+      },
+      {
+        "host": "FS-01",
+        "score": 100,
+        "level": "critical",
+        "findings": 7,
+        "highest_severity": "critical",
+        "techniques": [
+          "T1070.001",
+          "T1490",
+          "T1562.001"
+        ],
+        "severity_counts": {
+          "high": 5,
+          "critical": 2
+        },
+        "top_rule": "Recovery Inhibition"
+      },
+      {
+        "host": "WS-101",
+        "score": 100,
+        "level": "critical",
+        "findings": 6,
+        "highest_severity": "high",
+        "techniques": [
+          "T1059.001",
+          "T1105"
+        ],
+        "severity_counts": {
+          "medium": 5,
+          "high": 1
+        },
+        "top_rule": "Suspicious Web Download"
+      },
+      {
+        "host": "SRV-DC01",
+        "score": 100,
+        "level": "critical",
+        "findings": 5,
+        "highest_severity": "critical",
+        "techniques": [
+          "T1003.001",
+          "T1003.002",
+          "T1003.003"
+        ],
+        "severity_counts": {
+          "high": 4,
+          "critical": 1
+        },
+        "top_rule": "SAM SYSTEM Hive Save"
+      }
+    ],
+    "top_tactics": [
+      {
+        "tactic": "Credential Access",
+        "findings": 6,
+        "techniques": [
+          "T1003.001",
+          "T1003.002",
+          "T1003.003",
+          "T1555.003"
+        ],
+        "highest_severity": "critical",
+        "hosts": [
+          "SRV-DC01",
+          "WS-701"
+        ]
+      },
+      {
+        "tactic": "Impact",
+        "findings": 5,
+        "techniques": [
+          "T1490"
+        ],
+        "highest_severity": "critical",
+        "hosts": [
+          "FS-01"
+        ]
+      },
+      {
+        "tactic": "Defense Evasion",
+        "findings": 13,
+        "techniques": [
+          "T1070.001",
+          "T1127.001",
+          "T1202",
+          "T1218.003",
+          "T1218.004",
+          "T1218.005",
+          "T1218.010",
+          "T1218.011",
+          "T1562.001",
+          "T1562.002",
+          "T1562.004"
+        ],
+        "highest_severity": "high",
+        "hosts": [
+          "FS-01",
+          "WS-401",
+          "WS-601"
+        ]
+      },
+      {
+        "tactic": "Execution",
+        "findings": 6,
+        "techniques": [
+          "T1047",
+          "T1059.001",
+          "T1569.002"
+        ],
+        "highest_severity": "high",
+        "hosts": [
+          "WS-101",
+          "WS-202",
+          "WS-203"
+        ]
+      },
+      {
+        "tactic": "Exfiltration",
+        "findings": 2,
+        "techniques": [
+          "T1567.002"
+        ],
+        "highest_severity": "high",
+        "hosts": [
+          "FS-02"
+        ]
+      },
+      {
+        "tactic": "Discovery",
+        "findings": 8,
+        "techniques": [
+          "T1018",
+          "T1057",
+          "T1087.001",
+          "T1087.002",
+          "T1135",
+          "T1482",
+          "T1518.001"
+        ],
+        "highest_severity": "medium",
+        "hosts": [
+          "WS-301"
+        ]
+      }
+    ]
+  },
+  "project_readiness": {
+    "status": "pass",
+    "score": 100
+  },
+  "quality_gate": {
+    "status": "pass",
+    "score": 100
+  },
+  "scenarios": [
+    {
+      "id": "powershell_downloader",
+      "name": "PowerShell downloader and encoded execution",
+      "description": "PowerShell 실행 옵션, 원격 스크립트 로드, 인코딩 명령을 함께 보여주는 기본 시나리오입니다.",
+      "primary_tactics": [
+        "Execution",
+        "Command and Control"
+      ],
+      "expected_techniques": [
+        "T1059.001",
+        "T1105"
+      ],
+      "events": 4
+    },
+    {
+      "id": "credential_dump_triage",
+      "name": "Credential dump triage",
+      "description": "LSASS, SAM/SYSTEM, NTDS.dit, WDigest 노출 정황을 한 번에 시연하는 자격증명 탈취 시나리오입니다.",
+      "primary_tactics": [
+        "Credential Access"
+      ],
+      "expected_techniques": [
+        "T1003.001",
+        "T1003.002",
+        "T1003.003"
+      ],
+      "events": 5
+    },
+    {
+      "id": "ransomware_preparation",
+      "name": "Ransomware preparation",
+      "description": "복구 방해, Defender 비활성화, 이벤트 로그 삭제 정황을 묶어 랜섬웨어 전조를 보여줍니다.",
+      "primary_tactics": [
+        "Defense Evasion",
+        "Impact"
+      ],
+      "expected_techniques": [
+        "T1490",
+        "T1562.001",
+        "T1070.001"
+      ],
+      "events": 5
+    },
+    {
+      "id": "lateral_movement_remote_admin",
+      "name": "Remote administration lateral movement",
+      "description": "WinRM, PsExec/ADMIN$, 서비스 생성, WMI 원격 실행 흐름을 시연합니다.",
+      "primary_tactics": [
+        "Lateral Movement",
+        "Execution",
+        "Persistence"
+      ],
+      "expected_techniques": [
+        "T1021.006",
+        "T1569.002",
+        "T1543.003",
+        "T1047"
+      ],
+      "events": 4
+    },
+    {
+      "id": "active_directory_discovery",
+      "name": "Active Directory discovery sweep",
+      "description": "도메인, 계정, 공유, 프로세스, 보안제품 탐색 명령을 넓게 보여주는 정찰 시나리오입니다.",
+      "primary_tactics": [
+        "Discovery"
+      ],
+      "expected_techniques": [
+        "T1087.001",
+        "T1087.002",
+        "T1482",
+        "T1135",
+        "T1057",
+        "T1518.001"
+      ],
+      "events": 7
+    },
+    {
+      "id": "lolbin_proxy_execution",
+      "name": "LOLBins proxy execution cluster",
+      "description": "mshta, rundll32, regsvr32, cmstp, msbuild, installutil, forfiles 같은 서명 바이너리 프록시 실행을 시연합니다.",
+      "primary_tactics": [
+        "Defense Evasion",
+        "Execution"
+      ],
+      "expected_techniques": [
+        "T1218.005",
+        "T1218.011",
+        "T1218.010",
+        "T1218.003",
+        "T1127.001",
+        "T1218.004",
+        "T1202"
+      ],
+      "events": 7
+    },
+    {
+      "id": "cloud_exfiltration_staging",
+      "name": "Cloud exfiltration staging",
+      "description": "파일 압축 후 rclone/MEGA 같은 클라우드 동기화 도구 사용 정황과 IOC 추출을 시연합니다.",
+      "primary_tactics": [
+        "Collection",
+        "Exfiltration"
+      ],
+      "expected_techniques": [
+        "T1560.001",
+        "T1567.002"
+      ],
+      "events": 4
+    },
+    {
+      "id": "persistence_mechanisms",
+      "name": "Persistence mechanisms",
+      "description": "Run 키, 예약 작업, 서비스 생성, PowerShell New-Service 기반 지속성 등록을 보여줍니다.",
+      "primary_tactics": [
+        "Persistence",
+        "Execution"
+      ],
+      "expected_techniques": [
+        "T1547.001",
+        "T1053.005",
+        "T1543.003"
+      ],
+      "events": 4
+    },
+    {
+      "id": "defense_evasion_controls",
+      "name": "Defense evasion control changes",
+      "description": "AMSI, 감사정책, 방화벽, Defender 설정 변경을 모아 방어 회피 점검을 시연합니다.",
+      "primary_tactics": [
+        "Defense Evasion"
+      ],
+      "expected_techniques": [
+        "T1562.001",
+        "T1562.002",
+        "T1562.004"
+      ],
+      "events": 4
+    },
+    {
+      "id": "user_data_collection",
+      "name": "User data collection",
+      "description": "브라우저 자격증명 저장소, 클립보드, 화면 캡처, 압축 수집을 보여주는 사용자 데이터 수집 시나리오입니다.",
+      "primary_tactics": [
+        "Collection",
+        "Credential Access"
+      ],
+      "expected_techniques": [
+        "T1555.003",
+        "T1115",
+        "T1113",
+        "T1560.001"
+      ],
+      "events": 4
+    }
+  ],
+  "output_dir": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\showcase",
+  "zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\showcase\\breachscope-showcase.zip",
+  "zip_sha256": "5c1f262fa79ce5e0e425da4419da338a49bf193423ef385e4c72d395ba9e576c",
+  "artifacts": [
+    {
+      "path": "index.html",
+      "size_bytes": 5089,
+      "sha256": "9536b2979a91aeb812085d466a5eeb2c4d827107568ec884d222e1d1d363bfc0",
+      "purpose": "static showcase landing page"
+    },
+    {
+      "path": "README.md",
+      "size_bytes": 674,
+      "sha256": "0ab1e9f4d3e9d23a880e5a0d9310f5016c61dfbc4568977827460a70d0f68d81",
+      "purpose": "showcase usage notes"
+    },
+    {
+      "path": "data/showcase_summary.json",
+      "size_bytes": 9814,
+      "sha256": "e119fb976af7df7ecee525f3715330bc52438e946754703d648e3146c66b5cd5",
+      "purpose": "machine-readable demo and readiness metrics"
+    },
+    {
+      "path": "assets/showcase.css",
+      "size_bytes": 1988,
+      "sha256": "71ba67ae1272c1ab7168254c61bdda0601c440bafc6384d1ea816a951f809619",
+      "purpose": "landing page styles"
+    },
+    {
+      "path": "assets/social-preview.svg",
+      "size_bytes": 2190,
+      "sha256": "febf99c859e54735682ff98919598872e1a4bbdc28806b37dbf7733097e0468c",
+      "purpose": "social preview/README image asset"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.html",
+      "size_bytes": 207471,
+      "sha256": "b05634a3a173a5d46b6cc0f4e5d7c65ccbaf5eaf3effda004e97abf9f5820668",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.json",
+      "size_bytes": 104632,
+      "sha256": "3d5cda6afb6c23ffc727a5c477d9200affaebebc00419390a960c3fbaf9d1e7b",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.csv",
+      "size_bytes": 9416,
+      "sha256": "939df3c8a4922a0f549c4d9468ca5df2e09b0077ab863aedda91cce3b99842be",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.iocs.csv",
+      "size_bytes": 4725,
+      "sha256": "8e30bc91288e9b54acdd6a1682af993cb6dc864d8b13ded7b9d08e721aa9f439",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.rules.csv",
+      "size_bytes": 12569,
+      "sha256": "64d3d9ca898691280900613914341362c5dcfe087ba3ca4793dc386c6fc06b62",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.manifest.json",
+      "size_bytes": 30747,
+      "sha256": "2fb0a7cd2707121aff436ceee7bf41140eb277f086be7e4e21dfd6455b3b80ef",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.zip",
+      "size_bytes": 163930,
+      "sha256": "26ecc4cfb421bc694af58190027b396ebc0cacc4c2516414211145ef4a653df4",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.pdf",
+      "size_bytes": 116008,
+      "sha256": "01e38ca3b1840c0ce3c76f7ce7fca1d35b081b431cee7fcb8aec0736d8956a9e",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "showcase_manifest.json",
+      "size_bytes": 12824,
+      "sha256": "8191f5bcc51a9858aa453f04afe13a1a0396d4c0a89f842ed03de4ee6e23b785",
+      "purpose": "artifact manifest with SHA-256 metadata"
+    },
+    {
+      "path": "SHA256SUMS.txt",
+      "size_bytes": 1398,
+      "sha256": "3b96bcb781f281d81cddda21293ea30abb40fe9f506ddb11e900645fe8f8e255",
+      "purpose": "checksum list"
+    },
+    {
+      "path": "breachscope-showcase.zip",
+      "size_bytes": 339657,
+      "sha256": "5c1f262fa79ce5e0e425da4419da338a49bf193423ef385e4c72d395ba9e576c",
+      "purpose": "shareable static showcase archive"
+    }
+  ]
+}

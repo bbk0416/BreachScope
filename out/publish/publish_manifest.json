@@ -1,0 +1,543 @@
+{
+  "success": true,
+  "generated_at": "2026-06-11T15:49:33Z",
+  "output_dir": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish",
+  "metadata": {
+    "name": "breachscope",
+    "version": "1.0.0",
+    "description": "디지털 포렌식 로그 분석 시스템",
+    "python_requires": ">=3.10",
+    "generated_at": "2026-06-11T15:49:33Z",
+    "git_sha": "7d8142f",
+    "git_tag": "v1.0.0",
+    "build_number": null
+  },
+  "project_readiness": {
+    "status": "pass",
+    "score": 100,
+    "summary": {
+      "checks": 16,
+      "passed": 16,
+      "warnings": 0,
+      "failed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "pass",
+    "score": 100,
+    "summary": {
+      "checks": 6,
+      "passed": 6,
+      "warnings": 0,
+      "failed": 0
+    }
+  },
+  "go_live": {
+    "status": "pass",
+    "score": 100,
+    "summary": {
+      "passed": 10,
+      "warnings": 0,
+      "failed": 0
+    }
+  },
+  "release": {
+    "metadata": {
+      "name": "breachscope",
+      "version": "1.0.0",
+      "description": "디지털 포렌식 로그 분석 시스템",
+      "python_requires": ">=3.10",
+      "generated_at": "2026-06-11T15:49:27Z",
+      "git_sha": "7d8142f",
+      "git_tag": "v1.0.0",
+      "build_number": null
+    },
+    "artifacts": [
+      {
+        "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\dist\\breachscope-1.0.0-source.zip",
+        "size_bytes": 310121,
+        "sha256": "bd7a6a5e2dedb13ed656310e9cd62d856ba4140f16b3c03f2f0855a0335bb711"
+      },
+      {
+        "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\dist\\SHA256SUMS.txt",
+        "size_bytes": 96,
+        "sha256": "80bec87a0ce220d32ed2c0455d68c928a79619e630af0720bf5ef90aab3a785a"
+      },
+      {
+        "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\dist\\release_manifest.json",
+        "size_bytes": 912,
+        "sha256": "1a88c206fd366861947ef8d7b976b82b4addd2624cee6cd5082c80cb496d4e8d"
+      }
+    ],
+    "dist_dir": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\dist"
+  },
+  "demo_pack": {
+    "zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\demo_pack\\breachscope-demo-pack.zip",
+    "zip_sha256": "7c1b95c7578698c9ad8b202222e666652da2665da6f4c374946a7afc3c98a0bb",
+    "demo_summary": {
+      "total_events": 48,
+      "total_findings": 53,
+      "risk_score": 100,
+      "risk_level": "critical",
+      "affected_hosts": 12,
+      "unique_techniques": 35,
+      "indicator_totals": {
+        "domain": 1,
+        "ip": 1,
+        "md5": 1,
+        "path": 27,
+        "url": 7
+      },
+      "rule_count": 50,
+      "rule_techniques": 40,
+      "rule_coverage": 96.9,
+      "scenario_count": 10,
+      "top_hosts": [
+        {
+          "host": "WS-301",
+          "score": 100,
+          "level": "critical",
+          "findings": 8,
+          "highest_severity": "medium",
+          "techniques": [
+            "T1018",
+            "T1057",
+            "T1087.001",
+            "T1087.002",
+            "T1135",
+            "T1482",
+            "T1518.001"
+          ],
+          "severity_counts": {
+            "low": 6,
+            "medium": 2
+          },
+          "top_rule": "Account Or System Discovery"
+        },
+        {
+          "host": "WS-401",
+          "score": 100,
+          "level": "critical",
+          "findings": 7,
+          "highest_severity": "high",
+          "techniques": [
+            "T1127.001",
+            "T1202",
+            "T1218.003",
+            "T1218.004",
+            "T1218.005",
+            "T1218.010",
+            "T1218.011"
+          ],
+          "severity_counts": {
+            "medium": 3,
+            "high": 3,
+            "low": 1
+          },
+          "top_rule": "MSHTA Remote Load"
+        },
+        {
+          "host": "FS-01",
+          "score": 100,
+          "level": "critical",
+          "findings": 7,
+          "highest_severity": "critical",
+          "techniques": [
+            "T1070.001",
+            "T1490",
+            "T1562.001"
+          ],
+          "severity_counts": {
+            "high": 5,
+            "critical": 2
+          },
+          "top_rule": "Recovery Inhibition"
+        },
+        {
+          "host": "WS-101",
+          "score": 100,
+          "level": "critical",
+          "findings": 6,
+          "highest_severity": "high",
+          "techniques": [
+            "T1059.001",
+            "T1105"
+          ],
+          "severity_counts": {
+            "medium": 5,
+            "high": 1
+          },
+          "top_rule": "Suspicious Web Download"
+        },
+        {
+          "host": "SRV-DC01",
+          "score": 100,
+          "level": "critical",
+          "findings": 5,
+          "highest_severity": "critical",
+          "techniques": [
+            "T1003.001",
+            "T1003.002",
+            "T1003.003"
+          ],
+          "severity_counts": {
+            "high": 4,
+            "critical": 1
+          },
+          "top_rule": "SAM SYSTEM Hive Save"
+        }
+      ],
+      "top_tactics": [
+        {
+          "tactic": "Credential Access",
+          "findings": 6,
+          "techniques": [
+            "T1003.001",
+            "T1003.002",
+            "T1003.003",
+            "T1555.003"
+          ],
+          "highest_severity": "critical",
+          "hosts": [
+            "SRV-DC01",
+            "WS-701"
+          ]
+        },
+        {
+          "tactic": "Impact",
+          "findings": 5,
+          "techniques": [
+            "T1490"
+          ],
+          "highest_severity": "critical",
+          "hosts": [
+            "FS-01"
+          ]
+        },
+        {
+          "tactic": "Defense Evasion",
+          "findings": 13,
+          "techniques": [
+            "T1070.001",
+            "T1127.001",
+            "T1202",
+            "T1218.003",
+            "T1218.004",
+            "T1218.005",
+            "T1218.010",
+            "T1218.011",
+            "T1562.001",
+            "T1562.002",
+            "T1562.004"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "FS-01",
+            "WS-401",
+            "WS-601"
+          ]
+        },
+        {
+          "tactic": "Execution",
+          "findings": 6,
+          "techniques": [
+            "T1047",
+            "T1059.001",
+            "T1569.002"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "WS-101",
+            "WS-202",
+            "WS-203"
+          ]
+        },
+        {
+          "tactic": "Exfiltration",
+          "findings": 2,
+          "techniques": [
+            "T1567.002"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "FS-02"
+          ]
+        }
+      ]
+    }
+  },
+  "showcase": {
+    "zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\showcase\\breachscope-showcase.zip",
+    "zip_sha256": "5c1f262fa79ce5e0e425da4419da338a49bf193423ef385e4c72d395ba9e576c",
+    "demo_summary": {
+      "events": 48,
+      "findings": 53,
+      "risk_score": 100,
+      "risk_level": "critical",
+      "affected_hosts": 12,
+      "finding_techniques": 35,
+      "rule_count": 50,
+      "rule_techniques": 40,
+      "rule_coverage": 96.9,
+      "scenario_count": 10,
+      "indicator_totals": {
+        "domain": 1,
+        "ip": 1,
+        "md5": 1,
+        "path": 27,
+        "url": 7
+      },
+      "top_hosts": [
+        {
+          "host": "WS-301",
+          "score": 100,
+          "level": "critical",
+          "findings": 8,
+          "highest_severity": "medium",
+          "techniques": [
+            "T1018",
+            "T1057",
+            "T1087.001",
+            "T1087.002",
+            "T1135",
+            "T1482",
+            "T1518.001"
+          ],
+          "severity_counts": {
+            "low": 6,
+            "medium": 2
+          },
+          "top_rule": "Account Or System Discovery"
+        },
+        {
+          "host": "WS-401",
+          "score": 100,
+          "level": "critical",
+          "findings": 7,
+          "highest_severity": "high",
+          "techniques": [
+            "T1127.001",
+            "T1202",
+            "T1218.003",
+            "T1218.004",
+            "T1218.005",
+            "T1218.010",
+            "T1218.011"
+          ],
+          "severity_counts": {
+            "medium": 3,
+            "high": 3,
+            "low": 1
+          },
+          "top_rule": "MSHTA Remote Load"
+        },
+        {
+          "host": "FS-01",
+          "score": 100,
+          "level": "critical",
+          "findings": 7,
+          "highest_severity": "critical",
+          "techniques": [
+            "T1070.001",
+            "T1490",
+            "T1562.001"
+          ],
+          "severity_counts": {
+            "high": 5,
+            "critical": 2
+          },
+          "top_rule": "Recovery Inhibition"
+        },
+        {
+          "host": "WS-101",
+          "score": 100,
+          "level": "critical",
+          "findings": 6,
+          "highest_severity": "high",
+          "techniques": [
+            "T1059.001",
+            "T1105"
+          ],
+          "severity_counts": {
+            "medium": 5,
+            "high": 1
+          },
+          "top_rule": "Suspicious Web Download"
+        },
+        {
+          "host": "SRV-DC01",
+          "score": 100,
+          "level": "critical",
+          "findings": 5,
+          "highest_severity": "critical",
+          "techniques": [
+            "T1003.001",
+            "T1003.002",
+            "T1003.003"
+          ],
+          "severity_counts": {
+            "high": 4,
+            "critical": 1
+          },
+          "top_rule": "SAM SYSTEM Hive Save"
+        }
+      ],
+      "top_tactics": [
+        {
+          "tactic": "Credential Access",
+          "findings": 6,
+          "techniques": [
+            "T1003.001",
+            "T1003.002",
+            "T1003.003",
+            "T1555.003"
+          ],
+          "highest_severity": "critical",
+          "hosts": [
+            "SRV-DC01",
+            "WS-701"
+          ]
+        },
+        {
+          "tactic": "Impact",
+          "findings": 5,
+          "techniques": [
+            "T1490"
+          ],
+          "highest_severity": "critical",
+          "hosts": [
+            "FS-01"
+          ]
+        },
+        {
+          "tactic": "Defense Evasion",
+          "findings": 13,
+          "techniques": [
+            "T1070.001",
+            "T1127.001",
+            "T1202",
+            "T1218.003",
+            "T1218.004",
+            "T1218.005",
+            "T1218.010",
+            "T1218.011",
+            "T1562.001",
+            "T1562.002",
+            "T1562.004"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "FS-01",
+            "WS-401",
+            "WS-601"
+          ]
+        },
+        {
+          "tactic": "Execution",
+          "findings": 6,
+          "techniques": [
+            "T1047",
+            "T1059.001",
+            "T1569.002"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "WS-101",
+            "WS-202",
+            "WS-203"
+          ]
+        },
+        {
+          "tactic": "Exfiltration",
+          "findings": 2,
+          "techniques": [
+            "T1567.002"
+          ],
+          "highest_severity": "high",
+          "hosts": [
+            "FS-02"
+          ]
+        },
+        {
+          "tactic": "Discovery",
+          "findings": 8,
+          "techniques": [
+            "T1018",
+            "T1057",
+            "T1087.001",
+            "T1087.002",
+            "T1135",
+            "T1482",
+            "T1518.001"
+          ],
+          "highest_severity": "medium",
+          "hosts": [
+            "WS-301"
+          ]
+        }
+      ]
+    }
+  },
+  "zip_hygiene_status": "pass",
+  "zip_hygiene": [
+    {
+      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\dist\\breachscope-1.0.0-source.zip",
+      "file_count": 156,
+      "status": "pass",
+      "issues": []
+    },
+    {
+      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\demo_pack\\breachscope-demo-pack.zip",
+      "file_count": 27,
+      "status": "pass",
+      "issues": []
+    },
+    {
+      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\showcase\\breachscope-showcase.zip",
+      "file_count": 15,
+      "status": "pass",
+      "issues": []
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "dist/breachscope-1.0.0-source.zip",
+      "size_bytes": 310121,
+      "sha256": "bd7a6a5e2dedb13ed656310e9cd62d856ba4140f16b3c03f2f0855a0335bb711",
+      "purpose": "Release artifact"
+    },
+    {
+      "path": "dist/SHA256SUMS.txt",
+      "size_bytes": 96,
+      "sha256": "80bec87a0ce220d32ed2c0455d68c928a79619e630af0720bf5ef90aab3a785a",
+      "purpose": "Release artifact"
+    },
+    {
+      "path": "dist/release_manifest.json",
+      "size_bytes": 912,
+      "sha256": "1a88c206fd366861947ef8d7b976b82b4addd2624cee6cd5082c80cb496d4e8d",
+      "purpose": "Release artifact"
+    },
+    {
+      "path": "demo_pack/breachscope-demo-pack.zip",
+      "size_bytes": 347511,
+      "sha256": "7c1b95c7578698c9ad8b202222e666652da2665da6f4c374946a7afc3c98a0bb",
+      "purpose": "Shareable demo handoff ZIP"
+    },
+    {
+      "path": "showcase/breachscope-showcase.zip",
+      "size_bytes": 339657,
+      "sha256": "5c1f262fa79ce5e0e425da4419da338a49bf193423ef385e4c72d395ba9e576c",
+      "purpose": "GitHub Pages static showcase ZIP"
+    },
+    {
+      "path": "breachscope-public-launch-pack.zip",
+      "size_bytes": 2019256,
+      "sha256": "d3ffc6e5e41f67e72903c30e146454e2707873a4647aa1ae9bd10d06e06e2a9f",
+      "purpose": "Final public launch handoff ZIP"
+    }
+  ],
+  "checksums_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\SHA256SUMS.txt",
+  "publish_zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\publish\\breachscope-public-launch-pack.zip",
+  "publish_zip_sha256": "d3ffc6e5e41f67e72903c30e146454e2707873a4647aa1ae9bd10d06e06e2a9f"
+}
