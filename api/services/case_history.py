@@ -465,3 +465,23 @@ class CaseHistoryService:
             return True
         except ValueError:
             return False
+
+# BREACHSCOPE_P0_11_DELETE_BOUNDARY_V1
+from .path_boundary import (
+    is_safe_managed_delete as _bs_p011_is_safe_managed_delete,
+    validate_managed_work_dir as _bs_p011_validate_managed_work_dir,
+)
+
+_bs_p011_legacy_register_case = CaseHistoryService.register_case
+
+def _bs_p011_register_case(self, work_dir, report_data):
+    managed = _bs_p011_validate_managed_work_dir(
+        work_dir, allow_temp=True, must_exist=True
+    )
+    return _bs_p011_legacy_register_case(self, managed, report_data)
+
+def _bs_p011_safe_remove(cls, path):
+    return _bs_p011_is_safe_managed_delete(path)
+
+CaseHistoryService.register_case = _bs_p011_register_case
+CaseHistoryService._is_safe_to_remove = classmethod(_bs_p011_safe_remove)

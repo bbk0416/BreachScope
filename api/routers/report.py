@@ -39,9 +39,15 @@ async def get_report(
         file_type: 파일 타입 (html, json, csv, pdf)
     """
     try:
-        work_path = Path(work_dir)
-        if not work_path.exists():
+        from api.services.path_boundary import WorkDirBoundaryError, validate_managed_work_dir
+        try:
+            work_path = validate_managed_work_dir(
+                work_dir, allow_temp=True, must_exist=True
+            )
+        except (WorkDirBoundaryError, FileNotFoundError):
             raise HTTPException(status_code=404, detail="작업 디렉토리를 찾을 수 없습니다.")
+
+        # BREACHSCOPE_P0_11_REPORT_ROUTE_BOUNDARY_V1
 
         report_prefix = work_path / "out" / "report"
 

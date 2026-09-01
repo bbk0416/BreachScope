@@ -72,3 +72,15 @@ class WorkDirectoryService:
         except Exception as e:
             logger.error(f"작업 디렉토리 생성 실패: {e}")
             raise Exception("작업 디렉토리 생성 실패. 디스크 공간을 확인하거나 관리자에게 문의하세요.")
+
+# BREACHSCOPE_P0_11_WORKDIR_BOUNDARY_V1
+from .path_boundary import resolve_user_work_dir as _bs_p011_resolve_user_work_dir
+
+_bs_p011_legacy_create_work_directory = WorkDirectoryService.create_work_directory
+
+def _bs_p011_create_work_directory(self, work_dir=None):
+    if work_dir and str(work_dir).strip():
+        return _bs_p011_resolve_user_work_dir(work_dir, create=True)
+    return _bs_p011_legacy_create_work_directory(self, None)
+
+WorkDirectoryService.create_work_directory = _bs_p011_create_work_directory

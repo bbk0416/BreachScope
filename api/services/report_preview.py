@@ -118,3 +118,20 @@ def load_preview(work_dir: str | Path) -> Dict[str, Any]:
         raise FileNotFoundError(f"report.json not found: {report_json}")
     data = json.loads(report_json.read_text(encoding="utf-8"))
     return build_preview(data)
+
+# BREACHSCOPE_P0_11_REPORT_PREVIEW_BOUNDARY_V1
+from .path_boundary import (
+    WorkDirBoundaryError as _bs_p011_WorkDirBoundaryError,
+    validate_managed_work_dir as _bs_p011_validate_managed_work_dir,
+)
+
+_bs_p011_legacy_load_preview = load_preview
+
+def load_preview(work_dir):
+    try:
+        managed = _bs_p011_validate_managed_work_dir(
+            work_dir, allow_temp=True, must_exist=True
+        )
+    except _bs_p011_WorkDirBoundaryError as exc:
+        raise FileNotFoundError("report work_dir is outside managed roots") from exc
+    return _bs_p011_legacy_load_preview(managed)
