@@ -449,3 +449,156 @@ def collect_multi_layer_artifacts(
     else:
         logger.warning("수집된 아티팩트가 없습니다.")
         return None
+# BREACHSCOPE_P0_01_EVTX_EVENTDATA_V3
+# P0-01 deliberately leaves the existing parser implementation untouched.
+# Keep a stable reference to it, then enrich only the returned raw evidence.
+_extract_from_xml_legacy = _extract_from_xml
+
+
+def _bs_local_name(tag: str) -> str:
+    if "}" in tag:
+        return tag.rsplit("}", 1)[-1]
+    if ":" in tag:
+        return tag.rsplit(":", 1)[-1]
+    return tag
+
+
+def _bs_add_raw_value(target: dict, key: str, value):
+    if not key:
+        return
+    if key not in target:
+        target[key] = value
+        return
+    current = target[key]
+    if isinstance(current, list):
+        current.append(value)
+    else:
+        target[key] = [current, value]
+
+
+def _bs_xml_node(node):
+    item = {
+        "tag": _bs_local_name(str(node.tag)),
+        "attributes": dict(node.attrib),
+    }
+    if node.text is not None and node.text.strip() != "":
+        item["text"] = node.text
+    children = [_bs_xml_node(child) for child in list(node)]
+    if children:
+        item["children"] = children
+    return item
+
+
+def _bs_extract_evtx_raw(xml_text: str) -> dict:
+    """Preserve EventData, UserData and useful System evidence as JSON-safe values."""
+    import xml.etree.ElementTree as ET
+
+    root = ET.fromstring(xml_text)
+    raw: dict = {}
+
+    event_data: dict = {}
+    unnamed_event_data: list = []
+    event_data_records: list = []
+
+    for node in root.iter():
+        if _bs_local_name(str(node.tag)) != "EventData":
+            continue
+
+        for child in list(node):
+            record = _bs_xml_node(child)
+            event_data_records.append(record)
+
+            if _bs_local_name(str(child.tag)) != "Data":
+                continue
+
+            name = (child.attrib.get("Name") or "").strip()
+            value = child.text if child.text is not None else ""
+            if name:
+                _bs_add_raw_value(event_data, name, value)
+            else:
+                unnamed_event_data.append(value)
+
+    # Direct raw[field] compatibility for existing correlator/session logic.
+    for key, value in event_data.items():
+        raw[key] = value
+
+    raw["event_data"] = dict(event_data)
+    if event_data_records:
+        raw["event_data_records"] = event_data_records
+    if unnamed_event_data:
+        raw["event_data_unnamed"] = unnamed_event_data
+
+    system: dict = {}
+    for node in root.iter():
+        if _bs_local_name(str(node.tag)) != "System":
+            continue
+
+        for child in list(node):
+            name = _bs_local_name(str(child.tag))
+
+            if name == "Provider":
+                if child.attrib.get("Name") is not None:
+                    system["ProviderName"] = child.attrib.get("Name")
+                if child.attrib.get("Guid") is not None:
+                    system["ProviderGuid"] = child.attrib.get("Guid")
+            elif name == "TimeCreated":
+                if child.attrib.get("SystemTime") is not None:
+                    system["SystemTime"] = child.attrib.get("SystemTime")
+            elif name == "Execution":
+                for attr, value in child.attrib.items():
+                    system[f"Execution{attr}"] = value
+            elif name == "Security":
+                for attr, value in child.attrib.items():
+                    system[f"Security{attr}"] = value
+            elif list(child):
+                system[name] = _bs_xml_node(child)
+            else:
+                value = child.text if child.text is not None else ""
+                _bs_add_raw_value(system, name, value)
+        break
+
+    if system:
+        raw["system"] = system
+
+    user_data_nodes = [
+        node
+        for node in root.iter()
+        if _bs_local_name(str(node.tag)) == "UserData"
+    ]
+    if user_data_nodes:
+        raw["user_data"] = [_bs_xml_node(node) for node in user_data_nodes]
+
+    return raw
+
+
+def _extract_from_xml(xml_text: str):
+    """Run the existing parser unchanged, then attach preserved EVTX evidence."""
+    result = _extract_from_xml_legacy(xml_text)
+    if not isinstance(result, dict):
+        return result
+
+    extracted = _bs_extract_evtx_raw(xml_text)
+    existing = result.get("raw")
+
+    if not isinstance(existing, dict):
+        result["raw"] = extracted
+        return result
+
+    merged = dict(existing)
+
+    # Never overwrite legacy values. Structured evidence remains under
+    # event_data/system/user_data even if a flattened field name collides.
+    for key, value in extracted.items():
+        if key not in merged:
+            merged[key] = value
+        elif (
+            key in ("event_data", "system")
+            and isinstance(merged[key], dict)
+            and isinstance(value, dict)
+        ):
+            combined = dict(value)
+            combined.update(merged[key])
+            merged[key] = combined
+
+    result["raw"] = merged
+    return result
