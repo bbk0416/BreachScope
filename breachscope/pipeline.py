@@ -21,6 +21,7 @@ from .rulepack import summarize_rules, export_rule_catalog_csv
 from .demo_scenarios import summarize_sample_context
 from .schemas import Rule, Report, Finding, EventChain, Event
 from .rules import load_rules
+from .hayabusa import hayabusa_enabled, run_hayabusa_findings
 from .utils import parse_timestamp as _parse_ts
 from .exceptions import (
     EventCollectionError,
@@ -371,6 +372,21 @@ class Pipeline:
 
         step_start = time.time()
         self.analyze()
+
+        # BREACHSCOPE_P0_10_HAYABUSA_BACKEND_V1
+        # Hayabusa is an opt-in external backend. It consumes the original
+        # EVTX input and contributes Findings before correlation/scenario
+        # inference. JSONL-only/demo inputs are a no-op.
+        if hayabusa_enabled():
+            hayabusa_findings = run_hayabusa_findings(input_dir)
+            if hayabusa_findings:
+                combined = list(self.findings or []) + hayabusa_findings
+                self.findings = self._filter_findings(combined)
+                logger.info(
+                    f"Hayabusa 탐지 결과 병합: {len(hayabusa_findings)}개 "
+                    f"(총 {len(self.findings)}개)"
+                )
+
         logger.info(f"✓ 분석 완료 ({time.time() - step_start:.2f}초)")
 
         step_start = time.time()
