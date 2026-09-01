@@ -55,9 +55,7 @@ class AnalysisService:
         Returns:
             분석 결과 딕셔너리
         """
-        # Redaction 설정
-        os.environ["BS_REDACT"] = "1" if redact else "0"
-
+        # P1-02: redaction is request-local and passed into Pipeline.
         # BREACHSCOPE_P1_01_STREAMING_UPLOAD_V1
         validate_file_count(files or [])
 
@@ -163,6 +161,7 @@ class AnalysisService:
                 mitre_exclude=split_csv(mitre_exclude) if mitre_exclude else None,
                 host_include=split_csv(host_include) if host_include else None,
                 max_events=max_events,
+                redact=redact,
             )
 
             out_prefix = work / "out" / "report"

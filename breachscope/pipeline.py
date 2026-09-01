@@ -49,6 +49,7 @@ class Pipeline:
         enable_parallel: bool = True,
         max_workers: Optional[int] = None,
         custom_scenario_templates_dir: Optional[Path] = None,
+        redact: Optional[bool] = None,
     ):
         """
         파이프라인 초기화
@@ -64,6 +65,8 @@ class Pipeline:
             max_workers: 병렬 처리 워커 수 (None이면 자동 결정)
             custom_scenario_templates_dir: 사용자 정의 시나리오 템플릿 디렉토리 (선택적)
         """
+        self.redact: Optional[bool] = redact
+        # BREACHSCOPE_P1_02_REQUEST_LOCAL_REDACTION_V1
         self.rules_dir = rules_dir
         self.min_severity = min_severity
         self.mitre_include = mitre_include
@@ -304,7 +307,12 @@ class Pipeline:
         out_package = out_prefix.with_suffix(".zip")
 
         logger.info(f"리포트 생성 시작: {out_html}")
-        render_html(self.report, out_html)
+        redact = (
+            self.redact
+            if self.redact is not None
+            else (os.getenv("BS_REDACT", "1") != "0")
+        )
+        render_html(self.report, out_html, redact=redact)
         logger.info(f"HTML 리포트 생성 완료: {out_html}")
 
         generated_artifacts = [out_html]
@@ -317,7 +325,6 @@ class Pipeline:
             else:
                 logger.warning("PDF 렌더링 도구가 없어 PDF 생성을 건너뜁니다.")
 
-        redact = (os.getenv("BS_REDACT", "1") != "0")
         if export_json:
             export_json_func(self.report, out_json, redact=redact)
             generated_artifacts.append(out_json)
