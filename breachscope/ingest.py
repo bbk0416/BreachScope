@@ -602,3 +602,14 @@ def _extract_from_xml(xml_text: str):
 
     result["raw"] = merged
     return result
+# BREACHSCOPE_P0_02_CANONICAL_EVENT_MODEL_V1
+from .canonical import enrich_event_dict as _bs_enrich_canonical_event
+
+_extract_from_xml_p0_01 = _extract_from_xml
+
+
+def _extract_from_xml(xml_text: str):
+    result = _extract_from_xml_p0_01(xml_text)
+    if isinstance(result, dict):
+        return _bs_enrich_canonical_event(result)
+    return result
