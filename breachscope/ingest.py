@@ -32,7 +32,7 @@ except ImportError:
         return []
 
 
-def _extract_from_xml(xml_text: str) -> dict:
+def _extract_legacy_event_fields(xml_text: str) -> dict:
     try:
         import xml.etree.ElementTree as ET
         root = ET.fromstring(xml_text)
@@ -452,9 +452,8 @@ def collect_multi_layer_artifacts(
         logger.warning("수집된 아티팩트가 없습니다.")
         return None
 # BREACHSCOPE_P0_01_EVTX_EVENTDATA_V3
-# P0-01 deliberately leaves the existing parser implementation untouched.
+# Staged parser: preserve legacy field extraction, then add structured raw evidence.
 # Keep a stable reference to it, then enrich only the returned raw evidence.
-_extract_from_xml_legacy = _extract_from_xml
 
 
 def _bs_local_name(tag: str) -> str:
@@ -573,9 +572,9 @@ def _bs_extract_evtx_raw(xml_text: str) -> dict:
     return raw
 
 
-def _extract_from_xml(xml_text: str):
+def _extract_with_raw_evidence(xml_text: str):
     """Run the existing parser unchanged, then attach preserved EVTX evidence."""
-    result = _extract_from_xml_legacy(xml_text)
+    result = _extract_legacy_event_fields(xml_text)
     if not isinstance(result, dict):
         return result
 
@@ -607,11 +606,10 @@ def _extract_from_xml(xml_text: str):
 # BREACHSCOPE_P0_02_CANONICAL_EVENT_MODEL_V1
 from .canonical import enrich_event_dict as _bs_enrich_canonical_event
 
-_extract_from_xml_p0_01 = _extract_from_xml
 
 
 def _extract_from_xml(xml_text: str):
-    result = _extract_from_xml_p0_01(xml_text)
+    result = _extract_with_raw_evidence(xml_text)
     if isinstance(result, dict):
         return _bs_enrich_canonical_event(result)
     return result
