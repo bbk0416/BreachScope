@@ -437,9 +437,15 @@ def _redacted_report_copy(report: Report) -> Report:
     return copied
 
 
-def render_html(report: Report, out_html: Path) -> None:
-    # Redact by default to avoid AV false positives in saved reports
-    redact = os.getenv("BS_REDACT", "1") != "0"
+def render_html(
+    report: Report,
+    out_html: Path,
+    redact: bool | None = None,
+) -> None:
+    # Explicit request-local state wins. None preserves CLI/direct-call
+    # compatibility with the historical environment fallback.
+    if redact is None:
+        redact = os.getenv("BS_REDACT", "1") != "0"
     render_report = _redacted_report_copy(report) if redact else report
     try:
         from jinja2 import Environment, FileSystemLoader, select_autoescape

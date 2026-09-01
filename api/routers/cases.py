@@ -144,10 +144,15 @@ async def get_case_report(
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
-    work_path = Path(str(case.get("work_dir") or ""))
-    if not work_path.exists():
+    from api.services.path_boundary import WorkDirBoundaryError, validate_managed_work_dir
+    try:
+        work_path = validate_managed_work_dir(
+            str(case.get("work_dir") or ""), allow_temp=True, must_exist=True
+        )
+    except (WorkDirBoundaryError, FileNotFoundError):
         raise HTTPException(status_code=404, detail="케이스 작업 디렉토리를 찾을 수 없습니다.")
 
+    # BREACHSCOPE_P0_11_CASE_REPORT_BOUNDARY_V1
     report_prefix = work_path / "out" / "report"
     suffix_map = {
         "html": ".html",

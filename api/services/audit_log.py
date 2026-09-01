@@ -103,7 +103,7 @@ def actor_from_request(request: Request | None) -> AuditActor:
             if auth.lower().startswith("bearer "):
                 supplied = auth[7:].strip()
         if not supplied:
-            supplied = request.query_params.get("api_key", "").strip()
+            supplied = ""
         return AuditActor(subject=f"api_key:{_hash_principal(supplied or configured_api_key())}", method="api_key")
 
     if not auth_is_enabled():

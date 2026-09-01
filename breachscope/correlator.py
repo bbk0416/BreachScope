@@ -151,15 +151,12 @@ def correlate_events(
             correlation_rules = _get_default_correlation_rules()
 
         chains: List[EventChain] = []
-        processed_events: Set[int] = set()
 
         # 3. 각 상관 규칙에 대해 체인 생성 (이진 검색으로 최적화)
         for rule in correlation_rules:
             logger.debug(f"규칙 적용 중: {rule.rule_id}")
 
             for i, (orig_idx, event_a, ts_a) in enumerate(indexed_events):
-                if i in processed_events:
-                    continue
 
                 # 이벤트 A가 패턴과 매칭되는지 확인
                 if not _match_event_pattern(event_a, rule.event_a_patterns):
@@ -190,8 +187,6 @@ def correlate_events(
 
                     orig_idx_b, event_b, ts_b = indexed_events[j]
 
-                    if j in processed_events:
-                        continue
 
                     # 이벤트 B가 패턴과 매칭되는지 확인
                     if not _match_event_pattern(event_b, rule.event_b_patterns):
@@ -204,7 +199,6 @@ def correlate_events(
                             continue
 
                     chain_events.append(event_b)
-                    processed_events.add(j)
 
                     # 이벤트 B와 연관된 finding 추가
                     if j in finding_map:
@@ -214,7 +208,6 @@ def correlate_events(
 
                 # 체인이 최소 2개 이상의 이벤트를 포함하는 경우만 추가
                 if len(chain_events) >= 2:
-                    processed_events.add(i)
 
                     # 시간 간격 계산 (신뢰도 계산용)
                     time_span = ts_b - ts_a if len(chain_events) > 1 else None
@@ -467,3 +460,176 @@ def get_chain_summary(chains: List[EventChain]) -> Dict[str, Any]:
         "avg_confidence": total_confidence / len(chains) if chains else 0.0,
         "total_events_in_chains": total_events,
     }
+# BREACHSCOPE_P0_03_REQUIRED_FIELDS_AND_V1
+# Preserve the existing correlator implementation and tighten only the
+# semantics of multi-field correlation constraints.
+#
+# Historical behavior returned as soon as ANY required field matched.
+# P0-03 requires EVERY requested field to match. A single-field rule keeps
+# exactly the legacy behavior.
+import functools as _bs_functools
+import inspect as _bs_inspect
+
+_extract_common_key_p0_02 = _extract_common_key
+
+
+@_bs_functools.wraps(_extract_common_key_p0_02)
+def _extract_common_key(*args, **kwargs):
+    signature = _bs_inspect.signature(_extract_common_key_p0_02)
+    bound = signature.bind_partial(*args, **kwargs)
+
+    field_param = None
+    for name in signature.parameters:
+        lowered = name.casefold()
+        if lowered in {"fields", "required_fields"} or "field" in lowered:
+            field_param = name
+            break
+
+    # If the implementation ever changes beyond the shape P0-03 understands,
+    # fail open to legacy behavior rather than silently breaking correlation.
+    if field_param is None or field_param not in bound.arguments:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    fields = bound.arguments[field_param]
+    if fields is None or isinstance(fields, str):
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    try:
+        required = list(fields)
+    except TypeError:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    if len(required) <= 1:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    matched_parts = []
+    for field in required:
+        call_bound = signature.bind_partial(*args, **kwargs)
+        call_bound.arguments[field_param] = [field]
+        result = _extract_common_key_p0_02(
+            *call_bound.args,
+            **call_bound.kwargs,
+        )
+        if not result:
+            return None
+        matched_parts.append(str(result))
+
+    return " && ".join(matched_parts)
+
+# BREACHSCOPE_P0_04_MULTI_MEMBERSHIP_V1
+# Correlation is evidence-centric, not ownership-centric:
+# evidence may participate in multiple valid chains when independent
+# correlation rules or hypotheses are satisfied.
+
+# BREACHSCOPE_P0_07_CANONICAL_SOURCE_BRIDGE_V1
+# Preserve legacy source/event_id/cmd matching first. When legacy source text
+# cannot express the provider-neutral event type (for example a real Sysmon
+# provider versus "ProcessCreate"), fall back to P0-02 canonical taxonomy.
+_match_event_pattern_p0_06 = _match_event_pattern
+
+
+def _bs_p007_norm_source_token(value):
+    if value is None:
+        return ""
+    return "".join(ch for ch in str(value).casefold() if ch.isalnum())
+
+
+def _bs_p007_canonical_source_tokens(event):
+    raw = getattr(event, "raw", None)
+    if not isinstance(raw, dict):
+        return set()
+
+    canonical = raw.get("canonical")
+    if not isinstance(canonical, dict):
+        return set()
+
+    event_meta = canonical.get("event")
+    if not isinstance(event_meta, dict):
+        return set()
+
+    category = str(event_meta.get("category") or "").strip().casefold()
+    action = str(event_meta.get("action") or "").strip().casefold()
+    provider = str(event_meta.get("provider") or "").strip()
+
+    tokens = set()
+
+    # Canonical vocabulary itself is matchable for future correlation rules.
+    for value in (category, action, provider):
+        normalized = _bs_p007_norm_source_token(value)
+        if normalized:
+            tokens.add(normalized)
+
+    # Compatibility aliases for the abstract source taxonomy already used by
+    # BreachScope correlation rules and demo data.
+    aliases = {
+        ("process", "process_start"): {
+            "ProcessCreate",
+            "ProcessStart",
+        },
+        ("network", "connection"): {
+            "NetworkConnection",
+        },
+        ("authentication", "logon_success"): {
+            "LogonSuccess",
+            "AuthenticationSuccess",
+        },
+        ("authentication", "logon_failure"): {
+            "LogonFailure",
+            "AuthenticationFailure",
+        },
+        ("task", "task_create"): {
+            "TaskCreate",
+            "ScheduledTaskCreate",
+        },
+        ("log", "log_clear"): {
+            "LogClear",
+            "EventLogClear",
+        },
+        ("script", "script_block"): {
+            "ScriptBlock",
+            "PowerShellScriptBlock",
+        },
+        ("service", "service_install"): {
+            "ServiceInstall",
+            "ServiceCreate",
+        },
+    }
+
+    for alias in aliases.get((category, action), set()):
+        tokens.add(_bs_p007_norm_source_token(alias))
+
+    return tokens
+
+
+def _bs_p007_match_canonical_source(event, patterns):
+    canonical_tokens = _bs_p007_canonical_source_tokens(event)
+    if not canonical_tokens:
+        return False
+
+    for pattern in patterns or []:
+        if not isinstance(pattern, str):
+            continue
+
+        if pattern.startswith("source:"):
+            requested = pattern[7:]
+        elif not (
+            pattern.startswith("event_id:")
+            or pattern.startswith("cmd:")
+        ):
+            # Legacy _match_event_pattern treats a bare string as a source
+            # substring, so preserve equivalent canonical fallback semantics.
+            requested = pattern
+        else:
+            continue
+
+        requested_token = _bs_p007_norm_source_token(requested)
+        if requested_token and requested_token in canonical_tokens:
+            return True
+
+    return False
+
+
+def _match_event_pattern(event, patterns):
+    if _match_event_pattern_p0_06(event, patterns):
+        return True
+    return _bs_p007_match_canonical_source(event, patterns)

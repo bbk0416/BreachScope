@@ -1,4 +1,4 @@
-﻿FROM python:3.11-slim
+FROM python:3.11.16-slim-bookworm@sha256:2e32f7d302adc1c37428355c1e646897c0c53f4fd60b6a551245fb90ee129f91
 
 ARG VERSION=local
 ARG VCS_REF=unknown
@@ -26,7 +26,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends fontconfig fonts-nanum curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml requirements.txt requirements-lock-py311.txt README.md ./
 COPY api ./api
 COPY breachscope ./breachscope
 COPY docs ./docs
@@ -37,8 +37,8 @@ COPY scripts ./scripts
 COPY templates ./templates
 COPY run.sh run_web_fastapi.sh ./
 
-RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e ".[dev]"
+RUN python -m pip install --no-cache-dir --require-hashes -r requirements-lock-py311.txt \
+    && python -m pip install --no-cache-dir --no-deps --no-build-isolation -e .
 
 RUN useradd --create-home --uid 10001 breachscope \
     && mkdir -p /data \

@@ -5,6 +5,7 @@ from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 import logging
+from api.services.upload_policy import UploadLimitError
 
 from api.services.analysis_service import AnalysisService
 from api.services.audit_log import AuditLogService
@@ -72,6 +73,15 @@ async def analyze(
             },
         )
         return result
+    except UploadLimitError as exc:
+        # BREACHSCOPE_P1_01_UPLOAD_413_V1
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "code": "UPLOAD_LIMIT_EXCEEDED",
+                "message": str(exc),
+            },
+        ) from exc
     except PermissionError as e:
         AuditLogService().record("analysis.run", request=request, status="failure", details={"error": str(e), "type": "PermissionError"})
         logger.error(f"권한 오류: {e}")

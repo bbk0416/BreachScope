@@ -235,3 +235,25 @@ def validate_rule(rule: Rule) -> bool:
             return False
 
     return True
+
+# BREACHSCOPE_P0_09_PYSIGMA_STRICT_V1
+# Sigma rules are validated by the real pySigma parser, then accepted only if
+# BreachScope can preserve their semantics losslessly in its current Rule model.
+# Unsupported Sigma fails closed before the legacy loader's broad exception
+# handler can silently discard the rule.
+from .sigma_adapter import (
+    convert_supported_sigma_document as _bs_p009_convert_sigma,
+    preflight_sigma_rules as _bs_p009_preflight_sigma,
+)
+
+
+def sigma_like_to_rules(doc):
+    return _bs_p009_convert_sigma(doc)
+
+
+_bs_p009_legacy_load_rules = load_rules
+
+
+def load_rules(rules_dir):
+    _bs_p009_preflight_sigma(Path(rules_dir))
+    return _bs_p009_legacy_load_rules(rules_dir)

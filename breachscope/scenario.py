@@ -49,7 +49,7 @@ class ScenarioTemplate:
     confidence_weights: Dict[str, float] = field(default_factory=dict)
 
 
-def infer_scenarios(
+def _bs_p005_legacy_infer_scenarios(
     chains: List[CorrelatorEventChain],
     findings: List[Finding],
     custom_templates_dir: Optional[Path] = None,
@@ -75,13 +75,26 @@ def infer_scenarios(
 
     # 각 템플릿에 대해 매칭 시도
     for template in templates:
+        # required_techniques=[]이면 all([])가 True가 되는 vacuous match와
+        # confidence 계산의 0 나눗셈이 발생할 수 있으므로 무효 템플릿입니다.
+        if not template.required_techniques:
+            logger.warning(
+                f"시나리오 템플릿 {template.template_id}에 required_techniques가 없어 건너뜁니다"
+            )
+            continue
+
         matched_chains: List[CorrelatorEventChain] = []
         matched_techniques: Set[str] = set()
 
         # 체인 패턴 매칭
-        for chain in chains:
-            if chain.chain_type in template.chain_patterns:
-                matched_chains.append(chain)
+        # 빈 chain_patterns는 '체인 없음'이 아니라 현재 P0-05 evidence
+        # scope 안에서 chain_type 제한이 없다는 뜻입니다.
+        if not template.chain_patterns:
+            matched_chains.extend(chains)
+        else:
+            for chain in chains:
+                if chain.chain_type in template.chain_patterns:
+                    matched_chains.append(chain)
 
         # Finding에서 MITRE 기법 추출
         for finding in findings:
@@ -93,7 +106,7 @@ def infer_scenarios(
         # 필수 기법이 모두 있는지 확인
         required_met = all(
             tech in matched_techniques or any(
-                tech.startswith(t.split(".")[0]) for t in matched_techniques
+                _bs_p006_attack_requirement_satisfied(t, tech) for t in matched_techniques
             )
             for tech in template.required_techniques
         )
@@ -336,6 +349,14 @@ def _parse_template_from_dict(data: Dict[str, Any]) -> Optional[ScenarioTemplate
         if not isinstance(chain_patterns, list):
             chain_patterns = [chain_patterns] if chain_patterns else []
 
+        # required_techniques는 시나리오 성립의 최소 증거 계약입니다.
+        # 빈 목록을 허용하면 all([])==True 및 confidence 0 나눗셈 경로가 됩니다.
+        if not required_techniques:
+            logger.warning(
+                f"템플릿 {template_id}에 required_techniques가 없어 무시합니다"
+            )
+            return None
+
         return ScenarioTemplate(
             template_id=str(template_id),
             name=str(name),
@@ -361,8 +382,11 @@ def _calculate_scenario_confidence(
     confidence = 0.3  # 기본값
 
     # 필수 기법 매칭
-    required_count = len([t for t in template.required_techniques if t in techniques])
-    confidence += (required_count / len(template.required_techniques)) * 0.3
+    # 정상 inference에서는 빈 required_techniques 템플릿을 거부하지만,
+    # 이 함수가 직접 호출되어도 0으로 나누지 않도록 방어합니다.
+    if template.required_techniques:
+        required_count = len([t for t in template.required_techniques if t in techniques])
+        confidence += (required_count / len(template.required_techniques)) * 0.3
 
     # 선택적 기법 매칭
     optional_count = len([t for t in template.optional_techniques if t in techniques])
@@ -479,3 +503,284 @@ def get_scenario_summary(scenarios: List[Scenario]) -> Dict[str, Any]:
         "avg_confidence": total_confidence / len(scenarios) if scenarios else 0.0,
         "unique_techniques": sorted(list(all_techniques)),
     }
+
+# BREACHSCOPE_P0_05_SCENARIO_SCOPE_V1
+# Scenario inference is evaluated per connected evidence scope instead of the
+# global findings pool. Independent hosts/sessions cannot satisfy each other's
+# ATT&CK requirements merely because they exist in the same case.
+import functools as _bs_p005_functools
+import inspect as _bs_p005_inspect
+from collections.abc import Mapping as _bs_p005_Mapping
+
+
+def _bs_p005_get(obj, key, default=None):
+    if isinstance(obj, _bs_p005_Mapping):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _bs_p005_scalar(value):
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            scalar = _bs_p005_scalar(item)
+            if scalar not in (None, ""):
+                return scalar
+        return None
+    return value
+
+
+def _bs_p005_norm(value):
+    value = _bs_p005_scalar(value)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text.casefold() if text else None
+
+
+def _bs_p005_scope(obj, _depth=0, _seen=None):
+    if obj is None or _depth > 4:
+        return {"hosts": set(), "sessions": set()}
+
+    if _seen is None:
+        _seen = set()
+
+    oid = id(obj)
+    if oid in _seen:
+        return {"hosts": set(), "sessions": set()}
+    _seen.add(oid)
+
+    hosts = set()
+    sessions = set()
+
+    def add_host(value):
+        value = _bs_p005_norm(value)
+        if value:
+            hosts.add(value)
+
+    def add_session(value):
+        value = _bs_p005_norm(value)
+        if value:
+            sessions.add(value)
+
+    if isinstance(obj, _bs_p005_Mapping):
+        items = list(obj.items())
+    elif isinstance(obj, (str, bytes, int, float, bool)):
+        items = []
+    else:
+        try:
+            items = list(vars(obj).items())
+        except (TypeError, AttributeError):
+            items = []
+
+    for key, value in items:
+        lname = str(key).casefold()
+
+        if lname in {"host", "hostname", "computer", "computername"}:
+            if isinstance(value, _bs_p005_Mapping):
+                add_host(
+                    value.get("name")
+                    or value.get("hostname")
+                    or value.get("computer")
+                )
+            else:
+                add_host(value)
+        elif lname in {
+            "session_id", "sessionid", "logonid", "logon_id",
+            "targetlogonid", "subjectlogonid"
+        }:
+            if isinstance(value, _bs_p005_Mapping):
+                add_session(
+                    value.get("id")
+                    or value.get("session_id")
+                    or value.get("logon_id")
+                )
+            else:
+                add_session(value)
+
+        if lname == "canonical" and isinstance(value, _bs_p005_Mapping):
+            host_obj = value.get("host")
+            if isinstance(host_obj, _bs_p005_Mapping):
+                add_host(host_obj.get("name"))
+            session_obj = value.get("session")
+            if isinstance(session_obj, _bs_p005_Mapping):
+                add_session(session_obj.get("id"))
+
+        if (
+            lname in {
+                "event", "events", "evidence", "finding", "findings",
+                "raw", "canonical", "members", "items"
+            }
+            or isinstance(value, (list, tuple, set, dict))
+        ):
+            children = value if isinstance(value, (list, tuple, set)) else [value]
+            for child in children:
+                nested = _bs_p005_scope(child, _depth + 1, _seen)
+                hosts.update(nested["hosts"])
+                sessions.update(nested["sessions"])
+
+    return {"hosts": hosts, "sessions": sessions}
+
+
+def _bs_p005_related(left, right):
+    left_sessions = left["sessions"]
+    right_sessions = right["sessions"]
+    if left_sessions and right_sessions:
+        return bool(left_sessions & right_sessions)
+
+    left_hosts = left["hosts"]
+    right_hosts = right["hosts"]
+    if left_hosts and right_hosts:
+        return bool(left_hosts & right_hosts)
+
+    return False
+
+
+def _bs_p005_partition_chains(chains):
+    chains = list(chains or [])
+    if len(chains) <= 1:
+        return [chains] if chains else []
+
+    scopes = [_bs_p005_scope(chain) for chain in chains]
+    parent = list(range(len(chains)))
+
+    def find(index):
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for i in range(len(chains)):
+        for j in range(i + 1, len(chains)):
+            if _bs_p005_related(scopes[i], scopes[j]):
+                union(i, j)
+
+    groups = {}
+    for index, chain in enumerate(chains):
+        groups.setdefault(find(index), []).append(chain)
+
+    return list(groups.values())
+
+
+def _bs_p005_component_scope(chains):
+    merged = {"hosts": set(), "sessions": set()}
+    for chain in chains:
+        scope = _bs_p005_scope(chain)
+        merged["hosts"].update(scope["hosts"])
+        merged["sessions"].update(scope["sessions"])
+    return merged
+
+
+def _bs_p005_filter_findings(findings, component_scope):
+    selected = []
+    for finding in findings or []:
+        scope = _bs_p005_scope(finding)
+
+        if scope["sessions"] and component_scope["sessions"]:
+            if scope["sessions"] & component_scope["sessions"]:
+                selected.append(finding)
+            continue
+
+        if scope["hosts"] and component_scope["hosts"]:
+            if scope["hosts"] & component_scope["hosts"]:
+                selected.append(finding)
+            continue
+
+        # Unscoped findings stay available elsewhere in the report, but cannot
+        # strengthen a scoped attack hypothesis without host/session evidence.
+
+    return selected
+
+
+@_bs_p005_functools.wraps(_bs_p005_legacy_infer_scenarios)
+def infer_scenarios(*args, **kwargs):
+    signature = _bs_p005_inspect.signature(_bs_p005_legacy_infer_scenarios)
+    bound = signature.bind_partial(*args, **kwargs)
+
+    findings_param = next(
+        (name for name in signature.parameters if name.casefold() == "findings"),
+        None,
+    )
+    chains_param = next(
+        (name for name in signature.parameters if name.casefold() == "chains"),
+        None,
+    )
+
+    if (
+        findings_param is None
+        or chains_param is None
+        or findings_param not in bound.arguments
+        or chains_param not in bound.arguments
+    ):
+        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
+
+    findings = list(bound.arguments[findings_param] or [])
+    chains = list(bound.arguments[chains_param] or [])
+
+    if not chains:
+        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
+
+    components = _bs_p005_partition_chains(chains)
+    results = []
+
+    for component in components:
+        scope = _bs_p005_component_scope(component)
+        scoped_findings = _bs_p005_filter_findings(findings, scope)
+
+        call_bound = signature.bind_partial(*args, **kwargs)
+        call_bound.arguments[findings_param] = scoped_findings
+        call_bound.arguments[chains_param] = component
+
+        partial = _bs_p005_legacy_infer_scenarios(*call_bound.args, **call_bound.kwargs)
+        if partial:
+            results.extend(list(partial))
+
+    return results
+
+# BREACHSCOPE_P0_06_ATTACK_MATCH_V1
+# ATT&CK requirement semantics:
+# - exact technique/sub-technique IDs match;
+# - a parent requirement (e.g. T1059) may be satisfied by one of its direct/
+#   nested sub-techniques (e.g. T1059.001);
+# - a sub-technique requirement (e.g. T1059.001) requires that exact ID;
+# - sibling sub-techniques never satisfy each other.
+import re as _bs_p006_re
+
+_BS_P006_ATTACK_ID_RE = _bs_p006_re.compile(
+    r"^T\d{4}(?:\.\d{3})?$",
+    _bs_p006_re.IGNORECASE,
+)
+
+
+def _bs_p006_attack_requirement_satisfied(required, observed):
+    if required is None or observed is None:
+        return False
+
+    required_id = str(required).strip().upper()
+    observed_id = str(observed).strip().upper()
+
+    if not _BS_P006_ATTACK_ID_RE.fullmatch(required_id):
+        return False
+    if not _BS_P006_ATTACK_ID_RE.fullmatch(observed_id):
+        return False
+
+    if required_id == observed_id:
+        return True
+
+    # Parent templates are intentionally broad. A specific sub-technique
+    # template is not: T1059.001 must never be satisfied by T1059.003.
+    if "." not in required_id and observed_id.startswith(required_id + "."):
+        return True
+
+    return False
+
+# BREACHSCOPE_P0_08_TEMPLATE_INVARIANTS_V1
+# Template invariants:
+# - required_techniques must be non-empty;
+# - empty chain_patterns means no chain-type restriction inside the already
+#   scoped P0-05 evidence component;
+# - confidence calculation is zero-division safe for defensive direct calls.

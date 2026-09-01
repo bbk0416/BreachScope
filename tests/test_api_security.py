@@ -31,12 +31,12 @@ def test_api_key_middleware_blocks_protected_api_without_key(monkeypatch):
     assert response.json()["error"] == "unauthorized"
 
 
-def test_api_key_middleware_accepts_header_bearer_and_query(monkeypatch):
+def test_api_key_middleware_accepts_headers_and_rejects_query(monkeypatch):
     client = _secure_app(monkeypatch)
 
     assert client.get("/api/cases", headers={"X-API-Key": "unit-secret"}).status_code == 200
     assert client.get("/api/cases", headers={"Authorization": "Bearer unit-secret"}).status_code == 200
-    assert client.get("/api/cases?api_key=unit-secret").status_code == 200
+    assert client.get("/api/cases?api_key=unit-secret").status_code == 401
     assert client.get("/api/cases", headers={"X-API-Key": "wrong"}).status_code == 401
 
 
