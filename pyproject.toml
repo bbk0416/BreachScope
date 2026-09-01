@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
   "jinja2>=3.1",
   "pyyaml>=6.0",
+  "pysigma>=1.5,<2",
   "fastapi>=0.104",
   "uvicorn[standard]>=0.24",
   "python-multipart>=0.0.6",
