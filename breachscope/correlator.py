@@ -520,3 +520,116 @@ def _extract_common_key(*args, **kwargs):
 # Correlation is evidence-centric, not ownership-centric:
 # evidence may participate in multiple valid chains when independent
 # correlation rules or hypotheses are satisfied.
+
+# BREACHSCOPE_P0_07_CANONICAL_SOURCE_BRIDGE_V1
+# Preserve legacy source/event_id/cmd matching first. When legacy source text
+# cannot express the provider-neutral event type (for example a real Sysmon
+# provider versus "ProcessCreate"), fall back to P0-02 canonical taxonomy.
+_match_event_pattern_p0_06 = _match_event_pattern
+
+
+def _bs_p007_norm_source_token(value):
+    if value is None:
+        return ""
+    return "".join(ch for ch in str(value).casefold() if ch.isalnum())
+
+
+def _bs_p007_canonical_source_tokens(event):
+    raw = getattr(event, "raw", None)
+    if not isinstance(raw, dict):
+        return set()
+
+    canonical = raw.get("canonical")
+    if not isinstance(canonical, dict):
+        return set()
+
+    event_meta = canonical.get("event")
+    if not isinstance(event_meta, dict):
+        return set()
+
+    category = str(event_meta.get("category") or "").strip().casefold()
+    action = str(event_meta.get("action") or "").strip().casefold()
+    provider = str(event_meta.get("provider") or "").strip()
+
+    tokens = set()
+
+    # Canonical vocabulary itself is matchable for future correlation rules.
+    for value in (category, action, provider):
+        normalized = _bs_p007_norm_source_token(value)
+        if normalized:
+            tokens.add(normalized)
+
+    # Compatibility aliases for the abstract source taxonomy already used by
+    # BreachScope correlation rules and demo data.
+    aliases = {
+        ("process", "process_start"): {
+            "ProcessCreate",
+            "ProcessStart",
+        },
+        ("network", "connection"): {
+            "NetworkConnection",
+        },
+        ("authentication", "logon_success"): {
+            "LogonSuccess",
+            "AuthenticationSuccess",
+        },
+        ("authentication", "logon_failure"): {
+            "LogonFailure",
+            "AuthenticationFailure",
+        },
+        ("task", "task_create"): {
+            "TaskCreate",
+            "ScheduledTaskCreate",
+        },
+        ("log", "log_clear"): {
+            "LogClear",
+            "EventLogClear",
+        },
+        ("script", "script_block"): {
+            "ScriptBlock",
+            "PowerShellScriptBlock",
+        },
+        ("service", "service_install"): {
+            "ServiceInstall",
+            "ServiceCreate",
+        },
+    }
+
+    for alias in aliases.get((category, action), set()):
+        tokens.add(_bs_p007_norm_source_token(alias))
+
+    return tokens
+
+
+def _bs_p007_match_canonical_source(event, patterns):
+    canonical_tokens = _bs_p007_canonical_source_tokens(event)
+    if not canonical_tokens:
+        return False
+
+    for pattern in patterns or []:
+        if not isinstance(pattern, str):
+            continue
+
+        if pattern.startswith("source:"):
+            requested = pattern[7:]
+        elif not (
+            pattern.startswith("event_id:")
+            or pattern.startswith("cmd:")
+        ):
+            # Legacy _match_event_pattern treats a bare string as a source
+            # substring, so preserve equivalent canonical fallback semantics.
+            requested = pattern
+        else:
+            continue
+
+        requested_token = _bs_p007_norm_source_token(requested)
+        if requested_token and requested_token in canonical_tokens:
+            return True
+
+    return False
+
+
+def _match_event_pattern(event, patterns):
+    if _match_event_pattern_p0_06(event, patterns):
+        return True
+    return _bs_p007_match_canonical_source(event, patterns)
