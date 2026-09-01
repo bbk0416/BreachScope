@@ -467,3 +467,58 @@ def get_chain_summary(chains: List[EventChain]) -> Dict[str, Any]:
         "avg_confidence": total_confidence / len(chains) if chains else 0.0,
         "total_events_in_chains": total_events,
     }
+# BREACHSCOPE_P0_03_REQUIRED_FIELDS_AND_V1
+# Preserve the existing correlator implementation and tighten only the
+# semantics of multi-field correlation constraints.
+#
+# Historical behavior returned as soon as ANY required field matched.
+# P0-03 requires EVERY requested field to match. A single-field rule keeps
+# exactly the legacy behavior.
+import functools as _bs_functools
+import inspect as _bs_inspect
+
+_extract_common_key_p0_02 = _extract_common_key
+
+
+@_bs_functools.wraps(_extract_common_key_p0_02)
+def _extract_common_key(*args, **kwargs):
+    signature = _bs_inspect.signature(_extract_common_key_p0_02)
+    bound = signature.bind_partial(*args, **kwargs)
+
+    field_param = None
+    for name in signature.parameters:
+        lowered = name.casefold()
+        if lowered in {"fields", "required_fields"} or "field" in lowered:
+            field_param = name
+            break
+
+    # If the implementation ever changes beyond the shape P0-03 understands,
+    # fail open to legacy behavior rather than silently breaking correlation.
+    if field_param is None or field_param not in bound.arguments:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    fields = bound.arguments[field_param]
+    if fields is None or isinstance(fields, str):
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    try:
+        required = list(fields)
+    except TypeError:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    if len(required) <= 1:
+        return _extract_common_key_p0_02(*args, **kwargs)
+
+    matched_parts = []
+    for field in required:
+        call_bound = signature.bind_partial(*args, **kwargs)
+        call_bound.arguments[field_param] = [field]
+        result = _extract_common_key_p0_02(
+            *call_bound.args,
+            **call_bound.kwargs,
+        )
+        if not result:
+            return None
+        matched_parts.append(str(result))
+
+    return " && ".join(matched_parts)
