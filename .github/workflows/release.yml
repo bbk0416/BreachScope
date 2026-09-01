@@ -25,15 +25,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.11.16"
           cache: pip
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends fonts-nanum fontconfig
-          python -m pip install --upgrade pip build
-          python -m pip install -e ".[dev]"
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
 
       - name: Test before release
         run: |
@@ -50,7 +51,7 @@ jobs:
         run: python scripts/build_release.py --clean
 
       - name: Build Python package
-        run: python -m build
+        run: python -m build --no-isolation
 
       - name: Add Python distribution checksums and refresh manifest
         run: |

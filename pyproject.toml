@@ -36,7 +36,7 @@ dependencies = [
 [project.optional-dependencies]
 pdf = ["reportlab>=4", "weasyprint>=62"]
 evtx = ["python-evtx>=0.6"]
-dev = ["pytest>=8", "httpx>=0.27", "build>=1.2", "reportlab>=4"]
+dev = ["pytest>=8", "httpx>=0.27", "build>=1.2", "reportlab>=4", "setuptools>=61.0", "wheel"]
 
 [project.urls]
 Homepage = "https://github.com/bbk0416/BreachScope"
