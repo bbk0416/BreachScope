@@ -39,7 +39,9 @@ def _extract_from_xml(xml_text: str) -> dict:
         ns = "{http://schemas.microsoft.com/win/2004/08/events/event}"
         get = lambda p: (root.find(p) or {}).get("SystemTime") if p.endswith("TimeCreated") else None
         sys_node = root.find(f"{ns}System")
-        ev_node = root.find(f"{ns}EventData") or root.find(f"{ns}UserData")
+        ev_node = root.find(f"{ns}EventData")
+        if ev_node is None:
+            ev_node = root.find(f"{ns}UserData")
         ts = ""
         if sys_node is not None:
             time_node = sys_node.find(f"{ns}TimeCreated")
