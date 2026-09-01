@@ -75,13 +75,26 @@ def _bs_p005_legacy_infer_scenarios(
 
     # 각 템플릿에 대해 매칭 시도
     for template in templates:
+        # required_techniques=[]이면 all([])가 True가 되는 vacuous match와
+        # confidence 계산의 0 나눗셈이 발생할 수 있으므로 무효 템플릿입니다.
+        if not template.required_techniques:
+            logger.warning(
+                f"시나리오 템플릿 {template.template_id}에 required_techniques가 없어 건너뜁니다"
+            )
+            continue
+
         matched_chains: List[CorrelatorEventChain] = []
         matched_techniques: Set[str] = set()
 
         # 체인 패턴 매칭
-        for chain in chains:
-            if chain.chain_type in template.chain_patterns:
-                matched_chains.append(chain)
+        # 빈 chain_patterns는 '체인 없음'이 아니라 현재 P0-05 evidence
+        # scope 안에서 chain_type 제한이 없다는 뜻입니다.
+        if not template.chain_patterns:
+            matched_chains.extend(chains)
+        else:
+            for chain in chains:
+                if chain.chain_type in template.chain_patterns:
+                    matched_chains.append(chain)
 
         # Finding에서 MITRE 기법 추출
         for finding in findings:
@@ -336,6 +349,14 @@ def _parse_template_from_dict(data: Dict[str, Any]) -> Optional[ScenarioTemplate
         if not isinstance(chain_patterns, list):
             chain_patterns = [chain_patterns] if chain_patterns else []
 
+        # required_techniques는 시나리오 성립의 최소 증거 계약입니다.
+        # 빈 목록을 허용하면 all([])==True 및 confidence 0 나눗셈 경로가 됩니다.
+        if not required_techniques:
+            logger.warning(
+                f"템플릿 {template_id}에 required_techniques가 없어 무시합니다"
+            )
+            return None
+
         return ScenarioTemplate(
             template_id=str(template_id),
             name=str(name),
@@ -361,8 +382,11 @@ def _calculate_scenario_confidence(
     confidence = 0.3  # 기본값
 
     # 필수 기법 매칭
-    required_count = len([t for t in template.required_techniques if t in techniques])
-    confidence += (required_count / len(template.required_techniques)) * 0.3
+    # 정상 inference에서는 빈 required_techniques 템플릿을 거부하지만,
+    # 이 함수가 직접 호출되어도 0으로 나누지 않도록 방어합니다.
+    if template.required_techniques:
+        required_count = len([t for t in template.required_techniques if t in techniques])
+        confidence += (required_count / len(template.required_techniques)) * 0.3
 
     # 선택적 기법 매칭
     optional_count = len([t for t in template.optional_techniques if t in techniques])
@@ -753,3 +777,10 @@ def _bs_p006_attack_requirement_satisfied(required, observed):
         return True
 
     return False
+
+# BREACHSCOPE_P0_08_TEMPLATE_INVARIANTS_V1
+# Template invariants:
+# - required_techniques must be non-empty;
+# - empty chain_patterns means no chain-type restriction inside the already
+#   scoped P0-05 evidence component;
+# - confidence calculation is zero-division safe for defensive direct calls.
