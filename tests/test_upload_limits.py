@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+import asyncio
 
 import pytest
 from fastapi import FastAPI
@@ -34,8 +34,7 @@ class FakeUpload:
         return chunk
 
 
-@pytest.mark.asyncio
-async def test_stream_writer_uses_bounded_reads(tmp_path, monkeypatch):
+def test_stream_writer_uses_bounded_reads(tmp_path, monkeypatch):
     monkeypatch.setenv("BS_UPLOAD_CHUNK_BYTES", "4")
     monkeypatch.setenv("BS_UPLOAD_MAX_FILE_BYTES", "100")
     monkeypatch.setenv("BS_UPLOAD_MAX_TOTAL_BYTES", "100")
@@ -43,10 +42,12 @@ async def test_stream_writer_uses_bounded_reads(tmp_path, monkeypatch):
     upload = FakeUpload("sample.bin", b"abcdefghij")
     destination = tmp_path / "sample.bin"
 
-    written = await stream_upload_to_path(
-        upload,
-        destination,
-        UploadBudget(),
+    written = asyncio.run(
+        stream_upload_to_path(
+            upload,
+            destination,
+            UploadBudget(),
+        )
     )
 
     assert written == 10
@@ -55,8 +56,7 @@ async def test_stream_writer_uses_bounded_reads(tmp_path, monkeypatch):
     assert set(upload.read_sizes) == {4}
 
 
-@pytest.mark.asyncio
-async def test_per_file_limit_removes_partial_destination(tmp_path, monkeypatch):
+def test_per_file_limit_removes_partial_destination(tmp_path, monkeypatch):
     monkeypatch.setenv("BS_UPLOAD_CHUNK_BYTES", "4")
     monkeypatch.setenv("BS_UPLOAD_MAX_FILE_BYTES", "6")
     monkeypatch.setenv("BS_UPLOAD_MAX_TOTAL_BYTES", "100")
@@ -64,17 +64,18 @@ async def test_per_file_limit_removes_partial_destination(tmp_path, monkeypatch)
     destination = tmp_path / "too-big.bin"
 
     with pytest.raises(UploadLimitError):
-        await stream_upload_to_path(
-            FakeUpload("too-big.bin", b"abcdefgh"),
-            destination,
-            UploadBudget(),
+        asyncio.run(
+            stream_upload_to_path(
+                FakeUpload("too-big.bin", b"abcdefgh"),
+                destination,
+                UploadBudget(),
+            )
         )
 
     assert not destination.exists()
 
 
-@pytest.mark.asyncio
-async def test_aggregate_limit_is_shared_across_files(tmp_path, monkeypatch):
+def test_aggregate_limit_is_shared_across_files(tmp_path, monkeypatch):
     monkeypatch.setenv("BS_UPLOAD_CHUNK_BYTES", "4")
     monkeypatch.setenv("BS_UPLOAD_MAX_FILE_BYTES", "100")
     monkeypatch.setenv("BS_UPLOAD_MAX_TOTAL_BYTES", "7")
@@ -83,17 +84,21 @@ async def test_aggregate_limit_is_shared_across_files(tmp_path, monkeypatch):
     first = tmp_path / "one.bin"
     second = tmp_path / "two.bin"
 
-    await stream_upload_to_path(
-        FakeUpload("one.bin", b"abcd"),
-        first,
-        budget,
+    asyncio.run(
+        stream_upload_to_path(
+            FakeUpload("one.bin", b"abcd"),
+            first,
+            budget,
+        )
     )
 
     with pytest.raises(UploadLimitError):
-        await stream_upload_to_path(
-            FakeUpload("two.bin", b"efgh"),
-            second,
-            budget,
+        asyncio.run(
+            stream_upload_to_path(
+                FakeUpload("two.bin", b"efgh"),
+                second,
+                budget,
+            )
         )
 
     assert first.read_bytes() == b"abcd"
@@ -127,8 +132,7 @@ def test_content_length_fail_fast_returns_413(monkeypatch):
     assert response.json()["code"] == "UPLOAD_LIMIT_EXCEEDED"
 
 
-@pytest.mark.asyncio
-async def test_analysis_service_cleans_auto_workdir_on_upload_limit(
+def test_analysis_service_cleans_auto_workdir_on_upload_limit(
     tmp_path,
     monkeypatch,
 ):
@@ -149,20 +153,22 @@ async def test_analysis_service_cleans_auto_workdir_on_upload_limit(
     )
 
     with pytest.raises(UploadLimitError):
-        await service.analyze(
-            files=[FakeUpload("too-big.jsonl", b"abcdefgh")],
-            use_repo_rules=True,
-            min_severity="low",
-            mitre_include="",
-            mitre_exclude="",
-            host_include="",
-            redact=True,
-            render_pdf=False,
-            do_evtx=False,
-            collect_evtx=False,
-            collect_logs="",
-            collect_hours=None,
-            work_dir=None,
+        asyncio.run(
+            service.analyze(
+                files=[FakeUpload("too-big.jsonl", b"abcdefgh")],
+                use_repo_rules=True,
+                min_severity="low",
+                mitre_include="",
+                mitre_exclude="",
+                host_include="",
+                redact=True,
+                render_pdf=False,
+                do_evtx=False,
+                collect_evtx=False,
+                collect_logs="",
+                collect_hours=None,
+                work_dir=None,
+            )
         )
 
     assert not work.exists()
