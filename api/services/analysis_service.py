@@ -7,6 +7,13 @@ import tempfile
 import shutil
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from .upload_policy import (
+    UploadBudget,
+    UploadLimitError,
+    stream_upload_to_path,
+    validate_file_count,
+)
+from .path_boundary import is_safe_managed_delete
 import logging
 import json
 
@@ -51,10 +58,15 @@ class AnalysisService:
         # Redaction 설정
         os.environ["BS_REDACT"] = "1" if redact else "0"
 
+        # BREACHSCOPE_P1_01_STREAMING_UPLOAD_V1
+        validate_file_count(files or [])
+
         # 작업 디렉토리 생성
         work = self.workdir_service.create_work_directory(work_dir)
         collected_dir = None  # collect_windows_logs에서 생성된 임시 디렉토리
         converted_dirs = []  # convert_evtx_dir에서 생성된 임시 디렉토리들
+        upload_budget = UploadBudget()
+        created_upload_paths = []
 
         try:
             # 입력 디렉토리 설정
@@ -94,18 +106,18 @@ class AnalysisService:
                     # Path traversal 방지: 브라우저가 보낸 파일명은 항상 basename만 사용
                     file_path = upload_dir / safe_name
                     try:
-                        with file_path.open("wb") as f:
-                            # FastAPI UploadFile 객체 처리 (async read)
-                            if hasattr(file, 'read'):
-                                content = await file.read()
-                            else:
-                                content = file
-                            if isinstance(content, bytes):
-                                f.write(content)
-                            else:
-                                f.write(content)
+                        written_bytes = await stream_upload_to_path(
+                            file,
+                            file_path,
+                            upload_budget,
+                            filename=safe_name,
+                        )
+                        created_upload_paths.append(file_path)
                         saved_paths.append(file_path)
-                        logger.info(f"파일 저장 완료: {file_path}")
+                        logger.info(
+                            f"파일 저장 완료: {file_path} "
+                            f"({written_bytes} bytes)"
+                        )
                     except (PermissionError, OSError) as e:
                         logger.error(f"파일 저장 실패: {file_path} - {e}")
                         raise
@@ -207,6 +219,21 @@ class AnalysisService:
                 "package_path": str(package_path) if package_path.exists() else None,
                 "work_dir": str(work),
             }
+        except UploadLimitError:
+            for _uploaded_path in created_upload_paths:
+                try:
+                    _uploaded_path.unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+            if not (work_dir and work_dir.strip()):
+                try:
+                    if work.exists() and is_safe_managed_delete(work):
+                        shutil.rmtree(work, ignore_errors=True)
+                except Exception:
+                    pass
+            raise
+
         finally:
             # 웹 UI는 분석 직후 다운로드 링크를 제공하므로 기본적으로 작업 디렉토리를 보존합니다.
             # 자동 정리가 필요하면 BS_WEB_CLEANUP_AFTER_ANALYSIS=1 로 명시적으로 활성화하세요.
