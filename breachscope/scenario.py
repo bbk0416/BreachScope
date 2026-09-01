@@ -49,7 +49,7 @@ class ScenarioTemplate:
     confidence_weights: Dict[str, float] = field(default_factory=dict)
 
 
-def infer_scenarios(
+def _bs_p005_legacy_infer_scenarios(
     chains: List[CorrelatorEventChain],
     findings: List[Finding],
     custom_templates_dir: Optional[Path] = None,
@@ -479,3 +479,240 @@ def get_scenario_summary(scenarios: List[Scenario]) -> Dict[str, Any]:
         "avg_confidence": total_confidence / len(scenarios) if scenarios else 0.0,
         "unique_techniques": sorted(list(all_techniques)),
     }
+
+# BREACHSCOPE_P0_05_SCENARIO_SCOPE_V1
+# Scenario inference is evaluated per connected evidence scope instead of the
+# global findings pool. Independent hosts/sessions cannot satisfy each other's
+# ATT&CK requirements merely because they exist in the same case.
+import functools as _bs_p005_functools
+import inspect as _bs_p005_inspect
+from collections.abc import Mapping as _bs_p005_Mapping
+
+
+def _bs_p005_get(obj, key, default=None):
+    if isinstance(obj, _bs_p005_Mapping):
+        return obj.get(key, default)
+    return getattr(obj, key, default)
+
+
+def _bs_p005_scalar(value):
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            scalar = _bs_p005_scalar(item)
+            if scalar not in (None, ""):
+                return scalar
+        return None
+    return value
+
+
+def _bs_p005_norm(value):
+    value = _bs_p005_scalar(value)
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text.casefold() if text else None
+
+
+def _bs_p005_scope(obj, _depth=0, _seen=None):
+    if obj is None or _depth > 4:
+        return {"hosts": set(), "sessions": set()}
+
+    if _seen is None:
+        _seen = set()
+
+    oid = id(obj)
+    if oid in _seen:
+        return {"hosts": set(), "sessions": set()}
+    _seen.add(oid)
+
+    hosts = set()
+    sessions = set()
+
+    def add_host(value):
+        value = _bs_p005_norm(value)
+        if value:
+            hosts.add(value)
+
+    def add_session(value):
+        value = _bs_p005_norm(value)
+        if value:
+            sessions.add(value)
+
+    if isinstance(obj, _bs_p005_Mapping):
+        items = list(obj.items())
+    elif isinstance(obj, (str, bytes, int, float, bool)):
+        items = []
+    else:
+        try:
+            items = list(vars(obj).items())
+        except (TypeError, AttributeError):
+            items = []
+
+    for key, value in items:
+        lname = str(key).casefold()
+
+        if lname in {"host", "hostname", "computer", "computername"}:
+            if isinstance(value, _bs_p005_Mapping):
+                add_host(
+                    value.get("name")
+                    or value.get("hostname")
+                    or value.get("computer")
+                )
+            else:
+                add_host(value)
+        elif lname in {
+            "session_id", "sessionid", "logonid", "logon_id",
+            "targetlogonid", "subjectlogonid"
+        }:
+            if isinstance(value, _bs_p005_Mapping):
+                add_session(
+                    value.get("id")
+                    or value.get("session_id")
+                    or value.get("logon_id")
+                )
+            else:
+                add_session(value)
+
+        if lname == "canonical" and isinstance(value, _bs_p005_Mapping):
+            host_obj = value.get("host")
+            if isinstance(host_obj, _bs_p005_Mapping):
+                add_host(host_obj.get("name"))
+            session_obj = value.get("session")
+            if isinstance(session_obj, _bs_p005_Mapping):
+                add_session(session_obj.get("id"))
+
+        if (
+            lname in {
+                "event", "events", "evidence", "finding", "findings",
+                "raw", "canonical", "members", "items"
+            }
+            or isinstance(value, (list, tuple, set, dict))
+        ):
+            children = value if isinstance(value, (list, tuple, set)) else [value]
+            for child in children:
+                nested = _bs_p005_scope(child, _depth + 1, _seen)
+                hosts.update(nested["hosts"])
+                sessions.update(nested["sessions"])
+
+    return {"hosts": hosts, "sessions": sessions}
+
+
+def _bs_p005_related(left, right):
+    left_sessions = left["sessions"]
+    right_sessions = right["sessions"]
+    if left_sessions and right_sessions:
+        return bool(left_sessions & right_sessions)
+
+    left_hosts = left["hosts"]
+    right_hosts = right["hosts"]
+    if left_hosts and right_hosts:
+        return bool(left_hosts & right_hosts)
+
+    return False
+
+
+def _bs_p005_partition_chains(chains):
+    chains = list(chains or [])
+    if len(chains) <= 1:
+        return [chains] if chains else []
+
+    scopes = [_bs_p005_scope(chain) for chain in chains]
+    parent = list(range(len(chains)))
+
+    def find(index):
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    for i in range(len(chains)):
+        for j in range(i + 1, len(chains)):
+            if _bs_p005_related(scopes[i], scopes[j]):
+                union(i, j)
+
+    groups = {}
+    for index, chain in enumerate(chains):
+        groups.setdefault(find(index), []).append(chain)
+
+    return list(groups.values())
+
+
+def _bs_p005_component_scope(chains):
+    merged = {"hosts": set(), "sessions": set()}
+    for chain in chains:
+        scope = _bs_p005_scope(chain)
+        merged["hosts"].update(scope["hosts"])
+        merged["sessions"].update(scope["sessions"])
+    return merged
+
+
+def _bs_p005_filter_findings(findings, component_scope):
+    selected = []
+    for finding in findings or []:
+        scope = _bs_p005_scope(finding)
+
+        if scope["sessions"] and component_scope["sessions"]:
+            if scope["sessions"] & component_scope["sessions"]:
+                selected.append(finding)
+            continue
+
+        if scope["hosts"] and component_scope["hosts"]:
+            if scope["hosts"] & component_scope["hosts"]:
+                selected.append(finding)
+            continue
+
+        # Unscoped findings stay available elsewhere in the report, but cannot
+        # strengthen a scoped attack hypothesis without host/session evidence.
+
+    return selected
+
+
+@_bs_p005_functools.wraps(_bs_p005_legacy_infer_scenarios)
+def infer_scenarios(*args, **kwargs):
+    signature = _bs_p005_inspect.signature(_bs_p005_legacy_infer_scenarios)
+    bound = signature.bind_partial(*args, **kwargs)
+
+    findings_param = next(
+        (name for name in signature.parameters if name.casefold() == "findings"),
+        None,
+    )
+    chains_param = next(
+        (name for name in signature.parameters if name.casefold() == "chains"),
+        None,
+    )
+
+    if (
+        findings_param is None
+        or chains_param is None
+        or findings_param not in bound.arguments
+        or chains_param not in bound.arguments
+    ):
+        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
+
+    findings = list(bound.arguments[findings_param] or [])
+    chains = list(bound.arguments[chains_param] or [])
+
+    if not chains:
+        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
+
+    components = _bs_p005_partition_chains(chains)
+    results = []
+
+    for component in components:
+        scope = _bs_p005_component_scope(component)
+        scoped_findings = _bs_p005_filter_findings(findings, scope)
+
+        call_bound = signature.bind_partial(*args, **kwargs)
+        call_bound.arguments[findings_param] = scoped_findings
+        call_bound.arguments[chains_param] = component
+
+        partial = _bs_p005_legacy_infer_scenarios(*call_bound.args, **call_bound.kwargs)
+        if partial:
+            results.extend(list(partial))
+
+    return results
