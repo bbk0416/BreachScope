@@ -93,7 +93,7 @@ def _bs_p005_legacy_infer_scenarios(
         # 필수 기법이 모두 있는지 확인
         required_met = all(
             tech in matched_techniques or any(
-                tech.startswith(t.split(".")[0]) for t in matched_techniques
+                _bs_p006_attack_requirement_satisfied(t, tech) for t in matched_techniques
             )
             for tech in template.required_techniques
         )
@@ -716,3 +716,40 @@ def infer_scenarios(*args, **kwargs):
             results.extend(list(partial))
 
     return results
+
+# BREACHSCOPE_P0_06_ATTACK_MATCH_V1
+# ATT&CK requirement semantics:
+# - exact technique/sub-technique IDs match;
+# - a parent requirement (e.g. T1059) may be satisfied by one of its direct/
+#   nested sub-techniques (e.g. T1059.001);
+# - a sub-technique requirement (e.g. T1059.001) requires that exact ID;
+# - sibling sub-techniques never satisfy each other.
+import re as _bs_p006_re
+
+_BS_P006_ATTACK_ID_RE = _bs_p006_re.compile(
+    r"^T\d{4}(?:\.\d{3})?$",
+    _bs_p006_re.IGNORECASE,
+)
+
+
+def _bs_p006_attack_requirement_satisfied(required, observed):
+    if required is None or observed is None:
+        return False
+
+    required_id = str(required).strip().upper()
+    observed_id = str(observed).strip().upper()
+
+    if not _BS_P006_ATTACK_ID_RE.fullmatch(required_id):
+        return False
+    if not _BS_P006_ATTACK_ID_RE.fullmatch(observed_id):
+        return False
+
+    if required_id == observed_id:
+        return True
+
+    # Parent templates are intentionally broad. A specific sub-technique
+    # template is not: T1059.001 must never be satisfied by T1059.003.
+    if "." not in required_id and observed_id.startswith(required_id + "."):
+        return True
+
+    return False
