@@ -33,64 +33,8 @@ def parse_attack_tag(tags: Any) -> Optional[str]:
     return None
 
 
-def sigma_like_to_rules(doc: Dict[str, Any]) -> List[Rule]:
-    """
-    Sigma-like 규칙을 BreachScope Rule로 변환
-
-    지원하는 Sigma 형식:
-      title, id(optional), tags(optional: attack.tXXXX) and detection:
-        selection:
-          CommandLine|contains: str | [str, ...]
-        condition: selection
-
-    Args:
-        doc: Sigma 규칙 딕셔너리
-
-    Returns:
-        변환된 Rule 리스트
-    """
-    title = str(doc.get("title", "Sigma-like Rule"))
-    rid = str(doc.get("id", title))
-    mitre = parse_attack_tag(doc.get("tags") or [])
-    det = doc.get("detection") or {}
-    sel = det.get("selection") or {}
-    cl_key = None
-
-    # CommandLine|contains 필드 찾기
-    for k in sel.keys():
-        if isinstance(k, str) and k.lower().startswith("commandline|contains"):
-            cl_key = k
-            break
-
-    if not cl_key:
-        return []
-
-    val = sel.get(cl_key)
-    values: List[str] = []
-    if isinstance(val, list):
-        values = [str(x) for x in val]
-    elif isinstance(val, str):
-        values = [val]
-    else:
-        return []
-
-    # 안전한 regex 패턴 생성
-    pat = "|".join(re.escape(v) for v in values if v)
-    if not pat:
-        return []
-
-    return [
-        Rule(
-            id=rid,
-            name=title,
-            description="Auto-converted from Sigma-like selection contains",
-            field="command_line",
-            pattern=pat,
-            mitre_technique=mitre,
-            severity="medium",
-            operator="contains",
-        )
-    ]
+def sigma_like_to_rules(doc):
+    return _bs_p009_convert_sigma(doc)
 
 
 def normalize_severity(v: Any) -> str:
@@ -109,20 +53,9 @@ def normalize_severity(v: Any) -> str:
     return "medium"
 
 
-def load_rules(rules_dir: Path) -> List[Rule]:
-    """
-    규칙 디렉토리에서 YAML 규칙 파일을 로드
+def load_rules(rules_dir):
+    _bs_p009_preflight_sigma(Path(rules_dir))
 
-    지원 형식:
-    1. 네이티브 BreachScope 규칙 스키마
-    2. Sigma-like 규칙 (최소 지원)
-
-    Args:
-        rules_dir: 규칙 파일이 있는 디렉토리
-
-    Returns:
-        로드된 Rule 리스트
-    """
     rules: List[Rule] = []
 
     # YAML 파일 로드 (.yml, .yaml)
@@ -245,15 +178,3 @@ from .sigma_adapter import (
     convert_supported_sigma_document as _bs_p009_convert_sigma,
     preflight_sigma_rules as _bs_p009_preflight_sigma,
 )
-
-
-def sigma_like_to_rules(doc):
-    return _bs_p009_convert_sigma(doc)
-
-
-_bs_p009_legacy_load_rules = load_rules
-
-
-def load_rules(rules_dir):
-    _bs_p009_preflight_sigma(Path(rules_dir))
-    return _bs_p009_legacy_load_rules(rules_dir)
