@@ -508,8 +508,6 @@ def get_scenario_summary(scenarios: List[Scenario]) -> Dict[str, Any]:
 # Scenario inference is evaluated per connected evidence scope instead of the
 # global findings pool. Independent hosts/sessions cannot satisfy each other's
 # ATT&CK requirements merely because they exist in the same case.
-import functools as _bs_p005_functools
-import inspect as _bs_p005_inspect
 from collections.abc import Mapping as _bs_p005_Mapping
 
 
