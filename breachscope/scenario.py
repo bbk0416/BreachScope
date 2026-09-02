@@ -696,50 +696,35 @@ def _bs_p005_filter_findings(findings, component_scope):
     return selected
 
 
-@_bs_p005_functools.wraps(_bs_p005_legacy_infer_scenarios)
-def infer_scenarios(*args, **kwargs):
-    signature = _bs_p005_inspect.signature(_bs_p005_legacy_infer_scenarios)
-    bound = signature.bind_partial(*args, **kwargs)
-
-    findings_param = next(
-        (name for name in signature.parameters if name.casefold() == "findings"),
-        None,
-    )
-    chains_param = next(
-        (name for name in signature.parameters if name.casefold() == "chains"),
-        None,
-    )
-
-    if (
-        findings_param is None
-        or chains_param is None
-        or findings_param not in bound.arguments
-        or chains_param not in bound.arguments
-    ):
-        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
-
-    findings = list(bound.arguments[findings_param] or [])
-    chains = list(bound.arguments[chains_param] or [])
+def infer_scenarios(
+    chains: List[CorrelatorEventChain],
+    findings: List[Finding],
+    custom_templates_dir: Optional[Path] = None,
+) -> List[Scenario]:
+    chains = list(chains or [])
+    findings = list(findings or [])
 
     if not chains:
-        return _bs_p005_legacy_infer_scenarios(*args, **kwargs)
+        return _bs_p005_legacy_infer_scenarios(
+            chains, findings, custom_templates_dir
+        )
 
     components = _bs_p005_partition_chains(chains)
-    results = []
+    results: List[Scenario] = []
 
     for component in components:
         scope = _bs_p005_component_scope(component)
         scoped_findings = _bs_p005_filter_findings(findings, scope)
-
-        call_bound = signature.bind_partial(*args, **kwargs)
-        call_bound.arguments[findings_param] = scoped_findings
-        call_bound.arguments[chains_param] = component
-
-        partial = _bs_p005_legacy_infer_scenarios(*call_bound.args, **call_bound.kwargs)
+        partial = _bs_p005_legacy_infer_scenarios(
+            component, scoped_findings, custom_templates_dir
+        )
         if partial:
             results.extend(list(partial))
 
     return results
+
+infer_scenarios.__wrapped__ = _bs_p005_legacy_infer_scenarios
+infer_scenarios.__doc__ = _bs_p005_legacy_infer_scenarios.__doc__
 
 # BREACHSCOPE_P0_06_ATTACK_MATCH_V1
 # ATT&CK requirement semantics:
