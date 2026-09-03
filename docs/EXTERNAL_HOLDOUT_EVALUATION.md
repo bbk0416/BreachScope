@@ -176,9 +176,9 @@ Optional acceptance gates:
 Do not invent a threshold after seeing the first final-blind result and then
 pretend it was predetermined.
 
-## Event identity limitation
+## Event identity
 
-The current holdout accounting key is the SHA-256 of:
+The holdout accounting key is the SHA-256 of the portable base identity:
 
 - timestamp
 - host
@@ -187,7 +187,18 @@ The current holdout accounting key is the SHA-256 of:
 - user
 - command_line
 
-If a real corpus contains two genuinely distinct events with the exact same
-identity tuple, the evaluator **fails closed** instead of silently merging them.
-That is intentional. The identity contract must then be extended using evidence
-available in that corpus (for example record ID) before the benchmark is valid.
+When a record exposes Windows event-log identity metadata, the evaluator also
+adds:
+
+- channel
+- event_record_id (`EventRecordID`)
+
+The additional fields are conditional so existing generic JSONL events without
+Windows record metadata keep the historical base-key behavior. `EventRecordID`
+is interpreted together with the channel because Windows event record IDs are
+channel-scoped.
+
+If a real corpus still contains two genuinely distinct events with the exact
+same available identity fields, the evaluator **fails closed** instead of
+silently merging them. The identity contract must not be weakened by falling
+back to source-file position merely to make a benchmark pass.

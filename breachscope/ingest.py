@@ -96,9 +96,9 @@ def convert_evtx_dir(input_dir: Path) -> Optional[Path]:
     out_dir = Path(tempfile.mkdtemp(prefix="breachscope_evtx_"))
     for fp in evtx_files:
         out_path = out_dir / (fp.stem + ".jsonl")
-        with open(fp, "rb") as f, out_path.open("w", encoding="utf-8") as out:
+        with out_path.open("w", encoding="utf-8") as out:
             try:
-                with Evtx(f) as log:
+                with Evtx(str(fp)) as log:
                     for record in log.records():
                         data = _extract_from_xml(record.xml())
                         if data:
