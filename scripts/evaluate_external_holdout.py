@@ -70,6 +70,10 @@ def event_identity_payload(event: Any) -> dict[str, str]:
     if not isinstance(canonical, Mapping):
         canonical = {}
 
+    system = raw.get("system")
+    if not isinstance(system, Mapping):
+        system = {}
+
     def first(name: str, *aliases: str) -> str:
         direct = _get(event, name, "")
         if direct not in (None, ""):
@@ -81,7 +85,14 @@ def event_identity_payload(event: Any) -> dict[str, str]:
                     return str(item)
         return ""
 
-    return {
+    def system_first(*names: str) -> str:
+        for name in names:
+            item = system.get(name)
+            if item not in (None, ""):
+                return str(item)
+        return ""
+
+    payload = {
         "timestamp": first("timestamp", "time_created", "TimeCreated"),
         "host": first("host", "computer", "Computer"),
         "source": first("source", "provider", "ProviderName"),
@@ -89,6 +100,22 @@ def event_identity_payload(event: Any) -> dict[str, str]:
         "user": first("user", "User", "SubjectUserName"),
         "command_line": first("command_line", "CommandLine", "ProcessCommandLine"),
     }
+
+    channel = first("channel", "Channel") or system_first("Channel", "channel")
+    event_record_id = (
+        first("event_record_id", "EventRecordID", "record_id")
+        or system_first("EventRecordID", "event_record_id", "record_id")
+    )
+
+    # Preserve historical keys for generic JSONL events that do not expose
+    # Windows record identity, while disambiguating distinct EVTX records when
+    # the source provides per-channel EventRecordID metadata.
+    if channel:
+        payload["channel"] = channel
+    if event_record_id:
+        payload["event_record_id"] = event_record_id
+
+    return payload
 
 
 def event_key(event: Any) -> str:
