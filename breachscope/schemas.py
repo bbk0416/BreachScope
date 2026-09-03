@@ -25,6 +25,7 @@ class Rule:
     severity: str = "medium"
     operator: Optional[str] = None  # regex|contains|startswith|endswith|equals
     fields: Optional[List[str]] = None  # additional fields to check
+    all_of: Optional[List[Dict[str, str]]] = None  # structured AND conditions
 
 
 @dataclass

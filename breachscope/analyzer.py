@@ -9,6 +9,62 @@ from .utils import get_event_key
 logger = logging.getLogger(__name__)
 
 
+
+def _event_field_text(event, field_name):
+    value = getattr(event, field_name, None)
+    if value not in (None, ""):
+        return str(value)
+
+    raw = getattr(event, "raw", {}) or {}
+    if not isinstance(raw, dict):
+        return ""
+
+    current = raw
+    parts = str(field_name or "").split(".")
+    if parts and parts[0] == "raw":
+        parts = parts[1:]
+
+    for part in parts:
+        if not isinstance(current, dict):
+            return ""
+        current = current.get(part)
+        if current in (None, ""):
+            return ""
+
+    return "" if current is None else str(current)
+
+
+def _rule_all_of_matches(event, rule):
+    conditions = getattr(rule, "all_of", None)
+    if not conditions:
+        return True
+
+    for index, condition in enumerate(conditions):
+        if not isinstance(condition, dict):
+            return False
+
+        field_name = str(condition.get("field") or "").strip()
+        pattern = str(condition.get("pattern") if "pattern" in condition else "")
+        operator = str(condition.get("operator") or "equals").lower()
+        if not field_name or pattern == "":
+            return False
+
+        condition_rule = Rule(
+            id=f"{rule.id}::all_of::{index}",
+            name=rule.name,
+            description=rule.description,
+            field=field_name,
+            pattern=pattern,
+            severity=rule.severity,
+            operator=operator,
+        )
+        finder = _compile_rule_matcher(condition_rule)
+        if finder(_event_field_text(event, field_name)) is None:
+            return False
+
+    return True
+
+
 def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]:
     compiled: List[Tuple[Rule, Callable[[str], Optional[Tuple[str, int, int]]]]] = [
         (r, _compile_rule_matcher(r)) for r in rules
@@ -57,7 +113,10 @@ def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]
                 else:
                     field_vals.append(str(e.raw.get(fld, "")))
             # Search in decoded and raw texts
-            candidates = field_vals + texts
+            if not _rule_all_of_matches(e, rule):
+                continue
+            primary_value = _event_field_text(e, rule.field)
+            candidates = ([primary_value] if primary_value else []) + field_vals + texts
             for c in candidates:
                 if not c:
                     continue
@@ -271,7 +330,10 @@ def apply_rules_parallel(
                     else:
                         field_vals.append(str(e.raw.get(fld, "")))
 
-                candidates = field_vals + texts
+                if not _rule_all_of_matches(e, rule):
+                    continue
+                primary_value = _event_field_text(e, rule.field)
+                candidates = ([primary_value] if primary_value else []) + field_vals + texts
                 for c in candidates:
                     if not c:
                         continue

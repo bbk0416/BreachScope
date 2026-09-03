@@ -85,6 +85,24 @@ def load_rules(rules_dir):
                         elif isinstance(fields_val, str):
                             fields_list = [s.strip() for s in fields_val.split(",") if s.strip()]
 
+                        all_of_val = r.get("all_of")
+                        all_of_list = None
+                        if all_of_val is not None:
+                            if not isinstance(all_of_val, list) or not all_of_val:
+                                raise ValueError("all_of must be a non-empty list")
+                            all_of_list = []
+                            for condition in all_of_val:
+                                if not isinstance(condition, dict):
+                                    raise ValueError("all_of conditions must be mappings")
+                                condition_field = str(condition.get("field") or "").strip()
+                                condition_pattern = str(condition.get("pattern") if "pattern" in condition else "")
+                                condition_operator = str(condition.get("operator") or "equals").lower()
+                                if not condition_field or condition_pattern == "":
+                                    raise ValueError("all_of conditions require field and pattern")
+                                if condition_operator not in {"regex", "contains", "startswith", "endswith", "equals"}:
+                                    raise ValueError("unsupported all_of operator")
+                                all_of_list.append({"field": condition_field, "operator": condition_operator, "pattern": condition_pattern})
+
                         rules.append(
                             Rule(
                                 id=str(r["id"]),
@@ -96,6 +114,7 @@ def load_rules(rules_dir):
                                 severity=normalize_severity(r.get("severity", "medium")),
                                 operator=(str(op).lower() if op else None),
                                 fields=fields_list,
+                                all_of=all_of_list,
                             )
                         )
                     except Exception:
