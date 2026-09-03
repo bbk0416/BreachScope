@@ -139,3 +139,123 @@ def test_confusion_matrix_accounting():
         "tn": 1,
         "fn": 1,
     }
+
+
+
+def test_load_labels_accepts_ignore_and_preserves_exact_coverage(tmp_path: Path):
+    path = tmp_path / "labels.jsonl"
+    rows = [
+        {"event_key": "a" * 64, "label": "malicious"},
+        {"event_key": "b" * 64, "label": "benign"},
+        {"event_key": "c" * 64, "label": "ignore"},
+    ]
+    path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    labels = holdout.load_labels(path)
+    assert labels["c" * 64]["label"] == "ignore"
+    holdout.require_complete_labels(
+        [
+            {"event_key": "a" * 64},
+            {"event_key": "b" * 64},
+            {"event_key": "c" * 64},
+        ],
+        labels,
+    )
+
+
+def test_ignore_is_excluded_from_confusion_denominator():
+    records = [
+        {"event_key": "a" * 64},
+        {"event_key": "b" * 64},
+        {"event_key": "c" * 64},
+    ]
+    labels = {
+        "a" * 64: {"label": "malicious"},
+        "b" * 64: {"label": "benign"},
+        "c" * 64: {"label": "ignore"},
+    }
+    flagged = {"a" * 64, "c" * 64}
+    assert holdout.confusion_from_flagged(records, labels, flagged) == {
+        "tp": 1,
+        "fp": 0,
+        "tn": 1,
+        "fn": 0,
+    }
+
+
+def test_external_calibration_records_nonblind_attestations(tmp_path: Path):
+    corpus = tmp_path / "events.jsonl"
+    corpus.write_text(json.dumps(_event("whoami")) + "\\n", encoding="utf-8")
+    path = _manifest(tmp_path, corpus)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data["evaluation_class"] = "external_calibration"
+    data["protocol"]["independent_from_rule_authoring"] = False
+    data["protocol"]["final_holdout_seen_before_rule_freeze"] = True
+    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    loaded = holdout.load_manifest(path)
+    assert loaded["evaluation_class"] == "external_calibration"
+
+
+def test_final_blind_still_requires_independent_and_unseen(tmp_path: Path):
+    corpus = tmp_path / "events.jsonl"
+    corpus.write_text(json.dumps(_event("whoami")) + "\\n", encoding="utf-8")
+    path = _manifest(tmp_path, corpus)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data["evaluation_class"] = "final_blind_holdout"
+    data["protocol"]["independent_from_rule_authoring"] = False
+    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(holdout.HoldoutError, match="independent_from_rule_authoring"):
+        holdout.load_manifest(path)
+
+
+def test_scenario_manifest_rejects_unknown_source_file(tmp_path: Path):
+    corpus = tmp_path / "events.jsonl"
+    corpus.write_text(json.dumps(_event("whoami")) + "\\n", encoding="utf-8")
+    path = _manifest(tmp_path, corpus)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    data["scenarios"] = [
+        {
+            "scenario_id": "scenario-1",
+            "source_files": ["missing.jsonl"],
+            "expected_techniques": ["T1059.001"],
+        }
+    ]
+    path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(holdout.HoldoutError, match="unknown source_files"):
+        holdout.load_manifest(path)
+
+
+def test_scenario_outcome_requires_all_expected_techniques():
+    manifest = {
+        "scenarios": [
+            {
+                "scenario_id": "s1",
+                "source_files": ["attack.jsonl"],
+                "expected_techniques": ["T1003", "T1059.001"],
+            }
+        ]
+    }
+    records = [
+        {"event_key": "a" * 64, "source_file": "attack.jsonl"},
+        {"event_key": "b" * 64, "source_file": "attack.jsonl"},
+    ]
+    partial = holdout.scenario_outcomes(
+        manifest,
+        records,
+        {"a" * 64: {"T1003"}, "b" * 64: set()},
+    )
+    assert partial["hits"] == 0
+    assert partial["misses"] == 1
+    assert partial["outcomes"][0]["technique_recall"] == 0.5
+    assert partial["outcomes"][0]["status"] == "miss"
+
+    complete = holdout.scenario_outcomes(
+        manifest,
+        records,
+        {"a" * 64: {"T1003"}, "b" * 64: {"T1059.001"}},
+    )
+    assert complete["hits"] == 1
+    assert complete["misses"] == 0
+    assert complete["outcomes"][0]["status"] == "hit"
