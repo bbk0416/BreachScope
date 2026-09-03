@@ -34,7 +34,8 @@ import yaml
 SCHEMA = "breachscope.external_holdout.v1"
 FREEZE_SCHEMA = "breachscope.external_holdout.rules_freeze.v1"
 RESULT_SCHEMA = "breachscope.external_holdout.result.v1"
-VALID_LABELS = {"malicious", "benign"}
+VALID_LABELS = {"malicious", "benign", "ignore"}
+VALID_EVALUATION_CLASSES = {"external_calibration", "external_baseline", "final_blind_holdout"}
 
 
 class HoldoutError(RuntimeError):
@@ -148,21 +149,41 @@ def load_manifest(path: Path) -> dict[str, Any]:
     if data.get("kind") != "external_blind_holdout":
         raise HoldoutError("manifest kind must be external_blind_holdout")
 
+    evaluation_class = str(data.get("evaluation_class") or "final_blind_holdout").strip()
+    if evaluation_class not in VALID_EVALUATION_CLASSES:
+        raise HoldoutError(
+            f"evaluation_class must be one of {sorted(VALID_EVALUATION_CLASSES)}"
+        )
+    data["evaluation_class"] = evaluation_class
+
     protocol = data.get("protocol")
     if not isinstance(protocol, dict):
         raise HoldoutError("manifest protocol section is required")
 
-    required_attestations = {
-        "independent_from_rule_authoring": True,
-        "ground_truth_prepared_without_breachscope_findings": True,
-        "final_holdout_seen_before_rule_freeze": False,
-    }
-    for key, expected in required_attestations.items():
-        if protocol.get(key) is not expected:
-            raise HoldoutError(
-                f"protocol.{key} must be explicitly {expected!r}; "
-                "this is a recorded self-attestation, not independent proof"
-            )
+    for key in (
+        "independent_from_rule_authoring",
+        "ground_truth_prepared_without_breachscope_findings",
+        "final_holdout_seen_before_rule_freeze",
+    ):
+        if not isinstance(protocol.get(key), bool):
+            raise HoldoutError(f"protocol.{key} must be an explicit boolean")
+
+    if protocol.get("ground_truth_prepared_without_breachscope_findings") is not True:
+        raise HoldoutError(
+            "protocol.ground_truth_prepared_without_breachscope_findings must be true"
+        )
+
+    if evaluation_class == "final_blind_holdout":
+        required_attestations = {
+            "independent_from_rule_authoring": True,
+            "final_holdout_seen_before_rule_freeze": False,
+        }
+        for key, expected in required_attestations.items():
+            if protocol.get(key) is not expected:
+                raise HoldoutError(
+                    f"protocol.{key} must be explicitly {expected!r} for final_blind_holdout; "
+                    "this is a recorded self-attestation, not independent proof"
+                )
 
     files = data.get("files")
     if not isinstance(files, list) or not files:
@@ -182,6 +203,38 @@ def load_manifest(path: Path) -> dict[str, Any]:
             raise HoldoutError(f"invalid sha256 for manifest file: {rel}")
         if fmt not in {"jsonl", "evtx"}:
             raise HoldoutError(f"unsupported format {fmt!r} for {rel}")
+
+    scenarios = data.get("scenarios") or []
+    if not isinstance(scenarios, list):
+        raise HoldoutError("manifest scenarios must be a list when provided")
+    known_files = {str(row["path"]) for row in files}
+    seen_scenarios: set[str] = set()
+    for scenario in scenarios:
+        if not isinstance(scenario, dict):
+            raise HoldoutError("each scenario entry must be a mapping")
+        scenario_id = str(scenario.get("scenario_id") or "").strip()
+        if not scenario_id or scenario_id in seen_scenarios:
+            raise HoldoutError("scenario_id values must be non-empty and unique")
+        seen_scenarios.add(scenario_id)
+        source_files = scenario.get("source_files") or []
+        expected = scenario.get("expected_techniques") or []
+        if not isinstance(source_files, list) or not source_files:
+            raise HoldoutError(f"scenario {scenario_id}: source_files must be a non-empty list")
+        if len({str(x) for x in source_files}) != len(source_files):
+            raise HoldoutError(f"scenario {scenario_id}: source_files must be unique")
+        unknown = sorted({str(x) for x in source_files} - known_files)
+        if unknown:
+            raise HoldoutError(
+                f"scenario {scenario_id}: unknown source_files: {unknown}"
+            )
+        if not isinstance(expected, list) or not expected:
+            raise HoldoutError(
+                f"scenario {scenario_id}: expected_techniques must be a non-empty list"
+            )
+        if len({str(x).upper() for x in expected}) != len(expected):
+            raise HoldoutError(
+                f"scenario {scenario_id}: expected_techniques must be unique"
+            )
 
     return data
 
@@ -310,6 +363,7 @@ def write_index(records: list[dict[str, Any]], path: Path) -> None:
                 "record_index": row["record_index"],
                 "identity": row["identity"],
                 "label": "",
+                "allowed_labels": ["malicious", "benign", "ignore"],
                 "expected_techniques": [],
                 "notes": "",
             }
@@ -402,7 +456,10 @@ def confusion_from_flagged(
     values = {"tp": 0, "fp": 0, "tn": 0, "fn": 0}
     for row in records:
         key = row["event_key"]
-        malicious = labels[key]["label"] == "malicious"
+        label = labels[key]["label"]
+        if label == "ignore":
+            continue
+        malicious = label == "malicious"
         flagged = key in flagged_keys
         if malicious and flagged:
             values["tp"] += 1
@@ -413,6 +470,50 @@ def confusion_from_flagged(
         else:
             values["tn"] += 1
     return values
+
+
+def scenario_outcomes(
+    manifest: dict[str, Any],
+    records: list[dict[str, Any]],
+    techniques_by_key: Mapping[str, set[str]],
+) -> dict[str, Any]:
+    outcomes = []
+    for scenario in manifest.get("scenarios") or []:
+        scenario_id = str(scenario["scenario_id"])
+        source_files = {str(x) for x in scenario["source_files"]}
+        expected = {str(x).upper() for x in scenario["expected_techniques"]}
+        keys = {
+            row["event_key"]
+            for row in records
+            if row["source_file"] in source_files
+        }
+        observed: set[str] = set()
+        for key in keys:
+            observed.update(techniques_by_key.get(key, set()))
+        matched = expected & observed
+        missing = expected - observed
+        outcomes.append(
+            {
+                "scenario_id": scenario_id,
+                "source_files": sorted(source_files),
+                "event_count": len(keys),
+                "expected_techniques": sorted(expected),
+                "observed_techniques": sorted(observed),
+                "matched_techniques": sorted(matched),
+                "missing_techniques": sorted(missing),
+                "technique_recall": _safe_div(len(matched), len(expected)),
+                "status": "hit" if not missing else "miss",
+            }
+        )
+    hits = sum(row["status"] == "hit" for row in outcomes)
+    misses = sum(row["status"] == "miss" for row in outcomes)
+    return {
+        "total": len(outcomes),
+        "hits": hits,
+        "misses": misses,
+        "hit_rate": _safe_div(hits, len(outcomes)),
+        "outcomes": outcomes,
+    }
 
 
 def _safe_div(a: int, b: int) -> float:
@@ -486,7 +587,9 @@ def score_holdout(
 
     expected_technique_total = 0
     expected_technique_hits = 0
-    per_source = defaultdict(lambda: Counter(events=0, malicious=0, benign=0, flagged=0))
+    per_source = defaultdict(
+        lambda: Counter(events=0, malicious=0, benign=0, ignore=0, scored=0, flagged=0)
+    )
 
     for row in records:
         key = row["event_key"]
@@ -494,13 +597,21 @@ def score_holdout(
         bucket = per_source[row["source_file"]]
         bucket["events"] += 1
         bucket[label["label"]] += 1
+        if label["label"] != "ignore":
+            bucket["scored"] += 1
         if key in flagged_keys:
             bucket["flagged"] += 1
 
-        expected = set(label["expected_techniques"])
-        if expected:
-            expected_technique_total += len(expected)
-            expected_technique_hits += len(expected & techniques_by_key.get(key, set()))
+        if label["label"] != "ignore":
+            expected = set(label["expected_techniques"])
+            if expected:
+                expected_technique_total += len(expected)
+                expected_technique_hits += len(expected & techniques_by_key.get(key, set()))
+
+    ignored_keys = {
+        row["event_key"] for row in records if labels[row["event_key"]]["label"] == "ignore"
+    }
+    scenario_metrics = scenario_outcomes(manifest, records, techniques_by_key)
 
     return {
         "schema": RESULT_SCHEMA,
@@ -509,6 +620,8 @@ def score_holdout(
             "production_detection_quality_certified": False,
             "independent_provenance_proven_by_tool": False,
             "ground_truth_quality_proven_by_tool": False,
+            "evaluation_class": manifest["evaluation_class"],
+            "manifest_declares_final_blind": manifest["evaluation_class"] == "final_blind_holdout",
             "note": (
                 "Hashes and protocol self-attestations were enforced. "
                 "External provenance, label quality, and representativeness require independent evidence."
@@ -519,6 +632,8 @@ def score_holdout(
             "manifest_sha256": _sha256(manifest_path),
             "labels_sha256": _sha256(labels_path),
             "events": len(records),
+            "scored_events": sum(labels[r["event_key"]]["label"] != "ignore" for r in records),
+            "ignored_events": sum(labels[r["event_key"]]["label"] == "ignore" for r in records),
             "malicious": sum(labels[r["event_key"]]["label"] == "malicious" for r in records),
             "benign": sum(labels[r["event_key"]]["label"] == "benign" for r in records),
             "source_files": len(manifest["files"]),
@@ -527,6 +642,7 @@ def score_holdout(
             "rules": len(rules),
             "findings": len(findings),
             "flagged_events": len(flagged_keys),
+            "flagged_ignored_events": len(flagged_keys & ignored_keys),
             "confusion": confusion,
             "precision": precision,
             "recall": recall,
@@ -537,6 +653,7 @@ def score_holdout(
                 expected_technique_hits, expected_technique_total
             ),
         },
+        "scenarios": scenario_metrics,
         "performance": {
             "runtime_seconds": runtime_seconds,
             "peak_memory_mb": peak_bytes / (1024 * 1024),
@@ -601,6 +718,17 @@ def cmd_score(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         failed = True
+    scenario_hit_rate = result["scenarios"]["hit_rate"]
+    if (
+        args.min_scenario_hit_rate is not None
+        and scenario_hit_rate < args.min_scenario_hit_rate
+    ):
+        print(
+            "FAIL: scenario hit rate "
+            f"{scenario_hit_rate:.4f} < requested {args.min_scenario_hit_rate:.4f}",
+            file=sys.stderr,
+        )
+        failed = True
     return 3 if failed else 0
 
 
@@ -635,6 +763,7 @@ def parser() -> argparse.ArgumentParser:
     score.add_argument("--out")
     score.add_argument("--min-precision", type=float)
     score.add_argument("--min-recall", type=float)
+    score.add_argument("--min-scenario-hit-rate", type=float)
     score.set_defaults(func=cmd_score)
 
     return ap
