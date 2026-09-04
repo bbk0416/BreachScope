@@ -694,6 +694,53 @@ def _bs_p005_filter_findings(findings, component_scope):
     return selected
 
 
+# BREACHSCOPE_P2_06B_SCENARIO_GLOBAL_IDENTITY_V2
+# P0-05 invokes legacy scenario inference independently for each evidence
+# component. Legacy local IDs restart in every component, so scenario IDs can
+# collide. Namespace them with a stable fingerprint of the evidence component.
+import hashlib as _bs_p206b_hashlib
+
+from .utils import get_event_key as _bs_p206b_get_event_key
+
+
+def _bs_p206b_component_namespace(chains):
+    scope = _bs_p005_component_scope(chains)
+    identity_parts = []
+
+    for host in sorted(scope["hosts"]):
+        identity_parts.append(f"host:{host}")
+    for session in sorted(scope["sessions"]):
+        identity_parts.append(f"session:{session}")
+
+    for chain in chains or []:
+        identity_parts.append(f"chain_type:{getattr(chain, 'chain_type', '')}")
+        for event in getattr(chain, "events", None) or []:
+            identity_parts.append(f"event:{_bs_p206b_get_event_key(event)}")
+
+    if not identity_parts:
+        identity_parts.append("empty-component")
+
+    payload = "\n".join(sorted(set(identity_parts)))
+    return _bs_p206b_hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def _bs_p206b_namespace_scenarios(scenarios, component):
+    namespace = _bs_p206b_component_namespace(component)
+    used = set()
+    result = []
+
+    for ordinal, scenario in enumerate(scenarios or [], start=1):
+        legacy_id = str(getattr(scenario, "scenario_id", "") or f"scenario_{ordinal}")
+        candidate = f"scope_{namespace}_{legacy_id}"
+        if candidate in used:
+            candidate = f"scope_{namespace}_{ordinal}_{legacy_id}"
+        scenario.scenario_id = candidate
+        used.add(candidate)
+        result.append(scenario)
+
+    return result
+
+
 def infer_scenarios(
     chains: List[CorrelatorEventChain],
     findings: List[Finding],
@@ -717,7 +764,7 @@ def infer_scenarios(
             component, scoped_findings, custom_templates_dir
         )
         if partial:
-            results.extend(list(partial))
+            results.extend(_bs_p206b_namespace_scenarios(partial, component))
 
     return results
 
