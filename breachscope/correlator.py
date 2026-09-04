@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from .schemas import Event, Finding
-from .utils import parse_timestamp, get_event_key, match_finding_to_event
+from .utils import parse_timestamp, get_event_identity_key
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ def correlate_events(
         # 시간순 정렬 (한 번만)
         indexed_events.sort(key=lambda x: x[2])
         sorted_events = [event for _, event, _ in indexed_events]
-        event_indices = {get_event_key(event): idx for idx, (orig_idx, event, _) in enumerate(indexed_events)}
+        event_indices = {get_event_identity_key(event): idx for idx, (orig_idx, event, _) in enumerate(indexed_events)}
 
         # 타임스탬프 리스트 생성 (bisect를 위한)
         timestamps = [ts for _, _, ts in indexed_events]
@@ -136,11 +136,12 @@ def correlate_events(
         # 2. Finding을 이벤트 인덱스로 매핑 (고유 키 기반)
         finding_map: Dict[int, List[Finding]] = defaultdict(list)
         for finding in findings:
-            event_idx = event_indices.get(get_event_key(finding.event))
+            event_idx = event_indices.get(get_event_identity_key(finding.event))
             if event_idx is None:
-                # 고유 키로 재시도
+                # Identity-safe retry for generic or wrapped Windows events.
+                finding_key = get_event_identity_key(finding.event)
                 for idx, event in enumerate(sorted_events):
-                    if match_finding_to_event(finding, event):
+                    if finding_key == get_event_identity_key(event):
                         event_idx = idx
                         break
             if event_idx is not None:
@@ -209,15 +210,17 @@ def correlate_events(
                 # 체인이 최소 2개 이상의 이벤트를 포함하는 경우만 추가
                 if len(chain_events) >= 2:
 
-                    # 시간 간격 계산 (신뢰도 계산용)
-                    time_span = ts_b - ts_a if len(chain_events) > 1 else None
+                    # Confidence must use the actual last matched event, not
+                    # the last candidate scanned inside the time window.
+                    end_time = _parse_timestamp(chain_events[-1].timestamp)
+                    time_span = end_time - ts_a if end_time else None
 
                     chain = EventChain(
                         chain_id=f"chain_{len(chains)+1}_{rule.chain_type}",
                         events=chain_events,
                         findings=chain_findings,
                         start_time=ts_a,
-                        end_time=_parse_timestamp(chain_events[-1].timestamp),
+                        end_time=end_time,
                         description=rule.description,
                         confidence=_calculate_chain_confidence(chain_events, chain_findings, time_span),
                         chain_type=rule.chain_type,
@@ -319,9 +322,9 @@ def _correlate_by_session(
 
         # 세션과 연관된 findings 찾기 (고유 키 기반)
         session_findings: List[Finding] = []
-        session_event_keys = {get_event_key(e) for e in session_events}
+        session_event_keys = {get_event_identity_key(e) for e in session_events}
         for finding in findings:
-            if get_event_key(finding.event) in session_event_keys:
+            if get_event_identity_key(finding.event) in session_event_keys:
                 session_findings.append(finding)
 
         start_time = _parse_timestamp(session_events[0].timestamp)
@@ -410,7 +413,7 @@ def _deduplicate_chains(chains: List[EventChain]) -> List[EventChain]:
 
     for chain in chains:
         # 체인을 이벤트 키 집합으로 표현
-        event_keys = tuple(sorted(get_event_key(e) for e in chain.events))
+        event_keys = tuple(sorted(get_event_identity_key(e) for e in chain.events))
         chain_key = (chain.chain_type, event_keys)
 
         if chain_key not in seen_chain_keys:
@@ -419,7 +422,7 @@ def _deduplicate_chains(chains: List[EventChain]) -> List[EventChain]:
         else:
             # 중복 체인 발견 - 신뢰도가 높은 것을 유지
             for existing_chain in unique_chains:
-                existing_keys = tuple(sorted(get_event_key(e) for e in existing_chain.events))
+                existing_keys = tuple(sorted(get_event_identity_key(e) for e in existing_chain.events))
                 if (existing_chain.chain_type, existing_keys) == (chain.chain_type, event_keys):
                     if chain.confidence > existing_chain.confidence:
                         # 더 높은 신뢰도로 교체

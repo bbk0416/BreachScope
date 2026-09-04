@@ -3,7 +3,7 @@
 타임스탬프 파싱, 이벤트 키 생성 등 공통 기능 제공
 """
 import logging
-from typing import Optional
+from typing import Any, Iterator, Optional, Tuple
 from datetime import datetime, timezone
 
 from .schemas import Event, Finding
@@ -60,6 +60,59 @@ def get_event_key(event: Event) -> str:
         고유 키 문자열 (timestamp|host|source|event_id)
     """
     return f"{event.timestamp}|{event.host}|{event.source}|{event.event_id or ''}"
+
+
+def _iter_event_raw_dicts(value: Any) -> Iterator[dict]:
+    """Yield nested raw mappings once, including wrapped EVTX payloads."""
+    stack = [value]
+    seen = set()
+    while stack:
+        current = stack.pop()
+        if not isinstance(current, dict):
+            continue
+        marker = id(current)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        yield current
+        stack.extend(v for v in current.values() if isinstance(v, dict))
+
+
+def get_windows_event_record_identity(event: Event) -> Tuple[str, str]:
+    """Return (Channel, EventRecordID) when a Windows event exposes both."""
+    raw = getattr(event, "raw", {}) or {}
+    for mapping in _iter_event_raw_dicts(raw):
+        lower = {str(k).casefold(): v for k, v in mapping.items()}
+        system = lower.get("system")
+        candidates = [system] if isinstance(system, dict) else []
+        candidates.append(mapping)
+        for candidate in candidates:
+            lowered = {str(k).casefold(): v for k, v in candidate.items()}
+            channel = str(lowered.get("channel") or "").strip()
+            record_id = str(
+                lowered.get("eventrecordid")
+                or lowered.get("event_record_id")
+                or lowered.get("record_id")
+                or ""
+            ).strip()
+            if channel and record_id:
+                return channel, record_id
+    return "", ""
+
+
+def get_event_identity_key(event: Event) -> str:
+    """
+    Return a correlation-safe event identity.
+
+    Generic events retain the historical timestamp/host/source/event_id key.
+    Real Windows EVTX records additionally use Channel + EventRecordID so two
+    distinct records with identical coarse metadata cannot collapse together.
+    """
+    base_key = get_event_key(event)
+    channel, record_id = get_windows_event_record_identity(event)
+    if not channel or not record_id:
+        return base_key
+    return f"{base_key}|channel={channel}|event_record_id={record_id}"
 
 
 def find_event_index(target_event: Event, events: list[Event]) -> Optional[int]:
