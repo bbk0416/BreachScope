@@ -45,3 +45,12 @@ observing that calibration corpus. They require both the matching event ID and
 A later HIT on the same EVTX is therefore calibrated/tuned evidence only. It is
 not blind/generalization evidence, event-level precision/recall evidence, or
 production detection-quality proof.
+
+
+## Finding dedupe for nested Windows event identity
+
+Finding dedupe preserves the historical generic event key and conditionally
+appends recursively discovered Windows `Channel + EventRecordID`. Exact
+duplicate Windows records remain deduplicated; distinct records and
+channel-scoped record IDs remain distinct. This is finding accounting only and
+does not create blind or production-quality claims.

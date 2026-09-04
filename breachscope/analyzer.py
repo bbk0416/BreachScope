@@ -65,6 +65,50 @@ def _rule_all_of_matches(event, rule):
     return True
 
 
+def _iter_event_raw_dicts(value):
+    stack = [value]
+    seen = set()
+    while stack:
+        current = stack.pop()
+        if not isinstance(current, dict):
+            continue
+        marker = id(current)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        yield current
+        stack.extend(v for v in current.values() if isinstance(v, dict))
+
+
+def _windows_event_record_identity(event):
+    raw = getattr(event, "raw", {}) or {}
+    for mapping in _iter_event_raw_dicts(raw):
+        lower = {str(k).lower(): v for k, v in mapping.items()}
+        system = lower.get("system")
+        candidates = [system] if isinstance(system, dict) else []
+        candidates.append(mapping)
+        for candidate in candidates:
+            cl = {str(k).lower(): v for k, v in candidate.items()}
+            channel = str(cl.get("channel") or "").strip()
+            record_id = str(
+                cl.get("eventrecordid")
+                or cl.get("event_record_id")
+                or cl.get("record_id")
+                or ""
+            ).strip()
+            if channel and record_id:
+                return channel, record_id
+    return "", ""
+
+
+def _finding_event_key(event):
+    base_key = str(get_event_key(event))
+    channel, record_id = _windows_event_record_identity(event)
+    if not channel or not record_id:
+        return base_key
+    return f"{base_key}|channel={channel}|event_record_id={record_id}"
+
+
 def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]:
     compiled: List[Tuple[Rule, Callable[[str], Optional[Tuple[str, int, int]]]]] = [
         (r, _compile_rule_matcher(r)) for r in rules
@@ -123,7 +167,7 @@ def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]
                 found = finder(c)
                 if found:
                     match_val, s, eidx = found
-                    key = (rule.id, get_event_key(e), match_val)
+                    key = (rule.id, _finding_event_key(e), match_val)
                     if key in seen:
                         break
                     seen.add(key)
@@ -340,7 +384,7 @@ def apply_rules_parallel(
                     found = finder(c)
                     if found:
                         match_val, s, eidx = found
-                        key = (rule.id, get_event_key(e), match_val)
+                        key = (rule.id, _finding_event_key(e), match_val)
                         if key in chunk_seen:
                             break
                         chunk_seen.add(key)
@@ -369,7 +413,7 @@ def apply_rules_parallel(
                 chunk_findings = future.result()
                 # 중복 제거 (전역 seen 사용)
                 for finding in chunk_findings:
-                    key = (finding.rule_id, get_event_key(finding.event), finding.matched_value)
+                    key = (finding.rule_id, _finding_event_key(finding.event), finding.matched_value)
                     if key not in seen:
                         seen.add(key)
                         all_findings.append(finding)
