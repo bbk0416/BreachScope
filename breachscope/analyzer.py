@@ -9,6 +9,106 @@ from .utils import get_event_key
 logger = logging.getLogger(__name__)
 
 
+
+def _event_field_text(event, field_name):
+    value = getattr(event, field_name, None)
+    if value not in (None, ""):
+        return str(value)
+
+    raw = getattr(event, "raw", {}) or {}
+    if not isinstance(raw, dict):
+        return ""
+
+    current = raw
+    parts = str(field_name or "").split(".")
+    if parts and parts[0] == "raw":
+        parts = parts[1:]
+
+    for part in parts:
+        if not isinstance(current, dict):
+            return ""
+        current = current.get(part)
+        if current in (None, ""):
+            return ""
+
+    return "" if current is None else str(current)
+
+
+def _rule_all_of_matches(event, rule):
+    conditions = getattr(rule, "all_of", None)
+    if not conditions:
+        return True
+
+    for index, condition in enumerate(conditions):
+        if not isinstance(condition, dict):
+            return False
+
+        field_name = str(condition.get("field") or "").strip()
+        pattern = str(condition.get("pattern") if "pattern" in condition else "")
+        operator = str(condition.get("operator") or "equals").lower()
+        if not field_name or pattern == "":
+            return False
+
+        condition_rule = Rule(
+            id=f"{rule.id}::all_of::{index}",
+            name=rule.name,
+            description=rule.description,
+            field=field_name,
+            pattern=pattern,
+            severity=rule.severity,
+            operator=operator,
+        )
+        finder = _compile_rule_matcher(condition_rule)
+        if finder(_event_field_text(event, field_name)) is None:
+            return False
+
+    return True
+
+
+def _iter_event_raw_dicts(value):
+    stack = [value]
+    seen = set()
+    while stack:
+        current = stack.pop()
+        if not isinstance(current, dict):
+            continue
+        marker = id(current)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        yield current
+        stack.extend(v for v in current.values() if isinstance(v, dict))
+
+
+def _windows_event_record_identity(event):
+    raw = getattr(event, "raw", {}) or {}
+    for mapping in _iter_event_raw_dicts(raw):
+        lower = {str(k).lower(): v for k, v in mapping.items()}
+        system = lower.get("system")
+        candidates = [system] if isinstance(system, dict) else []
+        candidates.append(mapping)
+        for candidate in candidates:
+            cl = {str(k).lower(): v for k, v in candidate.items()}
+            channel = str(cl.get("channel") or "").strip()
+            record_id = str(
+                cl.get("eventrecordid")
+                or cl.get("event_record_id")
+                or cl.get("record_id")
+                or ""
+            ).strip()
+            if channel and record_id:
+                return channel, record_id
+    return "", ""
+
+
+def _finding_event_key(event):
+    base_key = str(get_event_key(event))
+    channel, record_id = _windows_event_record_identity(event)
+    if not channel or not record_id:
+        return base_key
+    return f"{base_key}|channel={channel}|event_record_id={record_id}"
+
+
 def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]:
     compiled: List[Tuple[Rule, Callable[[str], Optional[Tuple[str, int, int]]]]] = [
         (r, _compile_rule_matcher(r)) for r in rules
@@ -57,14 +157,17 @@ def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]
                 else:
                     field_vals.append(str(e.raw.get(fld, "")))
             # Search in decoded and raw texts
-            candidates = field_vals + texts
+            if not _rule_all_of_matches(e, rule):
+                continue
+            primary_value = _event_field_text(e, rule.field)
+            candidates = ([primary_value] if primary_value else []) + field_vals + texts
             for c in candidates:
                 if not c:
                     continue
                 found = finder(c)
                 if found:
                     match_val, s, eidx = found
-                    key = (rule.id, get_event_key(e), match_val)
+                    key = (rule.id, _finding_event_key(e), match_val)
                     if key in seen:
                         break
                     seen.add(key)
@@ -271,14 +374,17 @@ def apply_rules_parallel(
                     else:
                         field_vals.append(str(e.raw.get(fld, "")))
 
-                candidates = field_vals + texts
+                if not _rule_all_of_matches(e, rule):
+                    continue
+                primary_value = _event_field_text(e, rule.field)
+                candidates = ([primary_value] if primary_value else []) + field_vals + texts
                 for c in candidates:
                     if not c:
                         continue
                     found = finder(c)
                     if found:
                         match_val, s, eidx = found
-                        key = (rule.id, get_event_key(e), match_val)
+                        key = (rule.id, _finding_event_key(e), match_val)
                         if key in chunk_seen:
                             break
                         chunk_seen.add(key)
@@ -307,7 +413,7 @@ def apply_rules_parallel(
                 chunk_findings = future.result()
                 # 중복 제거 (전역 seen 사용)
                 for finding in chunk_findings:
-                    key = (finding.rule_id, get_event_key(finding.event), finding.matched_value)
+                    key = (finding.rule_id, _finding_event_key(finding.event), finding.matched_value)
                     if key not in seen:
                         seen.add(key)
                         all_findings.append(finding)

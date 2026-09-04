@@ -440,3 +440,28 @@
   pattern: "delete shadows /all /quiet|resize shadowstorage|shadowcopy delete|delete catalog -quiet"
   severity: critical
   mitre_technique: T1490
+- id: R-EVENTLOG-Clear-Audit-104
+  name: Windows Event Log Clear Audit Event 104
+  description: Microsoft-Windows-Eventlog Event ID 104 indicates a Windows event log was cleared
+  field: event_id
+  operator: equals
+  pattern: "104"
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Eventlog
+  severity: high
+  mitre_technique: T1070.001
+
+- id: R-EVENTLOG-Clear-Audit-1102
+  name: Windows Security Audit Log Clear Event 1102
+  description: Microsoft-Windows-Eventlog Event ID 1102 indicates the audit log was cleared
+  field: event_id
+  operator: equals
+  pattern: "1102"
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Eventlog
+  severity: high
+  mitre_technique: T1070.001
