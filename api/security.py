@@ -20,7 +20,9 @@ DEFAULT_SESSION_TTL_SECONDS = 8 * 60 * 60
 SAFE_PATH_PREFIXES = (
     "/",
     "/api/health",
-    "/api/info",
+    # BREACHSCOPE_P2_06E_API_INFO_AUTH_BOUNDARY_V1
+    # /api/info exposes operational/auth/path metadata and is intentionally
+    # protected whenever runtime authentication is enabled.
     "/api/auth",
     "/api/docs",
     "/api/redoc",
