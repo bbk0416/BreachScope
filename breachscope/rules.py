@@ -53,87 +53,154 @@ def normalize_severity(v: Any) -> str:
     return "medium"
 
 
+# BREACHSCOPE_P2_06C_NATIVE_RULE_FAIL_CLOSED_V2
+class RuleLoadError(ValueError):
+    pass
+
+
+_NATIVE_OPERATORS = {"regex", "contains", "startswith", "endswith", "equals"}
+
+
+def _native_rule_from_mapping(r: Dict[str, Any], path: Path, index: int) -> Rule:
+    location = f"{path.name}[{index}]"
+
+    missing = [key for key in ("id", "name", "pattern") if key not in r]
+    if missing:
+        raise RuleLoadError(
+            f"{location}: native rule missing required field(s): {', '.join(missing)}"
+        )
+
+    rule_id = str(r.get("id") or "").strip()
+    rule_name = str(r.get("name") or "").strip()
+    pattern = str(r.get("pattern") if "pattern" in r else "")
+    if not rule_id or not rule_name or pattern == "":
+        raise RuleLoadError(f"{location}: native rule id/name/pattern must be non-empty")
+
+    op: Optional[str] = r.get("operator")
+    normalized_op = str(op).lower() if op else None
+    if normalized_op and normalized_op not in _NATIVE_OPERATORS:
+        raise RuleLoadError(f"{location}: unsupported native operator: {normalized_op}")
+
+    fields_val = r.get("fields")
+    fields_list: Optional[List[str]] = None
+    if isinstance(fields_val, list):
+        fields_list = [str(x) for x in fields_val]
+    elif isinstance(fields_val, str):
+        fields_list = [s.strip() for s in fields_val.split(",") if s.strip()]
+    elif fields_val is not None:
+        raise RuleLoadError(f"{location}: fields must be a string or list")
+
+    all_of_val = r.get("all_of")
+    all_of_list = None
+    if all_of_val is not None:
+        if not isinstance(all_of_val, list) or not all_of_val:
+            raise RuleLoadError(f"{location}: all_of must be a non-empty list")
+
+        all_of_list = []
+        for condition_index, condition in enumerate(all_of_val, start=1):
+            if not isinstance(condition, dict):
+                raise RuleLoadError(
+                    f"{location}: all_of[{condition_index}] must be a mapping"
+                )
+
+            condition_field = str(condition.get("field") or "").strip()
+            condition_pattern = str(
+                condition.get("pattern") if "pattern" in condition else ""
+            )
+            condition_operator = str(condition.get("operator") or "equals").lower()
+
+            if not condition_field or condition_pattern == "":
+                raise RuleLoadError(
+                    f"{location}: all_of[{condition_index}] requires field and pattern"
+                )
+
+            if condition_operator not in _NATIVE_OPERATORS:
+                raise RuleLoadError(
+                    f"{location}: all_of[{condition_index}] unsupported operator: "
+                    f"{condition_operator}"
+                )
+
+            if condition_operator == "regex":
+                try:
+                    re.compile(condition_pattern)
+                except re.error as exc:
+                    raise RuleLoadError(
+                        f"{location}: all_of[{condition_index}] invalid regex: {exc}"
+                    ) from exc
+
+            all_of_list.append({
+                "field": condition_field,
+                "operator": condition_operator,
+                "pattern": condition_pattern,
+            })
+
+    rule = Rule(
+        id=rule_id,
+        name=rule_name,
+        description=str(r.get("description", "")),
+        field=str(r.get("field", "command_line")),
+        pattern=pattern,
+        mitre_technique=r.get("mitre_technique"),
+        severity=normalize_severity(r.get("severity", "medium")),
+        operator=normalized_op,
+        fields=fields_list,
+        all_of=all_of_list,
+    )
+
+    if not validate_rule(rule):
+        raise RuleLoadError(f"{location}: native rule failed validation")
+
+    return rule
+
+
 def load_rules(rules_dir):
-    _bs_p009_preflight_sigma(Path(rules_dir))
+    rules_dir = Path(rules_dir)
+    _bs_p009_preflight_sigma(rules_dir)
 
     rules: List[Rule] = []
+    yaml_files = sorted({
+        path
+        for pattern in ("*.yml", "*.yaml")
+        for path in rules_dir.rglob(pattern)
+    })
 
-    # YAML 파일 로드 (.yml, .yaml)
-    for ext in ("*.yml", "*.yaml"):
-        for p in sorted(rules_dir.rglob(ext)):
-            try:
-                data = yaml.safe_load(p.read_text(encoding="utf-8"))
-            except Exception:
+    for path in yaml_files:
+        try:
+            data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise RuleLoadError(f"{path.name}: YAML parse failed: {exc}") from exc
+
+        if data is None:
+            raise RuleLoadError(f"{path.name}: rule file is empty")
+
+        if isinstance(data, dict):
+            documents = [data]
+        elif isinstance(data, list):
+            documents = data
+        else:
+            raise RuleLoadError(
+                f"{path.name}: top-level YAML must be a rule mapping or list of mappings"
+            )
+
+        if not documents:
+            raise RuleLoadError(f"{path.name}: rule file contains no rules")
+
+        for index, document in enumerate(documents, start=1):
+            if not isinstance(document, dict):
+                raise RuleLoadError(
+                    f"{path.name}[{index}]: rule entry must be a mapping"
+                )
+
+            if "detection" in document or "title" in document:
+                rules.extend(sigma_like_to_rules(document))
                 continue
 
-            # 단일 규칙 또는 리스트로 처리
-            if isinstance(data, dict):
-                data = [data]
+            rules.append(_native_rule_from_mapping(document, path, index))
 
-            for r in data or []:
-                # 네이티브 스키마
-                if isinstance(r, dict) and (
-                    ("id" in r and "name" in r and "pattern" in r)
-                ):
-                    try:
-                        op: Optional[str] = r.get("operator")
-                        fields_val = r.get("fields")
-                        fields_list: Optional[List[str]] = None
-
-                        if isinstance(fields_val, list):
-                            fields_list = [str(x) for x in fields_val]
-                        elif isinstance(fields_val, str):
-                            fields_list = [s.strip() for s in fields_val.split(",") if s.strip()]
-
-                        all_of_val = r.get("all_of")
-                        all_of_list = None
-                        if all_of_val is not None:
-                            if not isinstance(all_of_val, list) or not all_of_val:
-                                raise ValueError("all_of must be a non-empty list")
-                            all_of_list = []
-                            for condition in all_of_val:
-                                if not isinstance(condition, dict):
-                                    raise ValueError("all_of conditions must be mappings")
-                                condition_field = str(condition.get("field") or "").strip()
-                                condition_pattern = str(condition.get("pattern") if "pattern" in condition else "")
-                                condition_operator = str(condition.get("operator") or "equals").lower()
-                                if not condition_field or condition_pattern == "":
-                                    raise ValueError("all_of conditions require field and pattern")
-                                if condition_operator not in {"regex", "contains", "startswith", "endswith", "equals"}:
-                                    raise ValueError("unsupported all_of operator")
-                                all_of_list.append({"field": condition_field, "operator": condition_operator, "pattern": condition_pattern})
-
-                        rules.append(
-                            Rule(
-                                id=str(r["id"]),
-                                name=str(r["name"]),
-                                description=str(r.get("description", "")),
-                                field=str(r.get("field", "command_line")),
-                                pattern=str(r["pattern"]),
-                                mitre_technique=r.get("mitre_technique"),
-                                severity=normalize_severity(r.get("severity", "medium")),
-                                operator=(str(op).lower() if op else None),
-                                fields=fields_list,
-                                all_of=all_of_list,
-                            )
-                        )
-                    except Exception:
-                        pass
-                    continue
-
-                # Sigma-like 최소 지원
-                if isinstance(r, dict) and ("detection" in r or "title" in r):
-                    try:
-                        rules.extend(sigma_like_to_rules(r))
-                    except Exception:
-                        pass
-
-    # 규칙이 없으면 기본 규칙 반환
     if rules:
         return rules
 
     return _get_default_rules()
-
 
 def _get_default_rules() -> List[Rule]:
     """
@@ -167,20 +234,19 @@ def _get_default_rules() -> List[Rule]:
 
 
 def validate_rule(rule: Rule) -> bool:
-    """
-    규칙 유효성 검증
-
-    Args:
-        rule: 검증할 Rule 객체
-
-    Returns:
-        유효성 여부
-    """
     if not rule.id or not rule.name or not rule.pattern:
         return False
 
-    # operator가 regex인 경우 패턴 컴파일 테스트
-    if rule.operator == "regex" or (not rule.operator and not rule.pattern.startswith(("contains:", "startswith:", "endswith:", "equals:"))):
+    operator = (rule.operator or "").lower()
+    if operator and operator not in _NATIVE_OPERATORS:
+        return False
+
+    if operator == "regex" or (
+        not operator
+        and not rule.pattern.startswith(
+            ("contains:", "startswith:", "endswith:", "equals:")
+        )
+    ):
         try:
             re.compile(rule.pattern)
         except re.error:
