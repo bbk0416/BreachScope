@@ -417,8 +417,15 @@ def apply_rules_parallel(
                     if key not in seen:
                         seen.add(key)
                         all_findings.append(finding)
-            except Exception as e:
-                logger.error(f"청크 처리 중 오류 발생: {e}", exc_info=True)
+            except Exception as exc:
+                # BREACHSCOPE_P2_06D_PARALLEL_FAIL_CLOSED_V1
+                chunk_index = future_to_chunk[future]
+                for pending in future_to_chunk:
+                    if pending is not future:
+                        pending.cancel()
+                raise RuntimeError(
+                    f"Parallel rule analysis failed for chunk {chunk_index}"
+                ) from exc
 
     logger.info(f"병렬 분석 완료: {len(all_findings)}개 탐지 결과")
     return all_findings
