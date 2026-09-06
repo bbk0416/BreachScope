@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import hmac
-import os
-from ipaddress import ip_address
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
@@ -15,12 +13,14 @@ from api.services.auth_rate_limit import AuthRateLimiter
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
+    client_ip_from_request,
     configured_admin_password,
     configured_api_key,
     create_session_token,
     request_is_authenticated,
     session_cookie_secure,
     session_ttl_seconds,
+    trusted_proxy_ips as _trusted_proxy_ips,
     verify_session_token,
 )
 
@@ -37,57 +37,13 @@ class LoginRequest(BaseModel):
 
 # BREACHSCOPE_P2_06G_TRUSTED_PROXY_RATE_LIMIT_V1
 def trusted_proxy_ips() -> set[str]:
-    """Return exact proxy IPs allowed to contribute X-Forwarded-For data."""
-    raw = os.getenv("BS_TRUSTED_PROXY_IPS", "").strip()
-    if not raw:
-        return set()
-
-    trusted: set[str] = set()
-    for value in raw.split(","):
-        candidate = value.strip()
-        if not candidate:
-            continue
-        try:
-            trusted.add(str(ip_address(candidate)))
-        except ValueError as exc:
-            raise ValueError(
-                f"Invalid IP address in BS_TRUSTED_PROXY_IPS: {candidate}"
-            ) from exc
-    return trusted
+    """Backward-compatible wrapper for the shared trusted-proxy parser."""
+    return _trusted_proxy_ips()
 
 
 def client_ip_for_rate_limit(request: Request) -> str:
-    """Resolve the login rate-limit IP without trusting arbitrary proxy headers.
-
-    The direct peer is authoritative by default. X-Forwarded-For is considered
-    only when the direct peer is explicitly listed in BS_TRUSTED_PROXY_IPS. The
-    chain is walked from right to left through trusted proxies, returning the
-    first untrusted hop as the originating client.
-    """
-    peer = request.client.host if request.client else "unknown"
-    try:
-        current = str(ip_address(peer))
-    except ValueError:
-        return peer or "unknown"
-
-    trusted = trusted_proxy_ips()
-    if current not in trusted:
-        return current
-
-    forwarded = request.headers.get("x-forwarded-for", "")
-    hops = [value.strip() for value in forwarded.split(",") if value.strip()]
-    if not hops:
-        return current
-
-    direct_peer = current
-    for candidate in reversed(hops):
-        if current not in trusted:
-            break
-        try:
-            current = str(ip_address(candidate))
-        except ValueError:
-            return direct_peer
-    return current
+    """Backward-compatible wrapper for the shared trusted-proxy IP resolver."""
+    return client_ip_from_request(request)
 
 
 @router.get("/auth/status", response_class=JSONResponse)
