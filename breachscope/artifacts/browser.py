@@ -2,15 +2,31 @@
 브라우저 이력 수집 모듈
 Chrome, Edge, Firefox 등의 브라우저 기록을 수집합니다.
 """
-import platform
-from pathlib import Path
-from typing import List, Dict, Optional
-from datetime import datetime
-import logging
-import sqlite3
+from contextlib import contextmanager
 import json
+import logging
+import platform
+import shutil
+import sqlite3
+import tempfile
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Iterator, List, Optional
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _open_sqlite_snapshot(source_path: Path) -> Iterator[sqlite3.Connection]:
+    """잠길 수 있는 브라우저 DB를 안전한 임시 복사본으로 열고 정리합니다."""
+    with tempfile.TemporaryDirectory(prefix="breachscope_browser_") as temp_dir:
+        temp_db = Path(temp_dir) / "history.db"
+        shutil.copy2(source_path, temp_db)
+        conn = sqlite3.connect(str(temp_db))
+        try:
+            yield conn
+        finally:
+            conn.close()
 
 
 def collect_browser_history(
@@ -74,53 +90,44 @@ def _collect_chrome_history() -> List[Dict]:
         return events
 
     try:
-        # Chrome History는 SQLite 데이터베이스
-        # 파일이 잠겨있을 수 있으므로 복사본 사용
-        import shutil
-        import tempfile
+        # Chrome History는 SQLite 데이터베이스이며 파일이 잠겨있을 수 있으므로
+        # 전용 임시 디렉토리의 복사본을 열어 분석합니다.
+        with _open_sqlite_snapshot(history_path) as conn:
+            cursor = conn.cursor()
 
-        temp_db = Path(tempfile.mktemp(suffix=".db"))
-        shutil.copy2(history_path, temp_db)
+            # 방문 기록 조회
+            cursor.execute("""
+                SELECT url, title, visit_count, last_visit_time
+                FROM urls
+                ORDER BY last_visit_time DESC
+                LIMIT 1000
+            """)
 
-        conn = sqlite3.connect(str(temp_db))
-        cursor = conn.cursor()
+            for row in cursor.fetchall():
+                url, title, visit_count, last_visit_time = row
 
-        # 방문 기록 조회
-        cursor.execute("""
-            SELECT url, title, visit_count, last_visit_time
-            FROM urls
-            ORDER BY last_visit_time DESC
-            LIMIT 1000
-        """)
+                # Chrome 타임스탬프는 1601-01-01부터의 마이크로초
+                # Unix 타임스탬프로 변환
+                chrome_epoch = datetime(1601, 1, 1)
+                unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
+                visit_time = datetime.fromtimestamp(unix_timestamp)
 
-        for row in cursor.fetchall():
-            url, title, visit_count, last_visit_time = row
-
-            # Chrome 타임스탬프는 1601-01-01부터의 마이크로초
-            # Unix 타임스탬프로 변환
-            chrome_epoch = datetime(1601, 1, 1)
-            unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
-            visit_time = datetime.fromtimestamp(unix_timestamp)
-
-            event = {
-                "timestamp": visit_time.isoformat(),
-                "host": "",
-                "source": "Chrome",
-                "event_id": "browser_visit",
-                "event_type": "web_activity",
-                "user": "",
-                "command_line": url,
-                "raw": {
-                    "url": url,
-                    "title": title,
-                    "visit_count": visit_count,
-                    "last_visit_time": visit_time.isoformat(),
-                },
-            }
-            events.append(event)
-
-        conn.close()
-        temp_db.unlink()
+                event = {
+                    "timestamp": visit_time.isoformat(),
+                    "host": "",
+                    "source": "Chrome",
+                    "event_id": "browser_visit",
+                    "event_type": "web_activity",
+                    "user": "",
+                    "command_line": url,
+                    "raw": {
+                        "url": url,
+                        "title": title,
+                        "visit_count": visit_count,
+                        "last_visit_time": visit_time.isoformat(),
+                    },
+                }
+                events.append(event)
 
     except Exception as e:
         logger.debug(f"Chrome 이력 파싱 실패: {e}")
@@ -144,49 +151,39 @@ def _collect_edge_history() -> List[Dict]:
 
     # Chrome과 동일한 방식으로 처리
     try:
-        import shutil
-        import tempfile
-        import sqlite3
+        with _open_sqlite_snapshot(history_path) as conn:
+            cursor = conn.cursor()
 
-        temp_db = Path(tempfile.mktemp(suffix=".db"))
-        shutil.copy2(history_path, temp_db)
+            cursor.execute("""
+                SELECT url, title, visit_count, last_visit_time
+                FROM urls
+                ORDER BY last_visit_time DESC
+                LIMIT 1000
+            """)
 
-        conn = sqlite3.connect(str(temp_db))
-        cursor = conn.cursor()
+            for row in cursor.fetchall():
+                url, title, visit_count, last_visit_time = row
 
-        cursor.execute("""
-            SELECT url, title, visit_count, last_visit_time
-            FROM urls
-            ORDER BY last_visit_time DESC
-            LIMIT 1000
-        """)
+                chrome_epoch = datetime(1601, 1, 1)
+                unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
+                visit_time = datetime.fromtimestamp(unix_timestamp)
 
-        for row in cursor.fetchall():
-            url, title, visit_count, last_visit_time = row
-
-            chrome_epoch = datetime(1601, 1, 1)
-            unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
-            visit_time = datetime.fromtimestamp(unix_timestamp)
-
-            event = {
-                "timestamp": visit_time.isoformat(),
-                "host": "",
-                "source": "Edge",
-                "event_id": "browser_visit",
-                "event_type": "web_activity",
-                "user": "",
-                "command_line": url,
-                "raw": {
-                    "url": url,
-                    "title": title,
-                    "visit_count": visit_count,
-                    "last_visit_time": visit_time.isoformat(),
-                },
-            }
-            events.append(event)
-
-        conn.close()
-        temp_db.unlink()
+                event = {
+                    "timestamp": visit_time.isoformat(),
+                    "host": "",
+                    "source": "Edge",
+                    "event_id": "browser_visit",
+                    "event_type": "web_activity",
+                    "user": "",
+                    "command_line": url,
+                    "raw": {
+                        "url": url,
+                        "title": title,
+                        "visit_count": visit_count,
+                        "last_visit_time": visit_time.isoformat(),
+                    },
+                }
+                events.append(event)
 
     except Exception as e:
         logger.debug(f"Edge 이력 파싱 실패: {e}")
@@ -221,58 +218,45 @@ def _collect_firefox_history() -> List[Dict]:
         return events
 
     try:
-        import shutil
-        import tempfile
-        import sqlite3
+        with _open_sqlite_snapshot(history_path) as conn:
+            cursor = conn.cursor()
 
-        temp_db = Path(tempfile.mktemp(suffix=".db"))
-        shutil.copy2(history_path, temp_db)
+            # Firefox places.sqlite 구조
+            cursor.execute("""
+                SELECT url, title, visit_count, last_visit_date/1000000 as visit_time
+                FROM moz_places
+                WHERE visit_count > 0
+                  AND last_visit_date IS NOT NULL
+                ORDER BY last_visit_date DESC
+                LIMIT 1000
+            """)
 
-        conn = sqlite3.connect(str(temp_db))
-        cursor = conn.cursor()
+            for row in cursor.fetchall():
+                url, title, visit_count, visit_timestamp = row
 
-        # Firefox places.sqlite 구조
-        cursor.execute("""
-            SELECT url, title, visit_count, last_visit_date/1000000 as visit_time
-            FROM moz_places
-            WHERE visit_count > 0
-              AND last_visit_date IS NOT NULL
-            ORDER BY last_visit_date DESC
-            LIMIT 1000
-        """)
+                if visit_timestamp is None:
+                    logger.debug("Firefox 방문시각이 없는 이력 행은 건너뜁니다.")
+                    continue
+                visit_time = datetime.fromtimestamp(visit_timestamp)
 
-        for row in cursor.fetchall():
-            url, title, visit_count, visit_timestamp = row
-
-            if visit_timestamp is None:
-                logger.debug("Firefox 방문시각이 없는 이력 행은 건너뜁니다.")
-                continue
-            visit_time = datetime.fromtimestamp(visit_timestamp)
-
-            event = {
-                "timestamp": visit_time.isoformat(),
-                "host": "",
-                "source": "Firefox",
-                "event_id": "browser_visit",
-                "event_type": "web_activity",
-                "user": "",
-                "command_line": url,
-                "raw": {
-                    "url": url,
-                    "title": title,
-                    "visit_count": visit_count,
-                    "last_visit_time": visit_time.isoformat(),
-                },
-            }
-            events.append(event)
-
-        conn.close()
-        temp_db.unlink()
+                event = {
+                    "timestamp": visit_time.isoformat(),
+                    "host": "",
+                    "source": "Firefox",
+                    "event_id": "browser_visit",
+                    "event_type": "web_activity",
+                    "user": "",
+                    "command_line": url,
+                    "raw": {
+                        "url": url,
+                        "title": title,
+                        "visit_count": visit_count,
+                        "last_visit_time": visit_time.isoformat(),
+                    },
+                }
+                events.append(event)
 
     except Exception as e:
         logger.debug(f"Firefox 이력 파싱 실패: {e}")
 
     return events
-
-
-
