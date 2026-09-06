@@ -95,10 +95,13 @@ def _collect_chrome_history() -> List[Dict]:
         with _open_sqlite_snapshot(history_path) as conn:
             cursor = conn.cursor()
 
-            # 방문 기록 조회
+            # 실제 방문 횟수와 원본 방문시각이 있는 기록만 조회합니다.
             cursor.execute("""
                 SELECT url, title, visit_count, last_visit_time
                 FROM urls
+                WHERE visit_count > 0
+                  AND last_visit_time IS NOT NULL
+                  AND last_visit_time > 0
                 ORDER BY last_visit_time DESC
                 LIMIT 1000
             """)
@@ -156,6 +159,9 @@ def _collect_edge_history() -> List[Dict]:
             cursor.execute("""
                 SELECT url, title, visit_count, last_visit_time
                 FROM urls
+                WHERE visit_count > 0
+                  AND last_visit_time IS NOT NULL
+                  AND last_visit_time > 0
                 ORDER BY last_visit_time DESC
                 LIMIT 1000
             """)
