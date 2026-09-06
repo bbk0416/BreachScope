@@ -7,6 +7,7 @@ import hmac
 import json
 import os
 import time
+from ipaddress import ip_address
 from typing import Any, Iterable
 
 from fastapi import Request
@@ -45,6 +46,61 @@ def configured_admin_password() -> str:
 def auth_is_enabled() -> bool:
     """Return True when any operator-facing auth mode is configured."""
     return bool(configured_api_key() or configured_admin_password())
+
+
+# BREACHSCOPE_P2_06N_SHARED_TRUSTED_PROXY_IP_V1
+def trusted_proxy_ips() -> set[str]:
+    """Return exact proxy IPs allowed to contribute X-Forwarded-For data."""
+    raw = _env("BS_TRUSTED_PROXY_IPS")
+    if not raw:
+        return set()
+
+    trusted: set[str] = set()
+    for value in raw.split(","):
+        candidate = value.strip()
+        if not candidate:
+            continue
+        try:
+            trusted.add(str(ip_address(candidate)))
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid IP address in BS_TRUSTED_PROXY_IPS: {candidate}"
+            ) from exc
+    return trusted
+
+
+def client_ip_from_request(request: Request) -> str:
+    """Resolve client IP without trusting arbitrary forwarding headers.
+
+    The direct peer is authoritative by default. X-Forwarded-For is considered
+    only when the direct peer is explicitly listed in BS_TRUSTED_PROXY_IPS. The
+    chain is walked from right to left through trusted proxies, returning the
+    first untrusted hop as the originating client.
+    """
+    peer = request.client.host if request.client else "unknown"
+    try:
+        current = str(ip_address(peer))
+    except ValueError:
+        return peer or "unknown"
+
+    trusted = trusted_proxy_ips()
+    if current not in trusted:
+        return current
+
+    forwarded = request.headers.get("x-forwarded-for", "")
+    hops = [value.strip() for value in forwarded.split(",") if value.strip()]
+    if not hops:
+        return current
+
+    direct_peer = current
+    for candidate in reversed(hops):
+        if current not in trusted:
+            break
+        try:
+            current = str(ip_address(candidate))
+        except ValueError:
+            return direct_peer
+    return current
 
 
 def session_ttl_seconds() -> int:

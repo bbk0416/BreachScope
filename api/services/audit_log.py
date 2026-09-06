@@ -22,6 +22,7 @@ except Exception:  # pragma: no cover - defensive fallback for unusual import co
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
+    client_ip_from_request,
     configured_api_key,
     request_is_authenticated,
     verify_session_token,
@@ -114,10 +115,7 @@ def actor_from_request(request: Request | None) -> AuditActor:
 def _client_ip(request: Request | None) -> str | None:
     if request is None:
         return None
-    forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    if forwarded:
-        return forwarded
-    return request.client.host if request.client else None
+    return client_ip_from_request(request)
 
 
 def _request_meta(request: Request | None) -> dict[str, Any]:
