@@ -90,9 +90,10 @@ async def analyze(
             detail=f"권한 부족: {e}. 관리자 권한으로 실행하거나 접근 가능한 로그만 선택하세요."
         )
     except Exception as e:
+        # BREACHSCOPE_P2_06I_SANITIZED_INTERNAL_ERRORS_V1
         AuditLogService().record("analysis.run", request=request, status="failure", details={"error": str(e), "type": type(e).__name__})
         logger.error(f"분석 오류: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"분석 중 오류 발생: {str(e)}"
-        )
+            detail="분석 중 내부 오류가 발생했습니다."
+        ) from e
