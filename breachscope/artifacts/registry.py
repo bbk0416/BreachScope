@@ -1,14 +1,19 @@
 """
 레지스트리 아티팩트 수집 모듈
-Windows 레지스트리에서 자동실행 항목, 최근 파일 목록 등을 추출합니다.
+Windows 레지스트리에서 자동실행 항목 등을 추출합니다.
 """
-import platform
-from pathlib import Path
-from typing import List, Dict, Optional
-from datetime import datetime
 import logging
+import platform
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
+OFFLINE_HIVE_UNSUPPORTED_MESSAGE = (
+    "오프라인 레지스트리 하이브 파싱은 아직 지원되지 않습니다. "
+    "빈 결과를 정상 수집 결과로 처리하지 않습니다."
+)
 
 
 def collect_registry(
@@ -20,29 +25,23 @@ def collect_registry(
 
     Args:
         output_dir: 출력 디렉토리 (사용하지 않음, 호환성용)
-        registry_hives: 레지스트리 하이브 파일 경로 목록 (None이면 라이브 레지스트리 조회)
+        registry_hives: 레지스트리 하이브 파일 경로 목록. 현재 오프라인 하이브
+            파싱은 지원하지 않으며, 값을 전달하면 명시적으로 실패합니다.
 
     Returns:
         정규화된 이벤트 목록
+
+    Raises:
+        NotImplementedError: 오프라인 레지스트리 하이브가 요청된 경우
     """
+    if registry_hives is not None:
+        raise NotImplementedError(OFFLINE_HIVE_UNSUPPORTED_MESSAGE)
+
     if platform.system() != "Windows":
         logger.warning("레지스트리 수집은 Windows에서만 지원됩니다.")
         return []
 
-    events = []
-
-    # 라이브 레지스트리 조회 (reg.exe 사용)
-    if registry_hives is None:
-        events.extend(_collect_live_registry())
-    else:
-        # 오프라인 레지스트리 하이브 파일 파싱
-        for hive_path in registry_hives:
-            try:
-                hive_events = _parse_registry_hive(hive_path)
-                events.extend(hive_events)
-            except Exception as e:
-                logger.error(f"레지스트리 하이브 파싱 실패: {hive_path} - {e}")
-
+    events = _collect_live_registry()
     logger.info(f"레지스트리 이벤트 {len(events)}개 수집 완료")
     return events
 
@@ -109,15 +108,5 @@ def _collect_live_registry() -> List[Dict]:
 
 
 def _parse_registry_hive(hive_path: Path) -> List[Dict]:
-    """
-    오프라인 레지스트리 하이브 파일 파싱
-
-    실제 구현은 python-registry 같은 라이브러리가 필요하지만,
-    여기서는 기본 구조만 제공합니다.
-    """
-    # TODO: python-registry 라이브러리를 사용한 실제 파싱 구현
-    logger.warning("오프라인 레지스트리 하이브 파싱은 아직 구현되지 않았습니다.")
-    return []
-
-
-
+    """오프라인 레지스트리 하이브 파싱은 아직 지원하지 않습니다."""
+    raise NotImplementedError(OFFLINE_HIVE_UNSUPPORTED_MESSAGE)
