@@ -22,8 +22,12 @@ async def get_report_preview(work_dir: str):
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="미리보기용 report.json을 찾을 수 없습니다.")
     except Exception as e:
+        # BREACHSCOPE_P2_06I_SANITIZED_INTERNAL_ERRORS_V1
         logger.error(f"리포트 미리보기 오류: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"리포트 미리보기 중 오류 발생: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="리포트 미리보기 중 내부 오류가 발생했습니다.",
+        ) from e
 
 
 @router.get("/report/{work_dir:path}")
@@ -82,5 +86,9 @@ async def get_report(
     except HTTPException:
         raise
     except Exception as e:
+        # BREACHSCOPE_P2_06I_SANITIZED_INTERNAL_ERRORS_V1
         logger.error(f"리포트 다운로드 오류: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"리포트 다운로드 중 오류 발생: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="리포트 다운로드 중 내부 오류가 발생했습니다.",
+        ) from e
