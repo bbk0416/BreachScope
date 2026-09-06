@@ -236,6 +236,7 @@ def _collect_firefox_history() -> List[Dict]:
             SELECT url, title, visit_count, last_visit_date/1000000 as visit_time
             FROM moz_places
             WHERE visit_count > 0
+              AND last_visit_date IS NOT NULL
             ORDER BY last_visit_date DESC
             LIMIT 1000
         """)
@@ -243,10 +244,10 @@ def _collect_firefox_history() -> List[Dict]:
         for row in cursor.fetchall():
             url, title, visit_count, visit_timestamp = row
 
-            if visit_timestamp:
-                visit_time = datetime.fromtimestamp(visit_timestamp)
-            else:
-                visit_time = datetime.now()
+            if visit_timestamp is None:
+                logger.debug("Firefox 방문시각이 없는 이력 행은 건너뜁니다.")
+                continue
+            visit_time = datetime.fromtimestamp(visit_timestamp)
 
             event = {
                 "timestamp": visit_time.isoformat(),
