@@ -25,10 +25,13 @@ from api.security import (
 )
 
 router = APIRouter()
+AUTHENTICATED_ADMIN_SUBJECT = "admin"
 
 
 class LoginRequest(BaseModel):
     password: str
+    # Kept for API compatibility only. A single BS_ADMIN_PASSWORD authenticates
+    # exactly one fixed administrator identity, so callers cannot choose actor id.
     username: Optional[str] = "admin"
 
 
@@ -111,20 +114,20 @@ async def login(payload: LoginRequest, request: Request, response: Response):
     expected = configured_admin_password()
     audit = AuditLogService()
     limiter = AuthRateLimiter()
-    username = (payload.username or "admin").strip() or "admin"
+    principal = AUTHENTICATED_ADMIN_SUBJECT
     client_ip = client_ip_for_rate_limit(request)
-    limit_key = limiter.make_key(client_ip, username)
+    limit_key = limiter.make_key(client_ip, principal)
     lock_status = limiter.status(limit_key)
     if not lock_status.allowed:
         audit.record(
             "auth.login",
             request=request,
             status="failure",
-            details={"reason": "locked_out", "username": username, "retry_after_seconds": lock_status.retry_after_seconds},
+            details={"reason": "locked_out", "username": principal, "retry_after_seconds": lock_status.retry_after_seconds},
         )
         raise HTTPException(status_code=429, detail=f"Too many failed login attempts. Try again in {lock_status.retry_after_seconds} seconds.")
     if not expected:
-        audit.record("auth.login", request=request, status="failure", details={"reason": "password_login_disabled", "username": username})
+        audit.record("auth.login", request=request, status="failure", details={"reason": "password_login_disabled", "username": principal})
         raise HTTPException(status_code=400, detail="Password login is not enabled. Set BS_ADMIN_PASSWORD first.")
     if not hmac.compare_digest(payload.password, expected):
         failure = limiter.record_failure(limit_key)
@@ -134,7 +137,7 @@ async def login(payload: LoginRequest, request: Request, response: Response):
             status="failure",
             details={
                 "reason": "invalid_password",
-                "username": username,
+                "username": principal,
                 "failures": failure.failures,
                 "locked_until": failure.locked_until,
                 "retry_after_seconds": failure.retry_after_seconds,
@@ -145,7 +148,7 @@ async def login(payload: LoginRequest, request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Invalid password.")
 
     limiter.clear(limit_key)
-    token = create_session_token(subject=username)
+    token = create_session_token(subject=principal)
     max_age = session_ttl_seconds()
     response = JSONResponse(
         {
@@ -164,7 +167,7 @@ async def login(payload: LoginRequest, request: Request, response: Response):
         samesite="lax",
         path="/",
     )
-    audit.record("auth.login", request=request, status="success", actor=username, auth_method="session", details={"username": username, "ttl_seconds": max_age})
+    audit.record("auth.login", request=request, status="success", actor=principal, auth_method="session", details={"username": principal, "ttl_seconds": max_age})
     return response
 
 
