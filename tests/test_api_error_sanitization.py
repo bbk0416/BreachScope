@@ -33,6 +33,22 @@ def test_analyze_generic_500_does_not_expose_exception_detail(monkeypatch):
     assert INTERNAL_SECRET not in response.text
 
 
+def test_analyze_permission_403_does_not_expose_exception_detail(monkeypatch):
+    async def denied(**kwargs):
+        raise PermissionError(INTERNAL_SECRET)
+
+    monkeypatch.setattr(analyze.analysis_service, "analyze", denied)
+    client = _client(monkeypatch)
+
+    response = client.post("/api/analyze")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "권한이 부족합니다. 관리자 권한으로 실행하거나 접근 가능한 로그만 선택하세요."
+    )
+    assert INTERNAL_SECRET not in response.text
+
+
 def test_report_preview_generic_500_does_not_expose_exception_detail(monkeypatch):
     def fail(_work_dir):
         raise RuntimeError(INTERNAL_SECRET)

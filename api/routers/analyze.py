@@ -83,12 +83,13 @@ async def analyze(
             },
         ) from exc
     except PermissionError as e:
+        # BREACHSCOPE_P2_06O_SANITIZED_PERMISSION_ERRORS_V1
         AuditLogService().record("analysis.run", request=request, status="failure", details={"error": str(e), "type": "PermissionError"})
         logger.error(f"권한 오류: {e}")
         raise HTTPException(
             status_code=403,
-            detail=f"권한 부족: {e}. 관리자 권한으로 실행하거나 접근 가능한 로그만 선택하세요."
-        )
+            detail="권한이 부족합니다. 관리자 권한으로 실행하거나 접근 가능한 로그만 선택하세요."
+        ) from e
     except Exception as e:
         # BREACHSCOPE_P2_06I_SANITIZED_INTERNAL_ERRORS_V1
         AuditLogService().record("analysis.run", request=request, status="failure", details={"error": str(e), "type": type(e).__name__})
