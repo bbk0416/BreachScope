@@ -13,6 +13,25 @@ def _make_sqlite_fixture(path: Path) -> None:
         conn.execute("INSERT INTO marker(value) VALUES ('copied')")
 
 
+def _make_chromium_history(path: Path, url: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE urls (
+                url TEXT,
+                title TEXT,
+                visit_count INTEGER,
+                last_visit_time INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO urls(url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?)",
+            (url, "fixture", 1, 13_222_310_400_000_000),
+        )
+
+
 def test_browser_sqlite_snapshot_is_private_copy_and_cleans_up(tmp_path):
     source_path = tmp_path / "History"
     _make_sqlite_fixture(source_path)
@@ -42,6 +61,44 @@ def test_browser_sqlite_snapshot_cleans_up_after_parse_error(tmp_path):
 
     assert snapshot_dir is not None
     assert not snapshot_dir.exists()
+
+
+@pytest.mark.parametrize(
+    ("collector", "relative_path", "source"),
+    [
+        (
+            browser._collect_chrome_history,
+            "AppData/Local/Google/Chrome/User Data/Default/History",
+            "Chrome",
+        ),
+        (
+            browser._collect_edge_history,
+            "AppData/Local/Microsoft/Edge/User Data/Default/History",
+            "Edge",
+        ),
+    ],
+)
+def test_chromium_history_keeps_url_out_of_command_line(
+    monkeypatch,
+    tmp_path,
+    collector,
+    relative_path,
+    source,
+):
+    url = "https://example.test/invoke-expression"
+    _make_chromium_history(tmp_path / relative_path, url)
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = collector()
+
+    assert len(events) == 1
+    event = events[0]
+    assert event["source"] == source
+    assert event["event_id"] == "browser_visit"
+    assert event["raw"]["url"] == url
+    assert "command_line" not in event
 
 
 def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_path):
@@ -76,6 +133,7 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
     assert len(events) == 1
     event = events[0]
     assert event["raw"]["url"] == "https://valid.example"
+    assert "command_line" not in event
     expected_time = datetime.fromtimestamp(1_700_000_000).isoformat()
     assert event["timestamp"] == expected_time
     assert event["raw"]["last_visit_time"] == expected_time
