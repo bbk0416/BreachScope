@@ -29,6 +29,7 @@ class ArtifactClassifier:
     """아티팩트 분류기"""
 
     # 이벤트 소스/타입별 카테고리 매핑
+    # classify_event()가 lookup 값을 소문자로 정규화하므로 모든 key도 소문자를 사용한다.
     CATEGORY_MAPPING = {
         # 실행 관련
         "prefetch_execution": ArtifactCategory.EVIDENCE_OF_EXECUTION,
@@ -38,9 +39,9 @@ class ArtifactClassifier:
         # 브라우저 관련
         "browser_visit": ArtifactCategory.BROWSER_HISTORY,
         "web_activity": ArtifactCategory.BROWSER_HISTORY,
-        "Chrome": ArtifactCategory.BROWSER_HISTORY,
-        "Edge": ArtifactCategory.BROWSER_HISTORY,
-        "Firefox": ArtifactCategory.BROWSER_HISTORY,
+        "chrome": ArtifactCategory.BROWSER_HISTORY,
+        "edge": ArtifactCategory.BROWSER_HISTORY,
+        "firefox": ArtifactCategory.BROWSER_HISTORY,
 
         # 계정 관련
         "logon": ArtifactCategory.ACCOUNT_USAGE,
@@ -62,7 +63,7 @@ class ArtifactClassifier:
         # 레지스트리 관련
         "autorun_entry": ArtifactCategory.REGISTRY_ARTIFACTS,
         "registry_modification": ArtifactCategory.REGISTRY_ARTIFACTS,
-        "Registry": ArtifactCategory.REGISTRY_ARTIFACTS,
+        "registry": ArtifactCategory.REGISTRY_ARTIFACTS,
 
         # 시스템 설정 관련
         "system_configuration": ArtifactCategory.SYSTEM_CONFIGURATION,
@@ -72,7 +73,7 @@ class ArtifactClassifier:
         # 사용자 활동 관련
         "user_activity": ArtifactCategory.USER_ACTIVITY,
         "usb_device": ArtifactCategory.USER_ACTIVITY,
-        "USB": ArtifactCategory.USER_ACTIVITY,
+        "usb": ArtifactCategory.USER_ACTIVITY,
 
         # 악성 지표
         "suspicious_command": ArtifactCategory.MALWARE_INDICATORS,
