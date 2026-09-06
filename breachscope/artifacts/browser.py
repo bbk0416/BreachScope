@@ -9,7 +9,7 @@ import platform
 import shutil
 import sqlite3
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional
 
@@ -27,6 +27,18 @@ def _open_sqlite_snapshot(source_path: Path) -> Iterator[sqlite3.Connection]:
             yield conn
         finally:
             conn.close()
+
+
+def _chromium_visit_time_utc(last_visit_time: int) -> datetime:
+    """Chromium WebKit microseconds since 1601-01-01 UTC -> aware UTC datetime."""
+    return datetime(1601, 1, 1, tzinfo=timezone.utc) + timedelta(
+        microseconds=last_visit_time
+    )
+
+
+def _firefox_visit_time_utc(visit_timestamp: float) -> datetime:
+    """Firefox Unix timestamp seconds -> aware UTC datetime."""
+    return datetime.fromtimestamp(visit_timestamp, tz=timezone.utc)
 
 
 def collect_browser_history(
@@ -109,11 +121,8 @@ def _collect_chrome_history() -> List[Dict]:
             for row in cursor.fetchall():
                 url, title, visit_count, last_visit_time = row
 
-                # Chrome 타임스탬프는 1601-01-01부터의 마이크로초
-                # Unix 타임스탬프로 변환
-                chrome_epoch = datetime(1601, 1, 1)
-                unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
-                visit_time = datetime.fromtimestamp(unix_timestamp)
+                # Chrome 타임스탬프는 1601-01-01 UTC부터의 마이크로초입니다.
+                visit_time = _chromium_visit_time_utc(last_visit_time)
 
                 event = {
                     "timestamp": visit_time.isoformat(),
@@ -169,9 +178,7 @@ def _collect_edge_history() -> List[Dict]:
             for row in cursor.fetchall():
                 url, title, visit_count, last_visit_time = row
 
-                chrome_epoch = datetime(1601, 1, 1)
-                unix_timestamp = chrome_epoch.timestamp() + (last_visit_time / 1000000)
-                visit_time = datetime.fromtimestamp(unix_timestamp)
+                visit_time = _chromium_visit_time_utc(last_visit_time)
 
                 event = {
                     "timestamp": visit_time.isoformat(),
@@ -241,7 +248,7 @@ def _collect_firefox_history() -> List[Dict]:
                 if visit_timestamp is None:
                     logger.debug("Firefox 방문시각이 없는 이력 행은 건너뜁니다.")
                     continue
-                visit_time = datetime.fromtimestamp(visit_timestamp)
+                visit_time = _firefox_visit_time_utc(visit_timestamp)
 
                 event = {
                     "timestamp": visit_time.isoformat(),

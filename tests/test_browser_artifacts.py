@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import sqlite3
 
@@ -187,7 +187,7 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
     event = events[0]
     assert event["raw"]["url"] == "https://valid.example"
     assert "command_line" not in event
-    expected_time = datetime.fromtimestamp(1_700_000_000).isoformat()
+    expected_time = datetime.fromtimestamp(1_700_000_000, tz=timezone.utc).isoformat()
     assert event["timestamp"] == expected_time
     assert event["raw"]["last_visit_time"] == expected_time
     assert "https://missing.example" not in {item["raw"]["url"] for item in events}
