@@ -101,6 +101,59 @@ def test_chromium_history_keeps_url_out_of_command_line(
     assert "command_line" not in event
 
 
+@pytest.mark.parametrize(
+    ("collector", "relative_path"),
+    [
+        (
+            browser._collect_chrome_history,
+            "AppData/Local/Google/Chrome/User Data/Default/History",
+        ),
+        (
+            browser._collect_edge_history,
+            "AppData/Local/Microsoft/Edge/User Data/Default/History",
+        ),
+    ],
+)
+def test_chromium_history_requires_actual_visit_and_source_timestamp(
+    monkeypatch,
+    tmp_path,
+    collector,
+    relative_path,
+):
+    history_path = tmp_path / relative_path
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    valid_time = 13_222_310_400_000_000
+
+    with sqlite3.connect(history_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE urls (
+                url TEXT,
+                title TEXT,
+                visit_count INTEGER,
+                last_visit_time INTEGER
+            )
+            """
+        )
+        conn.executemany(
+            "INSERT INTO urls(url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?)",
+            [
+                ("https://valid.example", "valid", 1, valid_time),
+                ("https://unvisited.example", "unvisited", 0, valid_time + 1),
+                ("https://missing-time.example", "missing", 1, None),
+                ("https://zero-time.example", "zero", 1, 0),
+            ],
+        )
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = collector()
+
+    assert [event["raw"]["url"] for event in events] == ["https://valid.example"]
+    assert events[0]["raw"]["visit_count"] == 1
+
+
 def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_path):
     profile_dir = tmp_path / ".mozilla" / "firefox" / "fixture.default"
     profile_dir.mkdir(parents=True)
