@@ -119,7 +119,6 @@ def _collect_chrome_history() -> List[Dict]:
                     "event_id": "browser_visit",
                     "event_type": "web_activity",
                     "user": "",
-                    "command_line": url,
                     "raw": {
                         "url": url,
                         "title": title,
@@ -175,7 +174,6 @@ def _collect_edge_history() -> List[Dict]:
                     "event_id": "browser_visit",
                     "event_type": "web_activity",
                     "user": "",
-                    "command_line": url,
                     "raw": {
                         "url": url,
                         "title": title,
@@ -246,7 +244,6 @@ def _collect_firefox_history() -> List[Dict]:
                     "event_id": "browser_visit",
                     "event_type": "web_activity",
                     "user": "",
-                    "command_line": url,
                     "raw": {
                         "url": url,
                         "title": title,
