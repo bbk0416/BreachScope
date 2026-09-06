@@ -15,6 +15,27 @@ from typing import Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
+def _device_id_from_registry_key_line(line: str) -> Optional[str]:
+    """USB instance registry key line에서 device instance ID를 추출합니다."""
+    stripped = line.strip()
+    upper = stripped.upper()
+    marker = "\\ENUM\\USB\\"
+
+    if not upper.startswith("HKEY_") or marker not in upper:
+        return None
+
+    marker_index = upper.index(marker)
+    suffix = stripped[marker_index + len(marker):].strip("\\")
+    parts = [part for part in suffix.split("\\") if part]
+
+    # Enum\USB\<device-id>\<instance-id> 바로 아래 instance key만 사용합니다.
+    # Device Parameters 같은 더 깊은 하위 키의 이름을 장치 ID로 오인하지 않습니다.
+    if len(parts) != 2:
+        return None
+
+    return parts[-1]
+
+
 def collect_usb_history(
     output_dir: Optional[Path] = None,
 ) -> List[Dict]:
@@ -47,17 +68,16 @@ def collect_usb_history(
                 continue
 
             current_device = None
-            for line in result.stdout.splitlines():
-                line = line.strip()
+            for raw_line in result.stdout.splitlines():
+                line = raw_line.strip()
                 if not line:
                     continue
 
-                if key_path in line and "\\" in line:
-                    device_id = line.split("\\")[-1]
-                    if device_id:
-                        current_device = device_id
+                if line.upper().startswith("HKEY_"):
+                    current_device = _device_id_from_registry_key_line(line)
+                    continue
 
-                if current_device and "    " in line and "REG_" in line:
+                if current_device and "REG_" in line:
                     parts = line.split(None, 2)
                     if len(parts) < 3:
                         continue
