@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hmac
+import os
+from ipaddress import ip_address
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
@@ -30,6 +32,61 @@ class LoginRequest(BaseModel):
     username: Optional[str] = "admin"
 
 
+# BREACHSCOPE_P2_06G_TRUSTED_PROXY_RATE_LIMIT_V1
+def trusted_proxy_ips() -> set[str]:
+    """Return exact proxy IPs allowed to contribute X-Forwarded-For data."""
+    raw = os.getenv("BS_TRUSTED_PROXY_IPS", "").strip()
+    if not raw:
+        return set()
+
+    trusted: set[str] = set()
+    for value in raw.split(","):
+        candidate = value.strip()
+        if not candidate:
+            continue
+        try:
+            trusted.add(str(ip_address(candidate)))
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid IP address in BS_TRUSTED_PROXY_IPS: {candidate}"
+            ) from exc
+    return trusted
+
+
+def client_ip_for_rate_limit(request: Request) -> str:
+    """Resolve the login rate-limit IP without trusting arbitrary proxy headers.
+
+    The direct peer is authoritative by default. X-Forwarded-For is considered
+    only when the direct peer is explicitly listed in BS_TRUSTED_PROXY_IPS. The
+    chain is walked from right to left through trusted proxies, returning the
+    first untrusted hop as the originating client.
+    """
+    peer = request.client.host if request.client else "unknown"
+    try:
+        current = str(ip_address(peer))
+    except ValueError:
+        return peer or "unknown"
+
+    trusted = trusted_proxy_ips()
+    if current not in trusted:
+        return current
+
+    forwarded = request.headers.get("x-forwarded-for", "")
+    hops = [value.strip() for value in forwarded.split(",") if value.strip()]
+    if not hops:
+        return current
+
+    direct_peer = current
+    for candidate in reversed(hops):
+        if current not in trusted:
+            break
+        try:
+            current = str(ip_address(candidate))
+        except ValueError:
+            return direct_peer
+    return current
+
+
 @router.get("/auth/status", response_class=JSONResponse)
 async def auth_status(request: Request):
     """Return auth mode and current browser-session status."""
@@ -55,7 +112,7 @@ async def login(payload: LoginRequest, request: Request, response: Response):
     audit = AuditLogService()
     limiter = AuthRateLimiter()
     username = (payload.username or "admin").strip() or "admin"
-    client_ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+    client_ip = client_ip_for_rate_limit(request)
     limit_key = limiter.make_key(client_ip, username)
     lock_status = limiter.status(limit_key)
     if not lock_status.allowed:
