@@ -7,7 +7,13 @@ from api.middleware import setup_middleware
 from api.routers import auth
 
 
-def _client(tmp_path, monkeypatch, *, trusted_proxy_ips: str | None = None) -> TestClient:
+def _client(
+    tmp_path,
+    monkeypatch,
+    *,
+    trusted_proxy_ips: str | None = None,
+    raise_server_exceptions: bool = True,
+) -> TestClient:
     monkeypatch.delenv("BS_API_KEY", raising=False)
     monkeypatch.setenv("BS_ADMIN_PASSWORD", "unit-password")
     monkeypatch.setenv("BS_SESSION_SECRET", "unit-session-secret")
@@ -22,7 +28,11 @@ def _client(tmp_path, monkeypatch, *, trusted_proxy_ips: str | None = None) -> T
     app = FastAPI()
     setup_middleware(app)
     app.include_router(auth.router, prefix="/api")
-    return TestClient(app, client=("203.0.113.10", 50000))
+    return TestClient(
+        app,
+        client=("203.0.113.10", 50000),
+        raise_server_exceptions=raise_server_exceptions,
+    )
 
 
 def test_untrusted_peer_cannot_rotate_x_forwarded_for_to_bypass_lockout(tmp_path, monkeypatch):
@@ -90,7 +100,12 @@ def test_trusted_proxy_chain_walks_from_right_to_left(tmp_path, monkeypatch):
 
 
 def test_invalid_trusted_proxy_configuration_fails_closed(tmp_path, monkeypatch):
-    client = _client(tmp_path, monkeypatch, trusted_proxy_ips="not-an-ip")
+    client = _client(
+        tmp_path,
+        monkeypatch,
+        trusted_proxy_ips="not-an-ip",
+        raise_server_exceptions=False,
+    )
 
     response = client.post(
         "/api/auth/login",
