@@ -32,6 +32,25 @@ def _make_chromium_history(path: Path, url: str) -> None:
         )
 
 
+def _make_firefox_history(path: Path, url: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE moz_places (
+                url TEXT,
+                title TEXT,
+                visit_count INTEGER,
+                last_visit_date INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO moz_places(url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?)",
+            (url, "fixture", 1, 1_700_000_000_000_000),
+        )
+
+
 def test_browser_sqlite_snapshot_is_private_copy_and_cleans_up(tmp_path):
     source_path = tmp_path / "History"
     _make_sqlite_fixture(source_path)
@@ -98,6 +117,7 @@ def test_chromium_history_keeps_url_out_of_command_line(
     assert event["source"] == source
     assert event["event_id"] == "browser_visit"
     assert event["raw"]["url"] == url
+    assert event["raw"]["profile"] == "Default"
     assert "command_line" not in event
 
 
@@ -154,6 +174,40 @@ def test_chromium_history_requires_actual_visit_and_source_timestamp(
     assert events[0]["raw"]["visit_count"] == 1
 
 
+@pytest.mark.parametrize(
+    ("collector", "profile_root"),
+    [
+        (
+            browser._collect_chrome_history,
+            "AppData/Local/Google/Chrome/User Data",
+        ),
+        (
+            browser._collect_edge_history,
+            "AppData/Local/Microsoft/Edge/User Data",
+        ),
+    ],
+)
+def test_chromium_history_collects_all_profiles_with_provenance(
+    monkeypatch,
+    tmp_path,
+    collector,
+    profile_root,
+):
+    root = tmp_path / profile_root
+    _make_chromium_history(root / "Default" / "History", "https://default.example")
+    _make_chromium_history(root / "Profile 2" / "History", "https://profile2.example")
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = collector()
+
+    assert {(event["raw"]["profile"], event["raw"]["url"]) for event in events} == {
+        ("Default", "https://default.example"),
+        ("Profile 2", "https://profile2.example"),
+    }
+
+
 def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_path):
     profile_dir = tmp_path / ".mozilla" / "firefox" / "fixture.default"
     profile_dir.mkdir(parents=True)
@@ -186,8 +240,31 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
     assert len(events) == 1
     event = events[0]
     assert event["raw"]["url"] == "https://valid.example"
+    assert event["raw"]["profile"] == "fixture.default"
     assert "command_line" not in event
     expected_time = datetime.fromtimestamp(1_700_000_000, tz=timezone.utc).isoformat()
     assert event["timestamp"] == expected_time
     assert event["raw"]["last_visit_time"] == expected_time
     assert "https://missing.example" not in {item["raw"]["url"] for item in events}
+
+
+def test_firefox_history_collects_all_profiles_with_provenance(monkeypatch, tmp_path):
+    profile_root = tmp_path / ".mozilla" / "firefox"
+    _make_firefox_history(
+        profile_root / "alpha.default-release" / "places.sqlite",
+        "https://alpha.example",
+    )
+    _make_firefox_history(
+        profile_root / "beta.profile" / "places.sqlite",
+        "https://beta.example",
+    )
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = browser._collect_firefox_history()
+
+    assert {(event["raw"]["profile"], event["raw"]["url"]) for event in events} == {
+        ("alpha.default-release", "https://alpha.example"),
+        ("beta.profile", "https://beta.example"),
+    }
