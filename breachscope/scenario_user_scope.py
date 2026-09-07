@@ -1,4 +1,4 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
@@ -14,6 +14,8 @@ silently reintroducing the forbidden bridge. P2-07S keeps scenario session
 validity aligned with the correlator so placeholder IDs such as ``0x0`` cannot
 become cross-user evidence bridges. P2-07T canonicalizes equivalent hexadecimal
 Windows session-ID spellings so scenario identity stays aligned with correlation.
+P2-07U gives native ``TargetLogonId`` precedence over compatibility session
+aliases across flattened and nested EventData, matching the correlator.
 """
 from __future__ import annotations
 
@@ -72,28 +74,71 @@ def _session_norm(value):
     return normalized
 
 
-def _mapping_session_provenance(mapping):
-    """Return authoritative and forbidden raw session identifiers near a mapping."""
-    authoritative = set()
-    forbidden = set()
+def _session_field_norm(value):
+    """Normalize scalar or normalized-object session field values."""
+    if isinstance(value, Mapping):
+        value = value.get("id") or value.get("session_id")
+    return _session_norm(value)
 
+
+def _mapping_session_sources(mapping):
+    """Return one event mapping plus its nested EventData mapping, if present."""
     if not isinstance(mapping, Mapping):
-        return authoritative, forbidden
+        return []
 
     sources = [mapping]
     folded = {str(key).casefold(): value for key, value in mapping.items()}
     event_data = folded.get("event_data")
     if isinstance(event_data, Mapping):
         sources.append(event_data)
+    return sources
 
-    for source in sources:
-        fields = {str(key).casefold(): value for key, value in source.items()}
-        for name in ("session_id", "sessionid", "targetlogonid"):
-            value = _session_norm(fields.get(name))
+
+def _mapping_authoritative_sessions(mapping):
+    """Return session IDs with TargetLogonId precedence across one event mapping."""
+    sources = _mapping_session_sources(mapping)
+    if not sources:
+        return set()
+
+    folded_sources = [
+        {str(key).casefold(): value for key, value in source.items()}
+        for source in sources
+    ]
+
+    # Match P2-07Q: once native TargetLogonId is present, compatibility
+    # SessionId/session_id aliases cannot create a second identity or provide
+    # an invalid-TargetLogonId fallback. Flattened raw + nested EventData are
+    # treated as two views of the same Windows event.
+    if any("targetlogonid" in fields for fields in folded_sources):
+        sessions = set()
+        for fields in folded_sources:
+            if "targetlogonid" not in fields:
+                continue
+            value = _session_field_norm(fields.get("targetlogonid"))
             if value:
-                authoritative.add(value)
+                sessions.add(value)
+        return sessions
+
+    sessions = set()
+    for fields in folded_sources:
+        for name in ("session_id", "sessionid"):
+            if name not in fields:
+                continue
+            value = _session_field_norm(fields.get(name))
+            if value:
+                sessions.add(value)
+    return sessions
+
+
+def _mapping_session_provenance(mapping):
+    """Return authoritative and forbidden raw session identifiers near a mapping."""
+    authoritative = _mapping_authoritative_sessions(mapping)
+    forbidden = set()
+
+    for source in _mapping_session_sources(mapping):
+        fields = {str(key).casefold(): value for key, value in source.items()}
         for name in ("subjectlogonid", "logonid", "logon_id"):
-            value = _session_norm(fields.get(name))
+            value = _session_field_norm(fields.get(name))
             if value:
                 forbidden.add(value)
 
@@ -123,7 +168,7 @@ def _canonical_session_allowed(parent, session_id):
     return True
 
 
-def scope(obj, _depth=0, _seen=None):
+def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
     """Return normalized host/user/authoritative-session evidence."""
     empty = {"hosts": set(), "users": set(), "sessions": set()}
     if obj is None or _depth > 4:
@@ -152,12 +197,17 @@ def scope(obj, _depth=0, _seen=None):
             users.add(value)
 
     def add_session(value):
+        if _suppress_sessions:
+            return
         value = _session_norm(value)
         if value:
             sessions.add(value)
 
-    if isinstance(obj, Mapping):
+    is_mapping = isinstance(obj, Mapping)
+    if is_mapping:
         items = list(obj.items())
+        if not _suppress_sessions:
+            sessions.update(_mapping_authoritative_sessions(obj))
     elif isinstance(obj, (str, bytes, int, float, bool)):
         items = []
     else:
@@ -187,18 +237,12 @@ def scope(obj, _depth=0, _seen=None):
                 )
             else:
                 add_user(value)
-        elif lname in {
+        elif not is_mapping and lname in {
             "session_id",
             "sessionid",
             "targetlogonid",
         }:
-            if isinstance(value, Mapping):
-                add_session(
-                    value.get("id")
-                    or value.get("session_id")
-                )
-            else:
-                add_session(value)
+            add_session(_session_field_norm(value))
 
         if lname == "canonical" and isinstance(value, Mapping):
             host_obj = value.get("host")
@@ -208,7 +252,7 @@ def scope(obj, _depth=0, _seen=None):
             if isinstance(user_obj, Mapping):
                 add_user(user_obj.get("name") or user_obj.get("username"))
             session_obj = value.get("session")
-            if isinstance(session_obj, Mapping):
+            if isinstance(session_obj, Mapping) and not _suppress_sessions:
                 canonical_id = session_obj.get("id")
                 if _canonical_session_allowed(obj, canonical_id):
                     add_session(canonical_id)
@@ -230,7 +274,19 @@ def scope(obj, _depth=0, _seen=None):
         ):
             children = value if isinstance(value, (list, tuple, set)) else [value]
             for child in children:
-                nested = scope(child, _depth + 1, _seen)
+                # A parent mapping already resolves flattened + nested EventData
+                # session authority together. Recurse into EventData for host/user
+                # context only so a compatibility alias cannot re-enter as a
+                # second session identity after TargetLogonId won precedence.
+                suppress_child_sessions = _suppress_sessions or (
+                    is_mapping and lname == "event_data"
+                )
+                nested = scope(
+                    child,
+                    _depth + 1,
+                    _seen,
+                    _suppress_sessions=suppress_child_sessions,
+                )
                 hosts.update(nested["hosts"])
                 users.update(nested["users"])
                 sessions.update(nested["sessions"])
@@ -367,7 +423,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install the P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T scope functions."""
+    """Install P2-07J through P2-07U scenario scope functions."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -380,3 +436,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07R_CANONICAL_SESSION_PROVENANCE_V1
 # BREACHSCOPE_P2_07S_INVALID_SESSION_IDS_V1
 # BREACHSCOPE_P2_07T_CANONICAL_SCENARIO_SESSION_IDS_V1
+# BREACHSCOPE_P2_07U_TARGET_LOGON_ID_PRECEDENCE_V1
