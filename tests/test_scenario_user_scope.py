@@ -78,3 +78,37 @@ def test_other_user_finding_cannot_strengthen_user_scoped_component():
 
     assert len(selected) == 1
     assert scenario._bs_p005_scope(selected[0])["users"] == {"alice"}
+
+
+def test_same_session_id_on_different_hosts_stays_separate():
+    first = _chain("HOST-A", "alice", "0x1234")
+    second = _chain("HOST-B", "alice", "0x1234")
+
+    groups = scenario._bs_p005_partition_chains([first, second])
+
+    assert len(groups) == 2
+
+
+def test_same_session_id_on_same_host_stays_together():
+    first = _chain("HOST-A", "alice", "0x1234")
+    second = _chain("HOST-A", "ALICE", "0x1234")
+
+    groups = scenario._bs_p005_partition_chains([first, second])
+
+    assert len(groups) == 1
+    assert len(groups[0]) == 2
+
+
+def test_other_host_finding_with_same_session_id_is_excluded():
+    component = scenario._bs_p005_component_scope(
+        [_chain("HOST-A", "alice", "0x1234")]
+    )
+    findings = [
+        _finding("HOST-A", "alice", "0x1234"),
+        _finding("HOST-B", "alice", "0x1234"),
+    ]
+
+    selected = scenario._bs_p005_filter_findings(findings, component)
+
+    assert len(selected) == 1
+    assert scenario._bs_p005_scope(selected[0])["hosts"] == {"host-a"}
