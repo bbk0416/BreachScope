@@ -7,9 +7,10 @@
 """
 import logging
 import platform
+import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,31 @@ OFFLINE_HIVE_UNSUPPORTED_MESSAGE = (
     "오프라인 레지스트리 하이브 파싱은 아직 지원되지 않습니다. "
     "빈 결과를 정상 수집 결과로 처리하지 않습니다."
 )
+
+_REG_VALUE_LINE_PATTERN = re.compile(
+    r"^\s*(?P<name>.+?)(?:\t+| {2,})"
+    r"(?P<type>REG_[A-Z0-9_]+)"
+    r"(?:(?:\t+| {2,})(?P<data>.*))?\s*$",
+    re.IGNORECASE,
+)
+
+
+def _parse_reg_query_value_line(line: str) -> Optional[Tuple[str, str, str]]:
+    """``reg.exe query`` 값 행을 이름/타입/데이터로 분리합니다.
+
+    값 이름과 데이터에는 일반 공백이 포함될 수 있으므로 단순 whitespace split을
+    사용하지 않고 ``REG_*`` 타입 컬럼을 경계로 해석합니다.
+    """
+    match = _REG_VALUE_LINE_PATTERN.match(line)
+    if not match:
+        return None
+
+    value_name = match.group("name").strip()
+    value_type = match.group("type").upper()
+    value_data = (match.group("data") or "").rstrip()
+    if not value_name:
+        return None
+    return value_name, value_type, value_data
 
 
 def collect_registry(
@@ -81,16 +107,13 @@ def _collect_live_registry() -> List[Dict]:
             if result.returncode == 0:
                 # 레지스트리 출력 파싱
                 for line in result.stdout.splitlines():
-                    line = line.strip()
-                    if not line or line.startswith(key_path) or line.startswith("---"):
+                    stripped = line.strip()
+                    if not stripped or stripped.startswith(key_path) or stripped.startswith("---"):
                         continue
 
-                    # 값 이름과 데이터 추출
-                    parts = line.split(None, 2)
-                    if len(parts) >= 3:
-                        value_name = parts[0]
-                        value_type = parts[1]
-                        value_data = parts[2] if len(parts) > 2 else ""
+                    parsed = _parse_reg_query_value_line(line)
+                    if parsed is not None:
+                        value_name, value_type, value_data = parsed
                         observation_time = datetime.now(timezone.utc).isoformat()
 
                         event = {
