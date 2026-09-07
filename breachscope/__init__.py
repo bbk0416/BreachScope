@@ -47,6 +47,13 @@ from .scenario_user_scope import install as _install_scenario_user_scope
 
 _install_scenario_user_scope(_scenario)
 
+# BREACHSCOPE_P2_07X_SESSION_LIFECYCLE_TIME_BOUNDS_V1
+# Reused Windows LogonId lifecycles are concrete time-bounded observations.
+# Generic evidence may join one only when scope and time identify it uniquely.
+from .scenario_lifecycle_time_scope import install as _install_scenario_lifecycle_time_scope
+
+_install_scenario_lifecycle_time_scope(_scenario)
+
 # BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
 # Windows LogonId/SessionId values are host-local. Partition explicit session
 # correlation by host while preserving P2-07I activity fallback semantics.
