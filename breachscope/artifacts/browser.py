@@ -129,22 +129,40 @@ def _collect_chrome_history() -> List[Dict]:
             with _open_sqlite_snapshot(history_path) as conn:
                 cursor = conn.cursor()
 
-                # 실제 방문 횟수와 원본 방문시각이 있는 기록만 조회합니다.
+                # urls는 URL별 집계이고 visits가 개별 방문 행입니다. DFIR 타임라인은
+                # 개별 visits.visit_time을 기준으로 구성해 이전 방문을 잃지 않습니다.
                 cursor.execute("""
-                    SELECT url, title, visit_count, last_visit_time
-                    FROM urls
-                    WHERE visit_count > 0
-                      AND last_visit_time IS NOT NULL
-                      AND last_visit_time > 0
-                    ORDER BY last_visit_time DESC
+                    SELECT
+                        visits.id,
+                        urls.url,
+                        urls.title,
+                        urls.visit_count,
+                        visits.visit_time,
+                        urls.last_visit_time
+                    FROM visits
+                    JOIN urls ON urls.id = visits.url
+                    WHERE visits.visit_time IS NOT NULL
+                      AND visits.visit_time > 0
+                    ORDER BY visits.visit_time DESC
                     LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
-                    url, title, visit_count, last_visit_time = row
+                    (
+                        visit_id,
+                        url,
+                        title,
+                        visit_count,
+                        visit_timestamp,
+                        last_visit_timestamp,
+                    ) = row
 
-                    # Chrome 타임스탬프는 1601-01-01 UTC부터의 마이크로초입니다.
-                    visit_time = _chromium_visit_time_utc(last_visit_time)
+                    visit_time = _chromium_visit_time_utc(visit_timestamp)
+                    last_visit_time = (
+                        _chromium_visit_time_utc(last_visit_timestamp).isoformat()
+                        if last_visit_timestamp
+                        else ""
+                    )
 
                     event = {
                         "timestamp": visit_time.isoformat(),
@@ -157,7 +175,9 @@ def _collect_chrome_history() -> List[Dict]:
                             "url": url,
                             "title": title,
                             "visit_count": visit_count,
-                            "last_visit_time": visit_time.isoformat(),
+                            "visit_id": visit_id,
+                            "visit_time": visit_time.isoformat(),
+                            "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
                     }
@@ -191,19 +211,37 @@ def _collect_edge_history() -> List[Dict]:
                 cursor = conn.cursor()
 
                 cursor.execute("""
-                    SELECT url, title, visit_count, last_visit_time
-                    FROM urls
-                    WHERE visit_count > 0
-                      AND last_visit_time IS NOT NULL
-                      AND last_visit_time > 0
-                    ORDER BY last_visit_time DESC
+                    SELECT
+                        visits.id,
+                        urls.url,
+                        urls.title,
+                        urls.visit_count,
+                        visits.visit_time,
+                        urls.last_visit_time
+                    FROM visits
+                    JOIN urls ON urls.id = visits.url
+                    WHERE visits.visit_time IS NOT NULL
+                      AND visits.visit_time > 0
+                    ORDER BY visits.visit_time DESC
                     LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
-                    url, title, visit_count, last_visit_time = row
+                    (
+                        visit_id,
+                        url,
+                        title,
+                        visit_count,
+                        visit_timestamp,
+                        last_visit_timestamp,
+                    ) = row
 
-                    visit_time = _chromium_visit_time_utc(last_visit_time)
+                    visit_time = _chromium_visit_time_utc(visit_timestamp)
+                    last_visit_time = (
+                        _chromium_visit_time_utc(last_visit_timestamp).isoformat()
+                        if last_visit_timestamp
+                        else ""
+                    )
 
                     event = {
                         "timestamp": visit_time.isoformat(),
@@ -216,7 +254,9 @@ def _collect_edge_history() -> List[Dict]:
                             "url": url,
                             "title": title,
                             "visit_count": visit_count,
-                            "last_visit_time": visit_time.isoformat(),
+                            "visit_id": visit_id,
+                            "visit_time": visit_time.isoformat(),
+                            "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
                     }
@@ -250,23 +290,39 @@ def _collect_firefox_history() -> List[Dict]:
             with _open_sqlite_snapshot(history_path) as conn:
                 cursor = conn.cursor()
 
-                # Firefox places.sqlite 구조
+                # moz_places는 URL별 집계이고 moz_historyvisits가 개별 방문 행입니다.
                 cursor.execute("""
-                    SELECT url, title, visit_count, last_visit_date/1000000 as visit_time
-                    FROM moz_places
-                    WHERE visit_count > 0
-                      AND last_visit_date IS NOT NULL
-                    ORDER BY last_visit_date DESC
+                    SELECT
+                        moz_historyvisits.id,
+                        moz_places.url,
+                        moz_places.title,
+                        moz_places.visit_count,
+                        moz_historyvisits.visit_date / 1000000.0 AS visit_time,
+                        moz_places.last_visit_date / 1000000.0 AS last_visit_time
+                    FROM moz_historyvisits
+                    JOIN moz_places ON moz_places.id = moz_historyvisits.place_id
+                    WHERE moz_historyvisits.visit_date IS NOT NULL
+                      AND moz_historyvisits.visit_date > 0
+                    ORDER BY moz_historyvisits.visit_date DESC
                     LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
-                    url, title, visit_count, visit_timestamp = row
+                    (
+                        visit_id,
+                        url,
+                        title,
+                        visit_count,
+                        visit_timestamp,
+                        last_visit_timestamp,
+                    ) = row
 
-                    if visit_timestamp is None:
-                        logger.debug("Firefox 방문시각이 없는 이력 행은 건너뜁니다.")
-                        continue
                     visit_time = _firefox_visit_time_utc(visit_timestamp)
+                    last_visit_time = (
+                        _firefox_visit_time_utc(last_visit_timestamp).isoformat()
+                        if last_visit_timestamp
+                        else ""
+                    )
 
                     event = {
                         "timestamp": visit_time.isoformat(),
@@ -279,7 +335,9 @@ def _collect_firefox_history() -> List[Dict]:
                             "url": url,
                             "title": title,
                             "visit_count": visit_count,
-                            "last_visit_time": visit_time.isoformat(),
+                            "visit_id": visit_id,
+                            "visit_time": visit_time.isoformat(),
+                            "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
                     }
