@@ -6,10 +6,17 @@ from breachscope.correlator import _correlate_by_session
 from breachscope.schemas import Event
 
 
-def _event(*, event_id: str, ts: datetime, raw: dict, source: str = "Microsoft-Windows-Security-Auditing") -> Event:
+def _event(
+    *,
+    event_id: str,
+    ts: datetime,
+    raw: dict,
+    host: str = "WIN-A",
+    source: str = "Microsoft-Windows-Security-Auditing",
+) -> Event:
     return Event(
         timestamp=ts.isoformat(),
-        host="WIN-A",
+        host=host,
         source=source,
         event_id=event_id,
         user="alice",
@@ -55,7 +62,7 @@ def test_success_logon_and_logoff_group_by_target_logon_id_not_subject_logon_id(
     chains = _correlate_by_session([logon, logoff], [])
 
     assert len(chains) == 1
-    assert chains[0].chain_id == "session_0x12345"
+    assert chains[0].chain_id == "session_win-a_0x12345"
     assert chains[0].events == [logon, logoff]
 
 
@@ -79,4 +86,65 @@ def test_explicit_session_id_remains_supported_for_success_session_events():
     chains = _correlate_by_session([logon, logoff], [])
 
     assert len(chains) == 1
-    assert chains[0].chain_id == "session_77"
+    assert chains[0].chain_id == "session_win-a_77"
+
+
+def test_same_session_id_on_different_hosts_forms_separate_session_chains():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    events = [
+        _event(
+            event_id="4624",
+            ts=ts,
+            raw={"TargetLogonId": "0x12345"},
+            host="WIN-A",
+        ),
+        _event(
+            event_id="4634",
+            ts=ts + timedelta(minutes=1),
+            raw={"TargetLogonId": "0x12345"},
+            host="WIN-A",
+        ),
+        _event(
+            event_id="4624",
+            ts=ts + timedelta(minutes=2),
+            raw={"TargetLogonId": "0x12345"},
+            host="WIN-B",
+        ),
+        _event(
+            event_id="4634",
+            ts=ts + timedelta(minutes=3),
+            raw={"TargetLogonId": "0x12345"},
+            host="WIN-B",
+        ),
+    ]
+
+    chains = _correlate_by_session(events, [])
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 2
+    assert {chain.chain_id for chain in session_chains} == {
+        "session_win-a_0x12345",
+        "session_win-b_0x12345",
+    }
+    assert {tuple(event.host for event in chain.events) for chain in session_chains} == {
+        ("WIN-A", "WIN-A"),
+        ("WIN-B", "WIN-B"),
+    }
+
+
+def test_explicit_session_without_host_does_not_form_session_chain():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0x12345"},
+        host="",
+    )
+    logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=1),
+        raw={"TargetLogonId": "0x12345"},
+        host="",
+    )
+
+    assert _correlate_by_session([logon, logoff], []) == []
