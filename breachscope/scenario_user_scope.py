@@ -1,4 +1,4 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
@@ -10,7 +10,9 @@ P2-07L aligns scenario session identity with the correlator: explicit
 is authoritative; ``SubjectLogonId`` and ambiguous generic ``LogonId`` values
 must not create cross-session bridges. P2-07R prevents a canonical session
 that was derived only from one of those non-authoritative raw fields from
-silently reintroducing the forbidden bridge.
+silently reintroducing the forbidden bridge. P2-07S keeps scenario session
+validity aligned with the correlator so placeholder IDs such as ``0x0`` cannot
+become cross-user evidence bridges.
 """
 from __future__ import annotations
 
@@ -18,6 +20,9 @@ import hashlib
 from collections.abc import Mapping
 
 from .utils import get_event_key
+
+
+_BS_P207S_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
 
 
 def _scalar(value):
@@ -38,6 +43,21 @@ def _norm(value):
     return text.casefold() if text else None
 
 
+def _session_norm(value):
+    """Return a normalized non-placeholder Windows session identifier."""
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            normalized = _session_norm(item)
+            if normalized:
+                return normalized
+        return None
+
+    normalized = _norm(value)
+    if not normalized or normalized in _BS_P207S_INVALID_SESSION_IDS:
+        return None
+    return normalized
+
+
 def _mapping_session_provenance(mapping):
     """Return authoritative and forbidden raw session identifiers near a mapping."""
     authoritative = set()
@@ -55,11 +75,11 @@ def _mapping_session_provenance(mapping):
     for source in sources:
         fields = {str(key).casefold(): value for key, value in source.items()}
         for name in ("session_id", "sessionid", "targetlogonid"):
-            value = _norm(fields.get(name))
+            value = _session_norm(fields.get(name))
             if value:
                 authoritative.add(value)
         for name in ("subjectlogonid", "logonid", "logon_id"):
-            value = _norm(fields.get(name))
+            value = _session_norm(fields.get(name))
             if value:
                 forbidden.add(value)
 
@@ -67,8 +87,8 @@ def _mapping_session_provenance(mapping):
 
 
 def _canonical_session_allowed(parent, session_id):
-    """Reject canonical IDs that merely mirror non-authoritative raw fields."""
-    canonical_id = _norm(session_id)
+    """Reject canonical IDs that are invalid or mirror non-authoritative raw fields."""
+    canonical_id = _session_norm(session_id)
     if not canonical_id:
         return False
 
@@ -118,7 +138,7 @@ def scope(obj, _depth=0, _seen=None):
             users.add(value)
 
     def add_session(value):
-        value = _norm(value)
+        value = _session_norm(value)
         if value:
             sessions.add(value)
 
@@ -333,7 +353,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install the P2-07J/P2-07K/P2-07L/P2-07R scope functions into scenario."""
+    """Install the P2-07J/P2-07K/P2-07L/P2-07R/P2-07S scope functions."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -344,3 +364,4 @@ def install(target_module):
 
 # BREACHSCOPE_P2_07L_AUTHORITATIVE_SESSION_SCOPE_V1
 # BREACHSCOPE_P2_07R_CANONICAL_SESSION_PROVENANCE_V1
+# BREACHSCOPE_P2_07S_INVALID_SESSION_IDS_V1
