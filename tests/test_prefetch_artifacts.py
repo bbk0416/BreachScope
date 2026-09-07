@@ -63,3 +63,14 @@ def test_prefetch_filename_without_hash_remains_metadata_only(tmp_path):
     assert event["raw"]["program_name"] == "ODDNAME"
     assert event["raw"]["filename_hash"] == ""
     assert event["raw"]["execution_times"] == []
+
+
+def test_prefetch_invalid_dash_suffix_is_not_claimed_as_hash(tmp_path):
+    pf_path = tmp_path / "MY-TOOL.pf"
+    pf_path.write_bytes(b"metadata-only")
+
+    event = prefetch._parse_prefetch_file(pf_path)
+
+    assert event is not None
+    assert event["raw"]["program_name"] == "MY-TOOL"
+    assert event["raw"]["filename_hash"] == ""
