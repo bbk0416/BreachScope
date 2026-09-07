@@ -1,10 +1,13 @@
 """
-레지스트리 아티팩트 수집 모듈
-Windows 레지스트리에서 자동실행 항목 등을 추출합니다.
+레지스트리 아티팩트 수집 모듈.
+
+현재 live collector는 Windows 레지스트리 자동실행 값을 열거하지만 레지스트리
+키의 LastWrite 시각은 추출하지 않습니다. 따라서 ``timestamp``는 실제 등록/수정
+시각이 아니라 명시적인 수집 관측 시각입니다.
 """
 import logging
 import platform
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -29,7 +32,8 @@ def collect_registry(
             파싱은 지원하지 않으며, 값을 전달하면 명시적으로 실패합니다.
 
     Returns:
-        정규화된 이벤트 목록
+        정규화된 이벤트 목록. live collector의 ``timestamp``는 자동실행 항목의
+        생성/수정 시각이 아니라 수집 관측 시각입니다.
 
     Raises:
         NotImplementedError: 오프라인 레지스트리 하이브가 요청된 경우
@@ -47,7 +51,11 @@ def collect_registry(
 
 
 def _collect_live_registry() -> List[Dict]:
-    """라이브 레지스트리에서 자동실행 항목 수집"""
+    """라이브 레지스트리에서 자동실행 항목을 관측합니다.
+
+    ``reg.exe query`` 결과는 key LastWrite 시각을 제공하지 않으므로 이벤트의
+    ``timestamp``는 UTC 수집 시각으로 기록하고 provenance를 ``raw``에 남깁니다.
+    """
     import subprocess
 
     events = []
@@ -83,9 +91,10 @@ def _collect_live_registry() -> List[Dict]:
                         value_name = parts[0]
                         value_type = parts[1]
                         value_data = parts[2] if len(parts) > 2 else ""
+                        observation_time = datetime.now(timezone.utc).isoformat()
 
                         event = {
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": observation_time,
                             "host": "",
                             "source": "Registry",
                             "event_id": event_type,
@@ -97,6 +106,10 @@ def _collect_live_registry() -> List[Dict]:
                                 "value_name": value_name,
                                 "value_type": value_type,
                                 "value_data": value_data,
+                                "observation_time": observation_time,
+                                "timestamp_source": "collection_time",
+                                "registry_key_last_write_time_verified": False,
+                                "registry_key_last_write_times": [],
                             },
                         }
                         events.append(event)
