@@ -16,7 +16,7 @@ def _event(host, session):
                 "host": {"name": host},
                 "session": {"id": session},
             },
-            "SubjectLogonId": session,
+            "TargetLogonId": session,
         },
     )
 
