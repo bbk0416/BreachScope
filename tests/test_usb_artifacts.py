@@ -34,6 +34,12 @@ def test_usb_registry_observation_does_not_claim_collection_time_as_connection_t
     assert observed.tzinfo is not None
 
     raw = event["raw"]
+    assert raw["registry_key"] == r"HKLM\SYSTEM\CurrentControlSet\Enum\USB"
+    assert raw["instance_registry_key"] == (
+        r"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USB"
+        r"\VID_1234&PID_5678\SERIAL-001"
+    )
+    assert raw["hardware_id"] == "VID_1234&PID_5678"
     assert raw["device_id"] == "SERIAL-001"
     assert raw["property"] == "FriendlyName"
     assert raw["value"] == "Example USB Device"
