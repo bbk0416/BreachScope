@@ -61,6 +61,7 @@ class ArtifactClassifier:
         "file_access": ArtifactCategory.FILE_OPERATIONS,
 
         # 레지스트리 관련
+        "usb_registry_device_observed": ArtifactCategory.REGISTRY_ARTIFACTS,
         "autorun_entry": ArtifactCategory.REGISTRY_ARTIFACTS,
         "registry_modification": ArtifactCategory.REGISTRY_ARTIFACTS,
         "registry": ArtifactCategory.REGISTRY_ARTIFACTS,
