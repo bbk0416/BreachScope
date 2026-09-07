@@ -1,4 +1,4 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V/P2-07W.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
@@ -7,8 +7,9 @@ from merging distinct logon lifecycles, P2-07O canonicalizes equivalent
 hexadecimal identifier spellings before correlation, P2-07P retains
 user-initiated logoff evidence (Security Event 4647) in the explicit session,
 P2-07Q gives the native Windows TargetLogonId field precedence over
-compatibility SessionId aliases when both are present, and P2-07V rejects
-malformed values that claim hexadecimal Windows LogonId syntax.
+compatibility SessionId aliases when both are present, P2-07V rejects
+malformed values that claim hexadecimal Windows LogonId syntax, and P2-07W
+exposes reused-logon lifecycle identity to downstream scenario scoping.
 """
 from __future__ import annotations
 
@@ -157,6 +158,11 @@ def install(target_module):
                     base_id = f"session_{host_key}_{session_id}"
                     if reused_id:
                         base_id = f"{base_id}_{lifecycle_token(chain.events)}"
+                        # P2-07N's suffix is not merely display uniqueness: it
+                        # identifies one concrete lifecycle of a reused Windows
+                        # LogonId. Expose it explicitly so scenario grouping
+                        # cannot collapse distinct lifecycles back together.
+                        chain.session_instance_id = base_id
                     chain.chain_id = base_id
                     chain.description = (
                         f"호스트 {host_key} 세션 {session_id}의 활동"
@@ -178,3 +184,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07P_USER_INITIATED_LOGOFF_V1
 # BREACHSCOPE_P2_07Q_TARGET_LOGON_ID_PRECEDENCE_V1
 # BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
+# BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1

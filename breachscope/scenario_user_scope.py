@@ -1,4 +1,4 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U/P2-07V.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U/P2-07V/P2-07W.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
@@ -16,14 +16,15 @@ become cross-user evidence bridges. P2-07T canonicalizes equivalent hexadecimal
 Windows session-ID spellings so scenario identity stays aligned with correlation.
 P2-07U gives native ``TargetLogonId`` precedence over compatibility session
 aliases across flattened and nested EventData, matching the correlator. P2-07V
-rejects malformed values that claim hexadecimal Windows LogonId syntax.
+rejects malformed values that claim hexadecimal Windows LogonId syntax. P2-07W
+preserves P2-07N lifecycle identity when the same host reuses a LogonId.
 """
 from __future__ import annotations
 
 import hashlib
 from collections.abc import Mapping
 
-from .utils import get_event_key
+from .utils import get_event_identity_key, get_event_key
 
 
 _BS_P207S_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
@@ -165,6 +166,21 @@ def _canonical_session_allowed(parent, session_id):
         return False
 
     return True
+
+
+def _chain_session_instance(chain):
+    """Return the correlator-issued identity of a reused LogonId lifecycle."""
+    if getattr(chain, "chain_type", None) != "session":
+        return None
+    return _norm(getattr(chain, "session_instance_id", None))
+
+
+def _event_identity(event):
+    """Return a strong event identity when an object exposes Event fields."""
+    try:
+        return get_event_identity_key(event)
+    except (AttributeError, TypeError):
+        return None
 
 
 def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
@@ -330,6 +346,10 @@ def partition_chains(chains):
 
     scopes = [scope(chain) for chain in chains]
     parent = list(range(len(chains)))
+    instance_sets = []
+    for chain in chains:
+        instance = _chain_session_instance(chain)
+        instance_sets.append({instance} if instance else set())
 
     def find(index):
         while parent[index] != index:
@@ -339,8 +359,24 @@ def partition_chains(chains):
 
     def union(a, b):
         ra, rb = find(a), find(b)
-        if ra != rb:
-            parent[rb] = ra
+        if ra == rb:
+            return
+
+        left_instances = instance_sets[ra]
+        right_instances = instance_sets[rb]
+        if (
+            left_instances
+            and right_instances
+            and not (left_instances & right_instances)
+        ):
+            # A generic chain may relate to both sides by the reused raw
+            # LogonId. Do not let it transitively collapse two P2-07N
+            # lifecycle instances into one scenario component.
+            return
+
+        parent[rb] = ra
+        instance_sets[ra].update(instance_sets[rb])
+        instance_sets[rb].clear()
 
     for i in range(len(chains)):
         for j in range(i + 1, len(chains)):
@@ -355,19 +391,48 @@ def partition_chains(chains):
 
 
 def component_scope(chains):
-    merged = {"hosts": set(), "users": set(), "sessions": set()}
+    merged = {
+        "hosts": set(),
+        "users": set(),
+        "sessions": set(),
+        "session_instances": set(),
+        "event_identity_keys": set(),
+    }
     for chain in chains:
         chain_scope = scope(chain)
         merged["hosts"].update(chain_scope["hosts"])
         merged["users"].update(chain_scope["users"])
         merged["sessions"].update(chain_scope["sessions"])
+
+        instance = _chain_session_instance(chain)
+        if instance:
+            merged["session_instances"].add(instance)
+
+        for event in getattr(chain, "events", None) or []:
+            identity = _event_identity(event)
+            if identity:
+                merged["event_identity_keys"].add(identity)
     return merged
 
 
 def filter_findings(findings, component):
     selected = []
+    lifecycle_instances = component.get("session_instances", set())
+    component_event_keys = component.get("event_identity_keys", set())
+
     for finding in findings or []:
         finding_scope = scope(finding)
+
+        if lifecycle_instances:
+            # Raw Windows LogonId can be reused on the same host. Once this
+            # component is tied to a concrete P2-07N lifecycle, raw session +
+            # host alone is insufficient to assign a finding. Require the
+            # finding's event to be actual evidence in this component.
+            finding_event = getattr(finding, "event", None)
+            finding_key = _event_identity(finding_event)
+            if finding_key and finding_key in component_event_keys:
+                selected.append(finding)
+            continue
 
         if finding_scope["sessions"] and component["sessions"]:
             if (
@@ -408,6 +473,8 @@ def component_namespace(chains):
         identity_parts.append(f"user:{user}")
     for session in sorted(component["sessions"]):
         identity_parts.append(f"session:{session}")
+    for instance in sorted(component["session_instances"]):
+        identity_parts.append(f"session_instance:{instance}")
 
     for chain in chains or []:
         identity_parts.append(f"chain_type:{getattr(chain, 'chain_type', '')}")
@@ -422,7 +489,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install P2-07J through P2-07V scenario scope functions."""
+    """Install P2-07J through P2-07W scenario scope functions."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -437,3 +504,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07T_CANONICAL_SCENARIO_SESSION_IDS_V1
 # BREACHSCOPE_P2_07U_TARGET_LOGON_ID_PRECEDENCE_V1
 # BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
+# BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1
