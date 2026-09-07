@@ -25,6 +25,20 @@ def _event(
     )
 
 
+def _activity_chain(ts: datetime, chain_id: str = "activity") -> EventChain:
+    event = _event(event_id="4688", ts=ts)
+    return EventChain(
+        chain_id=chain_id,
+        events=[event],
+        findings=[],
+        start_time=event.timestamp,
+        end_time=event.timestamp,
+        description="activity candidate",
+        confidence=0.5,
+        chain_type="activity",
+    )
+
+
 def _reused_session_fixture():
     ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
     first_logon = _event(event_id="4624", ts=ts)
@@ -54,6 +68,10 @@ def _finding(event: Event, rule_id: str) -> Finding:
     )
 
 
+def _group_containing(groups, target):
+    return next(group for group in groups if target in group)
+
+
 def test_reused_logon_id_exposes_distinct_lifecycle_instances():
     session_chains, _ = _reused_session_fixture()
 
@@ -80,29 +98,83 @@ def test_reused_logon_id_lifecycles_stay_separate_in_scenario_partition():
     assert all(len(group) == 1 for group in groups)
 
 
-def test_generic_chain_cannot_transitively_bridge_reused_lifecycles():
+def test_activity_between_reused_lifecycles_stays_unassigned():
     session_chains, _ = _reused_session_fixture()
     first = session_chains[0]
     second = session_chains[1]
-    bridge_event = _event(
-        event_id="4688",
-        ts=datetime(2026, 9, 8, tzinfo=timezone.utc),
-    )
-    bridge = EventChain(
-        chain_id="activity_bridge",
-        events=[bridge_event],
-        findings=[],
-        start_time=bridge_event.timestamp,
-        end_time=bridge_event.timestamp,
-        description="bridge candidate",
-        confidence=0.5,
-        chain_type="activity",
+    bridge = _activity_chain(
+        datetime(2026, 9, 8, tzinfo=timezone.utc),
+        "activity_between",
     )
 
     groups = scenario._bs_p005_partition_chains([first, bridge, second])
 
-    assert len(groups) == 2
+    assert len(groups) == 3
+    assert _group_containing(groups, bridge) == [bridge]
     assert not any(first in group and second in group for group in groups)
+
+
+def test_activity_inside_second_lifecycle_joins_second_not_first():
+    session_chains, _ = _reused_session_fixture()
+    first = session_chains[0]
+    second = session_chains[1]
+    activity = _activity_chain(
+        datetime(2026, 9, 9, 0, 2, tzinfo=timezone.utc),
+        "activity_second",
+    )
+
+    groups = scenario._bs_p005_partition_chains([first, activity, second])
+    activity_group = _group_containing(groups, activity)
+
+    assert len(groups) == 2
+    assert second in activity_group
+    assert first not in activity_group
+
+
+def test_activity_inside_first_lifecycle_joins_first_regardless_of_input_order():
+    session_chains, _ = _reused_session_fixture()
+    first = session_chains[0]
+    second = session_chains[1]
+    activity = _activity_chain(
+        datetime(2026, 9, 7, 0, 2, tzinfo=timezone.utc),
+        "activity_first",
+    )
+
+    groups = scenario._bs_p005_partition_chains([second, activity, first])
+    activity_group = _group_containing(groups, activity)
+
+    assert len(groups) == 2
+    assert first in activity_group
+    assert second not in activity_group
+
+
+def test_chain_overlapping_multiple_reused_lifecycles_stays_unassigned():
+    session_chains, _ = _reused_session_fixture()
+    first = session_chains[0]
+    second = session_chains[1]
+    first_event = _event(
+        event_id="4688",
+        ts=datetime(2026, 9, 7, 0, 2, tzinfo=timezone.utc),
+    )
+    second_event = _event(
+        event_id="4688",
+        ts=datetime(2026, 9, 9, 0, 2, tzinfo=timezone.utc),
+    )
+    ambiguous = EventChain(
+        chain_id="activity_ambiguous",
+        events=[first_event, second_event],
+        findings=[],
+        start_time=first_event.timestamp,
+        end_time=second_event.timestamp,
+        description="ambiguous lifecycle activity",
+        confidence=0.5,
+        chain_type="activity",
+    )
+
+    groups = scenario._bs_p005_partition_chains([first, ambiguous, second])
+
+    assert len(groups) == 3
+    assert _group_containing(groups, ambiguous) == [ambiguous]
 
 
 def test_reused_lifecycle_component_only_accepts_its_own_event_findings():
