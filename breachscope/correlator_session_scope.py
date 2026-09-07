@@ -1,4 +1,4 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V/P2-07W/P2-07Y.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V/P2-07W/P2-07Y/P2-07Z.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
@@ -9,8 +9,10 @@ user-initiated logoff evidence (Security Event 4647) in the explicit session,
 P2-07Q gives the native Windows TargetLogonId field precedence over
 compatibility SessionId aliases when both are present, P2-07V rejects
 malformed values that claim hexadecimal Windows LogonId syntax, P2-07W
-exposes reused-logon lifecycle identity to downstream scenario scoping, and
-P2-07Y preserves that reuse marker even when an earlier lifecycle is incomplete.
+exposes reused-logon lifecycle identity to downstream scenario scoping,
+P2-07Y preserves that reuse marker even when an earlier lifecycle is incomplete,
+and P2-07Z removes duplicate copies of the same explicit lifecycle event before
+segmenting a Windows logon session.
 """
 from __future__ import annotations
 
@@ -76,7 +78,18 @@ def install(target_module):
     def lifecycle_segments(grouped_events):
         """Split one host/session-id group at authoritative logon boundaries."""
         timestamped = []
+        seen_event_keys = set()
         for event in grouped_events:
+            # The collector intentionally yields every JSONL row, so overlapping
+            # exports can present the same EVTX record more than once. Treat one
+            # correlation-safe event identity as one lifecycle observation. This
+            # prevents duplicate 4624 events from resetting a lifecycle and
+            # duplicate 4647/4634 events from inflating session evidence.
+            event_key = str(event_identity_key(event))
+            if event_key in seen_event_keys:
+                continue
+            seen_event_keys.add(event_key)
+
             timestamp = parse_timestamp(event.timestamp)
             if timestamp is not None:
                 timestamped.append((timestamp, event))
@@ -198,3 +211,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
 # BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1
 # BREACHSCOPE_P2_07Y_INCOMPLETE_REUSE_LIFECYCLE_MARKER_V1
+# BREACHSCOPE_P2_07Z_DEDUPLICATE_SESSION_LIFECYCLE_EVENTS_V1
