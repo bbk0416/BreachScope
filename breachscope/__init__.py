@@ -46,3 +46,11 @@ from . import scenario as _scenario
 from .scenario_user_scope import install as _install_scenario_user_scope
 
 _install_scenario_user_scope(_scenario)
+
+# BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
+# Windows LogonId/SessionId values are host-local. Partition explicit session
+# correlation by host while preserving P2-07I activity fallback semantics.
+from . import correlator as _correlator
+from .correlator_session_scope import install as _install_correlator_session_scope
+
+_install_correlator_session_scope(_correlator)
