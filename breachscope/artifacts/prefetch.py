@@ -8,9 +8,20 @@ from datetime import datetime, timezone
 import logging
 from pathlib import Path
 import platform
+import re
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
+_PREFETCH_HASH_PATTERN = re.compile(r"^[0-9A-Fa-f]{8}$")
+
+
+def _split_prefetch_filename(stem: str) -> tuple[str, str]:
+    """8자리 16진수 suffix가 있을 때만 Prefetch filename hash로 해석합니다."""
+    program_name, separator, suffix = stem.rpartition("-")
+    if separator and program_name and _PREFETCH_HASH_PATTERN.fullmatch(suffix):
+        return program_name, suffix
+    return stem, ""
 
 
 def collect_prefetch(
@@ -67,9 +78,7 @@ def _parse_prefetch_file(pf_path: Path) -> Optional[Dict]:
     """
     try:
         filename = pf_path.stem
-        parts = filename.rsplit("-", 1)
-        program_name = parts[0] if parts else filename
-        filename_hash = parts[1] if len(parts) > 1 else ""
+        program_name, filename_hash = _split_prefetch_filename(filename)
 
         filesystem_mtime = datetime.fromtimestamp(
             pf_path.stat().st_mtime,
