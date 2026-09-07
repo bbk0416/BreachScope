@@ -145,7 +145,7 @@ class AnalysisService:
                                 upload_budget,
                                 filename=safe_name,
                             )
-                        except FileExistsError as e:
+                        except FileExistsError:
                             collision_retries += 1
                             if collision_retries >= MAX_UPLOAD_NAME_COLLISION_RETRIES:
                                 logger.error(
@@ -185,7 +185,7 @@ class AnalysisService:
                     if converted:
                         in_dir = converted
                         converted_dirs.append(converted)
-                        logger.info(f"EVTX 변환 완료: {converted_dir}")
+                        logger.info(f"EVTX 변환 완료: {converted}")
                     else:
                         logger.warning("EVTX 변환 실패: python-evtx가 설치되어 있지 않거나 변환할 파일이 없습니다.")
 
