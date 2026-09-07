@@ -110,11 +110,11 @@ class ArtifactClassifier:
 
         # command_line 내용으로 분류 시도
         command_line = event.get("command_line", "").lower()
-        if any(keyword in command_line for keyword in ["http://", "https://", "www."]):
-            return ArtifactCategory.BROWSER_HISTORY
-
         if any(keyword in command_line for keyword in ["powershell", "cmd.exe", "wscript"]):
             return ArtifactCategory.EVIDENCE_OF_EXECUTION
+
+        if any(keyword in command_line for keyword in ["http://", "https://", "www."]):
+            return ArtifactCategory.BROWSER_HISTORY
 
         # 기본값
         return ArtifactCategory.OTHER

