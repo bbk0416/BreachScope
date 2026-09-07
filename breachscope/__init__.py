@@ -37,3 +37,12 @@ setup_path()
 
 # 로깅 설정
 setup_logging()
+
+# BREACHSCOPE_P2_07J_SCENARIO_USER_SCOPE_V1
+# Keep P0-05 host/session scoping intact while extending it with the user
+# boundary required by P2-07I activity chains. The installer replaces only the
+# private evidence-scope helpers used dynamically by scenario inference.
+from . import scenario as _scenario
+from .scenario_user_scope import install as _install_scenario_user_scope
+
+_install_scenario_user_scope(_scenario)
