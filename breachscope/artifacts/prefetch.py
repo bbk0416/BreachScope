@@ -4,7 +4,7 @@ Prefetch 파일 수집 모듈.
 현재 구현은 Prefetch 내부 실행 시각을 파싱하지 않습니다. 대신 .pf 파일의
 파일시스템 메타데이터만 수집하며, 이를 프로그램 실행 시각으로 표현하지 않습니다.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 import platform
@@ -71,7 +71,10 @@ def _parse_prefetch_file(pf_path: Path) -> Optional[Dict]:
         program_name = parts[0] if parts else filename
         filename_hash = parts[1] if len(parts) > 1 else ""
 
-        filesystem_mtime = datetime.fromtimestamp(pf_path.stat().st_mtime).isoformat()
+        filesystem_mtime = datetime.fromtimestamp(
+            pf_path.stat().st_mtime,
+            tz=timezone.utc,
+        ).isoformat()
 
         return {
             "timestamp": filesystem_mtime,
