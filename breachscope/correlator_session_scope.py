@@ -1,10 +1,11 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
 identifiers to a host, P2-07N prevents a reused identifier on the same host
-from merging distinct logon lifecycles, and P2-07O canonicalizes equivalent
-hexadecimal identifier spellings before correlation.
+from merging distinct logon lifecycles, P2-07O canonicalizes equivalent
+hexadecimal identifier spellings before correlation, and P2-07P retains
+user-initiated logoff evidence (Security Event 4647) in the explicit session.
 """
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ def install(target_module):
     original = target_module._correlate_by_session
     raw_explicit_session_id = target_module._bs_p207i_explicit_session_id
     invalid_session_ids = target_module._BS_P207I_INVALID_SESSION_IDS
+    auth_event_ids = target_module._BS_P207I_AUTH_EVENT_IDS
     parse_timestamp = target_module._parse_timestamp
     event_identity_key = target_module.get_event_identity_key
 
@@ -34,6 +36,16 @@ def install(target_module):
 
     def explicit_session_id(event):
         session_id = raw_explicit_session_id(event)
+
+        # Security Event 4647 is a user-initiated logoff and exposes the
+        # session as TargetLogonId. P2-07I predates this event and therefore
+        # does not return it from the legacy extractor.
+        if not session_id and getattr(event, "event_id", None) == "4647":
+            raw = event.raw if isinstance(event.raw, dict) else {}
+            value = raw.get("TargetLogonId")
+            if value is not None:
+                session_id = str(value).strip()
+
         if not session_id:
             return None
 
@@ -42,10 +54,11 @@ def install(target_module):
             return None
         return canonical
 
-    # P2-07I's original correlator resolves this helper from the module global
-    # when invoked. Replace it as well so the delegated implementation groups
-    # lifecycle events using the same canonical identifier as this wrapper.
+    # P2-07I's original correlator resolves these module globals when invoked.
+    # Replace the extractor and classify 4647 as authentication evidence so a
+    # malformed/missing LogonId cannot fall back into a generic activity chain.
     target_module._bs_p207i_explicit_session_id = explicit_session_id
+    auth_event_ids.add("4647")
 
     def lifecycle_segments(grouped_events):
         """Split one host/session-id group at authoritative logon boundaries."""
@@ -55,12 +68,13 @@ def install(target_module):
             if timestamp is not None:
                 timestamped.append((timestamp, event))
 
-        # A 4624 is the lifecycle start. Put it before a 4634 when timestamps
-        # tie, then use event identity as a deterministic final tie-breaker.
+        # At an identical timestamp, keep the lifecycle order deterministic:
+        # successful logon -> initiated logoff -> completed logoff.
+        event_order = {"4624": 0, "4647": 1, "4634": 2}
         timestamped.sort(
             key=lambda item: (
                 item[0],
-                0 if item[1].event_id == "4624" else 1,
+                event_order.get(item[1].event_id, 1),
                 str(event_identity_key(item[1])),
             )
         )
@@ -71,11 +85,18 @@ def install(target_module):
         for _, event in timestamped:
             if event.event_id == "4624":
                 # Every successful-logon event starts a new lifecycle. If a
-                # prior lifecycle never emitted a logoff, do not let the next
-                # logon with a reused ID bridge the two sessions.
+                # prior lifecycle never emitted a completed logoff, do not let
+                # the next logon with a reused ID bridge the two sessions.
                 if len(current) >= 2:
                     segments.append(current)
                 current = [event]
+                continue
+
+            if event.event_id == "4647" and current:
+                # 4647 records that this account initiated logoff. Keep it as
+                # session evidence. If 4634 is absent from the collected data,
+                # this still provides a valid end observation for the chain.
+                current.append(event)
                 continue
 
             if event.event_id == "4634" and current:
@@ -143,3 +164,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
 # BREACHSCOPE_P2_07N_SESSION_LIFECYCLE_BOUNDARIES_V1
 # BREACHSCOPE_P2_07O_CANONICAL_SESSION_IDS_V1
+# BREACHSCOPE_P2_07P_USER_INITIATED_LOGOFF_V1

@@ -252,3 +252,69 @@ def test_zero_padded_hex_session_id_is_rejected_as_invalid():
     )
 
     assert _correlate_by_session([logon, logoff], []) == []
+
+
+def test_user_initiated_logoff_4647_forms_session_without_4634():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0x12345"},
+    )
+    initiated_logoff = _event(
+        event_id="4647",
+        ts=ts + timedelta(minutes=5),
+        raw={"TargetLogonId": "0X00012345"},
+    )
+
+    chains = _correlate_by_session([logon, initiated_logoff], [])
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 1
+    assert session_chains[0].chain_id == "session_win-a_0x12345"
+    assert session_chains[0].events == [logon, initiated_logoff]
+    assert session_chains[0].end_time == ts + timedelta(minutes=5)
+
+
+def test_user_initiated_logoff_4647_is_preserved_with_completed_4634():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0x12345"},
+    )
+    initiated_logoff = _event(
+        event_id="4647",
+        ts=ts + timedelta(minutes=5),
+        raw={"TargetLogonId": "0x12345"},
+    )
+    completed_logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=5, seconds=1),
+        raw={"TargetLogonId": "0x12345"},
+    )
+
+    chains = _correlate_by_session(
+        [logon, initiated_logoff, completed_logoff], []
+    )
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 1
+    assert session_chains[0].events == [logon, initiated_logoff, completed_logoff]
+    assert session_chains[0].end_time == ts + timedelta(minutes=5, seconds=1)
+
+
+def test_invalid_4647_logon_id_does_not_fall_back_to_activity():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    first = _event(
+        event_id="4647",
+        ts=ts,
+        raw={"TargetLogonId": "0X0000"},
+    )
+    second = _event(
+        event_id="4647",
+        ts=ts + timedelta(minutes=1),
+        raw={"TargetLogonId": "0x00000000"},
+    )
+
+    assert _correlate_by_session([first, second], []) == []
