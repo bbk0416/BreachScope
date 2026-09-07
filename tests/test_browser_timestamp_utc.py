@@ -31,6 +31,7 @@ def test_chromium_history_emits_explicit_utc_timestamp(
         conn.execute(
             """
             CREATE TABLE urls (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -39,8 +40,21 @@ def test_chromium_history_emits_explicit_utc_timestamp(
             """
         )
         conn.execute(
-            "INSERT INTO urls(url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?)",
-            ("https://utc.example", "utc", 1, 13_222_310_400_000_000),
+            """
+            CREATE TABLE visits (
+                id INTEGER PRIMARY KEY,
+                url INTEGER,
+                visit_time INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO urls(id, url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?, ?)",
+            (1, "https://utc.example", "utc", 1, 13_222_310_400_000_000),
+        )
+        conn.execute(
+            "INSERT INTO visits(id, url, visit_time) VALUES (?, ?, ?)",
+            (101, 1, 13_222_310_400_000_000),
         )
 
     monkeypatch.setattr(browser.platform, "system", lambda: "Windows")
@@ -50,6 +64,7 @@ def test_chromium_history_emits_explicit_utc_timestamp(
 
     assert len(events) == 1
     assert events[0]["timestamp"] == "2020-01-01T00:00:00+00:00"
+    assert events[0]["raw"]["visit_time"] == "2020-01-01T00:00:00+00:00"
     assert events[0]["raw"]["last_visit_time"] == "2020-01-01T00:00:00+00:00"
 
 
@@ -62,6 +77,7 @@ def test_firefox_history_emits_explicit_utc_timestamp(monkeypatch, tmp_path):
         conn.execute(
             """
             CREATE TABLE moz_places (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -70,8 +86,21 @@ def test_firefox_history_emits_explicit_utc_timestamp(monkeypatch, tmp_path):
             """
         )
         conn.execute(
-            "INSERT INTO moz_places(url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?)",
-            ("https://utc.example", "utc", 1, 1_700_000_000_000_000),
+            """
+            CREATE TABLE moz_historyvisits (
+                id INTEGER PRIMARY KEY,
+                place_id INTEGER,
+                visit_date INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO moz_places(id, url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?, ?)",
+            (1, "https://utc.example", "utc", 1, 1_700_000_000_000_000),
+        )
+        conn.execute(
+            "INSERT INTO moz_historyvisits(id, place_id, visit_date) VALUES (?, ?, ?)",
+            (101, 1, 1_700_000_000_000_000),
         )
 
     monkeypatch.setattr(browser.platform, "system", lambda: "Linux")
@@ -81,4 +110,5 @@ def test_firefox_history_emits_explicit_utc_timestamp(monkeypatch, tmp_path):
 
     assert len(events) == 1
     assert events[0]["timestamp"] == "2023-11-14T22:13:20+00:00"
+    assert events[0]["raw"]["visit_time"] == "2023-11-14T22:13:20+00:00"
     assert events[0]["raw"]["last_visit_time"] == "2023-11-14T22:13:20+00:00"
