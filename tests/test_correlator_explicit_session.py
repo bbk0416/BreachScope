@@ -176,13 +176,14 @@ def test_reused_session_id_on_same_host_forms_separate_lifecycle_chains():
     chains = _correlate_by_session(
         [first_logon, first_logoff, second_logon, second_logoff], []
     )
-    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+    session_chains = sorted(
+        [chain for chain in chains if chain.chain_type == "session"],
+        key=lambda chain: chain.start_time,
+    )
 
     assert len(session_chains) == 2
-    assert {tuple(chain.events) for chain in session_chains} == {
-        (first_logon, first_logoff),
-        (second_logon, second_logoff),
-    }
+    assert session_chains[0].events == [first_logon, first_logoff]
+    assert session_chains[1].events == [second_logon, second_logoff]
     assert len({chain.chain_id for chain in session_chains}) == 2
     assert all(
         chain.chain_id.startswith("session_win-a_0x12345_")
