@@ -6,6 +6,7 @@ from pathlib import Path
 from breachscope.normalizer import normalize
 from breachscope.pipeline import Pipeline
 from breachscope.schemas import Event
+from breachscope.utils import get_windows_event_record_identity
 
 
 def _event(*, record_id: str | None, host: str = "WIN-A") -> Event:
@@ -28,6 +29,22 @@ def _event(*, record_id: str | None, host: str = "WIN-A") -> Event:
         user="alice",
         command_line=" cmd.exe /c whoami ",
         raw=raw,
+    )
+
+
+def _generic_event_with_business_record_id() -> Event:
+    return Event(
+        timestamp="2026-09-07T12:00:00+00:00",
+        host="APP-A",
+        source="application",
+        event_id="message",
+        user="alice",
+        command_line="",
+        raw={
+            "channel": "alerts",
+            "record_id": "100",
+            "message": "same coarse observation",
+        },
     )
 
 
@@ -58,6 +75,34 @@ def test_normalizer_preserves_generic_duplicate_rows_without_strong_identity():
     events = list(normalize([first, duplicate]))
 
     assert events == [first, duplicate]
+
+
+def test_generic_channel_and_record_id_are_not_treated_as_windows_identity():
+    first = _generic_event_with_business_record_id()
+    duplicate = _generic_event_with_business_record_id()
+
+    assert get_windows_event_record_identity(first) == ("", "")
+    assert list(normalize([first, duplicate])) == [first, duplicate]
+
+
+def test_flattened_eventrecordid_remains_supported_for_windows_identity():
+    first = _event(record_id=None)
+    first.raw.update({"Channel": "Security", "EventRecordID": "100"})
+    duplicate = _event(record_id=None)
+    duplicate.raw.update({"Channel": "Security", "EventRecordID": "100"})
+
+    assert get_windows_event_record_identity(first) == ("Security", "100")
+    assert list(normalize([first, duplicate])) == [first]
+
+
+def test_system_record_id_alias_remains_supported_for_windows_identity():
+    first = _event(record_id=None)
+    first.raw["System"] = {"Channel": "Security", "record_id": "100"}
+    duplicate = _event(record_id=None)
+    duplicate.raw["System"] = {"Channel": "Security", "record_id": "100"}
+
+    assert get_windows_event_record_identity(first) == ("Security", "100")
+    assert list(normalize([first, duplicate])) == [first]
 
 
 def test_pipeline_max_events_counts_unique_windows_records(tmp_path: Path):
