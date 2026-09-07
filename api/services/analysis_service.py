@@ -3,7 +3,6 @@
 비즈니스 로직 처리
 """
 import os
-import tempfile
 import shutil
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -115,6 +114,10 @@ class AnalysisService:
 
         # 작업 디렉토리 생성
         work = self.workdir_service.create_work_directory(work_dir)
+        cleanup_after_analysis = (
+            not (work_dir and str(work_dir).strip())
+            and os.getenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "0") == "1"
+        )
         collected_dir = None  # collect_windows_logs에서 생성된 임시 디렉토리
         converted_dirs = []  # convert_evtx_dir에서 생성된 임시 디렉토리들
         upload_budget = UploadBudget()
@@ -268,7 +271,8 @@ class AnalysisService:
                     risk = summary.get("risk", {}) or {}
                     executive_summary = summary.get("executive_summary", []) or []
                     preview = build_preview(report_data)
-                    case_record = CaseHistoryService().register_case(work, report_data)
+                    if not cleanup_after_analysis:
+                        case_record = CaseHistoryService().register_case(work, report_data)
                 except Exception as e:
                     logger.warning(f"리포트 요약/케이스 이력 저장 실패: {e}")
 
@@ -301,10 +305,6 @@ class AnalysisService:
         finally:
             # 웹 UI는 분석 직후 다운로드 링크를 제공하므로 기본적으로 작업 디렉토리를 보존합니다.
             # 자동 정리가 필요하면 BS_WEB_CLEANUP_AFTER_ANALYSIS=1 로 명시적으로 활성화하세요.
-            should_cleanup_work = (
-                not (work_dir and work_dir.strip())
-                and os.getenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "0") == "1"
-            )
 
             # collect_windows_logs에서 생성된 임시 디렉토리 정리
             if collected_dir and collected_dir.exists():
@@ -327,17 +327,19 @@ class AnalysisService:
                     except Exception as e:
                         logger.warning(f"임시 EVTX 변환 디렉토리 정리 실패: {converted_dir} - {e}")
 
-            # 작업 디렉토리 정리 (시스템 임시 디렉토리인 경우에만)
-            if should_cleanup_work and work.exists():
+            # 명시적으로 요청한 경우 자동 생성 managed workdir을 성공 후 정리한다.
+            if cleanup_after_analysis and work.exists():
                 try:
-                    # 시스템 임시 디렉토리인지 확인 (bs_web_ 접두사)
-                    if work.name.startswith("bs_web_") or str(work).startswith(str(Path(tempfile.gettempdir()))):
+                    if is_safe_managed_delete(work):
                         shutil.rmtree(work, ignore_errors=True)
-                        logger.debug(f"임시 작업 디렉토리 정리 완료: {work}")
+                        logger.debug(f"분석 후 작업 디렉토리 자동 정리 완료: {work}")
+                    else:
+                        logger.warning("분석 후 작업 디렉토리 자동 정리 경계 검사 실패: %s", work)
                 except Exception as e:
-                    logger.warning(f"임시 작업 디렉토리 정리 실패: {work} - {e}")
+                    logger.warning(f"분석 후 작업 디렉토리 정리 실패: {work} - {e}")
 
 
 # BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1
 # BREACHSCOPE_P2_08E_RETRY_UPLOAD_NAME_COLLISION_V1
 # BREACHSCOPE_P2_08F_FAILED_ANALYSIS_EVIDENCE_CLEANUP_V1
+# BREACHSCOPE_P2_08G_SUCCESS_CLEANUP_POLICY_V1
