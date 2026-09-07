@@ -27,6 +27,36 @@ from api.services.case_history import CaseHistoryService
 logger = logging.getLogger(__name__)
 
 
+def _unique_upload_path(upload_dir: Path, safe_name: str, reserved_paths: List[Path]) -> Path:
+    """Return a basename-preserving path without overwriting existing evidence."""
+    upload_dir = Path(upload_dir)
+    safe_name = Path(safe_name).name
+    if not safe_name:
+        raise ValueError("upload filename must have a basename")
+
+    occupied = {Path(path).name.casefold() for path in reserved_paths}
+    if upload_dir.exists():
+        try:
+            occupied.update(path.name.casefold() for path in upload_dir.iterdir())
+        except OSError:
+            # The actual streamed write will surface an actionable filesystem
+            # error; do not silently choose an overwrite path here.
+            pass
+
+    if safe_name.casefold() not in occupied:
+        return upload_dir / safe_name
+
+    path_name = Path(safe_name)
+    suffixes = "".join(path_name.suffixes)
+    stem = safe_name[:-len(suffixes)] if suffixes else safe_name
+    index = 2
+    while True:
+        candidate_name = f"{stem}_{index}{suffixes}"
+        if candidate_name.casefold() not in occupied:
+            return upload_dir / candidate_name
+        index += 1
+
+
 class AnalysisService:
     """분석 서비스"""
 
@@ -102,7 +132,8 @@ class AnalysisService:
                     if not safe_name:
                         continue
                     # Path traversal 방지: 브라우저가 보낸 파일명은 항상 basename만 사용
-                    file_path = upload_dir / safe_name
+                    # P2-08C: 같은 basename 또는 기존 증거 파일을 덮어쓰지 않는다.
+                    file_path = _unique_upload_path(upload_dir, safe_name, saved_paths)
                     try:
                         written_bytes = await stream_upload_to_path(
                             file,
@@ -271,3 +302,6 @@ class AnalysisService:
                         logger.debug(f"임시 작업 디렉토리 정리 완료: {work}")
                 except Exception as e:
                     logger.warning(f"임시 작업 디렉토리 정리 실패: {work} - {e}")
+
+
+# BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1
