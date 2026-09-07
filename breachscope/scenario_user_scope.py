@@ -1,4 +1,4 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U/P2-07V.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
@@ -15,7 +15,8 @@ validity aligned with the correlator so placeholder IDs such as ``0x0`` cannot
 become cross-user evidence bridges. P2-07T canonicalizes equivalent hexadecimal
 Windows session-ID spellings so scenario identity stays aligned with correlation.
 P2-07U gives native ``TargetLogonId`` precedence over compatibility session
-aliases across flattened and nested EventData, matching the correlator.
+aliases across flattened and nested EventData, matching the correlator. P2-07V
+rejects malformed values that claim hexadecimal Windows LogonId syntax.
 """
 from __future__ import annotations
 
@@ -47,7 +48,7 @@ def _norm(value):
 
 
 def _session_norm(value):
-    """Return a canonical, non-placeholder Windows session identifier."""
+    """Return a canonical, valid Windows session identifier."""
     if isinstance(value, (list, tuple, set)):
         for item in value:
             normalized = _session_norm(item)
@@ -59,15 +60,13 @@ def _session_norm(value):
     if not normalized:
         return None
 
-    # Match P2-07O correlation semantics: equivalent hexadecimal LogonId
-    # spellings such as 0X00012345 and 0x12345 identify the same session.
-    if len(normalized) > 2 and normalized[:2] == "0x":
-        try:
-            normalized = f"0x{int(normalized[2:], 16):x}"
-        except ValueError:
-            # Preserve malformed/non-numeric legacy values rather than
-            # inventing a different identifier.
-            pass
+    # Match P2-07O/P2-07V correlation semantics: a value that claims Windows
+    # hexadecimal LogonId syntax must contain only hexadecimal digits.
+    if normalized[:2] == "0x":
+        digits = normalized[2:]
+        if not digits or any(ch not in "0123456789abcdef" for ch in digits):
+            return None
+        normalized = f"0x{int(digits, 16):x}"
 
     if normalized in _BS_P207S_INVALID_SESSION_IDS:
         return None
@@ -423,7 +422,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install P2-07J through P2-07U scenario scope functions."""
+    """Install P2-07J through P2-07V scenario scope functions."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -437,3 +436,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07S_INVALID_SESSION_IDS_V1
 # BREACHSCOPE_P2_07T_CANONICAL_SCENARIO_SESSION_IDS_V1
 # BREACHSCOPE_P2_07U_TARGET_LOGON_ID_PRECEDENCE_V1
+# BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
