@@ -51,6 +51,26 @@ def _firefox_visit_time_utc(visit_timestamp: float) -> datetime:
     return datetime.fromtimestamp(visit_timestamp, tz=timezone.utc)
 
 
+def _chromium_visit_time_iso_or_empty(value: object) -> str:
+    """잘못된 Chromium timestamp 하나가 프로필 전체 수집을 중단하지 않게 합니다."""
+    if not value:
+        return ""
+    try:
+        return _chromium_visit_time_utc(value).isoformat()  # type: ignore[arg-type]
+    except (OverflowError, OSError, TypeError, ValueError):
+        return ""
+
+
+def _firefox_visit_time_iso_or_empty(value: object) -> str:
+    """잘못된 Firefox timestamp 하나가 프로필 전체 수집을 중단하지 않게 합니다."""
+    if not value:
+        return ""
+    try:
+        return _firefox_visit_time_utc(value).isoformat()  # type: ignore[arg-type]
+    except (OverflowError, OSError, TypeError, ValueError):
+        return ""
+
+
 def _profile_databases(profile_root: Path, database_name: str) -> List[Path]:
     """프로필 루트 바로 아래에 존재하는 브라우저 DB를 결정적인 순서로 반환합니다."""
     return sorted(
@@ -157,15 +177,19 @@ def _collect_chrome_history() -> List[Dict]:
                         last_visit_timestamp,
                     ) = row
 
-                    visit_time = _chromium_visit_time_utc(visit_timestamp)
-                    last_visit_time = (
-                        _chromium_visit_time_utc(last_visit_timestamp).isoformat()
-                        if last_visit_timestamp
-                        else ""
+                    visit_time = _chromium_visit_time_iso_or_empty(visit_timestamp)
+                    if not visit_time:
+                        logger.debug(
+                            f"Chrome 잘못된 방문 시각 건너뜀 ({profile_name}, visit_id={visit_id})"
+                        )
+                        continue
+
+                    last_visit_time = _chromium_visit_time_iso_or_empty(
+                        last_visit_timestamp
                     )
 
                     event = {
-                        "timestamp": visit_time.isoformat(),
+                        "timestamp": visit_time,
                         "host": "",
                         "source": "Chrome",
                         "event_id": "browser_visit",
@@ -176,7 +200,7 @@ def _collect_chrome_history() -> List[Dict]:
                             "title": title,
                             "visit_count": visit_count,
                             "visit_id": visit_id,
-                            "visit_time": visit_time.isoformat(),
+                            "visit_time": visit_time,
                             "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
@@ -236,15 +260,19 @@ def _collect_edge_history() -> List[Dict]:
                         last_visit_timestamp,
                     ) = row
 
-                    visit_time = _chromium_visit_time_utc(visit_timestamp)
-                    last_visit_time = (
-                        _chromium_visit_time_utc(last_visit_timestamp).isoformat()
-                        if last_visit_timestamp
-                        else ""
+                    visit_time = _chromium_visit_time_iso_or_empty(visit_timestamp)
+                    if not visit_time:
+                        logger.debug(
+                            f"Edge 잘못된 방문 시각 건너뜀 ({profile_name}, visit_id={visit_id})"
+                        )
+                        continue
+
+                    last_visit_time = _chromium_visit_time_iso_or_empty(
+                        last_visit_timestamp
                     )
 
                     event = {
-                        "timestamp": visit_time.isoformat(),
+                        "timestamp": visit_time,
                         "host": "",
                         "source": "Edge",
                         "event_id": "browser_visit",
@@ -255,7 +283,7 @@ def _collect_edge_history() -> List[Dict]:
                             "title": title,
                             "visit_count": visit_count,
                             "visit_id": visit_id,
-                            "visit_time": visit_time.isoformat(),
+                            "visit_time": visit_time,
                             "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
@@ -317,15 +345,19 @@ def _collect_firefox_history() -> List[Dict]:
                         last_visit_timestamp,
                     ) = row
 
-                    visit_time = _firefox_visit_time_utc(visit_timestamp)
-                    last_visit_time = (
-                        _firefox_visit_time_utc(last_visit_timestamp).isoformat()
-                        if last_visit_timestamp
-                        else ""
+                    visit_time = _firefox_visit_time_iso_or_empty(visit_timestamp)
+                    if not visit_time:
+                        logger.debug(
+                            f"Firefox 잘못된 방문 시각 건너뜀 ({profile_name}, visit_id={visit_id})"
+                        )
+                        continue
+
+                    last_visit_time = _firefox_visit_time_iso_or_empty(
+                        last_visit_timestamp
                     )
 
                     event = {
-                        "timestamp": visit_time.isoformat(),
+                        "timestamp": visit_time,
                         "host": "",
                         "source": "Firefox",
                         "event_id": "browser_visit",
@@ -336,7 +368,7 @@ def _collect_firefox_history() -> List[Dict]:
                             "title": title,
                             "visit_count": visit_count,
                             "visit_id": visit_id,
-                            "visit_time": visit_time.isoformat(),
+                            "visit_time": visit_time,
                             "last_visit_time": last_visit_time,
                             "profile": profile_name,
                         },
