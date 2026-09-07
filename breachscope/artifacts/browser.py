@@ -6,7 +6,6 @@ from contextlib import contextmanager
 import json
 import logging
 import platform
-import shutil
 import sqlite3
 import tempfile
 from datetime import datetime, timedelta, timezone
@@ -18,10 +17,21 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def _open_sqlite_snapshot(source_path: Path) -> Iterator[sqlite3.Connection]:
-    """잠길 수 있는 브라우저 DB를 안전한 임시 복사본으로 열고 정리합니다."""
+    """브라우저 DB를 read-only로 열어 WAL까지 포함한 일관된 임시 snapshot을 만듭니다."""
     with tempfile.TemporaryDirectory(prefix="breachscope_browser_") as temp_dir:
         temp_db = Path(temp_dir) / "history.db"
-        shutil.copy2(source_path, temp_db)
+        source_uri = f"{source_path.resolve().as_uri()}?mode=ro"
+
+        source_conn = sqlite3.connect(source_uri, uri=True)
+        try:
+            snapshot_conn = sqlite3.connect(str(temp_db))
+            try:
+                source_conn.backup(snapshot_conn)
+            finally:
+                snapshot_conn.close()
+        finally:
+            source_conn.close()
+
         conn = sqlite3.connect(str(temp_db))
         try:
             yield conn

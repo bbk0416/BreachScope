@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
+import shutil
 import sqlite3
 
 import pytest
@@ -65,6 +66,36 @@ def test_browser_sqlite_snapshot_is_private_copy_and_cleans_up(tmp_path):
         assert conn.execute("SELECT value FROM marker").fetchone()[0] == "copied"
 
     assert not snapshot_dir.exists()
+
+
+def test_browser_sqlite_snapshot_includes_committed_wal_rows(tmp_path):
+    source_path = tmp_path / "History"
+    writer = sqlite3.connect(source_path)
+    try:
+        assert writer.execute("PRAGMA journal_mode=WAL").fetchone()[0].lower() == "wal"
+        writer.execute("PRAGMA wal_autocheckpoint=0")
+        writer.execute("CREATE TABLE marker (value TEXT)")
+        writer.commit()
+        writer.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+
+        writer.execute("INSERT INTO marker(value) VALUES ('wal-only')")
+        writer.commit()
+
+        wal_path = Path(f"{source_path}-wal")
+        assert wal_path.exists()
+        assert wal_path.stat().st_size > 0
+
+        main_only = tmp_path / "main-only.db"
+        shutil.copy2(source_path, main_only)
+        with sqlite3.connect(main_only) as main_only_conn:
+            assert main_only_conn.execute("SELECT COUNT(*) FROM marker").fetchone()[0] == 0
+
+        with browser._open_sqlite_snapshot(source_path) as snapshot_conn:
+            rows = snapshot_conn.execute("SELECT value FROM marker").fetchall()
+
+        assert rows == [("wal-only",)]
+    finally:
+        writer.close()
 
 
 def test_browser_sqlite_snapshot_cleans_up_after_parse_error(tmp_path):
