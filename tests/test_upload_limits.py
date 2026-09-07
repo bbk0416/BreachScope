@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api.middleware import setup_middleware
-from api.services.analysis_service import AnalysisService
+from api.services.analysis_service import AnalysisService, _unique_upload_path
 from api.services.upload_policy import (
     UploadBudget,
     UploadLimitError,
@@ -111,6 +111,93 @@ def test_file_count_limit(monkeypatch):
         validate_file_count([object(), object(), object()])
 
 
+def test_unique_upload_path_preserves_repeated_basename(tmp_path):
+    first = _unique_upload_path(tmp_path, "Security.evtx", [])
+    first.write_bytes(b"first")
+    second = _unique_upload_path(tmp_path, "Security.evtx", [first])
+    second.write_bytes(b"second")
+    third = _unique_upload_path(tmp_path, "Security.evtx", [first, second])
+    third.write_bytes(b"third")
+
+    assert [first.name, second.name, third.name] == [
+        "Security.evtx",
+        "Security_2.evtx",
+        "Security_3.evtx",
+    ]
+    assert first.read_bytes() == b"first"
+    assert second.read_bytes() == b"second"
+    assert third.read_bytes() == b"third"
+
+
+def test_unique_upload_path_treats_existing_names_case_insensitively(tmp_path):
+    existing = tmp_path / "Security.evtx"
+    existing.write_bytes(b"existing evidence")
+
+    candidate = _unique_upload_path(tmp_path, "security.evtx", [])
+
+    assert candidate.name == "security_2.evtx"
+    assert existing.read_bytes() == b"existing evidence"
+
+
+def test_analysis_service_preserves_existing_and_duplicate_uploads(tmp_path, monkeypatch):
+    work = tmp_path / "case"
+    work.mkdir()
+    existing = work / "Security.evtx"
+    existing.write_bytes(b"preexisting")
+
+    captured = {}
+
+    class FakePipeline:
+        def __init__(self, **kwargs):
+            pass
+
+        def run(self, *, input_dir, out_prefix, **kwargs):
+            captured["evidence"] = {
+                path.name: path.read_bytes()
+                for path in sorted(input_dir.glob("*.evtx"))
+            }
+            return out_prefix.with_suffix(".html"), 0
+
+    monkeypatch.setattr("api.services.analysis_service.Pipeline", FakePipeline)
+    monkeypatch.setenv("BS_UPLOAD_CHUNK_BYTES", "4")
+    monkeypatch.setenv("BS_UPLOAD_MAX_FILE_BYTES", "100")
+    monkeypatch.setenv("BS_UPLOAD_MAX_TOTAL_BYTES", "100")
+
+    service = AnalysisService()
+    monkeypatch.setattr(
+        service.workdir_service,
+        "create_work_directory",
+        lambda work_dir=None: work,
+    )
+
+    asyncio.run(
+        service.analyze(
+            files=[
+                FakeUpload("Security.evtx", b"first upload"),
+                FakeUpload("Security.evtx", b"second upload"),
+            ],
+            use_repo_rules=True,
+            min_severity="low",
+            mitre_include="",
+            mitre_exclude="",
+            host_include="",
+            redact=True,
+            render_pdf=False,
+            do_evtx=False,
+            collect_evtx=False,
+            collect_logs="",
+            collect_hours=None,
+            work_dir=str(work),
+        )
+    )
+
+    assert captured["evidence"] == {
+        "Security.evtx": b"preexisting",
+        "Security_2.evtx": b"first upload",
+        "Security_3.evtx": b"second upload",
+    }
+
+
 def test_content_length_fail_fast_returns_413(monkeypatch):
     monkeypatch.setenv("BS_DEPLOYMENT_MODE", "local")
     monkeypatch.delenv("BS_API_KEY", raising=False)
@@ -192,3 +279,4 @@ def test_p1_01_markers_present():
     assert "BREACHSCOPE_P1_01_STREAMING_UPLOAD_V1" in analysis_source
     assert "BREACHSCOPE_P1_01_REQUEST_LIMIT_V1" in middleware_source
     assert "content = await file.read()" not in analysis_source
+    assert "BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1" in analysis_source
