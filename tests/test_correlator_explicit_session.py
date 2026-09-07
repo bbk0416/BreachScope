@@ -26,6 +26,19 @@ def test_same_host_user_without_explicit_session_id_does_not_create_session_chai
     assert _correlate_by_session([first, second], []) == []
 
 
+def test_nearby_same_host_user_is_bounded_activity_not_session():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    first = _event(event_id="4688", ts=ts, raw={})
+    second = _event(event_id="4688", ts=ts + timedelta(minutes=5), raw={})
+
+    chains = _correlate_by_session([first, second], [])
+
+    assert len(chains) == 1
+    assert chains[0].chain_type == "activity"
+    assert not chains[0].chain_id.startswith("session_")
+    assert chains[0].events == [first, second]
+
+
 def test_success_logon_and_logoff_group_by_target_logon_id_not_subject_logon_id():
     ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
     logon = _event(
