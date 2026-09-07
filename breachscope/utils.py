@@ -83,20 +83,34 @@ def get_windows_event_record_identity(event: Event) -> Tuple[str, str]:
     raw = getattr(event, "raw", {}) or {}
     for mapping in _iter_event_raw_dicts(raw):
         lower = {str(k).casefold(): v for k, v in mapping.items()}
+
+        # A System mapping is explicit Windows Event Log structure, so retain
+        # the historical record_id alias there for compatibility with parsers
+        # that normalize EventRecordID field names.
         system = lower.get("system")
-        candidates = [system] if isinstance(system, dict) else []
-        candidates.append(mapping)
-        for candidate in candidates:
-            lowered = {str(k).casefold(): v for k, v in candidate.items()}
-            channel = str(lowered.get("channel") or "").strip()
+        if isinstance(system, dict):
+            lowered_system = {str(k).casefold(): v for k, v in system.items()}
+            channel = str(lowered_system.get("channel") or "").strip()
             record_id = str(
-                lowered.get("eventrecordid")
-                or lowered.get("event_record_id")
-                or lowered.get("record_id")
+                lowered_system.get("eventrecordid")
+                or lowered_system.get("event_record_id")
+                or lowered_system.get("record_id")
                 or ""
             ).strip()
             if channel and record_id:
                 return channel, record_id
+
+        # Flattened EVTX representations remain supported when they use an
+        # EventRecordID-specific field name. Do not treat generic
+        # channel+record_id business data as Windows record identity.
+        channel = str(lower.get("channel") or "").strip()
+        record_id = str(
+            lower.get("eventrecordid")
+            or lower.get("event_record_id")
+            or ""
+        ).strip()
+        if channel and record_id:
+            return channel, record_id
     return "", ""
 
 
@@ -145,3 +159,6 @@ def match_finding_to_event(finding: Finding, event: Event) -> bool:
         매칭 여부
     """
     return get_event_key(finding.event) == get_event_key(event)
+
+
+# BREACHSCOPE_P2_08B_WINDOWS_RECORD_IDENTITY_BOUNDARY_V1
