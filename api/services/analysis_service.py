@@ -26,6 +26,8 @@ from api.services.case_history import CaseHistoryService
 
 logger = logging.getLogger(__name__)
 
+MAX_UPLOAD_NAME_COLLISION_RETRIES = 8
+
 
 def _unique_upload_path(upload_dir: Path, safe_name: str, reserved_paths: List[Path]) -> Path:
     """Return a basename-preserving path without overwriting existing evidence."""
@@ -39,8 +41,8 @@ def _unique_upload_path(upload_dir: Path, safe_name: str, reserved_paths: List[P
         try:
             occupied.update(path.name.casefold() for path in upload_dir.iterdir())
         except OSError:
-            # The actual streamed write will surface an actionable filesystem
-            # error; do not silently choose an overwrite path here.
+            # The exclusive-create writer remains the final no-overwrite guard.
+            # If collision discovery is unavailable, retries are bounded below.
             pass
 
     if safe_name.casefold() not in occupied:
@@ -132,24 +134,42 @@ class AnalysisService:
                     if not safe_name:
                         continue
                     # Path traversal 방지: 브라우저가 보낸 파일명은 항상 basename만 사용
-                    # P2-08C: 같은 basename 또는 기존 증거 파일을 덮어쓰지 않는다.
-                    file_path = _unique_upload_path(upload_dir, safe_name, saved_paths)
-                    try:
-                        written_bytes = await stream_upload_to_path(
-                            file,
-                            file_path,
-                            upload_budget,
-                            filename=safe_name,
-                        )
+                    # P2-08C/D/E: 기존 증거를 덮어쓰지 않고 원자적 이름 충돌도 재시도한다.
+                    collision_retries = 0
+                    while True:
+                        file_path = _unique_upload_path(upload_dir, safe_name, saved_paths)
+                        try:
+                            written_bytes = await stream_upload_to_path(
+                                file,
+                                file_path,
+                                upload_budget,
+                                filename=safe_name,
+                            )
+                        except FileExistsError:
+                            collision_retries += 1
+                            if collision_retries >= MAX_UPLOAD_NAME_COLLISION_RETRIES:
+                                logger.error(
+                                    "업로드 이름 충돌 재시도 한도 초과: %s (%s회)",
+                                    safe_name,
+                                    collision_retries,
+                                )
+                                raise
+                            logger.warning(
+                                "업로드 이름 충돌 감지, 새 이름으로 재시도: %s",
+                                file_path,
+                            )
+                            continue
+                        except (PermissionError, OSError) as e:
+                            logger.error(f"파일 저장 실패: {file_path} - {e}")
+                            raise
+
                         created_upload_paths.append(file_path)
                         saved_paths.append(file_path)
                         logger.info(
                             f"파일 저장 완료: {file_path} "
                             f"({written_bytes} bytes)"
                         )
-                    except (PermissionError, OSError) as e:
-                        logger.error(f"파일 저장 실패: {file_path} - {e}")
-                        raise
+                        break
 
             # 규칙 디렉토리 설정
             if use_repo_rules:
@@ -305,3 +325,4 @@ class AnalysisService:
 
 
 # BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1
+# BREACHSCOPE_P2_08E_RETRY_UPLOAD_NAME_COLLISION_V1
