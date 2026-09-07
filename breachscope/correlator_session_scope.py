@@ -1,4 +1,4 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
@@ -6,8 +6,9 @@ identifiers to a host, P2-07N prevents a reused identifier on the same host
 from merging distinct logon lifecycles, P2-07O canonicalizes equivalent
 hexadecimal identifier spellings before correlation, P2-07P retains
 user-initiated logoff evidence (Security Event 4647) in the explicit session,
-and P2-07Q gives the native Windows TargetLogonId field precedence over
-compatibility SessionId aliases when both are present.
+P2-07Q gives the native Windows TargetLogonId field precedence over
+compatibility SessionId aliases when both are present, and P2-07V rejects
+malformed values that claim hexadecimal Windows LogonId syntax.
 """
 from __future__ import annotations
 
@@ -25,15 +26,13 @@ def install(target_module):
     event_identity_key = target_module.get_event_identity_key
 
     def canonical_session_id(session_id):
-        """Canonicalize equivalent hexadecimal Windows session identifiers."""
+        """Canonicalize valid hexadecimal Windows session identifiers."""
         value = str(session_id).strip()
-        if len(value) > 2 and value[:2].casefold() == "0x":
-            try:
-                return f"0x{int(value[2:], 16):x}"
-            except ValueError:
-                # Preserve malformed/non-numeric legacy values rather than
-                # inventing a different identifier.
-                return value
+        if value[:2].casefold() == "0x":
+            digits = value[2:]
+            if not digits or any(ch not in "0123456789abcdefABCDEF" for ch in digits):
+                return None
+            return f"0x{int(digits, 16):x}"
         return value
 
     def explicit_session_id(event):
@@ -49,7 +48,7 @@ def install(target_module):
             if value is None or not str(value).strip():
                 return None
             canonical = canonical_session_id(value)
-            if canonical.casefold() in invalid_session_ids:
+            if not canonical or canonical.casefold() in invalid_session_ids:
                 return None
             return canonical
 
@@ -62,7 +61,7 @@ def install(target_module):
             return None
 
         canonical = canonical_session_id(session_id)
-        if canonical.casefold() in invalid_session_ids:
+        if not canonical or canonical.casefold() in invalid_session_ids:
             return None
         return canonical
 
@@ -178,3 +177,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07O_CANONICAL_SESSION_IDS_V1
 # BREACHSCOPE_P2_07P_USER_INITIATED_LOGOFF_V1
 # BREACHSCOPE_P2_07Q_TARGET_LOGON_ID_PRECEDENCE_V1
+# BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
