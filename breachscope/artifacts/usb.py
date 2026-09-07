@@ -59,6 +59,8 @@ def collect_usb_history(
     Returns:
         USB 레지스트리 관측 이벤트 목록. 현재 구현은 실제 USB 연결 시각을
         추출하지 않으며 ``timestamp``는 명시적으로 수집 관측 시각을 뜻합니다.
+        같은 device instance의 ``FriendlyName``과 ``DeviceDesc``는 하나의 이벤트
+        ``raw.properties``에 함께 보존합니다.
     """
     if platform.system() != "Windows":
         logger.warning("USB 기록 수집은 Windows에서만 지원됩니다.")
@@ -79,7 +81,9 @@ def collect_usb_history(
             if result.returncode != 0:
                 continue
 
-            current_instance = None
+            observed_instances: Dict[str, Dict] = {}
+            current_instance: Optional[Dict[str, str]] = None
+
             for raw_line in result.stdout.splitlines():
                 line = raw_line.strip()
                 if not line:
@@ -87,6 +91,14 @@ def collect_usb_history(
 
                 if line.upper().startswith("HKEY_"):
                     current_instance = _usb_instance_from_registry_key_line(line)
+                    if current_instance is not None:
+                        observed_instances.setdefault(
+                            current_instance["registry_key"],
+                            {
+                                **current_instance,
+                                "properties": {},
+                            },
+                        )
                     continue
 
                 if current_instance and "REG_" in line:
@@ -99,30 +111,43 @@ def collect_usb_history(
                     if prop_name not in ("FriendlyName", "DeviceDesc"):
                         continue
 
-                    observation_time = datetime.now(timezone.utc).isoformat()
-                    events.append(
-                        {
-                            "timestamp": observation_time,
-                            "host": "",
-                            "source": "USB",
-                            "event_id": "usb_registry_device_observed",
-                            "event_type": "artifact_observation",
-                            "user": "",
-                            "command_line": "",
-                            "raw": {
-                                "registry_key": key_path,
-                                "instance_registry_key": current_instance["registry_key"],
-                                "hardware_id": current_instance["hardware_id"],
-                                "device_id": current_instance["device_id"],
-                                "property": prop_name,
-                                "value": prop_value,
-                                "observation_time": observation_time,
-                                "timestamp_source": "collection_time",
-                                "connection_time_verified": False,
-                                "connection_times": [],
-                            },
-                        }
-                    )
+                    observed_instances[current_instance["registry_key"]]["properties"][
+                        prop_name
+                    ] = prop_value
+
+            for instance in observed_instances.values():
+                properties = instance["properties"]
+                if not properties:
+                    continue
+
+                primary_property = (
+                    "FriendlyName" if "FriendlyName" in properties else "DeviceDesc"
+                )
+                observation_time = datetime.now(timezone.utc).isoformat()
+                events.append(
+                    {
+                        "timestamp": observation_time,
+                        "host": "",
+                        "source": "USB",
+                        "event_id": "usb_registry_device_observed",
+                        "event_type": "artifact_observation",
+                        "user": "",
+                        "command_line": "",
+                        "raw": {
+                            "registry_key": key_path,
+                            "instance_registry_key": instance["registry_key"],
+                            "hardware_id": instance["hardware_id"],
+                            "device_id": instance["device_id"],
+                            "property": primary_property,
+                            "value": properties[primary_property],
+                            "properties": dict(properties),
+                            "observation_time": observation_time,
+                            "timestamp_source": "collection_time",
+                            "connection_time_verified": False,
+                            "connection_times": [],
+                        },
+                    }
+                )
         except Exception as e:
             logger.debug(f"USB 레지스트리 관측 실패: {key_path} - {e}")
             continue
