@@ -1,4 +1,4 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V/P2-07W.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q/P2-07V/P2-07W/P2-07Y.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
@@ -8,8 +8,9 @@ hexadecimal identifier spellings before correlation, P2-07P retains
 user-initiated logoff evidence (Security Event 4647) in the explicit session,
 P2-07Q gives the native Windows TargetLogonId field precedence over
 compatibility SessionId aliases when both are present, P2-07V rejects
-malformed values that claim hexadecimal Windows LogonId syntax, and P2-07W
-exposes reused-logon lifecycle identity to downstream scenario scoping.
+malformed values that claim hexadecimal Windows LogonId syntax, P2-07W
+exposes reused-logon lifecycle identity to downstream scenario scoping, and
+P2-07Y preserves that reuse marker even when an earlier lifecycle is incomplete.
 """
 from __future__ import annotations
 
@@ -145,7 +146,18 @@ def install(target_module):
 
         for (host_key, session_id), grouped_events in sorted(explicit_groups.items()):
             lifecycles = lifecycle_segments(grouped_events)
-            reused_id = len(lifecycles) > 1
+            # P2-07Y: an incomplete earlier lifecycle may contain only its 4624
+            # and therefore be intentionally omitted from `lifecycles`. The ID
+            # was still reused, so downstream scenario scoping must retain the
+            # concrete lifecycle marker on any later valid chain. Count unique
+            # successful-logon observations using the strong event identity so
+            # a duplicate copy of the same EVTX record is not mistaken for reuse.
+            logon_starts = {
+                str(event_identity_key(event))
+                for event in grouped_events
+                if event.event_id == "4624"
+            }
+            reused_id = len(lifecycles) > 1 or len(logon_starts) > 1
 
             for lifecycle_events in lifecycles:
                 # Reuse the already-tested P2-07I implementation inside one
@@ -185,3 +197,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07Q_TARGET_LOGON_ID_PRECEDENCE_V1
 # BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
 # BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1
+# BREACHSCOPE_P2_07Y_INCOMPLETE_REUSE_LIFECYCLE_MARKER_V1
