@@ -30,6 +30,41 @@ def _finding(host: str, user: str | None, session: str | None = None):
     return SimpleNamespace(event=_event(host, user, session))
 
 
+def _raw_session_event(
+    host: str,
+    user: str | None,
+    *,
+    target: str | None = None,
+    subject: str | None = None,
+):
+    raw = {"canonical": {"host": {"name": host}}}
+    if target is not None:
+        raw["TargetLogonId"] = target
+    if subject is not None:
+        raw["SubjectLogonId"] = subject
+    return SimpleNamespace(host=host, user=user, raw=raw)
+
+
+def _raw_session_chain(
+    host: str,
+    user: str | None,
+    *,
+    target: str | None = None,
+    subject: str | None = None,
+):
+    return SimpleNamespace(
+        chain_type="session",
+        events=[
+            _raw_session_event(
+                host,
+                user,
+                target=target,
+                subject=subject,
+            )
+        ],
+    )
+
+
 def test_scenario_scope_tracks_user_identity():
     scope = scenario._bs_p005_scope(_chain("HOST-A", "CORP\\Alice"))
 
@@ -112,3 +147,47 @@ def test_other_host_finding_with_same_session_id_is_excluded():
 
     assert len(selected) == 1
     assert scenario._bs_p005_scope(selected[0])["hosts"] == {"host-a"}
+
+
+def test_target_logon_id_is_authoritative_over_subject_logon_id():
+    event = _raw_session_event(
+        "HOST-A",
+        "alice",
+        target="0x2222",
+        subject="0x1111",
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == {"0x2222"}
+
+
+def test_subject_logon_id_alone_does_not_define_scenario_session():
+    event = _raw_session_event(
+        "HOST-A",
+        "alice",
+        subject="0x1111",
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == set()
+
+
+def test_subject_logon_id_cannot_bridge_distinct_target_sessions():
+    first = _raw_session_chain(
+        "HOST-A",
+        "alice",
+        target="0x2222",
+        subject="0x1111",
+    )
+    second = _raw_session_chain(
+        "HOST-A",
+        "alice",
+        target="0x3333",
+        subject="0x2222",
+    )
+
+    groups = scenario._bs_p005_partition_chains([first, second])
+
+    assert len(groups) == 2
