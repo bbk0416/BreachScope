@@ -1,9 +1,10 @@
-"""User-aware scenario evidence scoping for P2-07J.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
 that user boundary instead of merging different users back together solely
-because they share a host.
+because they share a host. P2-07K also enforces that Windows session/logon IDs
+are host-local identifiers and must never correlate evidence across hosts.
 """
 from __future__ import annotations
 
@@ -149,14 +150,19 @@ def scope(obj, _depth=0, _seen=None):
 
 
 def related(left, right):
-    """Relate evidence without allowing host-only bridges across users."""
+    """Relate evidence without crossing host-local session or user boundaries."""
     left_sessions = left["sessions"]
     right_sessions = right["sessions"]
-    if left_sessions and right_sessions:
-        return bool(left_sessions & right_sessions)
-
     left_hosts = left["hosts"]
     right_hosts = right["hosts"]
+
+    if left_sessions and right_sessions:
+        if not (left_sessions & right_sessions):
+            return False
+        # Windows LogonId/SessionId values are host-local. A matching numeric
+        # value without a matching host must not join evidence components.
+        return bool(left_hosts and right_hosts and left_hosts & right_hosts)
+
     left_users = left["users"]
     right_users = right["users"]
 
@@ -220,7 +226,12 @@ def filter_findings(findings, component):
         finding_scope = scope(finding)
 
         if finding_scope["sessions"] and component["sessions"]:
-            if finding_scope["sessions"] & component["sessions"]:
+            if (
+                finding_scope["sessions"] & component["sessions"]
+                and finding_scope["hosts"]
+                and component["hosts"]
+                and finding_scope["hosts"] & component["hosts"]
+            ):
                 selected.append(finding)
             continue
 
@@ -267,7 +278,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install the P2-07J scope functions into ``breachscope.scenario``."""
+    """Install the P2-07J/P2-07K scope functions into ``breachscope.scenario``."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -276,4 +287,4 @@ def install(target_module):
     target_module._bs_p206b_component_namespace = component_namespace
 
 
-# BREACHSCOPE_P2_07J_SCENARIO_USER_SCOPE_V1
+# BREACHSCOPE_P2_07K_SESSION_HOST_SCOPE_V1
