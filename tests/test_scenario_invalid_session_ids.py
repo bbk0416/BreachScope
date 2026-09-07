@@ -44,6 +44,28 @@ def _finding(host: str, user: str, session):
     return SimpleNamespace(event=_event(host, user, session))
 
 
+def _conflicting_event(
+    host: str,
+    user: str,
+    target_session,
+    alias_session,
+    *,
+    nested_alias: bool = False,
+):
+    raw = {
+        "TargetLogonId": target_session,
+        "canonical": {
+            "host": {"name": host},
+            "session": {"id": target_session},
+        },
+    }
+    if nested_alias:
+        raw["event_data"] = {"SessionId": alias_session}
+    else:
+        raw["SessionId"] = alias_session
+    return SimpleNamespace(host=host, user=user, raw=raw)
+
+
 @pytest.mark.parametrize("session_id", INVALID_SESSION_IDS)
 def test_invalid_target_logon_id_does_not_define_scenario_session(session_id):
     event_scope = scenario._bs_p005_scope(_event("HOST-A", "alice", session_id))
@@ -144,3 +166,76 @@ def test_zero_padded_zero_hex_session_is_invalid():
     event_scope = scenario._bs_p005_scope(_event("HOST-A", "alice", "0X0000"))
 
     assert event_scope["sessions"] == set()
+
+
+def test_target_logon_id_precedes_conflicting_session_alias():
+    event = _conflicting_event("HOST-A", "alice", "0x1111", "0x2222")
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == {"0x1111"}
+
+
+def test_nested_event_data_session_alias_cannot_override_target_logon_id():
+    event = _conflicting_event(
+        "HOST-A",
+        "alice",
+        "0x1111",
+        "0x2222",
+        nested_alias=True,
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == {"0x1111"}
+
+
+def test_conflicting_session_alias_cannot_bridge_different_users():
+    alice = SimpleNamespace(
+        chain_type="session",
+        events=[_conflicting_event("HOST-A", "alice", "0x1111", "0x2222")],
+    )
+    bob = _chain("HOST-A", "bob", "0x2222")
+
+    groups = scenario._bs_p005_partition_chains([alice, bob])
+
+    assert len(groups) == 2
+
+
+def test_conflicting_session_alias_finding_does_not_match_alias_component():
+    component = scenario._bs_p005_component_scope(
+        [_chain("HOST-A", "bob", "0x2222")]
+    )
+    finding = SimpleNamespace(
+        event=_conflicting_event("HOST-A", "alice", "0x1111", "0x2222")
+    )
+
+    selected = scenario._bs_p005_filter_findings([finding], component)
+
+    assert selected == []
+
+
+def test_invalid_target_logon_id_does_not_fall_back_to_valid_session_alias():
+    event = _conflicting_event("HOST-A", "alice", "0x0", "0x2222")
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == set()
+
+
+def test_session_alias_remains_supported_without_target_logon_id():
+    event = SimpleNamespace(
+        host="HOST-A",
+        user="alice",
+        raw={
+            "SessionId": "0X00002222",
+            "canonical": {
+                "host": {"name": "HOST-A"},
+                "session": {"id": "0x2222"},
+            },
+        },
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == {"0x2222"}
