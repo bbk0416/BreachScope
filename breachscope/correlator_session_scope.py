@@ -1,11 +1,13 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O/P2-07P/P2-07Q.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
 identifiers to a host, P2-07N prevents a reused identifier on the same host
 from merging distinct logon lifecycles, P2-07O canonicalizes equivalent
-hexadecimal identifier spellings before correlation, and P2-07P retains
-user-initiated logoff evidence (Security Event 4647) in the explicit session.
+hexadecimal identifier spellings before correlation, P2-07P retains
+user-initiated logoff evidence (Security Event 4647) in the explicit session,
+and P2-07Q gives the native Windows TargetLogonId field precedence over
+compatibility SessionId aliases when both are present.
 """
 from __future__ import annotations
 
@@ -35,17 +37,27 @@ def install(target_module):
         return value
 
     def explicit_session_id(event):
+        raw = event.raw if isinstance(event.raw, dict) else {}
+        event_id = getattr(event, "event_id", None)
+
+        # For native Windows logon lifecycle events, TargetLogonId is the
+        # authoritative session identifier. Compatibility SessionId aliases
+        # may exist in normalized/raw payloads, but they must not override a
+        # concrete TargetLogonId that identifies a different session.
+        if event_id in ("4624", "4634", "4647") and "TargetLogonId" in raw:
+            value = raw.get("TargetLogonId")
+            if value is None or not str(value).strip():
+                return None
+            canonical = canonical_session_id(value)
+            if canonical.casefold() in invalid_session_ids:
+                return None
+            return canonical
+
         session_id = raw_explicit_session_id(event)
 
-        # Security Event 4647 is a user-initiated logoff and exposes the
-        # session as TargetLogonId. P2-07I predates this event and therefore
-        # does not return it from the legacy extractor.
-        if not session_id and getattr(event, "event_id", None) == "4647":
-            raw = event.raw if isinstance(event.raw, dict) else {}
-            value = raw.get("TargetLogonId")
-            if value is not None:
-                session_id = str(value).strip()
-
+        # Security Event 4647 is a user-initiated logoff. It has no legacy
+        # P2-07I compatibility fallback; without TargetLogonId it cannot safely
+        # establish an explicit Windows session identity.
         if not session_id:
             return None
 
@@ -165,3 +177,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07N_SESSION_LIFECYCLE_BOUNDARIES_V1
 # BREACHSCOPE_P2_07O_CANONICAL_SESSION_IDS_V1
 # BREACHSCOPE_P2_07P_USER_INITIATED_LOGOFF_V1
+# BREACHSCOPE_P2_07Q_TARGET_LOGON_ID_PRECEDENCE_V1
