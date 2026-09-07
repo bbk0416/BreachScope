@@ -1,4 +1,4 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
@@ -14,6 +14,8 @@ silently reintroducing the forbidden bridge. P2-07S keeps scenario session
 validity aligned with the correlator so placeholder IDs such as ``0x0`` cannot
 become cross-user evidence bridges. P2-07T canonicalizes equivalent hexadecimal
 Windows session-ID spellings so scenario identity stays aligned with correlation.
+P2-07U gives native ``TargetLogonId`` precedence over compatibility session
+aliases in scenario scope, matching the correlator's P2-07Q contract.
 """
 from __future__ import annotations
 
@@ -73,12 +75,13 @@ def _session_norm(value):
 
 
 def _mapping_session_provenance(mapping):
-    """Return authoritative and forbidden raw session identifiers near a mapping."""
+    """Return authoritative/forbidden raw session IDs and field presence."""
     authoritative = set()
     forbidden = set()
+    authoritative_present = False
 
     if not isinstance(mapping, Mapping):
-        return authoritative, forbidden
+        return authoritative, forbidden, authoritative_present
 
     sources = [mapping]
     folded = {str(key).casefold(): value for key, value in mapping.items()}
@@ -86,32 +89,55 @@ def _mapping_session_provenance(mapping):
     if isinstance(event_data, Mapping):
         sources.append(event_data)
 
-    for source in sources:
-        fields = {str(key).casefold(): value for key, value in source.items()}
-        for name in ("session_id", "sessionid", "targetlogonid"):
-            value = _session_norm(fields.get(name))
+    source_fields = [
+        {str(key).casefold(): value for key, value in source.items()}
+        for source in sources
+    ]
+
+    # P2-07Q established TargetLogonId as authoritative when present. Apply
+    # that precedence across the flattened raw mapping and its EventData copy,
+    # so a compatibility SessionId cannot become a second scenario identity.
+    target_present = any("targetlogonid" in fields for fields in source_fields)
+    if target_present:
+        authoritative_present = True
+        for fields in source_fields:
+            if "targetlogonid" not in fields:
+                continue
+            value = _session_norm(fields.get("targetlogonid"))
             if value:
                 authoritative.add(value)
+    else:
+        for fields in source_fields:
+            for name in ("session_id", "sessionid"):
+                if name not in fields:
+                    continue
+                authoritative_present = True
+                value = _session_norm(fields.get(name))
+                if value:
+                    authoritative.add(value)
+
+    for fields in source_fields:
         for name in ("subjectlogonid", "logonid", "logon_id"):
             value = _session_norm(fields.get(name))
             if value:
                 forbidden.add(value)
 
-    return authoritative, forbidden
+    return authoritative, forbidden, authoritative_present
 
 
 def _canonical_session_allowed(parent, session_id):
-    """Reject canonical IDs that are invalid or mirror non-authoritative raw fields."""
+    """Reject canonical IDs that conflict with authoritative raw provenance."""
     canonical_id = _session_norm(session_id)
     if not canonical_id:
         return False
 
-    authoritative, forbidden = _mapping_session_provenance(parent)
+    authoritative, forbidden, authoritative_present = _mapping_session_provenance(parent)
 
-    # When the source exposes an authoritative session ID, canonical evidence
-    # must agree with it. This prevents a SubjectLogonId-derived canonical value
-    # from coexisting with and bridging a distinct TargetLogonId/SessionId.
-    if authoritative:
+    # When the source exposes an authoritative session field, canonical
+    # evidence must agree with its valid value. Presence of an invalid native
+    # TargetLogonId also fails closed instead of falling back to a compatibility
+    # SessionId or a conflicting canonical session.
+    if authoritative_present:
         return canonical_id in authoritative
 
     # Canonical-only normalized input remains supported. But if raw provenance
@@ -123,7 +149,7 @@ def _canonical_session_allowed(parent, session_id):
     return True
 
 
-def scope(obj, _depth=0, _seen=None):
+def scope(obj, _depth=0, _seen=None, _suppress_compat_session=False):
     """Return normalized host/user/authoritative-session evidence."""
     empty = {"hosts": set(), "users": set(), "sessions": set()}
     if obj is None or _depth > 4:
@@ -158,13 +184,19 @@ def scope(obj, _depth=0, _seen=None):
 
     if isinstance(obj, Mapping):
         items = list(obj.items())
+        folded_keys = {str(key).casefold() for key, _ in items}
+        target_logon_id_present = "targetlogonid" in folded_keys
     elif isinstance(obj, (str, bytes, int, float, bool)):
         items = []
+        target_logon_id_present = False
     else:
         try:
             items = list(vars(obj).items())
         except (TypeError, AttributeError):
             items = []
+        target_logon_id_present = False
+
+    suppress_compat_session = _suppress_compat_session or target_logon_id_present
 
     for key, value in items:
         lname = str(key).casefold()
@@ -187,11 +219,15 @@ def scope(obj, _depth=0, _seen=None):
                 )
             else:
                 add_user(value)
-        elif lname in {
-            "session_id",
-            "sessionid",
-            "targetlogonid",
-        }:
+        elif lname == "targetlogonid":
+            if isinstance(value, Mapping):
+                add_session(
+                    value.get("id")
+                    or value.get("session_id")
+                )
+            else:
+                add_session(value)
+        elif lname in {"session_id", "sessionid"} and not suppress_compat_session:
             if isinstance(value, Mapping):
                 add_session(
                     value.get("id")
@@ -230,7 +266,15 @@ def scope(obj, _depth=0, _seen=None):
         ):
             children = value if isinstance(value, (list, tuple, set)) else [value]
             for child in children:
-                nested = scope(child, _depth + 1, _seen)
+                child_suppress_compat = (
+                    suppress_compat_session and lname == "event_data"
+                )
+                nested = scope(
+                    child,
+                    _depth + 1,
+                    _seen,
+                    child_suppress_compat,
+                )
                 hosts.update(nested["hosts"])
                 users.update(nested["users"])
                 sessions.update(nested["sessions"])
@@ -367,7 +411,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install the P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T scope functions."""
+    """Install the P2-07J/P2-07K/P2-07L/P2-07R/P2-07S/P2-07T/P2-07U scope functions."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -380,3 +424,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07R_CANONICAL_SESSION_PROVENANCE_V1
 # BREACHSCOPE_P2_07S_INVALID_SESSION_IDS_V1
 # BREACHSCOPE_P2_07T_CANONICAL_SCENARIO_SESSION_IDS_V1
+# BREACHSCOPE_P2_07U_TARGET_LOGON_ID_SCENARIO_PRECEDENCE_V1
