@@ -32,5 +32,16 @@ def test_source_only_mapping_is_case_insensitive(source, expected):
     assert ArtifactClassifier.classify_event(event) is expected
 
 
+def test_usb_registry_observation_is_classified_by_exact_event_semantics():
+    event = {
+        "source": "USB",
+        "event_id": "usb_registry_device_observed",
+        "event_type": "artifact_observation",
+        "command_line": "",
+    }
+
+    assert ArtifactClassifier.classify_event(event) is ArtifactCategory.REGISTRY_ARTIFACTS
+
+
 def test_category_mapping_keys_match_classifier_normalization_contract():
     assert all(key == key.lower() for key in ArtifactClassifier.CATEGORY_MAPPING)
