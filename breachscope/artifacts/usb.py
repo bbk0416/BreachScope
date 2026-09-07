@@ -15,8 +15,8 @@ from typing import Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
-def _device_id_from_registry_key_line(line: str) -> Optional[str]:
-    """USB instance registry key line에서 device instance ID를 추출합니다."""
+def _usb_instance_from_registry_key_line(line: str) -> Optional[Dict[str, str]]:
+    """USB instance registry key line에서 source key identity를 추출합니다."""
     stripped = line.strip()
     upper = stripped.upper()
     marker = "\\ENUM\\USB\\"
@@ -28,12 +28,24 @@ def _device_id_from_registry_key_line(line: str) -> Optional[str]:
     suffix = stripped[marker_index + len(marker):].strip("\\")
     parts = [part for part in suffix.split("\\") if part]
 
-    # Enum\USB\<device-id>\<instance-id> 바로 아래 instance key만 사용합니다.
+    # Enum\USB\<hardware-id>\<instance-id> 바로 아래 instance key만 사용합니다.
     # Device Parameters 같은 더 깊은 하위 키의 이름을 장치 ID로 오인하지 않습니다.
     if len(parts) != 2:
         return None
 
-    return parts[-1]
+    return {
+        "hardware_id": parts[0],
+        "device_id": parts[1],
+        "registry_key": stripped,
+    }
+
+
+def _device_id_from_registry_key_line(line: str) -> Optional[str]:
+    """USB instance registry key line에서 device instance ID를 추출합니다."""
+    instance = _usb_instance_from_registry_key_line(line)
+    if instance is None:
+        return None
+    return instance["device_id"]
 
 
 def collect_usb_history(
@@ -67,17 +79,17 @@ def collect_usb_history(
             if result.returncode != 0:
                 continue
 
-            current_device = None
+            current_instance = None
             for raw_line in result.stdout.splitlines():
                 line = raw_line.strip()
                 if not line:
                     continue
 
                 if line.upper().startswith("HKEY_"):
-                    current_device = _device_id_from_registry_key_line(line)
+                    current_instance = _usb_instance_from_registry_key_line(line)
                     continue
 
-                if current_device and "REG_" in line:
+                if current_instance and "REG_" in line:
                     parts = line.split(None, 2)
                     if len(parts) < 3:
                         continue
@@ -99,7 +111,9 @@ def collect_usb_history(
                             "command_line": "",
                             "raw": {
                                 "registry_key": key_path,
-                                "device_id": current_device,
+                                "instance_registry_key": current_instance["registry_key"],
+                                "hardware_id": current_instance["hardware_id"],
+                                "device_id": current_instance["device_id"],
                                 "property": prop_name,
                                 "value": prop_value,
                                 "observation_time": observation_time,
