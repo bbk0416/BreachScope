@@ -1,10 +1,14 @@
-"""User-aware scenario evidence scoping for P2-07J/P2-07K.
+"""User-aware scenario evidence scoping for P2-07J/P2-07K/P2-07L.
 
 P0-05 isolates scenario evidence by host/session. P2-07I introduced bounded
 ``activity`` chains keyed by host + user, so scenario inference must preserve
 that user boundary instead of merging different users back together solely
 because they share a host. P2-07K also enforces that Windows session/logon IDs
 are host-local identifiers and must never correlate evidence across hosts.
+P2-07L aligns scenario session identity with the correlator: explicit
+``SessionId``/``session_id``/``TargetLogonId`` or canonical session identity
+is authoritative; ``SubjectLogonId`` and ambiguous generic ``LogonId`` values
+must not create cross-session bridges.
 """
 from __future__ import annotations
 
@@ -33,7 +37,7 @@ def _norm(value):
 
 
 def scope(obj, _depth=0, _seen=None):
-    """Return normalized host/user/session evidence carried by an object."""
+    """Return normalized host/user/authoritative-session evidence."""
     empty = {"hosts": set(), "users": set(), "sessions": set()}
     if obj is None or _depth > 4:
         return empty
@@ -99,16 +103,12 @@ def scope(obj, _depth=0, _seen=None):
         elif lname in {
             "session_id",
             "sessionid",
-            "logonid",
-            "logon_id",
             "targetlogonid",
-            "subjectlogonid",
         }:
             if isinstance(value, Mapping):
                 add_session(
                     value.get("id")
                     or value.get("session_id")
-                    or value.get("logon_id")
                 )
             else:
                 add_session(value)
@@ -278,7 +278,7 @@ def component_namespace(chains):
 
 
 def install(target_module):
-    """Install the P2-07J/P2-07K scope functions into ``breachscope.scenario``."""
+    """Install the P2-07J/P2-07K/P2-07L scope functions into scenario."""
     target_module._bs_p005_scope = scope
     target_module._bs_p005_related = related
     target_module._bs_p005_partition_chains = partition_chains
@@ -287,4 +287,4 @@ def install(target_module):
     target_module._bs_p206b_component_namespace = component_namespace
 
 
-# BREACHSCOPE_P2_07K_SESSION_HOST_SCOPE_V1
+# BREACHSCOPE_P2_07L_AUTHORITATIVE_SESSION_SCOPE_V1
