@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 from breachscope.artifacts import prefetch
@@ -15,7 +15,7 @@ def test_prefetch_metadata_does_not_claim_filesystem_mtime_as_execution_time(tmp
     event = prefetch._parse_prefetch_file(pf_path)
 
     assert event is not None
-    expected_mtime = datetime.fromtimestamp(observed_epoch).isoformat()
+    expected_mtime = datetime.fromtimestamp(observed_epoch, tz=timezone.utc).isoformat()
     assert event["timestamp"] == expected_mtime
     assert event["source"] == "Prefetch"
     assert event["event_id"] == "prefetch_file_observed"
