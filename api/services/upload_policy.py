@@ -4,6 +4,7 @@ P1-01 invariants:
 - never materialize a complete UploadFile in memory;
 - enforce file-count, per-file, aggregate-upload and request-size ceilings;
 - unlink the partial destination when a streamed write is rejected or fails;
+- never overwrite an existing destination path;
 - limit values are configurable through environment variables.
 """
 from __future__ import annotations
@@ -119,6 +120,7 @@ async def stream_upload_to_path(
     per_file_limit = max_file_bytes()
     block_size = chunk_bytes()
     written = 0
+    created_destination = False
 
     if isinstance(source, (bytes, bytearray, memoryview)):
         blob = bytes(source)
@@ -127,17 +129,20 @@ async def stream_upload_to_path(
                 f"File {label!r} exceeds per-file limit: "
                 f"{len(blob)} bytes > {per_file_limit} bytes"
             )
-        budget.add(len(blob), filename=label)
         try:
-            with destination.open("wb") as handle:
+            with destination.open("xb") as handle:
+                created_destination = True
+                budget.add(len(blob), filename=label)
                 handle.write(blob)
         except Exception:
-            destination.unlink(missing_ok=True)
+            if created_destination:
+                destination.unlink(missing_ok=True)
             raise
         return len(blob)
 
     try:
-        with destination.open("wb") as handle:
+        with destination.open("xb") as handle:
+            created_destination = True
             while True:
                 chunk = await _read_chunk(source, block_size)
                 if not chunk:
@@ -154,7 +159,8 @@ async def stream_upload_to_path(
                 handle.write(chunk)
                 written = proposed_file
     except Exception:
-        destination.unlink(missing_ok=True)
+        if created_destination:
+            destination.unlink(missing_ok=True)
         raise
 
     return written
@@ -192,3 +198,6 @@ class UploadRequestLimitMiddleware(BaseHTTPMiddleware):
                     )
 
         return await call_next(request)
+
+
+# BREACHSCOPE_P2_08D_EXCLUSIVE_UPLOAD_CREATE_V1
