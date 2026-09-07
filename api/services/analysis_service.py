@@ -59,6 +59,28 @@ def _unique_upload_path(upload_dir: Path, safe_name: str, reserved_paths: List[P
         index += 1
 
 
+def _cleanup_failed_analysis(
+    work: Path,
+    work_dir: Optional[str],
+    created_upload_paths: List[Path],
+) -> None:
+    """Remove request-created evidence without deleting a user-supplied workdir."""
+    for uploaded_path in created_upload_paths:
+        try:
+            uploaded_path.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("실패한 분석의 업로드 파일 정리 실패: %s", uploaded_path)
+
+    if work_dir and str(work_dir).strip():
+        return
+
+    try:
+        if work.exists() and is_safe_managed_delete(work):
+            shutil.rmtree(work, ignore_errors=True)
+    except Exception as exc:
+        logger.warning("실패한 분석 작업 디렉토리 정리 실패: %s - %s", work, exc)
+
+
 class AnalysisService:
     """분석 서비스"""
 
@@ -270,18 +292,10 @@ class AnalysisService:
                 "work_dir": str(work),
             }
         except UploadLimitError:
-            for _uploaded_path in created_upload_paths:
-                try:
-                    _uploaded_path.unlink(missing_ok=True)
-                except OSError:
-                    pass
-
-            if not (work_dir and work_dir.strip()):
-                try:
-                    if work.exists() and is_safe_managed_delete(work):
-                        shutil.rmtree(work, ignore_errors=True)
-                except Exception:
-                    pass
+            _cleanup_failed_analysis(work, work_dir, created_upload_paths)
+            raise
+        except Exception:
+            _cleanup_failed_analysis(work, work_dir, created_upload_paths)
             raise
 
         finally:
@@ -326,3 +340,4 @@ class AnalysisService:
 
 # BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1
 # BREACHSCOPE_P2_08E_RETRY_UPLOAD_NAME_COLLISION_V1
+# BREACHSCOPE_P2_08F_FAILED_ANALYSIS_EVIDENCE_CLEANUP_V1
