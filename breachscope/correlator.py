@@ -636,3 +636,70 @@ def _match_event_pattern(event, patterns):
     if _match_event_pattern_p0_06(event, patterns):
         return True
     return _bs_p007_match_canonical_source(event, patterns)
+
+
+# BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V1
+# Session chains must be backed by an explicit successful Windows logon
+# session identifier. Host/user similarity is not session evidence, failed
+# logons do not establish a session, and SubjectLogonId identifies the caller
+# rather than the target session for the supported logon/logoff events.
+def _bs_p207i_explicit_session_id(event: Event) -> Optional[str]:
+    if event.event_id not in ("4624", "4634"):
+        return None
+
+    raw = event.raw if isinstance(event.raw, dict) else {}
+    for key in ("SessionId", "session_id", "TargetLogonId"):
+        value = raw.get(key)
+        if value is None:
+            continue
+        session_id = str(value).strip()
+        if session_id and session_id.casefold() not in {"0", "0x0", "-", "none", "null"}:
+            return session_id
+    return None
+
+
+def _correlate_by_session(
+    events: List[Event],
+    findings: List[Finding],
+) -> List[EventChain]:
+    """Create session chains only from explicit successful logon-session IDs."""
+    session_groups: Dict[str, List[Event]] = defaultdict(list)
+
+    for event in events:
+        session_id = _bs_p207i_explicit_session_id(event)
+        if session_id:
+            session_groups[session_id].append(event)
+
+    chains: List[EventChain] = []
+
+    for session_id, session_events in session_groups.items():
+        if len(session_events) < 2:
+            continue
+
+        session_events.sort(
+            key=lambda e: _parse_timestamp(e.timestamp) or datetime.min.replace(tzinfo=None)
+        )
+
+        session_findings: List[Finding] = []
+        session_event_keys = {get_event_identity_key(e) for e in session_events}
+        for finding in findings:
+            if get_event_identity_key(finding.event) in session_event_keys:
+                session_findings.append(finding)
+
+        start_time = _parse_timestamp(session_events[0].timestamp)
+        end_time = _parse_timestamp(session_events[-1].timestamp)
+
+        chains.append(
+            EventChain(
+                chain_id=f"session_{session_id}",
+                events=session_events,
+                findings=session_findings,
+                start_time=start_time,
+                end_time=end_time,
+                description=f"세션 {session_id}의 활동",
+                confidence=0.7,
+                chain_type="session",
+            )
+        )
+
+    return chains
