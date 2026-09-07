@@ -166,7 +166,7 @@ def _collect_chrome_history() -> List[Dict]:
                     ORDER BY visits.visit_time DESC
                 """)
 
-                for row in cursor.fetchall():
+                for row in cursor:
                     (
                         visit_id,
                         url,
@@ -248,7 +248,7 @@ def _collect_edge_history() -> List[Dict]:
                     ORDER BY visits.visit_time DESC
                 """)
 
-                for row in cursor.fetchall():
+                for row in cursor:
                     (
                         visit_id,
                         url,
@@ -332,7 +332,7 @@ def _collect_firefox_history() -> List[Dict]:
                     ORDER BY moz_historyvisits.visit_date DESC
                 """)
 
-                for row in cursor.fetchall():
+                for row in cursor:
                     (
                         visit_id,
                         url,
