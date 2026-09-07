@@ -8,6 +8,10 @@ import pytest
 from breachscope.artifacts import browser
 
 
+CHROMIUM_TIME = 13_222_310_400_000_000
+FIREFOX_TIME = 1_700_000_000_000_000
+
+
 def _make_sqlite_fixture(path: Path) -> None:
     with sqlite3.connect(path) as conn:
         conn.execute("CREATE TABLE marker (value TEXT)")
@@ -20,6 +24,7 @@ def _make_chromium_history(path: Path, url: str) -> None:
         conn.execute(
             """
             CREATE TABLE urls (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -28,8 +33,21 @@ def _make_chromium_history(path: Path, url: str) -> None:
             """
         )
         conn.execute(
-            "INSERT INTO urls(url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?)",
-            (url, "fixture", 1, 13_222_310_400_000_000),
+            """
+            CREATE TABLE visits (
+                id INTEGER PRIMARY KEY,
+                url INTEGER,
+                visit_time INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO urls(id, url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?, ?)",
+            (1, url, "fixture", 1, CHROMIUM_TIME),
+        )
+        conn.execute(
+            "INSERT INTO visits(id, url, visit_time) VALUES (?, ?, ?)",
+            (101, 1, CHROMIUM_TIME),
         )
 
 
@@ -39,6 +57,7 @@ def _make_firefox_history(path: Path, url: str) -> None:
         conn.execute(
             """
             CREATE TABLE moz_places (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -47,8 +66,21 @@ def _make_firefox_history(path: Path, url: str) -> None:
             """
         )
         conn.execute(
-            "INSERT INTO moz_places(url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?)",
-            (url, "fixture", 1, 1_700_000_000_000_000),
+            """
+            CREATE TABLE moz_historyvisits (
+                id INTEGER PRIMARY KEY,
+                place_id INTEGER,
+                visit_date INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO moz_places(id, url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?, ?)",
+            (1, url, "fixture", 1, FIREFOX_TIME),
+        )
+        conn.execute(
+            "INSERT INTO moz_historyvisits(id, place_id, visit_date) VALUES (?, ?, ?)",
+            (101, 1, FIREFOX_TIME),
         )
 
 
@@ -173,12 +205,13 @@ def test_chromium_history_requires_actual_visit_and_source_timestamp(
 ):
     history_path = tmp_path / relative_path
     history_path.parent.mkdir(parents=True, exist_ok=True)
-    valid_time = 13_222_310_400_000_000
+    valid_time = CHROMIUM_TIME
 
     with sqlite3.connect(history_path) as conn:
         conn.execute(
             """
             CREATE TABLE urls (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -186,13 +219,30 @@ def test_chromium_history_requires_actual_visit_and_source_timestamp(
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE visits (
+                id INTEGER PRIMARY KEY,
+                url INTEGER,
+                visit_time INTEGER
+            )
+            """
+        )
         conn.executemany(
-            "INSERT INTO urls(url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?)",
+            "INSERT INTO urls(id, url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?, ?)",
             [
-                ("https://valid.example", "valid", 1, valid_time),
-                ("https://unvisited.example", "unvisited", 0, valid_time + 1),
-                ("https://missing-time.example", "missing", 1, None),
-                ("https://zero-time.example", "zero", 1, 0),
+                (1, "https://valid.example", "valid", 1, valid_time),
+                (2, "https://unvisited.example", "unvisited", 0, valid_time + 1),
+                (3, "https://missing-time.example", "missing", 1, None),
+                (4, "https://zero-time.example", "zero", 1, 0),
+            ],
+        )
+        conn.executemany(
+            "INSERT INTO visits(id, url, visit_time) VALUES (?, ?, ?)",
+            [
+                (101, 1, valid_time),
+                (102, 3, None),
+                (103, 4, 0),
             ],
         )
 
@@ -203,6 +253,76 @@ def test_chromium_history_requires_actual_visit_and_source_timestamp(
 
     assert [event["raw"]["url"] for event in events] == ["https://valid.example"]
     assert events[0]["raw"]["visit_count"] == 1
+    assert events[0]["raw"]["visit_id"] == 101
+    assert events[0]["raw"]["visit_time"] == events[0]["timestamp"]
+
+
+@pytest.mark.parametrize(
+    ("collector", "relative_path"),
+    [
+        (
+            browser._collect_chrome_history,
+            "AppData/Local/Google/Chrome/User Data/Default/History",
+        ),
+        (
+            browser._collect_edge_history,
+            "AppData/Local/Microsoft/Edge/User Data/Default/History",
+        ),
+    ],
+)
+def test_chromium_history_preserves_repeated_visit_rows(
+    monkeypatch,
+    tmp_path,
+    collector,
+    relative_path,
+):
+    history_path = tmp_path / relative_path
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    earlier = CHROMIUM_TIME
+    later = CHROMIUM_TIME + 5_000_000
+
+    with sqlite3.connect(history_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE urls (
+                id INTEGER PRIMARY KEY,
+                url TEXT,
+                title TEXT,
+                visit_count INTEGER,
+                last_visit_time INTEGER
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE visits (
+                id INTEGER PRIMARY KEY,
+                url INTEGER,
+                visit_time INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO urls(id, url, title, visit_count, last_visit_time) VALUES (?, ?, ?, ?, ?)",
+            (1, "https://repeat.example", "repeat", 2, later),
+        )
+        conn.executemany(
+            "INSERT INTO visits(id, url, visit_time) VALUES (?, ?, ?)",
+            [(101, 1, earlier), (102, 1, later)],
+        )
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = collector()
+
+    assert [event["raw"]["visit_id"] for event in events] == [102, 101]
+    assert [event["raw"]["url"] for event in events] == [
+        "https://repeat.example",
+        "https://repeat.example",
+    ]
+    assert len({event["timestamp"] for event in events}) == 2
+    assert all(event["raw"]["visit_count"] == 2 for event in events)
 
 
 @pytest.mark.parametrize(
@@ -248,6 +368,7 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
         conn.execute(
             """
             CREATE TABLE moz_places (
+                id INTEGER PRIMARY KEY,
                 url TEXT,
                 title TEXT,
                 visit_count INTEGER,
@@ -255,12 +376,25 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE moz_historyvisits (
+                id INTEGER PRIMARY KEY,
+                place_id INTEGER,
+                visit_date INTEGER
+            )
+            """
+        )
         conn.executemany(
-            "INSERT INTO moz_places(url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?)",
+            "INSERT INTO moz_places(id, url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?, ?)",
             [
-                ("https://valid.example", "valid", 1, 1_700_000_000_000_000),
-                ("https://missing.example", "missing", 1, None),
+                (1, "https://valid.example", "valid", 1, FIREFOX_TIME),
+                (2, "https://missing.example", "missing", 1, None),
             ],
+        )
+        conn.executemany(
+            "INSERT INTO moz_historyvisits(id, place_id, visit_date) VALUES (?, ?, ?)",
+            [(101, 1, FIREFOX_TIME), (102, 2, None)],
         )
 
     monkeypatch.setattr(browser.platform, "system", lambda: "Linux")
@@ -272,11 +406,64 @@ def test_firefox_history_skips_rows_without_source_visit_time(monkeypatch, tmp_p
     event = events[0]
     assert event["raw"]["url"] == "https://valid.example"
     assert event["raw"]["profile"] == "fixture.default"
+    assert event["raw"]["visit_id"] == 101
     assert "command_line" not in event
     expected_time = datetime.fromtimestamp(1_700_000_000, tz=timezone.utc).isoformat()
     assert event["timestamp"] == expected_time
+    assert event["raw"]["visit_time"] == expected_time
     assert event["raw"]["last_visit_time"] == expected_time
     assert "https://missing.example" not in {item["raw"]["url"] for item in events}
+
+
+def test_firefox_history_preserves_repeated_visit_rows(monkeypatch, tmp_path):
+    profile_dir = tmp_path / ".mozilla" / "firefox" / "fixture.default"
+    profile_dir.mkdir(parents=True)
+    history_path = profile_dir / "places.sqlite"
+    earlier = FIREFOX_TIME
+    later = FIREFOX_TIME + 5_000_000
+
+    with sqlite3.connect(history_path) as conn:
+        conn.execute(
+            """
+            CREATE TABLE moz_places (
+                id INTEGER PRIMARY KEY,
+                url TEXT,
+                title TEXT,
+                visit_count INTEGER,
+                last_visit_date INTEGER
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE moz_historyvisits (
+                id INTEGER PRIMARY KEY,
+                place_id INTEGER,
+                visit_date INTEGER
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO moz_places(id, url, title, visit_count, last_visit_date) VALUES (?, ?, ?, ?, ?)",
+            (1, "https://repeat.example", "repeat", 2, later),
+        )
+        conn.executemany(
+            "INSERT INTO moz_historyvisits(id, place_id, visit_date) VALUES (?, ?, ?)",
+            [(101, 1, earlier), (102, 1, later)],
+        )
+
+    monkeypatch.setattr(browser.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(browser.Path, "home", classmethod(lambda cls: tmp_path))
+
+    events = browser._collect_firefox_history()
+
+    assert [event["raw"]["visit_id"] for event in events] == [102, 101]
+    assert [event["raw"]["url"] for event in events] == [
+        "https://repeat.example",
+        "https://repeat.example",
+    ]
+    assert len({event["timestamp"] for event in events}) == 2
+    assert all(event["raw"]["visit_count"] == 2 for event in events)
 
 
 def test_firefox_history_collects_all_profiles_with_provenance(monkeypatch, tmp_path):
