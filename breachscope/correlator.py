@@ -638,11 +638,16 @@ def _match_event_pattern(event, patterns):
     return _bs_p007_match_canonical_source(event, patterns)
 
 
-# BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V1
-# Session chains must be backed by an explicit successful Windows logon
-# session identifier. Host/user similarity is not session evidence, failed
-# logons do not establish a session, and SubjectLogonId identifies the caller
-# rather than the target session for the supported logon/logoff events.
+# BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V2
+# A real "session" chain requires an explicit successful Windows logon-session
+# identifier. The historical host/user fallback is retained only as a bounded
+# generic activity chain so it cannot be misrepresented as session evidence or
+# grow across an entire case timeline.
+_BS_P207I_ACTIVITY_WINDOW = timedelta(minutes=30)
+_BS_P207I_AUTH_EVENT_IDS = {"4624", "4634", "4625"}
+_BS_P207I_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
+
+
 def _bs_p207i_explicit_session_id(event: Event) -> Optional[str]:
     if event.event_id not in ("4624", "4634"):
         return None
@@ -653,39 +658,98 @@ def _bs_p207i_explicit_session_id(event: Event) -> Optional[str]:
         if value is None:
             continue
         session_id = str(value).strip()
-        if session_id and session_id.casefold() not in {"0", "0x0", "-", "none", "null"}:
+        if (
+            session_id
+            and session_id.casefold() not in _BS_P207I_INVALID_SESSION_IDS
+        ):
             return session_id
     return None
+
+
+def _bs_p207i_findings_for_events(
+    events: List[Event],
+    findings: List[Finding],
+) -> List[Finding]:
+    event_keys = {get_event_identity_key(event) for event in events}
+    return [
+        finding
+        for finding in findings
+        if get_event_identity_key(finding.event) in event_keys
+    ]
+
+
+def _bs_p207i_activity_segments(events: List[Event]) -> List[List[Event]]:
+    timestamped = []
+    for event in events:
+        timestamp = _parse_timestamp(event.timestamp)
+        if timestamp is not None:
+            timestamped.append((timestamp, event))
+
+    timestamped.sort(key=lambda item: item[0])
+    segments: List[List[Event]] = []
+    current: List[Event] = []
+    segment_start: Optional[datetime] = None
+
+    for timestamp, event in timestamped:
+        if not current:
+            current = [event]
+            segment_start = timestamp
+            continue
+
+        if (
+            segment_start is not None
+            and timestamp - segment_start <= _BS_P207I_ACTIVITY_WINDOW
+        ):
+            current.append(event)
+            continue
+
+        if len(current) >= 2:
+            segments.append(current)
+        current = [event]
+        segment_start = timestamp
+
+    if len(current) >= 2:
+        segments.append(current)
+
+    return segments
 
 
 def _correlate_by_session(
     events: List[Event],
     findings: List[Finding],
 ) -> List[EventChain]:
-    """Create session chains only from explicit successful logon-session IDs."""
+    """Build explicit session chains plus bounded host/user activity chains."""
     session_groups: Dict[str, List[Event]] = defaultdict(list)
+    activity_groups: Dict[Tuple[str, str], List[Event]] = defaultdict(list)
 
     for event in events:
         session_id = _bs_p207i_explicit_session_id(event)
         if session_id:
             session_groups[session_id].append(event)
+            continue
+
+        # Authentication events without a valid successful session ID are not
+        # safe inputs for the generic host/user fallback. In particular, a
+        # failed logon (4625) never establishes a session or activity chain.
+        if event.event_id in _BS_P207I_AUTH_EVENT_IDS:
+            continue
+
+        host = (event.host or "").strip()
+        user = (event.user or "").strip()
+        if host and user:
+            activity_groups[(host.casefold(), user.casefold())].append(event)
 
     chains: List[EventChain] = []
 
-    for session_id, session_events in session_groups.items():
+    for session_id, grouped_events in sorted(session_groups.items()):
+        session_events = [
+            event for event in grouped_events if _parse_timestamp(event.timestamp)
+        ]
+        session_events.sort(key=lambda event: _parse_timestamp(event.timestamp))
         if len(session_events) < 2:
             continue
 
-        session_events.sort(
-            key=lambda e: _parse_timestamp(e.timestamp) or datetime.min.replace(tzinfo=None)
-        )
-
-        session_findings: List[Finding] = []
-        session_event_keys = {get_event_identity_key(e) for e in session_events}
-        for finding in findings:
-            if get_event_identity_key(finding.event) in session_event_keys:
-                session_findings.append(finding)
-
+        session_findings = _bs_p207i_findings_for_events(session_events, findings)
         start_time = _parse_timestamp(session_events[0].timestamp)
         end_time = _parse_timestamp(session_events[-1].timestamp)
 
@@ -701,5 +765,35 @@ def _correlate_by_session(
                 chain_type="session",
             )
         )
+
+    activity_number = 0
+    for _, grouped_events in sorted(activity_groups.items()):
+        for activity_events in _bs_p207i_activity_segments(grouped_events):
+            activity_number += 1
+            start_time = _parse_timestamp(activity_events[0].timestamp)
+            end_time = _parse_timestamp(activity_events[-1].timestamp)
+            activity_findings = _bs_p207i_findings_for_events(
+                activity_events, findings
+            )
+            time_span = (
+                end_time - start_time
+                if start_time is not None and end_time is not None
+                else None
+            )
+
+            chains.append(
+                EventChain(
+                    chain_id=f"activity_{activity_number}",
+                    events=activity_events,
+                    findings=activity_findings,
+                    start_time=start_time,
+                    end_time=end_time,
+                    description="동일 호스트/사용자의 30분 이내 활동 묶음",
+                    confidence=_calculate_chain_confidence(
+                        activity_events, activity_findings, time_span
+                    ),
+                    chain_type="activity",
+                )
+            )
 
     return chains
