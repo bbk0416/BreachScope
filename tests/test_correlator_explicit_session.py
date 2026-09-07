@@ -148,3 +148,70 @@ def test_explicit_session_without_host_does_not_form_session_chain():
     )
 
     assert _correlate_by_session([logon, logoff], []) == []
+
+
+def test_reused_session_id_on_same_host_forms_separate_lifecycle_chains():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    first_logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0x12345"},
+    )
+    first_logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=5),
+        raw={"TargetLogonId": "0x12345"},
+    )
+    second_logon = _event(
+        event_id="4624",
+        ts=ts + timedelta(days=2),
+        raw={"TargetLogonId": "0x12345"},
+    )
+    second_logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(days=2, minutes=5),
+        raw={"TargetLogonId": "0x12345"},
+    )
+
+    chains = _correlate_by_session(
+        [first_logon, first_logoff, second_logon, second_logoff], []
+    )
+    session_chains = sorted(
+        [chain for chain in chains if chain.chain_type == "session"],
+        key=lambda chain: chain.start_time,
+    )
+
+    assert len(session_chains) == 2
+    assert session_chains[0].events == [first_logon, first_logoff]
+    assert session_chains[1].events == [second_logon, second_logoff]
+    assert len({chain.chain_id for chain in session_chains}) == 2
+    assert all(
+        chain.chain_id.startswith("session_win-a_0x12345_")
+        for chain in session_chains
+    )
+
+
+def test_new_logon_starts_new_lifecycle_when_previous_logoff_is_missing():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    orphaned_logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0x12345"},
+    )
+    later_logon = _event(
+        event_id="4624",
+        ts=ts + timedelta(days=2),
+        raw={"TargetLogonId": "0x12345"},
+    )
+    later_logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(days=2, minutes=5),
+        raw={"TargetLogonId": "0x12345"},
+    )
+
+    chains = _correlate_by_session([orphaned_logon, later_logon, later_logoff], [])
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 1
+    assert session_chains[0].events == [later_logon, later_logoff]
+    assert orphaned_logon not in session_chains[0].events
