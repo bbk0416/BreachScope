@@ -95,3 +95,52 @@ def test_scenario_invalid_id_contract_matches_correlator():
         scenario_user_scope._BS_P207S_INVALID_SESSION_IDS
         == correlator._BS_P207I_INVALID_SESSION_IDS
     )
+
+
+def test_equivalent_hex_session_ids_share_one_scenario_identity():
+    padded = _chain("HOST-A", "alice", "0X00012345")
+    canonical = _chain("HOST-A", "alice", "0x12345")
+
+    padded_scope = scenario._bs_p005_scope(padded)
+    canonical_scope = scenario._bs_p005_scope(canonical)
+    groups = scenario._bs_p005_partition_chains([padded, canonical])
+
+    assert padded_scope["sessions"] == {"0x12345"}
+    assert canonical_scope["sessions"] == {"0x12345"}
+    assert len(groups) == 1
+    assert len(groups[0]) == 2
+
+
+def test_equivalent_hex_session_finding_matches_component():
+    component = scenario._bs_p005_component_scope(
+        [_chain("HOST-A", "alice", "0x12345")]
+    )
+    finding = _finding("HOST-A", "alice", "0X00012345")
+
+    selected = scenario._bs_p005_filter_findings([finding], component)
+
+    assert selected == [finding]
+
+
+def test_canonical_session_can_match_zero_padded_raw_target_logon_id():
+    event = SimpleNamespace(
+        host="HOST-A",
+        user="alice",
+        raw={
+            "TargetLogonId": "0X00012345",
+            "canonical": {
+                "host": {"name": "HOST-A"},
+                "session": {"id": "0x12345"},
+            },
+        },
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["sessions"] == {"0x12345"}
+
+
+def test_zero_padded_zero_hex_session_is_invalid():
+    event_scope = scenario._bs_p005_scope(_event("HOST-A", "alice", "0X0000"))
+
+    assert event_scope["sessions"] == set()
