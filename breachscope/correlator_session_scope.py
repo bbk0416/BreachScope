@@ -1,9 +1,10 @@
-"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N.
+"""Host-scope explicit Windows logon-session chains for P2-07M/P2-07N/P2-07O.
 
 Windows LogonId/SessionId values are local to one host. P2-07I established
 which fields may define an explicit successful session, P2-07M scoped those
-identifiers to a host, and P2-07N prevents a reused identifier on the same host
-from merging distinct logon lifecycles into one session chain.
+identifiers to a host, P2-07N prevents a reused identifier on the same host
+from merging distinct logon lifecycles, and P2-07O canonicalizes equivalent
+hexadecimal identifier spellings before correlation.
 """
 from __future__ import annotations
 
@@ -14,9 +15,37 @@ from collections import defaultdict
 def install(target_module):
     """Install host-scoped, lifecycle-bounded explicit-session correlation."""
     original = target_module._correlate_by_session
-    explicit_session_id = target_module._bs_p207i_explicit_session_id
+    raw_explicit_session_id = target_module._bs_p207i_explicit_session_id
+    invalid_session_ids = target_module._BS_P207I_INVALID_SESSION_IDS
     parse_timestamp = target_module._parse_timestamp
     event_identity_key = target_module.get_event_identity_key
+
+    def canonical_session_id(session_id):
+        """Canonicalize equivalent hexadecimal Windows session identifiers."""
+        value = str(session_id).strip()
+        if len(value) > 2 and value[:2].casefold() == "0x":
+            try:
+                return f"0x{int(value[2:], 16):x}"
+            except ValueError:
+                # Preserve malformed/non-numeric legacy values rather than
+                # inventing a different identifier.
+                return value
+        return value
+
+    def explicit_session_id(event):
+        session_id = raw_explicit_session_id(event)
+        if not session_id:
+            return None
+
+        canonical = canonical_session_id(session_id)
+        if canonical.casefold() in invalid_session_ids:
+            return None
+        return canonical
+
+    # P2-07I's original correlator resolves this helper from the module global
+    # when invoked. Replace it as well so the delegated implementation groups
+    # lifecycle events using the same canonical identifier as this wrapper.
+    target_module._bs_p207i_explicit_session_id = explicit_session_id
 
     def lifecycle_segments(grouped_events):
         """Split one host/session-id group at authoritative logon boundaries."""
@@ -77,7 +106,7 @@ def install(target_module):
             # Do not fabricate a global session identity when host is absent.
             host = (getattr(event, "host", None) or "").strip()
             if host:
-                explicit_groups[(host.casefold(), str(session_id))].append(event)
+                explicit_groups[(host.casefold(), session_id)].append(event)
 
         chains = []
 
@@ -113,3 +142,4 @@ def install(target_module):
 
 # BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
 # BREACHSCOPE_P2_07N_SESSION_LIFECYCLE_BOUNDARIES_V1
+# BREACHSCOPE_P2_07O_CANONICAL_SESSION_IDS_V1

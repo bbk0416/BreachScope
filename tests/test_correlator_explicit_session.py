@@ -215,3 +215,40 @@ def test_new_logon_starts_new_lifecycle_when_previous_logoff_is_missing():
     assert len(session_chains) == 1
     assert session_chains[0].events == [later_logon, later_logoff]
     assert orphaned_logon not in session_chains[0].events
+
+
+def test_equivalent_hex_session_id_spellings_form_one_session_chain():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0X00012345"},
+    )
+    logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=5),
+        raw={"TargetLogonId": "0x12345"},
+    )
+
+    chains = _correlate_by_session([logon, logoff], [])
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 1
+    assert session_chains[0].chain_id == "session_win-a_0x12345"
+    assert session_chains[0].events == [logon, logoff]
+
+
+def test_zero_padded_hex_session_id_is_rejected_as_invalid():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"TargetLogonId": "0X0000"},
+    )
+    logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=1),
+        raw={"TargetLogonId": "0x00000000"},
+    )
+
+    assert _correlate_by_session([logon, logoff], []) == []
