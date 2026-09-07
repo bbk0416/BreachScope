@@ -43,7 +43,7 @@ def test_usb_registry_observation_does_not_claim_collection_time_as_connection_t
     assert raw["connection_times"] == []
 
 
-def test_usb_observation_keeps_user_activity_classification(monkeypatch):
+def test_usb_registry_observation_is_classified_as_registry_artifact(monkeypatch):
     monkeypatch.setattr(usb.platform, "system", lambda: "Windows")
     monkeypatch.setattr(
         usb.subprocess,
@@ -53,7 +53,7 @@ def test_usb_observation_keeps_user_activity_classification(monkeypatch):
 
     event = usb.collect_usb_history()[0]
 
-    assert ArtifactClassifier.classify_event(event) is ArtifactCategory.USER_ACTIVITY
+    assert ArtifactClassifier.classify_event(event) is ArtifactCategory.REGISTRY_ARTIFACTS
 
 
 def test_usb_non_windows_behavior_is_unchanged(monkeypatch):
