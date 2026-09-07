@@ -164,7 +164,6 @@ def _collect_chrome_history() -> List[Dict]:
                     WHERE visits.visit_time IS NOT NULL
                       AND visits.visit_time > 0
                     ORDER BY visits.visit_time DESC
-                    LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
@@ -247,7 +246,6 @@ def _collect_edge_history() -> List[Dict]:
                     WHERE visits.visit_time IS NOT NULL
                       AND visits.visit_time > 0
                     ORDER BY visits.visit_time DESC
-                    LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
@@ -332,7 +330,6 @@ def _collect_firefox_history() -> List[Dict]:
                     WHERE moz_historyvisits.visit_date IS NOT NULL
                       AND moz_historyvisits.visit_date > 0
                     ORDER BY moz_historyvisits.visit_date DESC
-                    LIMIT 1000
                 """)
 
                 for row in cursor.fetchall():
