@@ -318,3 +318,40 @@ def test_invalid_4647_logon_id_does_not_fall_back_to_activity():
     )
 
     assert _correlate_by_session([first, second], []) == []
+
+
+def test_target_logon_id_precedes_conflicting_generic_session_id():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"SessionId": "111", "TargetLogonId": "0X00012345"},
+    )
+    logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=5),
+        raw={"SessionId": "222", "TargetLogonId": "0x12345"},
+    )
+
+    chains = _correlate_by_session([logon, logoff], [])
+    session_chains = [chain for chain in chains if chain.chain_type == "session"]
+
+    assert len(session_chains) == 1
+    assert session_chains[0].chain_id == "session_win-a_0x12345"
+    assert session_chains[0].events == [logon, logoff]
+
+
+def test_invalid_target_logon_id_does_not_fall_back_to_generic_session_id():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    logon = _event(
+        event_id="4624",
+        ts=ts,
+        raw={"SessionId": "77", "TargetLogonId": "0X0000"},
+    )
+    logoff = _event(
+        event_id="4634",
+        ts=ts + timedelta(minutes=1),
+        raw={"SessionId": "77", "TargetLogonId": "0x00000000"},
+    )
+
+    assert _correlate_by_session([logon, logoff], []) == []
