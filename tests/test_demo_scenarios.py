@@ -9,7 +9,9 @@ from breachscope.demo_scenarios import (
 )
 from breachscope.rules import load_rules
 from breachscope.analyzer import apply_rules
+from breachscope.correlator import correlate_events
 from breachscope.pipeline import run_pipeline
+from breachscope.scenario import infer_scenarios
 
 
 def test_demo_scenarios_catalog_has_ten_entries():
@@ -52,6 +54,21 @@ def test_demo_scenario_summary_context(tmp_path: Path):
     assert summary[0]["events"] == len(events)
     assert summary[0]["findings"] >= 3
     assert "T1547.001" in summary[0]["matched_techniques"]
+
+
+def test_all_demo_scenarios_preserve_correlation_and_inference_depth(tmp_path: Path):
+    input_dir = tmp_path / "scenarios"
+    write_demo_scenario("all", input_dir)
+    events = list(load_jsonl_events(input_dir))
+    findings = list(apply_rules(events, load_rules(Path("rules"))))
+
+    chains = correlate_events(events, findings)
+    scenarios = infer_scenarios(chains, findings)
+
+    assert len(chains) >= 10
+    assert len(scenarios) >= 5
+    assert all(chain.chain_type != "session" for chain in chains)
+    assert any(chain.chain_type == "activity" for chain in chains)
 
 
 def test_pipeline_all_demo_scenarios_exports_sample_summary(tmp_path: Path):
