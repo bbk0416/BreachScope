@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import tempfile
 import json
 import logging
@@ -13,6 +14,20 @@ from .ingest import convert_evtx_dir, collect_windows_logs
 from .validator import validate_input
 
 logger = logging.getLogger(__name__)
+
+
+def _configure_utf8_stdio(*streams) -> None:
+    targets = streams or (sys.stdout, sys.stderr)
+    for stream in targets:
+        reconfigure = getattr(stream, "reconfigure", None)
+        if not callable(reconfigure):
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            # Some redirected/captured streams cannot be reconfigured.
+            # Keep their existing behavior rather than failing CLI startup.
+            continue
 
 
 def _write_demo_logs() -> Path:
@@ -52,6 +67,8 @@ def _write_demo_logs() -> Path:
 
 
 def main():
+    _configure_utf8_stdio()
+
     ap = argparse.ArgumentParser(
         description="BreachScope MVP 파이프라인 (한국어)")
     ap.add_argument("--input", help="입력 로그 폴더(JSONL 파일)")
