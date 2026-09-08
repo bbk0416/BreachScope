@@ -1,0 +1,61 @@
+schema: breachscope.p2_10b_remediation_measurement.v1
+remediation_id: p2-10b-wmi-remote-xsl
+from_rules_tree_sha256: 8ade507d0abf4a0495b44cde4268245dab8c5f9d58d2eb5b47ebee8b7a5de185
+to_rules_tree_sha256: 1b8daa1d58f5775e42a0c125ce512ef9c454dab5979bc2dc76450ce944d40f8c
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-WMI-XSL-Format
+  name: WMI Remote XSL Format Execution
+  severity: low
+  mitre_technique: T1047
+  predicate:
+    command_line_contains: wmic
+    command_line_contains_remote_format: '/format:"http'
+    event_id_equals: "1"
+    source_equals: Microsoft-Windows-Sysmon
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 3
+  after_scenario_hits: 4
+  scenario_misses: 6
+  scenario_total: 10
+  after_scenario_hit_rate: 0.4
+  findings: 5
+  flagged_events: 5
+  changed_scenario:
+    scenario_id: exec-wmi-xsl
+    expected_technique: T1047
+    before_status: miss
+    after_status: hit
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  non_sysmon_events_from_p2_09d: 34423
+  non_sysmon_provider_disjoint_from_rule_source_predicate: true
+  sysmon_source_file: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  sysmon_chunks_scanned: 11894
+  sysmon_events_scanned: 732200
+  broad_wmic_command_lines: 0
+  broad_format_command_lines: 0
+  broad_wmic_and_format_matches: 0
+  final_remote_xsl_predicate_matches: 0
+  proof_note: The full pinned Sysmon source was normalized with python-evtx 0.8.1 and BreachScope _extract_from_xml in eight disjoint chunk shards. No normalized command line contained even the broader wmic or /format: strings, so the narrower wmic + /format:"http predicate also had zero matches. Non-Sysmon events are provider-disjoint from the rule.
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  attack_measurement_repo_commit: d5c863e05c6cb4cee9d36223870d600a00e8c51d
+  attack_github_actions_run_id: 34227039039
+  benign_probe_repo_commit: ad39c07ea78cc62f0707a9b27bb3026e58184239
+  benign_github_actions_run_id: 34226199274
+  benign_shards: 8
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No event matching even the broader wmic + /format: condition was observed in all 732,200 normalized Sysmon events; the other 34,423 benign events are outside the rule's Sysmon provider predicate.
