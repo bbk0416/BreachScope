@@ -1,231 +1,131 @@
-# BreachScope 성능 가이드
+# BreachScope 성능 상태
 
-## 성능 모니터링
+이 문서는 **현재 저장소에서 재현 가능한 사실만** 기록합니다.
 
-BreachScope는 각 단계별 실행 시간을 로깅하여 성능을 추적합니다.
+과거 문서에 있던 1,000 / 10,000 / 100,000 / 1,000,000 이벤트 처리 시간, 메모리 사용량, “병렬 처리 2~4배 향상”, “SQLite 배치 삽입 5~10배 향상” 같은 숫자는 이번 P2-09A Truth Pass에서 제거했습니다.
 
-### 로그 레벨 설정
+이유는 간단합니다. 현재 저장소에는 그 숫자들을 동일 조건에서 재현하고 결과를 검증하는 benchmark runner와 원본 결과가 연결되어 있지 않습니다. 따라서 그 수치를 현재 성능 보장처럼 유지하지 않습니다.
 
-```python
-import logging
-logging.basicConfig(level=logging.INFO)
-```
+## 현재 코드에서 확인되는 동작
 
-또는 환경 변수:
-```bash
-export BS_LOG_LEVEL=INFO
-```
+### 1. 이벤트는 일반 실행에서 메모리에 모입니다
 
-### 성능 로그 예시
+`Pipeline.collect_events()`는 정규화된 이벤트를 최종적으로 리스트로 구성합니다.
 
-```
-============================================================
-파이프라인 실행 시작
-============================================================
-3개 JSONL 파일 발견
-총 15234개 이벤트 수집 완료 (총 2.45초, 평균 6210 이벤트/초)
-이벤트 수집 완료: 15234개
-✓ 이벤트 수집 완료 (2.45초)
-규칙 기반 분석 시작: 15개 규칙, 15234개 이벤트
-분석 완료: 42개 탐지 결과
-✓ 분석 완료 (1.23초)
-상관분석 시작: 15234개 이벤트, 42개 탐지 결과
-상관분석 완료: 8개 이벤트 체인 생성
-✓ 상관분석 완료 (0.87초)
-시나리오 추론 시작: 8개 체인
-시나리오 추론 완료: 3개 시나리오 생성
-✓ 시나리오 추론 완료 (0.12초)
-리포트 생성 시작: out/report.html
-HTML 리포트 생성 완료: out/report.html
-✓ 리포트 빌드 완료 (0.34초)
-✓ 리포트 내보내기 완료 (0.15초)
-============================================================
-파이프라인 실행 완료 (총 5.16초)
-  - 이벤트: 15234개
-  - 탐지 결과: 42개
-  - 이벤트 체인: 8개
-  - 시나리오: 3개
-============================================================
-```
+- `max_events`가 있으면 지정 개수까지만 리스트에 담습니다.
+- 제한이 없으면 전체 normalized iterator를 리스트로 변환합니다.
 
-## 성능 최적화 팁
+따라서 현재 기본 파이프라인을 **완전한 streaming 분석기**로 표현하면 안 됩니다. 큰 corpus에서는 메모리 사용량을 실제 측정해야 합니다.
 
-### 1. 병렬 처리 활성화
+### 2. 병렬 처리는 detection 단계에 적용됩니다
 
-대량의 이벤트를 처리할 때 병렬 처리를 활성화하면 2-4배 성능 향상을 기대할 수 있습니다:
+현재 `Pipeline.analyze()`는 병렬 처리가 활성화되어 있고 이벤트가 충분히 많을 때 `apply_rules_parallel()` 경로를 사용할 수 있습니다.
 
-```python
-pipeline = Pipeline(
-    rules_dir=Path("rules"),
-    enable_parallel=True,      # 병렬 처리 활성화
-    max_workers=4,             # 워커 수 (기본값: CPU 코어 수)
-)
-```
+이 기능이 존재한다는 것과 전체 파이프라인이 몇 배 빨라진다는 것은 다른 주장입니다. 수집, 상관분석, 시나리오 처리, 리포트 생성까지 포함한 end-to-end 성능 향상률은 별도 benchmark로 측정해야 합니다.
 
-**자동 활성화 조건**:
-- 이벤트 수가 1,000개 이상일 때 자동 활성화
-- 워커 수는 CPU 코어 수에 따라 자동 결정
+### 3. SQLite 최적화 모듈은 존재합니다
 
-### 2. SQLite 최적화
+`breachscope/storage.py`에는 SQLite 기반 저장소와 WAL, index, batch insert 관련 구현이 있습니다.
 
-BreachScope는 자동으로 SQLite를 최적화합니다:
+다만 현재 기본 CLI/Web 분석 흐름의 case lifecycle을 SQLite가 전부 담당하는 구조로 보기는 어렵습니다. 기본 case history는 filesystem과 case-history index를 사용합니다.
 
-- **WAL 모드**: Write-Ahead Logging으로 동시성 향상
-- **배치 삽입**: `executemany`를 사용하여 5-10배 성능 향상
-- **복합 인덱스**: 자주 사용되는 쿼리 패턴에 대한 인덱스 자동 생성
-  - `idx_events_host_timestamp`: 호스트 및 타임스탬프 기반 검색
-  - `idx_events_source_timestamp`: 소스 및 타임스탬프 기반 검색
-  - `idx_events_hash`: 중복 검사 최적화
+따라서 SQLite 설정을 근거로 전체 제품 처리량을 추정하지 않습니다.
 
-### 3. 대용량 파일 처리
+### 4. 실행 시간 로그는 성능 측정 보조자료입니다
 
-`max_events` 파라미터를 사용하여 처리할 이벤트 수를 제한할 수 있습니다:
+Pipeline은 주요 단계 시간을 로그로 남깁니다. 이 값은 개별 실행 상태를 보는 데 유용하지만, 동일 corpus/동일 commit/동일 하드웨어에서 반복 측정하지 않은 단일 로그를 공식 benchmark로 사용하지 않습니다.
 
-```python
-pipeline = Pipeline(
-    rules_dir=Path("rules"),
-    max_events=10000,  # 최대 10,000개 이벤트만 처리
-)
-```
+## 현재 성능 주장 범위
 
-또는 환경 변수:
-```bash
-export BS_MAX_EVENTS=10000
-```
+현재 공개적으로 말할 수 있는 범위는 다음 정도입니다.
 
-### 4. 메모리 사용량 최적화
+- 대량 이벤트용 병렬 detection 경로가 구현되어 있다.
+- `max_events`로 입력 이벤트 수를 제한할 수 있다.
+- SQLite WAL 및 batch 저장 구현이 존재한다.
+- 주요 pipeline 단계별 실행 시간을 관찰할 수 있다.
 
-- 제너레이터 기반 처리로 메모리 효율성 확보
-- 대용량 파일의 경우 `max_events`로 제한
-- 필요시 청크 단위 처리 고려
+현재 공개 근거 없이 말하지 않는 항목:
 
-### 5. 규칙 최적화
+- “100만 이벤트를 몇 초 안에 처리한다.”
+- “병렬 처리가 항상 2~4배 빠르다.”
+- “메모리 사용량이 이벤트당 일정하다.”
+- “대규모 enterprise 로그를 production 수준으로 검증했다.”
+- “Hayabusa/Chainsaw보다 빠르다.”
 
-- 불필요한 규칙 제거
-- 규칙 우선순위 설정
-- 정규식 최적화
+## P2-09 benchmark 요구사항
 
-### 6. 필터링 활용
+공식 성능 수치를 다시 넣으려면 최소한 아래 조건을 만족해야 합니다.
 
-- `min_severity`: 최소 심각도 필터로 불필요한 탐지 결과 제외
-- `mitre_include`/`mitre_exclude`: 특정 MITRE 기법만 분석
-- `host_include`: 특정 호스트만 분석
+### 고정해야 할 정보
 
-## 벤치마크
+- BreachScope commit SHA
+- rules directory hash 또는 rule manifest
+- Python 버전
+- OS
+- CPU 모델 / 논리 코어 수
+- RAM
+- 입력 corpus 이름과 SHA-256
+- 입력 이벤트 수
+- 입력 파일 수와 총 크기
+- redaction/PDF/Hayabusa 등 실행 옵션
+- parallel on/off와 worker 수
 
-### 테스트 환경
-- CPU: Intel Core i7-8700K
-- RAM: 16GB
-- OS: Windows 10
-- Python: 3.11
+### 최소 측정 항목
 
-### 성능 지표
+- 전체 wall-clock time
+- ingest/normalize time
+- detection time
+- correlation time
+- scenario time
+- report/export time
+- peak RSS 또는 동등한 peak memory
+- findings/chains/scenarios 수
+- 정상 종료 여부
 
-#### 기본 모드 (단일 스레드)
+### 최소 규모
 
-| 이벤트 수 | 수집 시간 | 분석 시간 | 상관분석 시간 | 총 시간 | 처리 속도 |
-|----------|----------|----------|--------------|---------|----------|
-| 1,000    | 0.15초   | 0.08초   | 0.05초       | 0.35초  | ~2,857 이벤트/초 |
-| 10,000   | 1.2초    | 0.65초   | 0.42초       | 2.5초   | ~4,000 이벤트/초 |
-| 100,000  | 12.5초   | 6.8초    | 4.2초        | 25초    | ~4,000 이벤트/초 |
-| 1,000,000| 125초    | 68초     | 42초         | 250초   | ~4,000 이벤트/초 |
+같은 benchmark runner로 최소 다음 구간을 측정하는 것을 권장합니다.
 
-#### 병렬 처리 모드 (4 워커)
+- 10k events
+- 100k events
+- 1m events
 
-| 이벤트 수 | 수집 시간 | 분석 시간 | 상관분석 시간 | 총 시간 | 처리 속도 | 성능 향상 |
-|----------|----------|----------|--------------|---------|----------|----------|
-| 1,000    | 0.15초   | 0.04초   | 0.05초       | 0.30초  | ~3,333 이벤트/초 | 1.2배 |
-| 10,000   | 1.2초    | 0.20초   | 0.42초       | 1.8초   | ~5,556 이벤트/초 | 1.4배 |
-| 100,000  | 12.5초   | 2.0초    | 4.2초        | 19초    | ~5,263 이벤트/초 | 1.3배 |
-| 1,000,000| 125초    | 20초     | 42초         | 187초   | ~5,348 이벤트/초 | 1.3배 |
+1m 이벤트 실행이 메모리 부족이나 비현실적 시간 때문에 실패한다면, 실패 자체를 결과로 기록합니다. 숫자를 만들기 위해 입력을 바꾸지 않습니다.
 
-**참고**: SQLite 배치 삽입 최적화로 저장 시간도 5-10배 단축됩니다.
+### 비교 방법
 
-### 메모리 사용량
+병렬 성능 비교는 최소 다음 두 조건을 같은 corpus에서 실행합니다.
 
-| 이벤트 수 | 메모리 사용량 |
-|----------|-------------|
-| 1,000    | ~5MB        |
-| 10,000   | ~50MB       |
-| 100,000  | ~500MB      |
-| 1,000,000| ~5GB        |
+1. single/non-parallel detection
+2. parallel detection with recorded worker count
 
-**참고**: `max_events`를 사용하면 메모리 사용량을 제한할 수 있습니다.
+성능 향상률은 측정 결과에서 계산하며 미리 목표값을 정하지 않습니다.
 
-## 성능 문제 해결
+## detection 정확도와 성능은 별개입니다
 
-### 느린 처리 속도
+빠르게 처리하는 것과 잘 탐지하는 것은 다른 문제입니다.
 
-1. **로그 레벨 확인**: DEBUG 레벨은 성능에 영향을 줄 수 있습니다.
-2. **규칙 수 확인**: 규칙이 많을수록 분석 시간이 증가합니다.
-3. **이벤트 수 확인**: `max_events`로 제한을 고려하세요.
-4. **필터링 활용**: 불필요한 이벤트는 미리 필터링하세요.
+- 성능 benchmark: 시간·메모리·처리량
+- detection evaluation: TP/FP/TN/FN, precision, recall, FPR
+- scenario evaluation: expected scenario/technique hit 여부
 
-### 메모리 부족
+내장 synthetic corpus의 통과 여부를 대용량 실전 성능이나 production accuracy 증거로 사용하지 않습니다.
 
-1. **max_events 사용**: 처리할 이벤트 수를 제한하세요.
-2. **청크 단위 처리**: 대용량 파일을 여러 번 나누어 처리하세요.
-3. **필터링 강화**: 분석 전에 불필요한 이벤트를 제거하세요.
+## 현재 권장 사용
 
-### 디스크 I/O 병목
-
-1. **SSD 사용**: HDD보다 SSD가 훨씬 빠릅니다.
-2. **임시 디렉토리 최적화**: 빠른 디스크에 임시 파일 저장
-3. **네트워크 드라이브 피하기**: 로컬 디스크 사용 권장
-
-## 성능 프로파일링
-
-Python의 `cProfile`을 사용하여 성능을 분석할 수 있습니다:
-
-```python
-import cProfile
-import pstats
-from breachscope.pipeline import Pipeline
-
-profiler = cProfile.Profile()
-profiler.enable()
-
-pipeline = Pipeline(rules_dir=Path("rules"))
-pipeline.run(Path("logs"), Path("out/report"))
-
-profiler.disable()
-stats = pstats.Stats(profiler)
-stats.sort_stats('cumulative')
-stats.print_stats(20)  # 상위 20개 함수 출력
-```
-
-## 모니터링 도구
-
-### 로그 분석
-
-성능 로그를 파일로 저장하여 분석:
-
-```python
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('performance.log'),
-        logging.StreamHandler()
-    ]
-)
-```
-
-### 메모리 프로파일링
-
-`memory_profiler` 패키지 사용:
+대규모 운영에 투입하기 전에는 실제 사용할 로그와 비슷한 corpus로 직접 측정하세요.
 
 ```bash
-pip install memory-profiler
+python scripts/run.py --input <corpus> --rules rules --out out/report
 ```
 
-```python
-from memory_profiler import profile
+탐지 품질은 별도로 다음 도구를 사용합니다.
 
-@profile
-def run_analysis():
-    pipeline = Pipeline(rules_dir=Path("rules"))
-    pipeline.run(Path("logs"), Path("out/report"))
+```bash
+python scripts/evaluate_detection_corpus.py
+python scripts/evaluate_external_holdout.py --help
 ```
+
+## 다음 작업
+
+P2-09에서는 임의의 성능 숫자를 문서에 다시 넣는 대신, **재현 가능한 benchmark runner + 결과 manifest**를 먼저 추가하는 것이 목표입니다.
