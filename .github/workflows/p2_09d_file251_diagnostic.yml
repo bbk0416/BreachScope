@@ -11,7 +11,7 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Download and verify pinned corpus
         shell: bash
@@ -22,34 +22,19 @@ jobs:
             https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
           echo "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e  /tmp/win10-client.tgz" | sha256sum -c -
 
-      - name: Extract and print EVTX entries around stalled index
+      - name: Extract pinned corpus
         shell: bash
         run: |
           set -euo pipefail
           rm -rf /tmp/p2-09d-corpus
           mkdir -p /tmp/p2-09d-corpus
           tar -xzf /tmp/win10-client.tgz -C /tmp/p2-09d-corpus
-          python - <<'PY'
-          from pathlib import Path
-
-          root = Path('/tmp/p2-09d-corpus')
-          rows = sorted(
-              (p.relative_to(root).as_posix(), p.stat().st_size)
-              for p in root.rglob('*')
-              if p.is_file() and p.name.casefold().endswith('.evtx')
-          )
-          print(f'total_evtx={len(rows)}')
-          for index, (path, size) in enumerate(rows, 1):
-              if 249 <= index <= 252:
-                  print(f'{index:03d}\t{size}\t{path}')
-          assert len(rows) == 352, len(rows)
-          PY
 
       - name: Install exact EVTX parser
         shell: bash
         run: python -m pip install --disable-pip-version-check python-evtx==0.8.1
 
-      - name: Parse neighboring EVTX files independently with 15 second timeout
+      - name: Parse EVTX indices 251 through 274 independently
         shell: bash
         run: |
           set -euo pipefail
@@ -65,6 +50,8 @@ jobs:
               p for p in root.rglob('*')
               if p.is_file() and p.name.casefold().endswith('.evtx')
           )
+          assert len(rows) == 352, len(rows)
+
           helper = Path(tempfile.gettempdir()) / 'parse_one_evtx.py'
           helper.write_text(
               textwrap.dedent('''\
@@ -87,24 +74,32 @@ jobs:
               encoding='utf-8',
           )
 
-          for index in (249, 250, 251, 252):
+          timed_out = []
+          failed = []
+          for index in range(251, 275):
               path = rows[index - 1]
               rel = path.relative_to(root).as_posix()
-              print(f'TEST {index:03d} {rel} size={path.stat().st_size}', flush=True)
+              size = path.stat().st_size
+              print(f'TEST {index:03d} size={size} {rel}', flush=True)
               try:
                   completed = subprocess.run(
                       [sys.executable, '-u', str(helper), str(path)],
                       text=True,
                       capture_output=True,
-                      timeout=15,
+                      timeout=10,
                       check=False,
                   )
               except subprocess.TimeoutExpired:
-                  print(f'RESULT {index:03d} TIMEOUT>15s', flush=True)
+                  timed_out.append(index)
+                  print(f'RESULT {index:03d} TIMEOUT>10s', flush=True)
                   continue
+              if completed.returncode != 0:
+                  failed.append(index)
               print(
                   f'RESULT {index:03d} rc={completed.returncode} '
                   f'stdout={completed.stdout.strip()!r} stderr={completed.stderr.strip()!r}',
                   flush=True,
               )
+
+          print(f'SUMMARY timed_out={timed_out} failed={failed}', flush=True)
           PY
