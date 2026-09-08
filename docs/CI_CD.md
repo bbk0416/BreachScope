@@ -32,9 +32,13 @@ report.zip
 report.pdf
 ```
 
+Ubuntu CI, release, Docker는 저장소의 SHA-256 해시가 포함된 Python별 lock을 사용합니다. 이 lock은 `scripts/compile_dependency_locks.py`에서 `x86_64-unknown-linux-gnu` 대상으로 생성되므로 Windows 설치에 재사용하지 않습니다.
+
 ## Windows 네이티브 CI
 
 `windows-latest` / Python 3.11 lane은 Linux에서 모의하기 어려운 Windows 동작을 실제 Windows runner에서 확인합니다.
+
+Windows에서는 Linux 전용 lock 대신 `pyproject.toml`의 platform marker가 적용되도록 `pip install -e ".[dev]"`로 설치하고 `pip check`로 의존성 일관성을 확인합니다. 예를 들어 `uvicorn[standard]`의 Windows 미지원 선택 의존성은 Windows에서 설치 대상이 되지 않아야 합니다.
 
 - 전체 `pytest -q`
 - Windows `Path` 동작을 사용하는 work directory boundary 테스트
