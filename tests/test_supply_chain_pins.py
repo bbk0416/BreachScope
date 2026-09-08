@@ -36,7 +36,7 @@ def test_all_workflow_action_refs_are_immutable_shas():
             )
         )
 
-    assert len(refs) == 10
+    assert len(refs) == 12
     assert all(
         re.fullmatch(r"[0-9a-f]{40}", ref)
         for _, ref in refs
