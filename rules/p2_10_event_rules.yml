@@ -57,7 +57,7 @@
   description: Sysmon process access to LSASS with access mask 0x1010 observed in the credential-access sample
   field: TargetImage
   operator: endswith
-  pattern: '\\lsass.exe'
+  pattern: '\lsass.exe'
   severity: medium
   mitre_technique: T1003.001
   all_of:
