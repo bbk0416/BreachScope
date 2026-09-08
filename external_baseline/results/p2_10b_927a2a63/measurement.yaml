@@ -49,6 +49,36 @@ benign_incremental_match_proof:
   probe_run_id: 34225137121
   probe_commit: 0165c7bb75d8017543d1b60608680afe983f434d
   parser: python-evtx 0.8.1 plus breachscope.ingest._extract_from_xml on raw-prefiltered candidate records
+  normalized_full_scan:
+    github_actions_run_id: 34226199274
+    probe_commit: ad39c07ea78cc62f0707a9b27bb3026e58184239
+    parser: python-evtx 0.8.1 plus breachscope.ingest._extract_from_xml for every scanned record
+    shards: 8
+    total_chunks: 11894
+    chunk_ranges:
+      - "0:1486"
+      - "1486:2973"
+      - "2973:4460"
+      - "4460:5947"
+      - "5947:7433"
+      - "7433:8920"
+      - "8920:10407"
+      - "10407:11894"
+    shard_event_counts:
+      - 98246
+      - 98477
+      - 94680
+      - 88563
+      - 93104
+      - 96258
+      - 83015
+      - 79857
+    events_scanned: 732200
+    normalized_wmic_command_lines: 0
+    normalized_format_command_lines: 0
+    normalized_wmic_and_format_matches: 0
+    exact_final_predicate_matches: 0
+    note: The full normalized scan found zero matches for the broader command-line predicate wmic AND /format:, so the stricter final Sysmon Event ID 1 plus remote HTTP format predicate also has zero matches in this pinned benign Sysmon corpus.
   fresh_full_fp_tn_rerun: false
 measurement_execution:
   github_actions_run_id: 34225363960
