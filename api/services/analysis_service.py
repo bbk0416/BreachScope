@@ -80,6 +80,28 @@ def _cleanup_failed_analysis(
         logger.warning("실패한 분석 작업 디렉토리 정리 실패: %s - %s", work, exc)
 
 
+def _cleanup_successful_analysis(work: Path) -> bool:
+    """Delete an auto-managed successful case and report whether deletion actually completed."""
+    if not work.exists():
+        return True
+
+    try:
+        if not is_safe_managed_delete(work):
+            logger.warning("분석 후 작업 디렉토리 자동 정리 경계 검사 실패: %s", work)
+            return False
+        shutil.rmtree(work)
+    except Exception as exc:
+        logger.warning("분석 후 작업 디렉토리 정리 실패: %s - %s", work, exc)
+        return False
+
+    if work.exists():
+        logger.warning("분석 후 작업 디렉토리 정리 후에도 경로가 남아 있음: %s", work)
+        return False
+
+    logger.debug("분석 후 작업 디렉토리 자동 정리 완료: %s", work)
+    return True
+
+
 class AnalysisService:
     """분석 서비스"""
 
@@ -263,6 +285,7 @@ class AnalysisService:
             risk = {}
             executive_summary = []
             preview = {}
+            report_data = None
             case_record = None
             if json_path.exists():
                 try:
@@ -271,12 +294,20 @@ class AnalysisService:
                     risk = summary.get("risk", {}) or {}
                     executive_summary = summary.get("executive_summary", []) or []
                     preview = build_preview(report_data)
-                    if not cleanup_after_analysis:
-                        case_record = CaseHistoryService().register_case(work, report_data)
                 except Exception as e:
-                    logger.warning(f"리포트 요약/케이스 이력 저장 실패: {e}")
+                    logger.warning(f"리포트 요약 읽기 실패: {e}")
 
-            retain_artifact_paths = not cleanup_after_analysis
+            cleanup_succeeded = False
+            if cleanup_after_analysis:
+                cleanup_succeeded = _cleanup_successful_analysis(work)
+
+            if report_data is not None and not cleanup_succeeded:
+                try:
+                    case_record = CaseHistoryService().register_case(work, report_data)
+                except Exception as e:
+                    logger.warning(f"케이스 이력 저장 실패: {e}")
+
+            retain_artifact_paths = not cleanup_succeeded
             return {
                 "success": True,
                 "count": count,
@@ -286,7 +317,7 @@ class AnalysisService:
                 "risk_level": risk.get("level", "none"),
                 "executive_summary": executive_summary,
                 "preview": preview,
-                "html_path": str(html_path) if retain_artifact_paths else None,
+                "html_path": str(html_path) if retain_artifact_paths and Path(html_path).exists() else None,
                 "json_path": str(json_path) if retain_artifact_paths and json_path.exists() else None,
                 "csv_path": str(csv_path) if retain_artifact_paths and csv_path.exists() else None,
                 "iocs_path": str(iocs_path) if retain_artifact_paths and iocs_path.exists() else None,
@@ -294,7 +325,7 @@ class AnalysisService:
                 "pdf_path": str(pdf_path) if retain_artifact_paths and pdf_path and pdf_path.exists() else None,
                 "manifest_path": str(manifest_path) if retain_artifact_paths and manifest_path.exists() else None,
                 "package_path": str(package_path) if retain_artifact_paths and package_path.exists() else None,
-                "work_dir": str(work) if retain_artifact_paths else None,
+                "work_dir": str(work) if retain_artifact_paths and work.exists() else None,
             }
         except UploadLimitError:
             _cleanup_failed_analysis(work, work_dir, created_upload_paths)
@@ -304,9 +335,6 @@ class AnalysisService:
             raise
 
         finally:
-            # 웹 UI는 분석 직후 다운로드 링크를 제공하므로 기본적으로 작업 디렉토리를 보존합니다.
-            # 자동 정리가 필요하면 BS_WEB_CLEANUP_AFTER_ANALYSIS=1 로 명시적으로 활성화하세요.
-
             # collect_windows_logs에서 생성된 임시 디렉토리 정리
             if collected_dir and collected_dir.exists():
                 try:
@@ -328,20 +356,10 @@ class AnalysisService:
                     except Exception as e:
                         logger.warning(f"임시 EVTX 변환 디렉토리 정리 실패: {converted_dir} - {e}")
 
-            # 명시적으로 요청한 경우 자동 생성 managed workdir을 성공 후 정리한다.
-            if cleanup_after_analysis and work.exists():
-                try:
-                    if is_safe_managed_delete(work):
-                        shutil.rmtree(work, ignore_errors=True)
-                        logger.debug(f"분석 후 작업 디렉토리 자동 정리 완료: {work}")
-                    else:
-                        logger.warning("분석 후 작업 디렉토리 자동 정리 경계 검사 실패: %s", work)
-                except Exception as e:
-                    logger.warning(f"분석 후 작업 디렉토리 정리 실패: {work} - {e}")
-
 
 # BREACHSCOPE_P2_08C_DUPLICATE_UPLOAD_BASENAME_V1
 # BREACHSCOPE_P2_08E_RETRY_UPLOAD_NAME_COLLISION_V1
 # BREACHSCOPE_P2_08F_FAILED_ANALYSIS_EVIDENCE_CLEANUP_V1
 # BREACHSCOPE_P2_08G_SUCCESS_CLEANUP_POLICY_V1
 # BREACHSCOPE_P2_08H_NO_STALE_CLEANUP_PATHS_V1
+# BREACHSCOPE_P2_08I_CLEANUP_OUTCOME_CONSISTENCY_V1
