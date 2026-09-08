@@ -12,8 +12,8 @@
       pattern: Microsoft-Windows-Security-Auditing
 
 - id: R-WMI-XSL-Format
-  name: WMI XSL Format Execution
-  description: WMIC process listing with XSL format execution pattern
+  name: WMI Remote XSL Format Execution
+  description: WMIC process listing with remote HTTP(S) XSL format execution pattern
   field: command_line
   operator: contains
   pattern: "wmic"
@@ -22,7 +22,7 @@
   all_of:
     - field: command_line
       operator: contains
-      pattern: "/format:"
+      pattern: '/format:"http'
     - field: event_id
       operator: equals
       pattern: "1"
