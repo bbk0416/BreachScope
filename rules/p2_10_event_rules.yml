@@ -10,3 +10,22 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Security-Auditing
+
+- id: R-WMI-XSL-Format
+  name: WMI Remote XSL Format Execution
+  description: WMIC process listing with remote HTTP(S) XSL format execution pattern
+  field: command_line
+  operator: contains
+  pattern: "wmic"
+  severity: low
+  mitre_technique: T1047
+  all_of:
+    - field: command_line
+      operator: contains
+      pattern: '/format:"http'
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
