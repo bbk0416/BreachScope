@@ -57,8 +57,6 @@ jobs:
           print('rules_tree_sha256=' + summary['rules_tree_sha256'])
           print('findings=' + str(summary['detection_observation']['findings']))
           print('flagged_events=' + str(summary['detection_observation']['flagged_events']))
-          print('runtime_seconds=' + str(summary['performance']['runtime_seconds']))
-          print('peak_memory_mb=' + str(summary['performance']['peak_memory_mb']))
           PY
       - name: Write measurement record
         run: |
@@ -69,6 +67,7 @@ jobs:
           import yaml
 
           summary = json.loads(Path('out/p2_10d_attack/summary.json').read_text(encoding='utf-8'))
+          result = json.loads(Path('out/p2_10d_attack/result.json').read_text(encoding='utf-8'))
           payload = {
               'schema': 'breachscope.p2_10d_measurement.v1',
               'evaluated_repo_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
@@ -102,6 +101,11 @@ jobs:
                   'exact_predicate_matches': 0,
                   'probe_run_id': 34243188619,
                   'fresh_full_fp_tn_rerun': False,
+              },
+              'measurement_performance_observation': {
+                  'runtime_seconds': result['performance']['runtime_seconds'],
+                  'peak_memory_mb': result['performance']['peak_memory_mb'],
+                  'performance_benchmark': 'NOT_CLAIMED',
               },
               'claim_boundary': {
                   'production_detection_rate': 'NOT_CLAIMED',
