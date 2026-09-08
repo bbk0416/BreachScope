@@ -84,14 +84,15 @@ JSON 출력:
 python scripts\verify_current_detection_evidence.py --json
 ```
 
-P2-10C 이후 핵심 출력은 다음 의미를 가집니다.
+P2-10D 이후 핵심 출력은 다음 의미를 가집니다.
 
 ```text
 Current detection evidence verification: PASS
-Attack external baseline: 2/10 -> 5/10 scenario hits
+Attack external baseline: 2/10 -> 6/10 scenario hits
 p2-10a-scheduled-task-4698: benign incremental predicate matches=0 / 34423 non-Sysmon events
 p2-10b-wmi-xsl: benign incremental predicate matches=0 / 732200 Sysmon records
 p2-10c-domain-admins-4661: benign incremental predicate matches=0 / 34423 non-Sysmon events
+p2-10d-lsass-access-1010: benign incremental predicate matches=0 / 732200 Sysmon records
 Fresh full benign FPR for current rulepack: NOT CLAIMED
 Production accuracy/FPR: NOT CLAIMED
 ```
@@ -109,6 +110,7 @@ P2-09E 543b4e02... / 2 HIT
   -> P2-10A 8ade507d... / 3 HIT
   -> P2-10B a21e4a7b... / 4 HIT
   -> P2-10C 9fff876a... / 5 HIT
+  -> P2-10D f6561197... / 6 HIT
 ```
 
 ## P2-10A
@@ -185,6 +187,50 @@ docs/P2_10C_DOMAIN_ADMINS_REMEDIATION.md
 external_baseline/results/p2_10c_2bc093de/measurement.yaml
 ```
 
+## P2-10D
+
+추가 룰은 Sysmon Event ID 10에서 LSASS를 대상으로 access mask `0x1010`을 사용한 process access를 찾는 좁은 조건입니다.
+
+- `source == Microsoft-Windows-Sysmon`
+- `event_id == 10`
+- `TargetImage` endswith `\lsass.exe`
+- `GrantedAccess` regex `^0x0*1010$`
+- ATT&CK `T1003.001`
+- rule hash: `f6561197677172b671646a49a84a2ff1d3cc9d661f23ee2862037ac5ca16292e`
+
+공격 baseline:
+
+- same public 10-scenario / 202-event corpus
+- before: **5 HIT / 5 MISS**
+- after: **6 HIT / 4 MISS**
+- findings: **8**
+- flagged events: **8**
+- changed scenario: `ca-lsass-mimikatz`
+- expected technique: `T1003.001`
+
+benign incremental proof:
+
+- pinned Sysmon records: **732,200**
+- Sysmon chunks: **11,894**
+- broad LSASS Event 10 target: **61**
+- exact `LSASS + GrantedAccess 0x1010` predicate: **0**
+- probe run: `34243188619`
+
+measurement:
+
+- commit: `ce1ada8b1ddcf075e3258a7b2f2abf309ac9b034`
+- run: `34244428149`
+- focused tests: **6 PASS**
+- artifact: `10063365810`
+- artifact ZIP SHA-256: `bc6b2e81c5c4f55a727f6788b537e2f6c49525fd7de2096d2ae58459a26c8c4c`
+
+상세 기록:
+
+```text
+docs/P2_10D_LSASS_REMEDIATION.md
+external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
+```
+
 ## current verifier가 확인하는 것
 
 `verify_current_detection_evidence.py`는 최소한 다음을 확인합니다.
@@ -192,12 +238,12 @@ external_baseline/results/p2_10c_2bc093de/measurement.yaml
 1. P2-09E attack/benign 기록과 claim boundary
 2. 역사적 base rule hash `543b4e02...`
 3. 각 remediation의 `from_rules_tree_sha256` → `to_rules_tree_sha256` 연결
-4. P2-10A live rule 조건, 2→3 attack scenario 변화, benign exact match 0
-5. P2-10B live rule 조건, 3→4 변화, `lm-wmi` MISS 유지, benign exact match 0
-6. P2-10C live rule의 4661/SAM_GROUP/RID-512/SAM server 조건
-7. P2-10C의 4→5 변화와 `discovery-domain-admins` MISS→HIT
-8. P2-10C benign 34,423 non-Sysmon events의 exact match 0
-9. evaluator raw reconstruction control이 P2-10B 54-rule 결과를 4/10, findings 5로 유지했는지
+4. P2-10A live rule 조건과 2→3 attack scenario 변화
+5. P2-10B live rule 조건과 3→4 변화
+6. P2-10C live rule 조건과 4→5 변화
+7. P2-10D live LSASS/Event 10/GrantedAccess 조건과 5→6 변화
+8. 각 단계의 지정된 pinned benign 범위 exact match 0
+9. P2-10C evaluator reconstruction control 결과
 10. 마지막 remediation hash가 실제 live `rules/` tree SHA-256과 같은지
 11. production accuracy/FPR, final blind holdout, current rulepack fresh full benign FPR을 주장하지 않는지
 
@@ -225,15 +271,15 @@ P2-09D의 약 799MB Sysmon EVTX는 GitHub hosted runner 단일 45분 작업에�
 
 - 역사적 P2-09E rule hash에서 공개 공격 10 scenario 중 2개 expected technique을 hit했습니다.
 - 같은 역사적 rule hash에서 공개 benign corpus 766,623 events 중 17 events가 flagged됐습니다.
-- P2-10A/B/C의 각각의 좁은 rule 변경은 같은 공개 공격 baseline에서 scenario coverage를 2→3→4→5로 늘렸습니다.
+- P2-10A/B/C/D의 각각의 좁은 rule 변경은 같은 공개 공격 baseline에서 scenario coverage를 2→3→4→5→6으로 늘렸습니다.
 - 각 새 predicate의 지정된 pinned benign 범위에서 exact match 0을 관찰했습니다.
 
 말할 수 없는 것:
 
-- 실제 공격 전체 탐지율이 50%다
-- 실제 precision 또는 recall이 50%다
-- 현재 55-rule pack의 production FPR이 0.00221752%다
-- 현재 55-rule pack 전체 benign FPR을 fresh하게 다시 측정했다
+- 실제 공격 전체 탐지율이 60%다
+- 실제 precision 또는 recall이 60%다
+- 현재 56-rule pack의 production FPR이 0.00221752%다
+- 현재 56-rule pack 전체 benign FPR을 fresh하게 다시 측정했다
 - 기업 SOC 환경 대표성이 검증됐다
 - final blind holdout을 통과했다
 - BreachScope가 다른 탐지 엔진보다 빠르다
