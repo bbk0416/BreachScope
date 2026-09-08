@@ -1,0 +1,121 @@
+schema: breachscope.external_baseline_sources.v1
+baseline_id: p2-09c-evtx-attack-samples-v1
+evaluation_class: external_baseline
+claim_boundary:
+  event_level_precision_recall: not_claimed
+  primary_metric: scenario_expected_technique_hit
+  final_blind_holdout: false
+  note: Public attack samples are known corpora and are not a final blind holdout.
+providers:
+  evtx_attack_samples:
+    repository: sbousseaden/EVTX-ATTACK-SAMPLES
+    commit: 4ceed2f4706daf601c212a8f91c113dd85349a2c
+    raw_redistribution: false
+    terms_note: Follow the upstream repository terms. BreachScope does not redistribute these raw samples.
+  otrf_security_datasets:
+    repository: OTRF/Security-Datasets
+    commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+    raw_redistribution: false
+    enabled_for_this_baseline: false
+    terms_note: Provider support is reserved; raw-byte checksums were not pre-pinned for P2-09C v1.
+assets:
+  - id: evtx-ca-lsass-mimikatz
+    provider: evtx_attack_samples
+    upstream_path: Credential Access/sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords.evtx
+    local_path: evtx-ca-lsass-mimikatz.evtx
+    format: evtx
+    git_blob_sha1: acd53babbae2f1c7876379447d3a5ce09a93f1c7
+    size: 69632
+    scenario_id: ca-lsass-mimikatz
+    expected_techniques: [T1003.001]
+    mapping_basis: Upstream path/file naming identifies LSASS credential dumping with Mimikatz.
+  - id: evtx-de-security-log-cleared
+    provider: evtx_attack_samples
+    upstream_path: Defense Evasion/DE_1102_security_log_cleared.evtx
+    local_path: evtx-de-security-log-cleared.evtx
+    format: evtx
+    git_blob_sha1: 78a6e19222016dc56fb43a5558eea93472c95ab8
+    size: 1118208
+    scenario_id: de-security-log-cleared
+    expected_techniques: [T1070.001]
+    mapping_basis: Upstream file naming identifies Windows Security log clearing.
+  - id: evtx-exec-scheduled-task
+    provider: evtx_attack_samples
+    upstream_path: Execution/temp_scheduled_task_4698_4699.evtx
+    local_path: evtx-exec-scheduled-task.evtx
+    format: evtx
+    git_blob_sha1: 9fc179fe1ac4a07733ef956f7b66046ddac362be
+    size: 69632
+    scenario_id: exec-scheduled-task
+    expected_techniques: [T1053.005]
+    mapping_basis: Upstream file naming identifies scheduled task creation/deletion events.
+  - id: evtx-exec-wmi-xsl
+    provider: evtx_attack_samples
+    upstream_path: Execution/exec_wmic_xsl_internet_sysmon_3_1_11.evtx
+    local_path: evtx-exec-wmi-xsl.evtx
+    format: evtx
+    git_blob_sha1: a9c533b028394ab10dcb2f0a00917f41d9054b1f
+    size: 69632
+    scenario_id: exec-wmi-xsl
+    expected_techniques: [T1047]
+    mapping_basis: Upstream file naming identifies WMIC/WMI execution.
+  - id: evtx-exec-regsvr32
+    provider: evtx_attack_samples
+    upstream_path: Execution/exec_sysmon_lobin_regsvr32_sct.evtx
+    local_path: evtx-exec-regsvr32.evtx
+    format: evtx
+    git_blob_sha1: c824fddf0ae306c52a4fe21df6765e6796d9ea8e
+    size: 69632
+    scenario_id: exec-regsvr32
+    expected_techniques: [T1218.010]
+    mapping_basis: Upstream file naming identifies Regsvr32 proxy execution.
+  - id: evtx-lm-powershell-remoting
+    provider: evtx_attack_samples
+    upstream_path: Lateral Movement/LM_PowershellRemoting_sysmon_1_wsmprovhost.evtx
+    local_path: evtx-lm-powershell-remoting.evtx
+    format: evtx
+    git_blob_sha1: ec9defca52aa26499e8e2fc5c0ce1668e538c30f
+    size: 69632
+    scenario_id: lm-powershell-remoting
+    expected_techniques: [T1021.006]
+    mapping_basis: Upstream file naming identifies PowerShell remoting through wsmprovhost.
+  - id: evtx-lm-wmi
+    provider: evtx_attack_samples
+    upstream_path: Lateral Movement/LM_WMI_4624_4688_TargetHost.evtx
+    local_path: evtx-lm-wmi.evtx
+    format: evtx
+    git_blob_sha1: de0c7ba049c4242254f0243a6053247dde88f8bb
+    size: 69632
+    scenario_id: lm-wmi
+    expected_techniques: [T1047]
+    mapping_basis: Upstream file naming identifies WMI-based lateral execution.
+  - id: evtx-lm-remote-service
+    provider: evtx_attack_samples
+    upstream_path: Lateral Movement/LM_Remote_Service02_7045.evtx
+    local_path: evtx-lm-remote-service.evtx
+    format: evtx
+    git_blob_sha1: defba62c09d9c2a478a0048a4f08ffdea32dac22
+    size: 69632
+    scenario_id: lm-remote-service
+    expected_techniques: [T1569.002]
+    mapping_basis: Upstream file naming identifies remote service execution.
+  - id: evtx-persist-hidden-run-key
+    provider: evtx_attack_samples
+    upstream_path: Persistence/evasion_persis_hidden_run_keyvalue_sysmon_13.evtx
+    local_path: evtx-persist-hidden-run-key.evtx
+    format: evtx
+    git_blob_sha1: 936196bca9e18b00b81ca9bdb7aa5792608666a8
+    size: 69632
+    scenario_id: persist-hidden-run-key
+    expected_techniques: [T1547.001]
+    mapping_basis: Upstream file naming identifies hidden Run-key persistence.
+  - id: evtx-discovery-domain-admins
+    provider: evtx_attack_samples
+    upstream_path: Discovery/dicovery_4661_net_group_domain_admins_target.evtx
+    local_path: evtx-discovery-domain-admins.evtx
+    format: evtx
+    git_blob_sha1: a22c64eeabeb7a50b546205ce725c7a7a9300676
+    size: 1118208
+    scenario_id: discovery-domain-admins
+    expected_techniques: [T1087.002]
+    mapping_basis: Upstream file naming identifies Domain Admins group discovery.
