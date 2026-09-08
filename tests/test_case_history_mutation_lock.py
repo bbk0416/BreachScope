@@ -8,7 +8,7 @@ import time
 import pytest
 
 from api.services.case_history import CaseHistoryService
-from api.services import case_history_concurrency
+from api.services import case_history_concurrency, case_history_integrity
 
 
 def _report_data(findings: int = 1) -> dict:
@@ -28,8 +28,16 @@ def _work_dir(root: Path, name: str) -> Path:
     return path
 
 
-def test_case_history_mutators_are_locked() -> None:
-    for name in ("register_case", "update_case_workflow", "delete_case", "prune_cases"):
+def test_case_history_operations_that_can_quarantine_are_locked() -> None:
+    for name in (
+        "register_case",
+        "update_case_workflow",
+        "delete_case",
+        "prune_cases",
+        "list_cases",
+        "get_case",
+        "workflow_summary",
+    ):
         method = getattr(CaseHistoryService, name)
         assert getattr(method, "_bs_p208l_locked", False) is True
         assert getattr(method, "_bs_p208l_original", None) is not None
@@ -140,6 +148,66 @@ def test_concurrent_registers_keep_all_records(
     rows = CaseHistoryService(index_path=index_path).list_cases(limit=50)
     assert len(rows) == count
     assert len({row["case_id"] for row in rows}) == count
+
+
+def test_concurrent_corrupt_reads_serialize_quarantine(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    index_path = tmp_path / "case_history.json"
+    index_path.write_text("{broken", encoding="utf-8")
+    first_service = CaseHistoryService(index_path=index_path)
+    second_service = CaseHistoryService(index_path=index_path)
+
+    original_quarantine = case_history_integrity._quarantine_corrupt_index
+    first_quarantine_entered = threading.Event()
+    release_first_quarantine = threading.Event()
+    quarantine_calls = 0
+    quarantine_calls_guard = threading.Lock()
+
+    def quarantine_spy(path: Path) -> Path:
+        nonlocal quarantine_calls
+        with quarantine_calls_guard:
+            quarantine_calls += 1
+            call_number = quarantine_calls
+        if call_number == 1:
+            first_quarantine_entered.set()
+            assert release_first_quarantine.wait(timeout=5)
+        return original_quarantine(path)
+
+    monkeypatch.setattr(case_history_integrity, "_quarantine_corrupt_index", quarantine_spy)
+
+    results: list[list[dict]] = []
+    errors: list[BaseException] = []
+
+    def read(service: CaseHistoryService) -> None:
+        try:
+            results.append(service.list_cases(limit=10))
+        except BaseException as exc:  # pragma: no cover - asserted below
+            errors.append(exc)
+
+    first = threading.Thread(target=read, args=(first_service,), daemon=True)
+    second = threading.Thread(target=read, args=(second_service,), daemon=True)
+
+    first.start()
+    assert first_quarantine_entered.wait(timeout=5)
+    second.start()
+    time.sleep(0.15)
+
+    with quarantine_calls_guard:
+        assert quarantine_calls == 1
+
+    release_first_quarantine.set()
+    first.join(timeout=5)
+    second.join(timeout=5)
+    assert not first.is_alive()
+    assert not second.is_alive()
+    assert errors == []
+    assert results == [[], []]
+
+    broken_files = list(tmp_path.glob("case_history.json.broken*"))
+    assert len(broken_files) == 1
+    assert broken_files[0].read_text(encoding="utf-8") == "{broken"
+    assert not index_path.exists()
 
 
 def test_lock_file_failure_aborts_without_modifying_index(
