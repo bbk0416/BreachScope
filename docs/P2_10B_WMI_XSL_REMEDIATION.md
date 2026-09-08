@@ -57,6 +57,8 @@ size: 799,084,544 bytes
 records: 732,200
 ```
 
+### 1차 raw-byte prefilter 확인
+
 전체 record에서 먼저 `python-evtx`의 raw record bytes로 `wmic` 후보만 줄인 뒤, 후보 record는 BreachScope가 실제 사용하는 `breachscope.ingest._extract_from_xml`로 다시 읽었습니다.
 
 공격 샘플에서 이 prefilter가 실제 목표 이벤트를 놓치지 않는 것도 먼저 확인했습니다.
@@ -67,9 +69,9 @@ records: 732,200
 같은 방법으로 benign Sysmon 전체를 확인한 결과:
 
 - Sysmon records: **732,200**
-- raw `wmic` records: **29**
-- `Sysmon Event ID 1 + wmic`: **0**
-- `Sysmon Event ID 1 + wmic + /format:`: **0**
+- raw bytes에 `wmic`가 있는 records: **29**
+- 정규화 후 `Sysmon Event ID 1 + wmic`: **0**
+- 정규화 후 `Sysmon Event ID 1 + wmic + /format:`: **0**
 - 새 룰의 정확한 후보 match: **0**
 
 probe:
@@ -77,6 +79,39 @@ probe:
 ```text
 GitHub Actions run: 34225137121
 commit: 0165c7bb75d8017543d1b60608680afe983f434d
+```
+
+### 2차 전체 정규화 scan
+
+raw-byte prefilter에 의존하지 않는 후속 확인도 수행했습니다. 같은 pinned Sysmon EVTX의 **11,894 chunks 전체**를 8개 연속 구간으로 나누고, 모든 record에 대해 제품과 같은 `python-evtx 0.8.1` + `breachscope.ingest._extract_from_xml(record.xml())` 경로를 실행했습니다.
+
+8개 shard의 event 수:
+
+```text
+98,246 + 98,477 + 94,680 + 88,563
++ 93,104 + 96,258 + 83,015 + 79,857
+= 732,200
+```
+
+chunk 범위는 `0:1486`부터 `10407:11894`까지 이어져 **0~11,894 전체를 빈틈과 중복 없이 커버**했습니다.
+
+전체 정규화 결과:
+
+- scanned events: **732,200 / 732,200**
+- normalized `command_line` contains `wmic`: **0**
+- normalized `command_line` contains `/format:`: **0**
+- normalized `wmic AND /format:`: **0**
+- 최종 룰은 여기에 `Sysmon Event ID 1`과 `/format:"http`까지 추가로 요구하므로 exact final predicate match도 **0**
+
+이 값은 앞의 raw-byte `wmic` 29건과 같은 지표가 아닙니다. 29건은 raw EVTX record bytes 어디엔가 `wmic` 문자열이 존재한 record 수이고, 후속 scan의 0건은 BreachScope가 실제 탐지에 쓰는 **정규화된 `command_line` 필드**의 값입니다.
+
+full normalized probe:
+
+```text
+GitHub Actions run: 34226199274
+commit: ad39c07ea78cc62f0707a9b27bb3026e58184239
+shards: 8
+chunks: 11,894
 ```
 
 ### Windows `Get-WinEvent` 시도
