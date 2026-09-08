@@ -1,0 +1,65 @@
+schema: breachscope.external_baseline_measurement_record.v1
+baseline_id: p2-09c-evtx-attack-samples-v1
+evaluated_repo_commit: 2a1631f6633ee40dcc47524675dc9dbda541e01d
+rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+evaluation_class: external_baseline
+repeated_runs:
+  - github_actions_run_id: 34197507789
+    artifact_id: 10044468682
+    artifact_digest_sha256: 4e48646a2597f33a11b9302dbd5d441980a90ab440012d29d90fd698bd4b9e5b
+  - github_actions_run_id: 34197718156
+    artifact_id: 10044545365
+    artifact_digest_sha256: 8a9ec5a4bf8eb1e3f16a62f35ddd112f2030b69a8ec4ae22b5d9ba7c63a80345
+reproducibility:
+  repo_rule_corpus_hashes_equal: true
+  scenario_outcomes_equal: true
+  source_hashes_equal: true
+  findings_equal: true
+  performance_values_expected_to_vary: true
+corpus:
+  manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  events: 202
+  scored_events: 0
+  ignored_events: 202
+  source_files: 10
+primary_metrics:
+  scenario_hits: 2
+  scenario_misses: 8
+  scenario_total: 10
+  scenario_hit_rate: 0.2
+detection_observation:
+  findings: 3
+  flagged_events: 3
+  flagged_ignored_events: 3
+scenarios:
+  - {scenario_id: ca-lsass-mimikatz, event_count: 1, expected: T1003.001, matched: [], status: miss}
+  - {scenario_id: de-security-log-cleared, event_count: 112, expected: T1070.001, matched: [T1070.001], status: hit}
+  - {scenario_id: exec-scheduled-task, event_count: 2, expected: T1053.005, matched: [], status: miss}
+  - {scenario_id: exec-wmi-xsl, event_count: 8, expected: T1047, matched: [], status: miss}
+  - {scenario_id: exec-regsvr32, event_count: 3, expected: T1218.010, matched: [T1218.010], status: hit}
+  - {scenario_id: lm-powershell-remoting, event_count: 1, expected: T1021.006, matched: [], status: miss}
+  - {scenario_id: lm-wmi, event_count: 8, expected: T1047, matched: [], status: miss}
+  - {scenario_id: lm-remote-service, event_count: 3, expected: T1569.002, matched: [], status: miss}
+  - {scenario_id: persist-hidden-run-key, event_count: 1, expected: T1547.001, matched: [], status: miss}
+  - {scenario_id: discovery-domain-admins, event_count: 63, expected: T1087.002, matched: [], observed_extra: [T1070.001], status: miss}
+source_sha256:
+  evtx-ca-lsass-mimikatz: 9a1689574ed08c1fb18e7ff3f3bed612109aedcb7bf8efbf3537d756e669e96f
+  evtx-de-security-log-cleared: a0615707b547a2ac254688fd725c3c590f62440fc9b7947c2843dd40498a39e8
+  evtx-exec-scheduled-task: a7decf0fbabc340e37de7e7c39fddd5398a7106a4f6acded0ea1d2ffa6bf8b70
+  evtx-exec-wmi-xsl: 8b3448717a53b1c3e0dc4803b128da844f052bdd5c9d6afac99b69148e89ef94
+  evtx-exec-regsvr32: d6978888a7dead4523c01df417aa7ea6ad2599a5bbf1acd05d89882aac956442
+  evtx-lm-powershell-remoting: c890d2b67dc2902b2fa5a094e517674920911a15b273f43c674fbfaa69540658
+  evtx-lm-wmi: 3ff3fcdb55c08ec0eaa39b25c1e02a205314f367bcedc662586bd063185ca41d
+  evtx-lm-remote-service: af758eb492b6d5ab6665f7e4c44b31490f57be78c37dc0a8b1da714bb0d3d458
+  evtx-persist-hidden-run-key: b8df8232d917fed223e2bf9abebb249489f84c6204c40b72dab6a74157d6f8bd
+  evtx-discovery-domain-admins: 3e1451e5d8845360044e11807219073a289c9183142a7032bbee2796d2577a37
+claim_boundary:
+  public_known_corpus: true
+  final_blind_holdout: false
+  production_detection_quality_certified: false
+  benign_false_positive_rate_measured: false
+  event_level_precision_recall_fpr: NOT_CLAIMED
+  raw_evtx_redistributed: false
+  next_required_phase: P2-09D real benign baseline
+performance_note: NOT_A_BENCHMARK; detector-only runtimes were 0.101658802s and 0.090230392s

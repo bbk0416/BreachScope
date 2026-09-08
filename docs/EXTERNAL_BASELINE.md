@@ -145,3 +145,23 @@ P2-09C에서는 숫자가 낮다는 이유만으로 실패 처리하지 않습�
 5. 그 결과가 실제로 다음 개발 우선순위를 바꿀 만큼 중요한가
 
 P2-09C가 끝난 뒤에도 **실제 benign false positive 자료가 없으면 탐지 정확도를 주장할 수 없습니다.** 다음 단계는 P2-09D입니다.
+
+## 2026-09-08 실측 결과
+
+merged main commit `2a1631f6633ee40dcc47524675dc9dbda541e01d`에서 고정된 10개 EVTX를 실제로 실행했습니다.
+
+- **2 HIT / 8 MISS / 10 total**
+- scenario hit rate **20.0%**
+- findings **3**
+- converted events **202**
+- event-level precision / recall / FPR **NOT CLAIMED**
+
+같은 commit과 corpus를 GitHub Actions에서 두 번 실행해 repo/rule/corpus hash, source hash, findings 수, scenario 결과가 동일한 것도 확인했습니다.
+
+영구 기록:
+
+- `external_baseline/results/p2_09c_main_2a1631f/README.md`
+- `external_baseline/results/p2_09c_main_2a1631f/measurement.yaml`
+- `external_baseline/results/p2_09c_main_2a1631f/telemetry.yaml`
+
+8개 MISS의 주된 원인은 해당 ATT&CK technique ID 자체가 없는 것이 아니라, 현재 native rules가 `command_line` 패턴에 많이 의존해 Event ID와 이벤트별 필드가 핵심 증거인 외부 EVTX를 놓치는 구조였습니다. P2-09C에서는 이 결과를 근거로 rule을 수정하지 않고 그대로 보존합니다.
