@@ -169,6 +169,71 @@ def test_cleanup_flag_off_preserves_successful_auto_case_and_history(
     assert result["json_path"] == str(work / "out" / "report.json")
 
 
+def test_cleanup_boundary_refusal_preserves_case_and_paths(tmp_path, monkeypatch):
+    cases_root = tmp_path / "cases"
+    work = cases_root / "bs_case_boundary_refused"
+    work.mkdir(parents=True)
+    history_calls = []
+
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "1")
+    _install_success_fakes(monkeypatch, history_calls)
+    monkeypatch.setattr(analysis_module, "is_safe_managed_delete", lambda path: False)
+
+    service = AnalysisService()
+    monkeypatch.setattr(
+        service.workdir_service,
+        "create_work_directory",
+        lambda work_dir=None: work,
+    )
+
+    result = _run(service)
+
+    assert work.exists()
+    assert history_calls == [work]
+    assert result["case_id"] == "case-test"
+    assert result["work_dir"] == str(work)
+    assert result["html_path"] == str(work / "out" / "report.html")
+    assert result["json_path"] == str(work / "out" / "report.json")
+
+
+def test_cleanup_delete_error_preserves_case_and_paths(tmp_path, monkeypatch):
+    cases_root = tmp_path / "cases"
+    work = cases_root / "bs_case_delete_error"
+    work.mkdir(parents=True)
+    history_calls = []
+
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "1")
+    _install_success_fakes(monkeypatch, history_calls)
+    monkeypatch.setattr(analysis_module, "is_safe_managed_delete", lambda path: True)
+
+    real_rmtree = analysis_module.shutil.rmtree
+
+    def fail_work_delete(path, *args, **kwargs):
+        if path == work:
+            raise PermissionError("simulated cleanup failure")
+        return real_rmtree(path, *args, **kwargs)
+
+    monkeypatch.setattr(analysis_module.shutil, "rmtree", fail_work_delete)
+
+    service = AnalysisService()
+    monkeypatch.setattr(
+        service.workdir_service,
+        "create_work_directory",
+        lambda work_dir=None: work,
+    )
+
+    result = _run(service)
+
+    assert work.exists()
+    assert history_calls == [work]
+    assert result["case_id"] == "case-test"
+    assert result["work_dir"] == str(work)
+    assert result["html_path"] == str(work / "out" / "report.html")
+    assert result["json_path"] == str(work / "out" / "report.json")
+
+
 def test_p2_08g_marker_present():
     source = open(analysis_module.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P2_08G_SUCCESS_CLEANUP_POLICY_V1" in source
@@ -177,3 +242,8 @@ def test_p2_08g_marker_present():
 def test_p2_08h_marker_present():
     source = open(analysis_module.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P2_08H_NO_STALE_CLEANUP_PATHS_V1" in source
+
+
+def test_p2_08i_marker_present():
+    source = open(analysis_module.__file__, "r", encoding="utf-8").read()
+    assert "BREACHSCOPE_P2_08I_CLEANUP_OUTCOME_CONSISTENCY_V1" in source
