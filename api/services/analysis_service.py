@@ -276,6 +276,7 @@ class AnalysisService:
                 except Exception as e:
                     logger.warning(f"리포트 요약/케이스 이력 저장 실패: {e}")
 
+            retain_artifact_paths = not cleanup_after_analysis
             return {
                 "success": True,
                 "count": count,
@@ -285,15 +286,15 @@ class AnalysisService:
                 "risk_level": risk.get("level", "none"),
                 "executive_summary": executive_summary,
                 "preview": preview,
-                "html_path": str(html_path),
-                "json_path": str(json_path) if json_path.exists() else None,
-                "csv_path": str(csv_path) if csv_path.exists() else None,
-                "iocs_path": str(iocs_path) if iocs_path.exists() else None,
-                "rule_catalog_path": str(rule_catalog_path) if rule_catalog_path.exists() else None,
-                "pdf_path": str(pdf_path) if pdf_path and pdf_path.exists() else None,
-                "manifest_path": str(manifest_path) if manifest_path.exists() else None,
-                "package_path": str(package_path) if package_path.exists() else None,
-                "work_dir": str(work),
+                "html_path": str(html_path) if retain_artifact_paths else None,
+                "json_path": str(json_path) if retain_artifact_paths and json_path.exists() else None,
+                "csv_path": str(csv_path) if retain_artifact_paths and csv_path.exists() else None,
+                "iocs_path": str(iocs_path) if retain_artifact_paths and iocs_path.exists() else None,
+                "rule_catalog_path": str(rule_catalog_path) if retain_artifact_paths and rule_catalog_path.exists() else None,
+                "pdf_path": str(pdf_path) if retain_artifact_paths and pdf_path and pdf_path.exists() else None,
+                "manifest_path": str(manifest_path) if retain_artifact_paths and manifest_path.exists() else None,
+                "package_path": str(package_path) if retain_artifact_paths and package_path.exists() else None,
+                "work_dir": str(work) if retain_artifact_paths else None,
             }
         except UploadLimitError:
             _cleanup_failed_analysis(work, work_dir, created_upload_paths)
@@ -343,3 +344,4 @@ class AnalysisService:
 # BREACHSCOPE_P2_08E_RETRY_UPLOAD_NAME_COLLISION_V1
 # BREACHSCOPE_P2_08F_FAILED_ANALYSIS_EVIDENCE_CLEANUP_V1
 # BREACHSCOPE_P2_08G_SUCCESS_CLEANUP_POLICY_V1
+# BREACHSCOPE_P2_08H_NO_STALE_CLEANUP_PATHS_V1
