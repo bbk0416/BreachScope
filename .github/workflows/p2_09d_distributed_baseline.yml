@@ -1,0 +1,689 @@
+name: P2-09D Distributed Benign Baseline
+
+on:
+  push:
+    branches:
+      - measure/p2-09d-distributed-baseline
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: p2-09d-distributed-baseline
+  cancel-in-progress: true
+
+env:
+  MEASURED_MAIN: 789c1f45b35599adbb5816c69c2e1e5c586584c9
+  CORPUS_URL: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+  CORPUS_SHA256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  SYSMON_REL: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+
+jobs:
+  equivalence:
+    name: Prove distributed scoring equivalence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact measured main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.MEASURED_MAIN }}
+          fetch-depth: 1
+
+      - name: Set up Python 3.11.16
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: 3.11.16
+
+      - name: Install exact locked product environment
+        run: python -m pip install --require-hashes -r requirements-lock-py311.txt
+
+      - name: Download and verify pinned corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --silent --show-error -o /tmp/win10-client.tgz "$CORPUS_URL"
+          echo "$CORPUS_SHA256  /tmp/win10-client.tgz" | sha256sum -c -
+          rm -rf /tmp/p2-09d-corpus && mkdir -p /tmp/p2-09d-corpus
+          tar -xzf /tmp/win10-client.tgz -C /tmp/p2-09d-corpus
+
+      - name: Compare monolithic and chunk-sharded detector accounting
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          python -u - <<'PY'
+          from __future__ import annotations
+          import importlib.util
+          import itertools
+          from pathlib import Path
+
+          from Evtx.Evtx import Evtx
+          from breachscope.analyzer import apply_rules
+          from breachscope.ingest import _extract_from_xml
+          from breachscope.rules import load_rules
+
+          spec = importlib.util.spec_from_file_location(
+              "p2_09d_holdout", Path("scripts/evaluate_external_holdout.py")
+          )
+          holdout = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(holdout)
+
+          root = Path("/tmp/p2-09d-corpus")
+          rows = sorted(
+              p for p in root.rglob("*")
+              if p.is_file() and p.name.casefold().endswith(".evtx")
+          )
+          path = rows[248]
+          rel = path.relative_to(root).as_posix()
+          print(f"EQUIVALENCE_SOURCE={rel} size={path.stat().st_size}")
+          rules = load_rules(Path("rules"))
+
+          def parse_records(path: Path, start: int | None = None, end: int | None = None):
+              out = []
+              with Evtx(str(path)) as log:
+                  if start is None:
+                      records = log.records()
+                      for record in records:
+                          raw = _extract_from_xml(record.xml())
+                          if raw:
+                              out.append(raw)
+                  else:
+                      assert end is not None
+                      for chunk in itertools.islice(log.chunks(), start, end):
+                          for record in chunk.records():
+                              raw = _extract_from_xml(record.xml())
+                              if raw:
+                                  out.append(raw)
+              return out
+
+          def score(raws):
+              keys = [holdout.event_key(raw) for raw in raws]
+              if len(set(keys)) != len(keys):
+                  raise SystemExit("duplicate event identity inside equivalence input")
+              events = [holdout._record_to_event(raw) for raw in raws]
+              key_by_object = {id(event): key for event, key in zip(events, keys)}
+              findings = list(apply_rules(events, rules))
+              flagged = set()
+              for finding in findings:
+                  event = getattr(finding, "event", None)
+                  key = key_by_object.get(id(event))
+                  if key is None and event is not None:
+                      key = holdout.event_key(event)
+                  if key not in set(keys):
+                      raise SystemExit("finding could not be mapped to equivalence event")
+                  flagged.add(key)
+              return set(keys), flagged, len(findings)
+
+          monolithic_raw = parse_records(path)
+          mono_keys, mono_flagged, mono_findings = score(monolithic_raw)
+
+          with Evtx(str(path)) as log:
+              total_chunks = sum(1 for _ in log.chunks())
+          workers = 4
+          base, rem = divmod(total_chunks, workers)
+          ranges = []
+          cursor = 0
+          for i in range(workers):
+              stop = cursor + base + (1 if i < rem else 0)
+              ranges.append((cursor, stop))
+              cursor = stop
+
+          dist_keys = set()
+          dist_flagged = set()
+          dist_findings = 0
+          for start, end in ranges:
+              raw = parse_records(path, start, end)
+              keys, flagged, findings = score(raw)
+              overlap = dist_keys & keys
+              if overlap:
+                  raise SystemExit(f"distributed duplicate event identity: {len(overlap)}")
+              dist_keys |= keys
+              dist_flagged |= flagged
+              dist_findings += findings
+              print(
+                  f"EQUIVALENCE_RANGE={start}:{end} events={len(keys)} "
+                  f"flagged={len(flagged)} findings={findings}"
+              )
+
+          print(f"MONOLITHIC events={len(mono_keys)} flagged={len(mono_flagged)} findings={mono_findings}")
+          print(f"DISTRIBUTED events={len(dist_keys)} flagged={len(dist_flagged)} findings={dist_findings}")
+          print(f"EVENT_KEYS_MATCH={mono_keys == dist_keys}")
+          print(f"FLAGGED_KEYS_MATCH={mono_flagged == dist_flagged}")
+          print(f"FINDING_COUNT_MATCH={mono_findings == dist_findings}")
+          if mono_keys != dist_keys or mono_flagged != dist_flagged or mono_findings != dist_findings:
+              raise SystemExit(3)
+          print("DISTRIBUTED_SCORING_EQUIVALENCE=PASS")
+          PY
+
+  shard:
+    name: Measure ${{ matrix.id }}
+    needs: equivalence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: non-sysmon
+            mode: non_sysmon
+            start: 0
+            end: 0
+          - id: sysmon-0
+            mode: sysmon
+            start: 0
+            end: 1487
+          - id: sysmon-1
+            mode: sysmon
+            start: 1487
+            end: 2974
+          - id: sysmon-2
+            mode: sysmon
+            start: 2974
+            end: 4461
+          - id: sysmon-3
+            mode: sysmon
+            start: 4461
+            end: 5948
+          - id: sysmon-4
+            mode: sysmon
+            start: 5948
+            end: 7435
+          - id: sysmon-5
+            mode: sysmon
+            start: 7435
+            end: 8922
+          - id: sysmon-6
+            mode: sysmon
+            start: 8922
+            end: 10408
+          - id: sysmon-7
+            mode: sysmon
+            start: 10408
+            end: 11894
+
+    steps:
+      - name: Checkout exact measured main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.MEASURED_MAIN }}
+          fetch-depth: 1
+
+      - name: Set up Python 3.11.16
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: 3.11.16
+
+      - name: Install exact locked product environment
+        run: python -m pip install --require-hashes -r requirements-lock-py311.txt
+
+      - name: Download and verify pinned corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --silent --show-error -o /tmp/win10-client.tgz "$CORPUS_URL"
+          echo "$CORPUS_SHA256  /tmp/win10-client.tgz" | sha256sum -c -
+          rm -rf /tmp/p2-09d-corpus && mkdir -p /tmp/p2-09d-corpus
+          tar -xzf /tmp/win10-client.tgz -C /tmp/p2-09d-corpus
+
+      - name: Parse and score assigned full-corpus shard
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+          SHARD_ID: ${{ matrix.id }}
+          SHARD_MODE: ${{ matrix.mode }}
+          CHUNK_START: ${{ matrix.start }}
+          CHUNK_END: ${{ matrix.end }}
+        run: |
+          set -euo pipefail
+          mkdir -p shard-out
+          python -u - <<'PY'
+          from __future__ import annotations
+          import importlib.util
+          import itertools
+          import json
+          import os
+          import time
+          import tracemalloc
+          from collections import defaultdict
+          from pathlib import Path
+
+          from Evtx.Evtx import Evtx
+          from breachscope.analyzer import apply_rules
+          from breachscope.ingest import _extract_from_xml
+          from breachscope.rules import load_rules
+
+          spec = importlib.util.spec_from_file_location(
+              "p2_09d_holdout", Path("scripts/evaluate_external_holdout.py")
+          )
+          holdout = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(holdout)
+
+          shard_id = os.environ["SHARD_ID"]
+          mode = os.environ["SHARD_MODE"]
+          chunk_start = int(os.environ["CHUNK_START"])
+          chunk_end = int(os.environ["CHUNK_END"])
+          measured_main = os.environ["MEASURED_MAIN"]
+          root = Path("/tmp/p2-09d-corpus")
+          sysmon_rel = os.environ["SYSMON_REL"]
+          rules = load_rules(Path("rules"))
+          rule_hash, rule_file_count = holdout.rules_tree_hash(Path("rules"))
+
+          all_event_keys = set()
+          all_flagged_keys = set()
+          source_events = defaultdict(int)
+          source_flagged = defaultdict(int)
+          finding_count = 0
+          detector_seconds = 0.0
+          parse_seconds = 0.0
+          detector_peak_bytes = 0
+          started = time.perf_counter()
+
+          def score_raws(raws, source_name):
+              nonlocal finding_count, detector_seconds, detector_peak_bytes
+              if not raws:
+                  return
+              keys = [holdout.event_key(raw) for raw in raws]
+              local_keys = set(keys)
+              if len(local_keys) != len(keys):
+                  raise SystemExit(f"duplicate event identity inside {source_name}")
+              overlap = all_event_keys & local_keys
+              if overlap:
+                  raise SystemExit(
+                      f"duplicate event identity across local sources: {source_name}: {len(overlap)}"
+                  )
+              all_event_keys.update(local_keys)
+              source_events[source_name] += len(keys)
+
+              events = [holdout._record_to_event(raw) for raw in raws]
+              key_by_object = {id(event): key for event, key in zip(events, keys)}
+              tracemalloc.start()
+              detect_start = time.perf_counter()
+              findings = list(apply_rules(events, rules))
+              elapsed = time.perf_counter() - detect_start
+              _, peak = tracemalloc.get_traced_memory()
+              tracemalloc.stop()
+              detector_seconds += elapsed
+              detector_peak_bytes = max(detector_peak_bytes, peak)
+              finding_count += len(findings)
+
+              flagged = set()
+              for finding in findings:
+                  event = getattr(finding, "event", None)
+                  key = key_by_object.get(id(event))
+                  if key is None and event is not None:
+                      candidate = holdout.event_key(event)
+                      if candidate in local_keys:
+                          key = candidate
+                  if key is None or key not in local_keys:
+                      raise SystemExit(f"finding could not map back to event in {source_name}")
+                  flagged.add(key)
+              all_flagged_keys.update(flagged)
+              source_flagged[source_name] += len(flagged)
+
+          def parse_full(path, source_name):
+              nonlocal parse_seconds
+              parse_start = time.perf_counter()
+              raws = []
+              with Evtx(str(path)) as log:
+                  for record in log.records():
+                      raw = _extract_from_xml(record.xml())
+                      if raw:
+                          raws.append(raw)
+              parse_seconds += time.perf_counter() - parse_start
+              score_raws(raws, source_name)
+
+          files = sorted(
+              p for p in root.rglob("*")
+              if p.is_file() and p.name.casefold().endswith(".evtx")
+          )
+          rel_to_path = {p.relative_to(root).as_posix(): p for p in files}
+          if sysmon_rel not in rel_to_path:
+              raise SystemExit(f"pinned Sysmon source missing: {sysmon_rel}")
+
+          total_chunks = None
+          if mode == "non_sysmon":
+              selected = [
+                  (rel, path) for rel, path in sorted(rel_to_path.items())
+                  if rel != sysmon_rel
+              ]
+              if len(selected) != 351:
+                  raise SystemExit(f"expected 351 non-Sysmon EVTX files, got {len(selected)}")
+              for index, (rel, path) in enumerate(selected, 1):
+                  parse_full(path, rel)
+                  if index == 1 or index % 25 == 0 or index == len(selected):
+                      print(
+                          f"SHARD_PROGRESS id={shard_id} files={index}/{len(selected)} "
+                          f"events={len(all_event_keys)} flagged={len(all_flagged_keys)} "
+                          f"seconds={time.perf_counter()-started:.1f}",
+                          flush=True,
+                      )
+          elif mode == "sysmon":
+              path = rel_to_path[sysmon_rel]
+              with Evtx(str(path)) as log:
+                  total_chunks = sum(1 for _ in log.chunks())
+              if total_chunks != 11894:
+                  raise SystemExit(f"expected 11894 Sysmon chunks, got {total_chunks}")
+              if not (0 <= chunk_start < chunk_end <= total_chunks):
+                  raise SystemExit(
+                      f"invalid chunk range {chunk_start}:{chunk_end} for {total_chunks}"
+                  )
+              parse_start = time.perf_counter()
+              raws = []
+              with Evtx(str(path)) as log:
+                  for chunk in itertools.islice(log.chunks(), chunk_start, chunk_end):
+                      for record in chunk.records():
+                          raw = _extract_from_xml(record.xml())
+                          if raw:
+                              raws.append(raw)
+              parse_seconds += time.perf_counter() - parse_start
+              print(
+                  f"SYSMON_PARSE id={shard_id} chunks={chunk_start}:{chunk_end} "
+                  f"events={len(raws)} seconds={parse_seconds:.3f}",
+                  flush=True,
+              )
+              score_raws(raws, sysmon_rel)
+          else:
+              raise SystemExit(f"unknown shard mode: {mode}")
+
+          if not all_event_keys:
+              raise SystemExit(f"shard {shard_id} produced zero events")
+          if not all_flagged_keys.issubset(all_event_keys):
+              raise SystemExit("flagged key set is not a subset of shard event keys")
+
+          payload = {
+              "schema": "breachscope.p2_09d.distributed_shard.v1",
+              "shard_id": shard_id,
+              "mode": mode,
+              "repo_commit": measured_main,
+              "rules_tree_sha256": rule_hash,
+              "rule_file_count": rule_file_count,
+              "corpus_sha256": os.environ["CORPUS_SHA256"],
+              "source_archive": "NextronSystems/evtx-baseline v0.8.4 win10-client.tgz",
+              "label_policy": "benign_by_source_intent",
+              "chunk_start": chunk_start if mode == "sysmon" else None,
+              "chunk_end": chunk_end if mode == "sysmon" else None,
+              "total_chunks": total_chunks,
+              "event_count": len(all_event_keys),
+              "flagged_event_count": len(all_flagged_keys),
+              "finding_count": finding_count,
+              "event_keys": sorted(all_event_keys),
+              "flagged_event_keys": sorted(all_flagged_keys),
+              "source_events": dict(sorted(source_events.items())),
+              "source_flagged": dict(sorted(source_flagged.items())),
+              "timing": {
+                  "parse_seconds": parse_seconds,
+                  "detector_seconds": detector_seconds,
+                  "shard_wall_seconds": time.perf_counter() - started,
+              },
+              "memory": {
+                  "detector_peak_bytes_max_per_apply_rules_call": detector_peak_bytes,
+                  "claim_boundary": "distributed shard peak; not monolithic whole-corpus evaluator peak",
+              },
+          }
+          out = Path("shard-out") / f"{shard_id}.json"
+          out.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+          print(
+              f"SHARD_COMPLETE id={shard_id} events={payload['event_count']} "
+              f"flagged={payload['flagged_event_count']} findings={finding_count} "
+              f"parse={parse_seconds:.3f}s detector={detector_seconds:.3f}s",
+              flush=True,
+          )
+          PY
+
+      - name: Upload compact shard accounting
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-09d-${{ matrix.id }}
+          path: shard-out/${{ matrix.id }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  aggregate:
+    name: Aggregate full pinned benign corpus
+    needs: shard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact measured main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ env.MEASURED_MAIN }}
+          fetch-depth: 1
+
+      - name: Download all shard accounting artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: p2-09d-*
+          path: shard-results
+          merge-multiple: true
+
+      - name: Verify global identity and compute FP TN FPR
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          mkdir -p out/p2_09d_distributed
+          python -u - <<'PY'
+          from __future__ import annotations
+          import json
+          import os
+          from collections import defaultdict
+          from pathlib import Path
+
+          expected_ids = ["non-sysmon"] + [f"sysmon-{i}" for i in range(8)]
+          expected_ranges = [
+              (0, 1487), (1487, 2974), (2974, 4461), (4461, 5948),
+              (5948, 7435), (7435, 8922), (8922, 10408), (10408, 11894),
+          ]
+          root = Path("shard-results")
+          files = sorted(root.glob("*.json"))
+          if len(files) != len(expected_ids):
+              raise SystemExit(f"expected {len(expected_ids)} shard files, got {len(files)}")
+          shards = [json.loads(path.read_text(encoding="utf-8")) for path in files]
+          by_id = {row["shard_id"]: row for row in shards}
+          if sorted(by_id) != sorted(expected_ids):
+              raise SystemExit(f"unexpected shard IDs: {sorted(by_id)}")
+
+          expected_commit = os.environ["MEASURED_MAIN"]
+          expected_corpus = os.environ["CORPUS_SHA256"]
+          rule_hashes = {row["rules_tree_sha256"] for row in shards}
+          rule_counts = {int(row["rule_file_count"]) for row in shards}
+          if any(row["repo_commit"] != expected_commit for row in shards):
+              raise SystemExit("shard repo commit mismatch")
+          if any(row["corpus_sha256"] != expected_corpus for row in shards):
+              raise SystemExit("shard corpus SHA mismatch")
+          if len(rule_hashes) != 1 or len(rule_counts) != 1:
+              raise SystemExit("rule freeze mismatch across shards")
+
+          for i, expected_range in enumerate(expected_ranges):
+              row = by_id[f"sysmon-{i}"]
+              actual = (int(row["chunk_start"]), int(row["chunk_end"]))
+              if actual != expected_range or int(row["total_chunks"]) != 11894:
+                  raise SystemExit(
+                      f"Sysmon shard range mismatch sysmon-{i}: {actual} total={row['total_chunks']}"
+                  )
+
+          global_keys = set()
+          flagged = set()
+          source_events = defaultdict(int)
+          source_flagged = defaultdict(int)
+          findings = 0
+          parse_sum = 0.0
+          detector_sum = 0.0
+          shard_wall_max = 0.0
+          detector_peak_max = 0
+
+          for shard_id in expected_ids:
+              row = by_id[shard_id]
+              keys = set(row["event_keys"])
+              if len(keys) != int(row["event_count"]):
+                  raise SystemExit(f"event key count mismatch in {shard_id}")
+              overlap = global_keys & keys
+              if overlap:
+                  raise SystemExit(
+                      f"duplicate event identity across shards at {shard_id}: {len(overlap)}"
+                  )
+              global_keys |= keys
+
+              shard_flagged = set(row["flagged_event_keys"])
+              if not shard_flagged.issubset(keys):
+                  raise SystemExit(f"flagged keys escape shard event keys: {shard_id}")
+              flagged |= shard_flagged
+              findings += int(row["finding_count"])
+              for source, count in row["source_events"].items():
+                  source_events[source] += int(count)
+              for source, count in row["source_flagged"].items():
+                  source_flagged[source] += int(count)
+              timing = row["timing"]
+              parse_sum += float(timing["parse_seconds"])
+              detector_sum += float(timing["detector_seconds"])
+              shard_wall_max = max(shard_wall_max, float(timing["shard_wall_seconds"]))
+              detector_peak_max = max(
+                  detector_peak_max,
+                  int(row["memory"]["detector_peak_bytes_max_per_apply_rules_call"]),
+              )
+
+          total = len(global_keys)
+          fp = len(flagged)
+          tn = total - fp
+          if total <= 0 or tn < 0:
+              raise SystemExit("invalid aggregate confusion counts")
+          fpr = fp / total
+          source_files = len(source_events)
+          if source_files != 352:
+              raise SystemExit(f"expected 352 source files, got {source_files}")
+          if sum(source_events.values()) != total:
+              raise SystemExit("source event totals do not equal global event total")
+          if sum(source_flagged.values()) != fp:
+              raise SystemExit("source flagged totals do not equal global FP total")
+
+          top_flagged = sorted(
+              (
+                  {
+                      "source": source,
+                      "events": source_events[source],
+                      "flagged_events": source_flagged.get(source, 0),
+                      "fpr": (
+                          source_flagged.get(source, 0) / source_events[source]
+                          if source_events[source] else 0.0
+                      ),
+                  }
+                  for source in source_events
+              ),
+              key=lambda row: (-row["flagged_events"], row["source"]),
+          )
+
+          summary = {
+              "schema": "breachscope.p2_09d.distributed_result.v1",
+              "baseline_id": "p2-09d-nextron-win10-v1",
+              "evaluation_class": "external_baseline",
+              "measured_repo_commit": expected_commit,
+              "rules_tree_sha256": next(iter(rule_hashes)),
+              "rule_file_count": next(iter(rule_counts)),
+              "corpus": {
+                  "repository": "NextronSystems/evtx-baseline",
+                  "release_tag": "v0.8.4",
+                  "asset": "win10-client.tgz",
+                  "sha256": expected_corpus,
+                  "source_files": source_files,
+                  "events": total,
+                  "label_policy": "benign_by_source_intent",
+              },
+              "primary_metrics": {
+                  "false_positives": fp,
+                  "true_negatives": tn,
+                  "false_positive_rate": fpr,
+                  "flagged_events_per_1000": (fp / total) * 1000.0,
+                  "findings": findings,
+                  "findings_per_1000": (findings / total) * 1000.0,
+              },
+              "timing": {
+                  "parse_seconds_sum_across_runners": parse_sum,
+                  "detector_seconds_sum_across_runners": detector_sum,
+                  "max_shard_compute_wall_seconds": shard_wall_max,
+                  "note": "Distributed measurement telemetry; not a monolithic whole-corpus wall-clock benchmark.",
+              },
+              "memory": {
+                  "max_detector_peak_bytes_across_shards": detector_peak_max,
+                  "note": "Maximum tracemalloc peak from a shard apply_rules call; not monolithic whole-corpus evaluator peak memory.",
+              },
+              "source_breakdown": top_flagged,
+              "claim_boundary": {
+                  "production_false_positive_rate": "not_claimed",
+                  "enterprise_environment_representative": False,
+                  "event_level_manual_adjudication": False,
+                  "measurement_method": "full pinned corpus distributed across runners; exact parser, normalizer, event identity, rules and apply_rules from measured main",
+              },
+              "validation": {
+                  "distributed_scoring_equivalence_gate": "PASS",
+                  "global_event_identity_unique": True,
+                  "sysmon_chunks_covered_exactly_once": "0:11894",
+                  "all_events_labeled_benign_by_source_intent": True,
+              },
+          }
+
+          out = Path("out/p2_09d_distributed")
+          (out / "summary.json").write_text(
+              json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+          )
+          with (out / "flagged_event_keys.jsonl").open("w", encoding="utf-8", newline="\n") as f:
+              for key in sorted(flagged):
+                  f.write(json.dumps({"event_key": key}) + "\n")
+
+          lines = [
+              "# P2-09D Distributed Full-Corpus Benign Baseline",
+              "",
+              f"- measured main: `{expected_commit}`",
+              f"- rules tree SHA-256: `{summary['rules_tree_sha256']}`",
+              f"- corpus SHA-256: `{expected_corpus}`",
+              f"- source files: **{source_files}**",
+              f"- benign events: **{total:,}**",
+              f"- FP: **{fp:,}**",
+              f"- TN: **{tn:,}**",
+              f"- FPR: **{fpr:.6%}**",
+              f"- findings: **{findings:,}**",
+              f"- flagged events / 1,000: **{(fp/total)*1000.0:.3f}**",
+              f"- findings / 1,000: **{(findings/total)*1000.0:.3f}**",
+              "",
+              "## Claim boundary",
+              "",
+              "This is the observed FPR on the pinned public goodware corpus only. It is not a production or enterprise-wide FPR.",
+              "The event labels are benign-by-source-intent, not event-level manual adjudication.",
+              "Runtime and memory are distributed-measurement telemetry, not a monolithic benchmark.",
+              "",
+              "## Most flagged sources",
+              "",
+          ]
+          for row in top_flagged[:20]:
+              lines.append(
+                  f"- `{row['source']}`: {row['flagged_events']:,}/{row['events']:,} "
+                  f"({row['fpr']:.6%})"
+              )
+          (out / "SUMMARY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+          print(f"P2-09D EVENTS={total}")
+          print(f"P2-09D FP={fp}")
+          print(f"P2-09D TN={tn}")
+          print(f"P2-09D FPR={fpr:.10f}")
+          print(f"P2-09D FINDINGS={findings}")
+          print(f"P2-09D SOURCE_FILES={source_files}")
+          print("P2-09D PRODUCTION_FPR=NOT_CLAIMED")
+          print("P2-09D DISTRIBUTED_FULL_CORPUS=PASS")
+          PY
+
+      - name: Upload P2-09D aggregate evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-09d-distributed-result
+          path: |
+            out/p2_09d_distributed/summary.json
+            out/p2_09d_distributed/SUMMARY.md
+            out/p2_09d_distributed/flagged_event_keys.jsonl
+          if-no-files-found: error
+          retention-days: 14
