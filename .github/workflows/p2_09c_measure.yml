@@ -1,0 +1,80 @@
+name: P2-09C Main Baseline Measurement
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/p2_09c_measure.yml
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: Measure merged main external baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout exact merged P2-09C main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: 2a1631f6633ee40dcc47524675dc9dbda541e01d
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11.16"
+          cache: pip
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+
+      - name: Confirm exact clean measurement state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "2a1631f6633ee40dcc47524675dc9dbda541e01d"
+          test -z "$(git status --porcelain -uall)"
+
+      - name: Run P2-09C external attack baseline
+        shell: bash
+        run: python scripts/run_external_baseline.py
+
+      - name: Validate measurement boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("out/external_baseline/p2_09c/summary.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          assert data["repo_commit"] == "2a1631f6633ee40dcc47524675dc9dbda541e01d"
+          assert data["evaluation_class"] == "external_baseline"
+          assert data["primary_metrics"]["scenario_total"] == 10
+          assert data["event_level_metrics"]["precision"] == "NOT_CLAIMED"
+          assert data["event_level_metrics"]["recall"] == "NOT_CLAIMED"
+          assert data["event_level_metrics"]["false_positive_rate"] == "NOT_CLAIMED"
+          assert data["claim_boundary"]["final_blind_holdout"] is False
+          assert data["claim_boundary"]["benign_false_positive_rate_measured"] is False
+          print(path.read_text(encoding="utf-8"))
+          PY
+
+      - name: Upload measurement only (no raw EVTX)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-09c-main-baseline-measurement
+          path: |
+            out/external_baseline/p2_09c/rules_freeze.json
+            out/external_baseline/p2_09c/manifest.yaml
+            out/external_baseline/p2_09c/result.json
+            out/external_baseline/p2_09c/summary.json
+            out/external_baseline/p2_09c/SUMMARY.md
+          if-no-files-found: error
