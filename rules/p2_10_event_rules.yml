@@ -1,0 +1,12 @@
+- id: R-SCHTASK-4698
+  name: Scheduled Task Creation Event
+  description: Windows Security 4698 scheduled task creation event
+  field: event_id
+  operator: equals
+  pattern: "4698"
+  severity: low
+  mitre_technique: T1053.005
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
