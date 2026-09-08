@@ -45,6 +45,10 @@ def test_normal_wmic_query_without_remote_format_does_not_match() -> None:
     assert not _has_new_rule(_event("wmic process get name"))
 
 
+def test_local_wmic_format_does_not_match() -> None:
+    assert not _has_new_rule(_event("wmic process list /format:list"))
+
+
 def test_remote_format_without_wmic_does_not_match() -> None:
     assert not _has_new_rule(_event('other.exe /format:"https://example.test/a.xsl"'))
 
