@@ -1,0 +1,20 @@
+schema: breachscope.benign_baseline_sources.v1
+baseline_id: p2-09d-nextron-win10-v1
+evaluation_class: external_baseline
+label_policy: benign_by_source_intent
+claim_boundary:
+  production_false_positive_rate: not_claimed
+  event_level_manual_adjudication: false
+  enterprise_environment_representative: false
+  note: The measured false-positive rate applies only to this pinned public goodware corpus.
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  release_id: 295655133
+  asset_id: 371540503
+  asset_name: win10-client.tgz
+  asset_url: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+  size: 70844052
+  sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  license: Apache-2.0
+  provenance_note: Upstream describes evtx-baseline as example goodware EVTX logs containing sample software installation and basic user interaction.
