@@ -31,7 +31,7 @@
 - **EVTX 처리**: `python-evtx`를 이용한 EVTX 변환과 JSONL 분석을 지원합니다.
 - **Windows 로그 수집**: Windows에서 `wevtutil.exe`를 이용해 이벤트 로그를 수집할 수 있습니다.
 - **일부 Windows artifact 모듈**: Browser History, Prefetch, Registry, USB 관련 수집/분류 모듈이 있습니다. 현재 제품의 주 분석 흐름은 Windows Event Log 중심이며, 종합 포렌식 artifact suite 전체를 대체한다고 주장하지 않습니다.
-- **리포트**: HTML, JSON, CSV, IOC CSV, 룰 카탈로그 CSV, PDF, manifest, case ZIP을 생성할 수 있습니다.
+- **리포트**: HTML, JSON, CSV, IOC CSV, 룰 카탈로그 CSV, **한글 PDF**, manifest, case ZIP을 생성할 수 있습니다.
 - **웹/API**: FastAPI 기반 분석·케이스·보고서·운영 API와 웹 콘솔을 제공합니다.
 - **케이스 이력**: 분석 결과 재열람, 다운로드, 삭제, 보존 정리를 지원합니다.
 - **감사 로그**: 로그인, 분석, 조회, 다운로드, 삭제 등 운영 이벤트를 기록하고 무결성 확인 기능을 제공합니다.
