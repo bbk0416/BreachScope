@@ -1,0 +1,83 @@
+name: P2-09D Main Benign Baseline Measurement
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/p2_09d_measure.yml
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: Measure merged main benign baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout exact merged P2-09D main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: 9bdd759027b0a52fd7d4a9784b88225d178874e8
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11.16"
+          cache: pip
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+
+      - name: Confirm exact clean measurement state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "9bdd759027b0a52fd7d4a9784b88225d178874e8"
+          test -z "$(git status --porcelain -uall)"
+
+      - name: Run P2-09D real benign baseline
+        shell: bash
+        run: python scripts/run_benign_baseline.py --timeout 300
+
+      - name: Validate measurement boundary
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("out/external_baseline/p2_09d/summary.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          assert data["repo_commit"] == "9bdd759027b0a52fd7d4a9784b88225d178874e8"
+          assert data["evaluation_class"] == "external_baseline"
+          assert data["corpus"]["events"] > 0
+          assert data["corpus"]["source_files"] > 0
+          assert data["corpus"]["label_policy"] == "benign_by_source_intent"
+          assert data["claim_boundary"]["event_level_manual_adjudication"] is False
+          assert data["claim_boundary"]["production_false_positive_rate_measured"] is False
+          assert data["claim_boundary"]["final_blind_holdout"] is False
+          metrics = data["primary_metrics"]
+          assert metrics["false_positives"] + metrics["true_negatives"] == data["corpus"]["events"]
+          print(path.read_text(encoding="utf-8"))
+          PY
+
+      - name: Upload measurement only (no raw EVTX)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-09d-main-benign-baseline-measurement
+          path: |
+            out/external_baseline/p2_09d/rules_freeze.json
+            out/external_baseline/p2_09d/manifest.yaml
+            out/external_baseline/p2_09d/event_index.jsonl
+            out/external_baseline/p2_09d/result.json
+            out/external_baseline/p2_09d/summary.json
+            out/external_baseline/p2_09d/SUMMARY.md
+          if-no-files-found: error
