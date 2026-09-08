@@ -51,3 +51,22 @@
     - field: ObjectServer
       operator: equals
       pattern: Security Account Manager
+
+- id: R-LSASS-ACCESS-1010
+  name: LSASS Process Access 0x1010
+  description: Sysmon process access to LSASS with access mask 0x1010 observed in the credential-access sample
+  field: TargetImage
+  operator: endswith
+  pattern: '\\lsass.exe'
+  severity: medium
+  mitre_technique: T1003.001
+  all_of:
+    - field: GrantedAccess
+      operator: regex
+      pattern: '^0x0*1010$'
+    - field: event_id
+      operator: equals
+      pattern: "10"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
