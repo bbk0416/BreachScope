@@ -1,0 +1,66 @@
+schema: breachscope.p2_10d_remediation_measurement.v1
+remediation_id: p2-10d-lsass-access-1010
+measurement_repo_commit: ce1ada8b1ddcf075e3258a7b2f2abf309ac9b034
+from_rules_tree_sha256: 9fff876a481f972ac88dcccb1044b38b8df22c390f74375034a72eca7a1a8fa0
+to_rules_tree_sha256: f6561197677172b671646a49a84a2ff1d3cc9d661f23ee2862037ac5ca16292e
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-LSASS-ACCESS-1010
+  name: LSASS Process Access 0x1010
+  severity: medium
+  mitre_technique: T1003.001
+  predicate:
+    TargetImage_endswith: '\\lsass.exe'
+    GrantedAccess_regex: '^0x0*1010$'
+    event_id_equals: "10"
+    source_equals: Microsoft-Windows-Sysmon
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 5
+  after_scenario_hits: 6
+  scenario_misses: 4
+  scenario_total: 10
+  after_scenario_hit_rate: 0.6
+  findings: 8
+  flagged_events: 8
+  changed_scenario:
+    scenario_id: ca-lsass-mimikatz
+    expected_technique: T1003.001
+    before_status: miss
+    after_status: hit
+  remaining_miss_scenarios:
+    - lm-powershell-remoting
+    - lm-wmi
+    - lm-remote-service
+    - persist-hidden-run-key
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  sysmon_records_scanned: 732200
+  sysmon_chunks_scanned: 11894
+  lsass_event10_target_matches: 61
+  exact_predicate_matches: 0
+  probe_run_id: 34243188619
+  probe_commit: 05cc74869740bf393eaba5bdd2be6f3d358c0ec6
+  parser: python-evtx 0.8.1 plus BreachScope EVTX conversion/normalization path
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34244428149
+  artifact_id: 10063365810
+  artifact_digest_sha256: bc6b2e81c5c4f55a727f6788b537e2f6c49525fd7de2096d2ae58459a26c8c4c
+  artifact_record_schema: breachscope.p2_10d_measurement.v1
+  focused_tests_passed: 6
+  detector_runtime_seconds: 0.12792638599999862
+  detector_peak_memory_mb: 0.17290115356445312
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No event matching the new Sysmon Event ID 10 plus LSASS target plus GrantedAccess 0x1010 predicate was observed in the 732,200 Sysmon records from the pinned benign corpus.
