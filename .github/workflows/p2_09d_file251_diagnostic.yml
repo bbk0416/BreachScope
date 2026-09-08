@@ -1,4 +1,4 @@
-name: P2-09D EVTX Backend Diagnostic
+name: P2-09D EVTX Chunk Parallel Diagnostic
 
 on:
   push:
@@ -24,12 +24,11 @@ jobs:
         with:
           python-version: 3.11.16
 
-      - name: Install locked product environment and Rust parser
+      - name: Install exact locked product environment
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --require-hashes -r requirements-lock-py311.txt
-          python -m pip install --disable-pip-version-check evtx==0.12.1
 
       - name: Download and verify pinned corpus
         shell: bash
@@ -43,7 +42,182 @@ jobs:
           mkdir -p /tmp/p2-09d-corpus
           tar -xzf /tmp/win10-client.tgz -C /tmp/p2-09d-corpus
 
-      - name: Compare normalized output on index 249
+      - name: Write chunk-parallel diagnostic helper
+        shell: bash
+        run: |
+          cat > /tmp/parallel_evtx_diag.py <<'PY'
+          from __future__ import annotations
+
+          import argparse
+          import hashlib
+          import itertools
+          import json
+          import multiprocessing
+          import shutil
+          import time
+          from concurrent.futures import ProcessPoolExecutor, as_completed
+          from pathlib import Path
+
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
+
+
+          def canonical_bytes(row: dict) -> bytes:
+              return (
+                  json.dumps(
+                      row,
+                      sort_keys=True,
+                      ensure_ascii=False,
+                      separators=(",", ":"),
+                  ).encode("utf-8")
+                  + b"\n"
+              )
+
+
+          def count_chunks(path: str) -> int:
+              with Evtx(path) as log:
+                  return sum(1 for _ in log.chunks())
+
+
+          def split_ranges(total: int, workers: int) -> list[tuple[int, int]]:
+              workers = max(1, min(workers, total))
+              base, remainder = divmod(total, workers)
+              ranges = []
+              start = 0
+              for index in range(workers):
+                  width = base + (1 if index < remainder else 0)
+                  end = start + width
+                  ranges.append((start, end))
+                  start = end
+              assert start == total
+              return ranges
+
+
+          def render_range(
+              path: str,
+              start: int,
+              end: int,
+              part_path: str,
+          ) -> tuple[int, int, int, float]:
+              begun = time.perf_counter()
+              count = 0
+              output = Path(part_path)
+              output.parent.mkdir(parents=True, exist_ok=True)
+              with Evtx(path) as log, output.open("w", encoding="utf-8", newline="\n") as target:
+                  for chunk in itertools.islice(log.chunks(), start, end):
+                      for record in chunk.records():
+                          row = _extract_from_xml(record.xml())
+                          if not row:
+                              continue
+                          target.write(json.dumps(row, ensure_ascii=False) + "\n")
+                          count += 1
+              return start, end, count, time.perf_counter() - begun
+
+
+          def digest_jsonl(path: Path) -> tuple[int, str]:
+              digest = hashlib.sha256()
+              count = 0
+              with path.open("r", encoding="utf-8") as source:
+                  for line in source:
+                      if not line.strip():
+                          continue
+                      row = json.loads(line)
+                      digest.update(canonical_bytes(row))
+                      count += 1
+              return count, digest.hexdigest()
+
+
+          def run_parallel(path: Path, output: Path, workers: int) -> tuple[int, str, float, int]:
+              begun = time.perf_counter()
+              total_chunks = count_chunks(str(path))
+              ranges = split_ranges(total_chunks, workers)
+              part_root = output.with_suffix(output.suffix + ".parts")
+              shutil.rmtree(part_root, ignore_errors=True)
+              part_root.mkdir(parents=True, exist_ok=True)
+
+              context = multiprocessing.get_context("fork")
+              futures = []
+              with ProcessPoolExecutor(max_workers=len(ranges), mp_context=context) as pool:
+                  for ordinal, (start, end) in enumerate(ranges):
+                      part = part_root / f"part-{ordinal:03d}.jsonl"
+                      futures.append(
+                          pool.submit(render_range, str(path), start, end, str(part))
+                      )
+                  completed = []
+                  for future in as_completed(futures):
+                      row = future.result()
+                      completed.append(row)
+                      print(
+                          f"RANGE_COMPLETE chunks={row[0]}:{row[1]} events={row[2]} seconds={row[3]:.3f}",
+                          flush=True,
+                      )
+
+              output.parent.mkdir(parents=True, exist_ok=True)
+              with output.open("wb") as target:
+                  for ordinal in range(len(ranges)):
+                      part = part_root / f"part-{ordinal:03d}.jsonl"
+                      with part.open("rb") as source:
+                          shutil.copyfileobj(source, target, length=1024 * 1024)
+
+              count, digest = digest_jsonl(output)
+              elapsed = time.perf_counter() - begun
+              shutil.rmtree(part_root, ignore_errors=True)
+              return count, digest, elapsed, total_chunks
+
+
+          def run_sequential(path: Path) -> tuple[int, str, float]:
+              begun = time.perf_counter()
+              digest = hashlib.sha256()
+              count = 0
+              with Evtx(str(path)) as log:
+                  for record in log.records():
+                      row = _extract_from_xml(record.xml())
+                      if not row:
+                          continue
+                      digest.update(canonical_bytes(row))
+                      count += 1
+              return count, digest.hexdigest(), time.perf_counter() - begun
+
+
+          def main() -> int:
+              ap = argparse.ArgumentParser()
+              ap.add_argument("path", type=Path)
+              ap.add_argument("--workers", type=int, default=8)
+              ap.add_argument("--out", type=Path, required=True)
+              ap.add_argument("--compare-sequential", action="store_true")
+              args = ap.parse_args()
+
+              if args.compare_sequential:
+                  seq_count, seq_hash, seq_seconds = run_sequential(args.path)
+                  print(
+                      f"SEQUENTIAL count={seq_count} sha256={seq_hash} seconds={seq_seconds:.3f}",
+                      flush=True,
+                  )
+              else:
+                  seq_count = None
+                  seq_hash = None
+
+              par_count, par_hash, par_seconds, chunks = run_parallel(
+                  args.path, args.out, args.workers
+              )
+              print(
+                  f"PARALLEL chunks={chunks} workers={args.workers} count={par_count} "
+                  f"sha256={par_hash} seconds={par_seconds:.3f} bytes={args.out.stat().st_size}",
+                  flush=True,
+              )
+              if args.compare_sequential:
+                  print(f"COUNT_MATCH={seq_count == par_count}", flush=True)
+                  print(f"NORMALIZED_HASH_MATCH={seq_hash == par_hash}", flush=True)
+                  if seq_count != par_count or seq_hash != par_hash:
+                      return 3
+              return 0
+
+
+          if __name__ == "__main__":
+              raise SystemExit(main())
+          PY
+
+      - name: Prove semantic equivalence on index 249
         shell: bash
         env:
           PYTHONUNBUFFERED: "1"
@@ -51,66 +225,22 @@ jobs:
           set -euo pipefail
           python -u - <<'PY'
           from pathlib import Path
-          import hashlib
-          import json
-          import time
-
-          from Evtx.Evtx import Evtx
-          from evtx import PyEvtxParser
-          from breachscope.ingest import _extract_from_xml
-
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
               p for p in root.rglob('*')
               if p.is_file() and p.name.casefold().endswith('.evtx')
           )
           path = rows[248]
-          print(f'COMPARE path={path.relative_to(root).as_posix()} size={path.stat().st_size}')
-
-          def add_row(digest, row):
-              payload = json.dumps(
-                  row,
-                  sort_keys=True,
-                  ensure_ascii=False,
-                  separators=(',', ':'),
-              ).encode('utf-8')
-              digest.update(payload)
-              digest.update(b'\n')
-
-          start = time.perf_counter()
-          legacy_digest = hashlib.sha256()
-          legacy_count = 0
-          with Evtx(str(path)) as log:
-              for record in log.records():
-                  row = _extract_from_xml(record.xml())
-                  if row:
-                      add_row(legacy_digest, row)
-                      legacy_count += 1
-          legacy_seconds = time.perf_counter() - start
-          print(
-              f'LEGACY count={legacy_count} sha256={legacy_digest.hexdigest()} '
-              f'seconds={legacy_seconds:.3f}'
-          )
-
-          start = time.perf_counter()
-          rust_digest = hashlib.sha256()
-          rust_count = 0
-          parser = PyEvtxParser(str(path), number_of_threads=1)
-          for record in parser.records():
-              row = _extract_from_xml(record['data'])
-              if row:
-                  add_row(rust_digest, row)
-                  rust_count += 1
-          rust_seconds = time.perf_counter() - start
-          print(
-              f'RUST count={rust_count} sha256={rust_digest.hexdigest()} '
-              f'seconds={rust_seconds:.3f}'
-          )
-          print(f'COUNT_MATCH={legacy_count == rust_count}')
-          print(f'NORMALIZED_HASH_MATCH={legacy_digest.hexdigest() == rust_digest.hexdigest()}')
+          Path('/tmp/index249_path.txt').write_text(str(path), encoding='utf-8')
+          print(f'INDEX249={path.relative_to(root).as_posix()} size={path.stat().st_size}')
           PY
+          python -u /tmp/parallel_evtx_diag.py \
+            "$(cat /tmp/index249_path.txt)" \
+            --workers 4 \
+            --out /tmp/index249-parallel.jsonl \
+            --compare-sequential
 
-      - name: Parse and normalize full 799 MB Sysmon EVTX with Rust backend
+      - name: Parse full 799 MB Sysmon with same python-evtx semantics in parallel
         shell: bash
         env:
           PYTHONUNBUFFERED: "1"
@@ -118,51 +248,17 @@ jobs:
           set -euo pipefail
           python -u - <<'PY'
           from pathlib import Path
-          import hashlib
-          import json
-          import time
-
-          from evtx import PyEvtxParser
-          from breachscope.ingest import _extract_from_xml
-
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
               p for p in root.rglob('*')
               if p.is_file() and p.name.casefold().endswith('.evtx')
           )
           path = rows[272]
-          rel = path.relative_to(root).as_posix()
-          print(f'SYSMON path={rel} size={path.stat().st_size}', flush=True)
-
-          digest = hashlib.sha256()
-          count = 0
-          normalized = 0
-          start = time.perf_counter()
-          parser = PyEvtxParser(str(path), number_of_threads=0)
-          for record in parser.records():
-              count += 1
-              row = _extract_from_xml(record['data'])
-              if row:
-                  payload = json.dumps(
-                      row,
-                      sort_keys=True,
-                      ensure_ascii=False,
-                      separators=(',', ':'),
-                  ).encode('utf-8')
-                  digest.update(payload)
-                  digest.update(b'\n')
-                  normalized += 1
-              if count % 100000 == 0:
-                  print(
-                      f'PROGRESS records={count} normalized={normalized} '
-                      f'seconds={time.perf_counter()-start:.1f}',
-                      flush=True,
-                  )
-
-          elapsed = time.perf_counter() - start
-          print(
-              f'SYSMON_COMPLETE records={count} normalized={normalized} '
-              f'sha256={digest.hexdigest()} seconds={elapsed:.3f}',
-              flush=True,
-          )
+          Path('/tmp/sysmon_path.txt').write_text(str(path), encoding='utf-8')
+          print(f'SYSMON={path.relative_to(root).as_posix()} size={path.stat().st_size}')
           PY
+          python -u /tmp/parallel_evtx_diag.py \
+            "$(cat /tmp/sysmon_path.txt)" \
+            --workers 8 \
+            --out /tmp/sysmon-parallel.jsonl
+          ls -lh /tmp/sysmon-parallel.jsonl
