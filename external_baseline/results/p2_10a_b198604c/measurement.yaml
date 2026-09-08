@@ -37,6 +37,7 @@ benign_incremental_match_proof:
   non_sysmon_events_scanned: 34423
   exact_predicate_matches: 0
   excluded_sysmon_source_file: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  excluded_sysmon_provider: Microsoft-Windows-Sysmon
   sysmon_events_from_p2_09d: 732200
   sysmon_provider_disjoint_from_rule_source_predicate: true
   fresh_full_fp_tn_rerun: false
