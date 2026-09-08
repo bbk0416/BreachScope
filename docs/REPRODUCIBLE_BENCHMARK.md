@@ -70,56 +70,66 @@ GitHub compare로 `2a1631f6633ee40dcc47524675dc9dbda541e01d`부터 `789c1f45b355
 
 두 측정의 rule tree SHA-256도 동일합니다.
 
-따라서 이 benchmark는 **같은 고정 rule tree의 attack-side 관찰값과 benign-side 관찰값을 한 묶음으로 보여 주는 evidence bundle**입니다.
+따라서 이 benchmark는 **같은 고정 rule tree의 attack-side 관찰값과 benign-side 관찰값을 한 묶음으로 보여 주는 역사적 evidence snapshot**입니다.
 
-## 빠른 검증
+## P2-10 이후의 상태
 
-저장소 root에서 실행합니다.
+P2-10A부터 탐지 룰이 실제로 변경됩니다. 따라서 P2-09E의 rule hash와 현재 `rules/` hash가 달라지는 것이 정상입니다.
+
+이 경우 아래 명령은 일부러 FAIL합니다.
 
 ```cmd
 python scripts\verify_reproducible_benchmark.py
 ```
 
-이 검증은 네트워크를 사용하지 않습니다.
+이 실패는 P2-09E evidence가 망가졌다는 뜻이 아닙니다. **현재 룰이 P2-09E 당시 룰과 더 이상 같지 않다는 사실을 숨기지 않는 보호장치**입니다.
 
-정상 출력 예:
+현재 룰까지 포함한 evidence chain은 다음 명령으로 확인합니다.
 
-```text
-P2-09E benchmark verification: PASS
-Attack external baseline: 2/10 scenario hits (20.0%)
-Benign external baseline: FP=17 TN=766606 FPR=0.00221752%
-Production accuracy/FPR: NOT CLAIMED
-Performance benchmark: NOT CLAIMED
+```cmd
+python scripts\verify_current_detection_evidence.py
 ```
 
 기계 판독용 JSON:
 
 ```cmd
-python scripts\verify_reproducible_benchmark.py --json
+python scripts\verify_current_detection_evidence.py --json
+```
+
+P2-10A 이후 정상 출력의 핵심은 다음과 같습니다.
+
+```text
+Current detection evidence verification: PASS
+Attack external baseline: 2/10 -> 3/10 scenario hits
+p2-10a-scheduled-task-4698: benign incremental predicate matches=0 / 34423 non-Sysmon events
+Fresh full benign FPR for current rulepack: NOT CLAIMED
+Production accuracy/FPR: NOT CLAIMED
+```
+
+현재 evidence chain manifest:
+
+```text
+external_baseline/current_detection_evidence.yaml
 ```
 
 ## verifier가 확인하는 것
 
-`verify_reproducible_benchmark.py`는 다음을 검사합니다.
+`verify_reproducible_benchmark.py`는 P2-09E rule hash가 현재 rule hash와 같은지까지 검사합니다. 따라서 룰 변경 후에는 stale 상태를 fail-closed로 알립니다.
 
-1. benchmark manifest schema와 benchmark type
-2. 현재 `rules/` tree SHA-256
-3. P2-09C source contract와 measured result의 baseline ID
-4. P2-09C measured commit과 rule hash
-5. P2-09C 10 source / 202 events / 2 HIT / 8 MISS / findings 3
-6. P2-09C event-level precision/recall/FPR가 `NOT_CLAIMED`인지
-7. P2-09D source contract와 measured result의 baseline ID
-8. P2-09D corpus SHA-256과 asset size가 source contract와 일치하는지
-9. P2-09D 352 source / 766,623 events / FP 17 / TN 766,606 / findings 19
-10. `FP + TN = events`인지
-11. FPR을 FP와 전체 event 수에서 다시 계산했을 때 기록값과 같은지
-12. production accuracy/FPR, final blind holdout, performance benchmark를 주장하지 않는지
+`verify_current_detection_evidence.py`는 다음을 검사합니다.
 
-검증에 사용한 manifest/source/result 파일들의 SHA-256을 다시 묶어 `evidence_bundle_sha256`도 출력합니다. 이 값은 해당 저장소 상태에서 benchmark evidence 파일들이 정확히 같은지 확인하는 편의용 digest입니다.
+1. P2-09E attack/benign source, result, metric, claim boundary가 여전히 서로 맞는지
+2. P2-09E의 base rule hash
+3. 각 remediation record의 `from_rules_tree_sha256` → `to_rules_tree_sha256` 연결
+4. 실제 현재 rule YAML이 remediation record의 rule ID, Event ID, provider, ATT&CK technique과 맞는지
+5. P2-10A 외부 공격 corpus가 P2-09C와 같은 manifest/labels hash인지
+6. P2-10A 공격 scenario가 **2/10 → 3/10**으로 바뀌었는지
+7. `exec-scheduled-task`의 `T1053.005`가 MISS → HIT로 바뀌었는지
+8. pinned benign corpus의 351개 non-Sysmon EVTX, 34,423 events에서 새 predicate match가 0인지
+9. 현재 `rules/` tree SHA-256이 remediation chain의 마지막 hash와 같은지
+10. production accuracy/FPR, final blind holdout, 새 룰팩의 fresh full benign FPR을 주장하지 않는지
 
 ## 전체 재실행
-
-기록된 evidence만 확인할 때는 외부 다운로드가 필요 없습니다.
 
 공격 baseline을 원본부터 다시 실행하려면:
 
@@ -139,30 +149,39 @@ P2-09D의 `win10-client.tgz`에는 약 799MB 크기의 Sysmon Operational EVTX�
 
 ## 결과 해석
 
-이 benchmark로 말할 수 있는 것은 다음입니다.
+### P2-09E 역사적 snapshot으로 말할 수 있는 것
 
-- 고정된 공개 공격 세트 10 scenario에서 현재 고정 rule tree가 기대 technique 2개를 hit했다.
-- 고정된 공개 goodware corpus 766,623 events에서 17 events가 flagged됐다.
-- 두 결과의 source와 rule tree가 고정되어 있고 저장소에서 기록값의 내부 일관성을 다시 확인할 수 있다.
+- rule hash `543b4e02...` 상태에서 고정된 공개 공격 세트 10 scenario 중 기대 technique 2개를 hit했습니다.
+- 같은 rule hash 상태에서 고정된 공개 goodware corpus 766,623 events 중 17 events가 flagged됐습니다.
+- 이 FPR은 해당 공개 corpus에서의 관찰값이며 production FPR이 아닙니다.
+
+### P2-10A current evidence로 추가로 말할 수 있는 것
+
+- 새 `Security-Auditing + Event ID 4698` 룰을 추가한 rule hash `8ade507d...`에서 같은 공개 공격 세트가 **3 HIT / 7 MISS**가 됐습니다.
+- 개선된 scenario는 `exec-scheduled-task` / `T1053.005`입니다.
+- 새 predicate는 pinned benign corpus의 **34,423 non-Sysmon events에서 0건**이었습니다.
+- Sysmon source는 새 룰이 요구하는 `Microsoft-Windows-Security-Auditing` provider와 다른 source입니다.
+- 새 룰팩으로 전체 766,623 events를 다시 점수화한 fresh FP/TN/FPR은 **아직 주장하지 않습니다**.
 
 다음은 말할 수 없습니다.
 
-- 실제 공격 전체 탐지율이 20%다
-- 실제 precision 또는 recall이 20%다
-- production FPR이 0.00221752%다
+- 실제 공격 전체 탐지율이 30%다
+- 실제 precision 또는 recall이 30%다
+- 현재 rulepack의 production FPR이 0.00221752%다
+- 현재 rulepack 전체 benign FPR을 fresh하게 재측정했다
 - 기업 SOC 환경의 alert quality가 검증됐다
 - final blind holdout을 통과했다
 - BreachScope가 다른 탐지 엔진보다 빠르다
-- 이번 distributed 실행시간이 제품 throughput을 증명한다
+- distributed 실행시간이 제품 throughput을 증명한다
 
 ## P2-09E 완료 기준
 
-P2-09E는 다음이 모두 만족될 때 닫습니다.
+P2-09E는 이미 다음 조건으로 닫힌 역사적 단계입니다.
 
 - P2-09C measured result가 영구 기록되어 있음
 - P2-09D measured result가 영구 기록되어 있음
 - 두 결과의 source/rule/metric 계약을 하나의 manifest가 묶음
-- offline verifier가 PASS
-- Linux/Windows 전체 회귀 CI가 PASS
+- 당시 offline verifier가 PASS
+- 당시 Linux/Windows 전체 회귀 CI가 PASS
 - benchmark claim boundary가 문서와 manifest에 명시됨
-- 탐지 룰을 benchmark 숫자에 맞추기 위해 수정하지 않음
+- P2-09E 단계에서는 탐지 룰을 benchmark 숫자에 맞추기 위해 수정하지 않음

@@ -1,0 +1,55 @@
+schema: breachscope.p2_10a_remediation_measurement.v1
+remediation_id: p2-10a-scheduled-task-4698
+measurement_repo_commit: b198604cf24f3537938f963b525aebdb0670d584
+from_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+to_rules_tree_sha256: 8ade507d0abf4a0495b44cde4268245dab8c5f9d58d2eb5b47ebee8b7a5de185
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-SCHTASK-4698
+  name: Scheduled Task Creation Event
+  severity: low
+  mitre_technique: T1053.005
+  predicate:
+    event_id_equals: "4698"
+    source_equals: Microsoft-Windows-Security-Auditing
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 2
+  after_scenario_hits: 3
+  scenario_misses: 7
+  scenario_total: 10
+  after_scenario_hit_rate: 0.3
+  findings: 4
+  changed_scenario:
+    scenario_id: exec-scheduled-task
+    expected_technique: T1053.005
+    before_status: miss
+    after_status: hit
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  non_sysmon_source_files_scanned: 351
+  non_sysmon_events_scanned: 34423
+  exact_predicate_matches: 0
+  excluded_sysmon_source_file: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  excluded_sysmon_provider: Microsoft-Windows-Sysmon
+  sysmon_events_from_p2_09d: 732200
+  sysmon_provider_disjoint_from_rule_source_predicate: true
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34216569909
+  artifact_id: 10052084903
+  artifact_digest_sha256: bb00edad756b75a6b00a6a1d8bcfb59fe266e738f606339aca2e7a027277fa5d
+  focused_tests_passed: 4
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No event matching the new Security-Auditing 4698 predicate was observed in the 34,423 non-Sysmon events; the Sysmon source is outside the rule provider predicate.

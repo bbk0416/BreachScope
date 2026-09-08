@@ -1,0 +1,34 @@
+{
+  "schema": "breachscope.p2_10a_attack_summary_record.v1",
+  "baseline_id": "p2-09c-evtx-attack-samples-v1",
+  "measurement_repo_commit": "b198604cf24f3537938f963b525aebdb0670d584",
+  "rules_tree_sha256": "8ade507d0abf4a0495b44cde4268245dab8c5f9d58d2eb5b47ebee8b7a5de185",
+  "corpus": {
+    "manifest_sha256": "91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d",
+    "labels_sha256": "f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532",
+    "events": 202,
+    "source_files": 10
+  },
+  "primary_metrics": {
+    "scenario_hits": 3,
+    "scenario_misses": 7,
+    "scenario_total": 10,
+    "scenario_hit_rate": 0.3
+  },
+  "detection_observation": {
+    "rules": 53,
+    "findings": 4,
+    "flagged_events": 4
+  },
+  "changed_scenario": {
+    "scenario_id": "exec-scheduled-task",
+    "expected_technique": "T1053.005",
+    "matched_techniques": ["T1053.005"],
+    "status": "hit"
+  },
+  "claim_boundary": {
+    "event_level_precision_recall_fpr": "NOT_CLAIMED",
+    "final_blind_holdout": false,
+    "production_detection_quality_certified": false
+  }
+}
