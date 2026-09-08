@@ -38,7 +38,6 @@ async def list_cases(limit: int = Query(20, ge=1, le=100)):
     return {"success": True, "cases": _service().list_cases(limit=limit)}
 
 
-
 @router.post("/cases/prune", response_class=JSONResponse)
 async def prune_cases(
     request: Request,
@@ -65,10 +64,10 @@ async def prune_cases(
             "candidate_count": result.get("candidate_count"),
             "removed_case_records": result.get("removed_case_records"),
             "removed_files": result.get("removed_files"),
+            "failed_file_deletions": result.get("failed_file_deletions"),
         },
     )
     return {"success": True, **result}
-
 
 
 @router.get("/cases/workflow/summary", response_class=JSONResponse)
@@ -189,5 +188,15 @@ async def delete_case(case_id: str, request: Request, remove_files: bool = Query
     except KeyError:
         AuditLogService().record("case.delete", request=request, status="failure", case_id=case_id, details={"reason": "not_found"})
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
+
+    if not result.get("deleted"):
+        AuditLogService().record("case.delete", request=request, status="failure", case_id=case_id, details=result)
+        raise HTTPException(
+            status_code=409,
+            detail="케이스 파일 삭제를 완료하지 못해 이력을 유지했습니다.",
+        )
+
     AuditLogService().record("case.delete", request=request, status="success", case_id=case_id, details=result)
     return {"success": True, **result}
+
+# BREACHSCOPE_P2_08J_CASE_DELETE_OUTCOME_CONSISTENCY_V1

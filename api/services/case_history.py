@@ -216,7 +216,6 @@ class CaseHistoryService:
                 return item
         raise KeyError(case_id)
 
-
     @staticmethod
     def _normalize_workflow_status(value: str | None) -> str:
         allowed = {"new", "triage", "investigating", "contained", "resolved", "false_positive"}
@@ -352,6 +351,21 @@ class CaseHistoryService:
             "by_severity": dict(sorted(by_severity.items())),
         }
 
+    def _remove_case_files(self, row: Dict[str, Any]) -> tuple[bool, bool]:
+        """Return (safe_to_remove_record, files_removed)."""
+        work_dir = Path(str(row.get("work_dir") or ""))
+        if not work_dir.exists():
+            return True, False
+        if not self._is_safe_to_remove(work_dir):
+            return False, False
+        try:
+            shutil.rmtree(work_dir)
+        except OSError:
+            return False, False
+        if work_dir.exists():
+            return False, False
+        return True, True
+
     def delete_case(self, case_id: str, remove_files: bool = True) -> Dict[str, Any]:
         data = self._read_index()
         cases = data.get("cases") or []
@@ -364,17 +378,21 @@ class CaseHistoryService:
                 kept.append(row)
         if target is None:
             raise KeyError(case_id)
-        data["cases"] = kept
-        self._write_index(data)
 
         removed_files = False
         if remove_files:
-            work_dir = Path(str(target.get("work_dir") or ""))
-            if self._is_safe_to_remove(work_dir):
-                shutil.rmtree(work_dir, ignore_errors=True)
-                removed_files = True
-        return {"case_id": case_id, "deleted": True, "removed_files": removed_files}
+            can_remove_record, removed_files = self._remove_case_files(target)
+            if not can_remove_record:
+                return {
+                    "case_id": case_id,
+                    "deleted": False,
+                    "removed_files": False,
+                    "reason": "file_removal_failed",
+                }
 
+        data["cases"] = kept
+        self._write_index(data)
+        return {"case_id": case_id, "deleted": True, "removed_files": removed_files}
 
     @staticmethod
     def _parse_time(value: str | None) -> datetime | None:
@@ -413,6 +431,9 @@ class CaseHistoryService:
         candidates: list[Dict[str, Any]] = []
         kept: list[Dict[str, Any]] = []
         removed_files = 0
+        removed_case_records = 0
+        failed_file_deletions = 0
+
         for index, row in enumerate(rows):
             must_keep = index < keep_last
             timestamp = self._parse_time(row.get("updated_at") or row.get("created_at"))
@@ -420,6 +441,7 @@ class CaseHistoryService:
             if must_keep or not old_enough:
                 kept.append(row)
                 continue
+
             item = {
                 "case_id": row.get("case_id"),
                 "created_at": row.get("created_at"),
@@ -429,11 +451,21 @@ class CaseHistoryService:
                 "finding_count": row.get("finding_count"),
             }
             candidates.append(item)
-            if not dry_run and remove_files:
-                work_dir = Path(str(row.get("work_dir") or ""))
-                if self._is_safe_to_remove(work_dir):
-                    shutil.rmtree(work_dir, ignore_errors=True)
+
+            if dry_run:
+                kept.append(row)
+                continue
+
+            if remove_files:
+                can_remove_record, files_removed = self._remove_case_files(row)
+                if not can_remove_record:
+                    kept.append(row)
+                    failed_file_deletions += 1
+                    continue
+                if files_removed:
                     removed_files += 1
+
+            removed_case_records += 1
 
         if not dry_run:
             data["cases"] = kept
@@ -444,8 +476,9 @@ class CaseHistoryService:
             "keep_last": keep_last,
             "older_than_days": older_than_days,
             "candidate_count": len(candidates),
-            "removed_case_records": 0 if dry_run else len(candidates),
+            "removed_case_records": 0 if dry_run else removed_case_records,
             "removed_files": 0 if dry_run else removed_files,
+            "failed_file_deletions": 0 if dry_run else failed_file_deletions,
             "candidates": candidates,
         }
 
@@ -485,3 +518,5 @@ def _bs_p011_safe_remove(cls, path):
 
 CaseHistoryService.register_case = _bs_p011_register_case
 CaseHistoryService._is_safe_to_remove = classmethod(_bs_p011_safe_remove)
+
+# BREACHSCOPE_P2_08J_CASE_DELETE_OUTCOME_CONSISTENCY_V1
