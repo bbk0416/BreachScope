@@ -444,6 +444,9 @@ def _record_to_event(raw: dict[str, Any]):
 
     identity = event_identity_payload(raw)
     params = inspect.signature(Event).parameters
+    event_raw = raw.get("raw")
+    if not isinstance(event_raw, dict):
+        event_raw = raw
     candidate = {
         "timestamp": identity["timestamp"],
         "host": identity["host"],
@@ -451,7 +454,7 @@ def _record_to_event(raw: dict[str, Any]):
         "event_id": identity["event_id"],
         "user": identity["user"],
         "command_line": identity["command_line"],
-        "raw": raw,
+        "raw": event_raw,
     }
     kwargs = {k: v for k, v in candidate.items() if k in params}
     return Event(**kwargs)
