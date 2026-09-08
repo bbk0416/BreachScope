@@ -1,0 +1,46 @@
+name: P2-10C Evaluator Raw Control
+
+on:
+  push:
+    branches:
+      - measure/p2-10c-evaluator-raw-control
+
+permissions:
+  contents: read
+
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.16'
+          cache: pip
+      - name: Install exact dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+      - name: Raw reconstruction tests
+        run: python -m pytest -q tests/test_external_holdout_event_reconstruction.py
+      - name: Run current pinned attack baseline
+        run: python scripts/run_external_baseline.py --out out/p2_10c_control --timeout 120
+      - name: Assert current 54-rule baseline is unchanged
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(Path('out/p2_10c_control/summary.json').read_text(encoding='utf-8'))
+          metrics = summary['primary_metrics']
+          assert summary['rules_tree_sha256'] == 'a21e4a7b4ae9060e2cdbb77d4a7233c85d96fb16d4d97eeddbc27f948ad99aa1', summary['rules_tree_sha256']
+          assert metrics['scenario_hits'] == 4, metrics
+          assert metrics['scenario_misses'] == 6, metrics
+          assert metrics['scenario_total'] == 10, metrics
+          assert summary['detection_observation']['findings'] == 5, summary['detection_observation']
+          print('P2-10C evaluator raw control: PASS')
+          print('scenario_hits=4/10')
+          print('findings=5')
+          PY
