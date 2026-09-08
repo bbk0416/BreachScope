@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  probe:
+  benign-domain-admins:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -25,42 +25,72 @@ jobs:
           python -m pip install --require-hashes -r requirements-lock-py311.txt
           python -m pip install --no-deps --no-build-isolation -e .
           python scripts/verify_dependency_locks.py --strict
-      - name: Build attack event index on exact main
-        run: python scripts/run_external_baseline.py --out out/p2_10c_probe --timeout 120
-      - name: Print deep normalized fields for remaining misses
+      - name: Scan pinned benign non-Sysmon corpus
         run: |
           python - <<'PY'
-          import json
+          import re
+          import shutil
           from pathlib import Path
+
+          from scripts import run_benign_baseline as base
           from scripts.evaluate_external_holdout import _convert_one_evtx
 
-          names = [
-              'evtx-ca-lsass-mimikatz.evtx',
-              'evtx-lm-powershell-remoting.evtx',
-              'evtx-lm-wmi.evtx',
-              'evtx-lm-remote-service.evtx',
-              'evtx-persist-hidden-run-key.evtx',
-              'evtx-discovery-domain-admins.evtx',
-          ]
-          for name in names:
-              rows = _convert_one_evtx(Path('out/p2_10c_probe/corpus') / name)
-              print(f'### {name} rows={len(rows)}')
-              for idx, row in enumerate(rows, 1):
+          recipe = base.load_recipe(base.DEFAULT_RECIPE)
+          out = Path('out/p2_10c_domain_admins_benign').resolve()
+          raw = out / 'raw'
+          corpus = out / 'corpus_evtx'
+          archive, verified = base.materialize_archive(recipe, raw, 300)
+          assert verified['size'] == 70844052, verified
+          assert verified['sha256'] == 'd48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e', verified
+          files = base.extract_evtx_archive(archive, corpus)
+          assert len(files) == 352, len(files)
+
+          sysmon_name = 'microsoft-windows-sysmon%4operational.evtx'
+          non_sysmon = [row for row in files if Path(row['path']).name.casefold() != sysmon_name]
+          assert len(non_sysmon) == 351, len(non_sysmon)
+
+          total = 0
+          event_4661 = 0
+          sam_group = 0
+          rid_512 = 0
+          exact = 0
+          examples = []
+          suffix = re.compile(r'-512$', re.IGNORECASE)
+
+          for index, meta in enumerate(non_sysmon, 1):
+              path = corpus / meta['path']
+              rows = _convert_one_evtx(path)
+              for row in rows:
+                  total += 1
+                  raw_event = row.get('raw') if isinstance(row.get('raw'), dict) else {}
+                  source = str(row.get('source') or '')
                   event_id = str(row.get('event_id') or '')
-                  if name == 'evtx-discovery-domain-admins.evtx' and event_id != '4661':
-                      continue
-                  raw = row.get('raw') if isinstance(row.get('raw'), dict) else {}
-                  canonical = raw.get('canonical') if isinstance(raw.get('canonical'), dict) else {}
-                  event_data = raw.get('event_data') if isinstance(raw.get('event_data'), dict) else {}
-                  interesting = {
-                      'timestamp': row.get('timestamp'),
-                      'host': row.get('host'),
-                      'source': row.get('source'),
-                      'event_id': row.get('event_id'),
-                      'user': row.get('user'),
-                      'command_line': row.get('command_line'),
-                      'canonical': canonical,
-                      'event_data': event_data,
-                  }
-                  print(f'ROW {idx} ' + json.dumps(interesting, ensure_ascii=False, sort_keys=True))
+                  object_type = str(raw_event.get('ObjectType') or '')
+                  object_name = str(raw_event.get('ObjectName') or '')
+                  object_server = str(raw_event.get('ObjectServer') or '')
+                  if source == 'Microsoft-Windows-Security-Auditing' and event_id == '4661':
+                      event_4661 += 1
+                      if object_type == 'SAM_GROUP':
+                          sam_group += 1
+                          if suffix.search(object_name):
+                              rid_512 += 1
+                              if object_server == 'Security Account Manager':
+                                  exact += 1
+                                  if len(examples) < 5:
+                                      examples.append((meta['path'], object_name, object_type, object_server))
+              if index == 1 or index % 50 == 0 or index == len(non_sysmon):
+                  print(f'[progress] files={index}/{len(non_sysmon)} events={total}', flush=True)
+
+          print('BENIGN_P2_10C_DOMAIN_ADMINS', flush=True)
+          print(f'archive_sha256={verified["sha256"]}', flush=True)
+          print(f'source_files={len(non_sysmon)}', flush=True)
+          print(f'events={total}', flush=True)
+          print(f'security_4661={event_4661}', flush=True)
+          print(f'sam_group_4661={sam_group}', flush=True)
+          print(f'sam_group_rid512={rid_512}', flush=True)
+          print(f'exact_predicate_matches={exact}', flush=True)
+          print(f'examples={examples!r}', flush=True)
+          assert total == 34423, total
+          assert exact == 0, exact
+          shutil.rmtree(out, ignore_errors=True)
           PY
