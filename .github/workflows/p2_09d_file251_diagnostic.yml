@@ -22,7 +22,7 @@ jobs:
             https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
           echo "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e  /tmp/win10-client.tgz" | sha256sum -c -
 
-      - name: Print EVTX entries around stalled index
+      - name: Extract and print EVTX entries around stalled index
         shell: bash
         run: |
           set -euo pipefail
@@ -40,7 +40,60 @@ jobs:
           )
           print(f'total_evtx={len(rows)}')
           for index, (path, size) in enumerate(rows, 1):
-              if 240 <= index <= 260:
+              if 249 <= index <= 252:
                   print(f'{index:03d}\t{size}\t{path}')
           assert len(rows) == 352, len(rows)
+          PY
+
+      - name: Install exact EVTX parser
+        shell: bash
+        run: python -m pip install --disable-pip-version-check python-evtx==0.8.1
+
+      - name: Parse neighboring EVTX files independently with 15 second timeout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u - <<'PY'
+          from pathlib import Path
+          import subprocess
+          import sys
+          import tempfile
+
+          root = Path('/tmp/p2-09d-corpus')
+          rows = sorted(
+              p for p in root.rglob('*')
+              if p.is_file() and p.name.casefold().endswith('.evtx')
+          )
+          helper = Path(tempfile.gettempdir()) / 'parse_one_evtx.py'
+          helper.write_text(
+              """import sys, time\n"
+              "from Evtx.Evtx import Evtx\n"
+              "path = sys.argv[1]\n"
+              "start = time.perf_counter()\n"
+              "count = 0\n"
+              "with Evtx(path) as log:\n"
+              "    for record in log.records():\n"
+              "        record.xml()\n"
+              "        count += 1\n"
+              "print(f'OK records={count} seconds={time.perf_counter()-start:.3f}', flush=True)\n"
+              """,
+              encoding='utf-8',
+          )
+
+          for index in (249, 250, 251, 252):
+              path = rows[index - 1]
+              rel = path.relative_to(root).as_posix()
+              print(f'TEST {index:03d} {rel} size={path.stat().st_size}', flush=True)
+              try:
+                  completed = subprocess.run(
+                      [sys.executable, '-u', str(helper), str(path)],
+                      text=True,
+                      capture_output=True,
+                      timeout=15,
+                      check=False,
+                  )
+              except subprocess.TimeoutExpired:
+                  print(f'RESULT {index:03d} TIMEOUT>15s', flush=True)
+                  continue
+              print(f'RESULT {index:03d} rc={completed.returncode} stdout={completed.stdout.strip()!r} stderr={completed.stderr.strip()!r}', flush=True)
           PY
