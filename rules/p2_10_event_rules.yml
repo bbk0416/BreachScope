@@ -29,3 +29,25 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Sysmon
+
+- id: R-DOMAIN-ADMINS-4661
+  name: Domain Admins SAM Group Access
+  description: Windows Security 4661 access to a SAM group object whose SID ends in the Domain Admins RID 512
+  field: ObjectName
+  operator: regex
+  pattern: '-512$'
+  severity: low
+  mitre_technique: T1087.002
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "4661"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
+    - field: ObjectType
+      operator: equals
+      pattern: SAM_GROUP
+    - field: ObjectServer
+      operator: equals
+      pattern: Security Account Manager
