@@ -117,3 +117,15 @@ def test_verify_asset_bytes_checks_git_blob_and_size():
     assert verified["size"] == 3
     assert verified["git_blob_sha1"] == module.git_blob_sha1(data)
     assert verified["sha256"] == module._sha256_bytes(data)
+
+
+def test_validate_only_does_not_download_or_run_detection(monkeypatch):
+    module = _module()
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("validate-only must stay offline")
+
+    monkeypatch.setattr(module, "_download", forbidden)
+    monkeypatch.setattr(module, "_run", forbidden)
+
+    assert module.main(["--validate-only"]) == 0
