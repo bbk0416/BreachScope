@@ -1,0 +1,46 @@
+schema: breachscope.benign_baseline_measurement_record.v1
+baseline_id: p2-09d-nextron-win10-v1
+evaluation_class: external_baseline
+evaluated_repo_commit: 789c1f45b35599adbb5816c69c2e1e5c586584c9
+rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+label_policy: benign_by_source_intent
+measurement:
+  source_shard_run_id: 34212244466
+  aggregate_run_id: 34213957530
+  aggregate_artifact_id: 10050951142
+  aggregate_artifact_digest_sha256: caf8d0f021a14004a6d659edca8ae28495cc733d675d1d4f5fedb9970029d14f
+  distributed_scoring_equivalence_gate: PASS
+  global_event_identity_unique: true
+  sysmon_chunks_covered_exactly_once: '0:11894'
+corpus:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset: win10-client.tgz
+  asset_size_bytes: 70844052
+  sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  source_evtx_files_total: 352
+  source_evtx_files_with_events: 97
+  events: 766623
+primary_metrics:
+  false_positives: 17
+  true_negatives: 766606
+  false_positive_rate: 0.00002217517606437584
+  false_positive_rate_percent: 0.002217517606437584
+  flagged_events_per_1000: 0.02217517606437584
+  findings: 19
+  findings_per_1000: 0.024784020307243585
+reproducibility_and_accounting:
+  corpus_sha256_verified: true
+  source_file_count_includes_empty_evtx: true
+  all_events_labeled_benign_by_source_intent: true
+  raw_evtx_redistributed: false
+  first_monolithic_run_timeout_minutes: 45
+  cached_monolithic_run_timeout_minutes: 45
+  final_measurement_method: distributed_full_corpus
+claim_boundary:
+  production_false_positive_rate: NOT_CLAIMED
+  enterprise_environment_representative: false
+  event_level_manual_adjudication: false
+  final_blind_holdout: false
+  performance_benchmark: NOT_CLAIMED
+  note: The FPR is the observed event-level rate on this pinned public goodware corpus only.

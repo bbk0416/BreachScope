@@ -1,0 +1,60 @@
+schema: breachscope.reproducible_detection_evidence_benchmark.v1
+benchmark_id: p2-09e-reproducible-evidence-v1
+evaluation_class: external_evidence_bundle
+benchmark_type: detection_evidence_not_performance
+common_detection_contract:
+  rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+  attack_measurement_commit: 2a1631f6633ee40dcc47524675dc9dbda541e01d
+  benign_measurement_commit: 789c1f45b35599adbb5816c69c2e1e5c586584c9
+  commit_range_detection_semantics_changed: false
+  compatibility_basis: Between the two measured commits, GitHub compare shows changes only in P2-09C/P2-09D docs, evidence, runners, and tests; product detection files and rules were unchanged.
+components:
+  attack_external_baseline:
+    baseline_id: p2-09c-evtx-attack-samples-v1
+    source_contract: external_baseline/p2_09c_sources.yaml
+    result_record: external_baseline/results/p2_09c_main_2a1631f/measurement.yaml
+    evaluated_repo_commit: 2a1631f6633ee40dcc47524675dc9dbda541e01d
+    rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+    expected_metrics:
+      source_files: 10
+      events: 202
+      scenario_hits: 2
+      scenario_misses: 8
+      scenario_total: 10
+      scenario_hit_rate: 0.2
+      findings: 3
+    claim_boundary:
+      final_blind_holdout: false
+      event_level_precision_recall_fpr: NOT_CLAIMED
+      production_detection_quality_certified: false
+  benign_external_baseline:
+    baseline_id: p2-09d-nextron-win10-v1
+    source_contract: external_baseline/p2_09d_benign_sources.yaml
+    result_record: external_baseline/results/p2_09d_main_789c1f45/measurement.yaml
+    evaluated_repo_commit: 789c1f45b35599adbb5816c69c2e1e5c586584c9
+    rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+    expected_metrics:
+      source_evtx_files_total: 352
+      source_evtx_files_with_events: 97
+      events: 766623
+      false_positives: 17
+      true_negatives: 766606
+      false_positive_rate: 0.00002217517606437584
+      findings: 19
+    claim_boundary:
+      production_false_positive_rate: NOT_CLAIMED
+      enterprise_environment_representative: false
+      event_level_manual_adjudication: false
+reproducibility:
+  default_verification: python scripts/verify_reproducible_benchmark.py
+  attack_full_rerun: python scripts/run_external_baseline.py
+  benign_full_rerun: python scripts/run_benign_baseline_cached.py
+  network_required_for_full_rerun: true
+  network_required_for_recorded_evidence_verification: false
+  raw_external_evtx_redistributed: false
+claim_boundary:
+  production_accuracy: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  final_blind_holdout: false
+  performance_benchmark: NOT_CLAIMED
+  note: This benchmark makes the recorded external attack-side and benign-side evidence reproducible and internally checkable. It is not a production-quality certificate or throughput benchmark.
