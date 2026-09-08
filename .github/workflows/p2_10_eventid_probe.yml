@@ -27,11 +27,10 @@ jobs:
           python -m pip install --require-hashes -r requirements-lock-py311.txt
           python -m pip install --no-deps --no-build-isolation -e .
 
-      - name: Count candidate Event IDs in pinned benign Security/System logs
+      - name: Scan exact candidate predicates across all non-Sysmon benign EVTX
         run: |
           python - <<'PY'
           import hashlib
-          import json
           import shutil
           import tarfile
           import tempfile
@@ -40,12 +39,13 @@ jobs:
           from pathlib import Path
 
           import yaml
-          from breachscope.ingest import convert_evtx_dir
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
 
           root = Path.cwd()
           recipe = yaml.safe_load((root / "external_baseline/p2_09d_benign_sources.yaml").read_text(encoding="utf-8"))
           source = recipe["source"]
-          work = Path(tempfile.mkdtemp(prefix="p2-10-eventid-probe-"))
+          work = Path(tempfile.mkdtemp(prefix="p2-10-predicate-probe-"))
           archive = work / source["asset_name"]
 
           request = urllib.request.Request(source["asset_url"], headers={"User-Agent": "BreachScope-P2-10-Probe/1.0"})
@@ -58,65 +58,69 @@ jobs:
           assert digest == source["sha256"], (digest, source["sha256"])
           print(f"archive_verified size={size} sha256={digest}")
 
-          wanted = {
-              "Logs_Client/Security.evtx": "Security.evtx",
-              "Logs_Client/System.evtx": "System.evtx",
-          }
-          input_dir = work / "input"
-          input_dir.mkdir()
-          found = set()
+          sysmon_name = "Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx"
+          predicates = Counter()
+          event_id_counts = Counter()
+          provider_event_counts = Counter()
+          total_events = 0
+          source_files = 0
+          examples_7045 = []
+          temp_evtx = work / "current.evtx"
+
           with tarfile.open(archive, "r:gz") as tf:
-              for member in tf.getmembers():
-                  if member.name not in wanted:
-                      continue
+              members = [
+                  m for m in tf.getmembers()
+                  if m.isfile() and m.name.casefold().endswith(".evtx") and m.name != sysmon_name
+              ]
+              assert len(members) == 351, len(members)
+
+              for index, member in enumerate(members, 1):
                   src = tf.extractfile(member)
                   assert src is not None
-                  target = input_dir / wanted[member.name]
-                  with src, target.open("wb") as out:
+                  with src, temp_evtx.open("wb") as out:
                       shutil.copyfileobj(src, out, length=1024 * 1024)
-                  found.add(member.name)
-          assert found == set(wanted), (found, set(wanted))
 
-          converted = convert_evtx_dir(input_dir)
-          assert converted is not None
-          converted = Path(converted)
-          target_ids = {"4698", "4699", "7045"}
-          overall = Counter()
-          result = {}
-          examples = []
+                  source_files += 1
+                  try:
+                      with Evtx(str(temp_evtx)) as log:
+                          for record in log.records():
+                              row = _extract_from_xml(record.xml())
+                              if not row:
+                                  continue
+                              total_events += 1
+                              event_id = str(row.get("event_id") or "")
+                              provider = str(row.get("source") or "")
+                              event_id_counts[event_id] += 1
+                              provider_event_counts[(provider, event_id)] += 1
 
-          for path in sorted(converted.glob("*.jsonl")):
-              counts = Counter()
-              total = 0
-              with path.open(encoding="utf-8") as fh:
-                  for line in fh:
-                      row = json.loads(line)
-                      event_id = str(row.get("event_id") or "")
-                      counts[event_id] += 1
-                      overall[event_id] += 1
-                      total += 1
-                      if event_id in target_ids and len(examples) < 20:
-                          raw = row.get("raw") or {}
-                          examples.append({
-                              "file": path.name,
-                              "event_id": event_id,
-                              "timestamp": row.get("timestamp"),
-                              "user": row.get("user"),
-                              "TaskName": str(raw.get("TaskName") or "")[:240],
-                              "TaskContent": str(raw.get("TaskContent") or "")[:240],
-                              "ServiceName": str(raw.get("ServiceName") or "")[:240],
-                              "ImagePath": str(raw.get("ImagePath") or "")[:240],
-                              "ServiceFileName": str(raw.get("ServiceFileName") or "")[:240],
-                              "AccountName": str(raw.get("AccountName") or "")[:240],
-                          })
-              result[path.name] = {
-                  "events": total,
-                  "4698": counts["4698"],
-                  "4699": counts["4699"],
-                  "7045": counts["7045"],
-              }
+                              if provider == "Microsoft-Windows-Security-Auditing" and event_id == "4698":
+                                  predicates["security_auditing_4698"] += 1
+                              if provider == "Microsoft-Windows-Security-Auditing" and event_id == "4699":
+                                  predicates["security_auditing_4699"] += 1
+                              if provider == "Service Control Manager" and event_id == "7045":
+                                  predicates["scm_7045"] += 1
+                                  if len(examples_7045) < 5:
+                                      raw = row.get("raw") or {}
+                                      examples_7045.append((str(raw.get("ServiceName") or "")[:100], str(raw.get("ImagePath") or "")[:180]))
+                  except Exception as exc:
+                      raise RuntimeError(f"failed parsing {member.name}: {exc}") from exc
 
-          print("P2_10_EVENT_ID_COUNTS=" + json.dumps(result, sort_keys=True))
-          print("P2_10_TARGET_EXAMPLES=" + json.dumps(examples, ensure_ascii=False, sort_keys=True))
-          assert sum(item["events"] for item in result.values()) == 4316, result
+                  if index % 50 == 0 or index == len(members):
+                      print(f"progress={index}/{len(members)} events={total_events}")
+
+          print(f"source_files={source_files}")
+          print(f"events={total_events}")
+          print(f"security_auditing_4698={predicates['security_auditing_4698']}")
+          print(f"security_auditing_4699={predicates['security_auditing_4699']}")
+          print(f"scm_7045={predicates['scm_7045']}")
+          print(f"event_id_4698_any_provider={event_id_counts['4698']}")
+          print(f"event_id_4699_any_provider={event_id_counts['4699']}")
+          print(f"event_id_7045_any_provider={event_id_counts['7045']}")
+          print(f"scm_7045_examples={examples_7045!r}")
+
+          assert source_files == 351
+          assert total_events == 34423, total_events
+          assert predicates["security_auditing_4698"] == 0
+          assert predicates["security_auditing_4699"] == 0
+          assert predicates["scm_7045"] == 26
           PY
