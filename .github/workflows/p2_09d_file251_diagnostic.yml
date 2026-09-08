@@ -58,6 +58,7 @@ jobs:
           import subprocess
           import sys
           import tempfile
+          import textwrap
 
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
@@ -66,17 +67,23 @@ jobs:
           )
           helper = Path(tempfile.gettempdir()) / 'parse_one_evtx.py'
           helper.write_text(
-              """import sys, time\n"
-              "from Evtx.Evtx import Evtx\n"
-              "path = sys.argv[1]\n"
-              "start = time.perf_counter()\n"
-              "count = 0\n"
-              "with Evtx(path) as log:\n"
-              "    for record in log.records():\n"
-              "        record.xml()\n"
-              "        count += 1\n"
-              "print(f'OK records={count} seconds={time.perf_counter()-start:.3f}', flush=True)\n"
-              """,
+              textwrap.dedent('''\
+                  import sys
+                  import time
+                  from Evtx.Evtx import Evtx
+
+                  path = sys.argv[1]
+                  start = time.perf_counter()
+                  count = 0
+                  with Evtx(path) as log:
+                      for record in log.records():
+                          record.xml()
+                          count += 1
+                  print(
+                      f"OK records={count} seconds={time.perf_counter()-start:.3f}",
+                      flush=True,
+                  )
+              '''),
               encoding='utf-8',
           )
 
@@ -95,5 +102,9 @@ jobs:
               except subprocess.TimeoutExpired:
                   print(f'RESULT {index:03d} TIMEOUT>15s', flush=True)
                   continue
-              print(f'RESULT {index:03d} rc={completed.returncode} stdout={completed.stdout.strip()!r} stderr={completed.stderr.strip()!r}', flush=True)
+              print(
+                  f'RESULT {index:03d} rc={completed.returncode} '
+                  f'stdout={completed.stdout.strip()!r} stderr={completed.stderr.strip()!r}',
+                  flush=True,
+              )
           PY
