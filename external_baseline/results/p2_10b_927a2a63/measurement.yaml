@@ -1,0 +1,65 @@
+schema: breachscope.p2_10b_remediation_measurement.v1
+remediation_id: p2-10b-wmi-xsl
+measurement_repo_commit: 927a2a6379dda84f45805990503bf215a09a5f7b
+from_rules_tree_sha256: 8ade507d0abf4a0495b44cde4268245dab8c5f9d58d2eb5b47ebee8b7a5de185
+to_rules_tree_sha256: a21e4a7b4ae9060e2cdbb77d4a7233c85d96fb16d4d97eeddbc27f948ad99aa1
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-WMI-XSL-Remote
+  name: WMIC Remote XSL Execution
+  severity: low
+  mitre_technique: T1047
+  predicate:
+    command_line_contains:
+      - wmic
+      - '/format:"http'
+    event_id_equals: "1"
+    source_equals: Microsoft-Windows-Sysmon
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 3
+  after_scenario_hits: 4
+  scenario_misses: 6
+  scenario_total: 10
+  after_scenario_hit_rate: 0.4
+  findings: 5
+  changed_scenario:
+    scenario_id: exec-wmi-xsl
+    expected_technique: T1047
+    before_status: miss
+    after_status: hit
+  intentionally_unchanged_scenario:
+    scenario_id: lm-wmi
+    expected_technique: T1047
+    after_status: miss
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  sysmon_records_scanned: 732200
+  raw_wmic_records: 29
+  event1_wmic: 0
+  event1_wmic_format: 0
+  exact_predicate_matches: 0
+  raw_prefilter_attack_candidate_matches: 1
+  probe_run_id: 34225137121
+  probe_commit: 0165c7bb75d8017543d1b60608680afe983f434d
+  parser: python-evtx 0.8.1 plus breachscope.ingest._extract_from_xml on raw-prefiltered candidate records
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34225363960
+  artifact_id: 10055463391
+  artifact_digest_sha256: 4a46ff2a14ff947ca18ff547dae4b40efae693e79986f3faf7062353261ef96d
+  artifact_record_schema: breachscope.p2_10b_measurement.v1
+  focused_tests_passed: 6
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No event matching the new Sysmon Event ID 1 plus WMIC remote /format URL predicate was observed in the 732,200 Sysmon records from the pinned benign corpus.
