@@ -1,0 +1,156 @@
+name: P2-10B Fast Product Parser Benign Probe
+
+on:
+  push:
+    branches:
+      - measure/p2-10b-fast-benign
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11.16"
+          cache: pip
+
+      - name: Install exact dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+
+      - name: Prove raw prefilter on pinned attack sample
+        run: |
+          python scripts/run_external_baseline.py --asset evtx-exec-wmi-xsl --out out/p2_10b_fast_attack --timeout 120
+          python - <<'PY'
+          from pathlib import Path
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
+
+          path = Path('out/p2_10b_fast_attack/corpus/evtx-exec-wmi-xsl.evtx')
+          needle = 'wmic'.encode('utf-16le')
+          raw_hits = 0
+          parsed_hits = 0
+          with Evtx(str(path)) as log:
+              for record in log.records():
+                  data = record.data().lower()
+                  if needle not in data:
+                      continue
+                  raw_hits += 1
+                  row = _extract_from_xml(record.xml())
+                  command = str((row or {}).get('command_line') or '')
+                  lowered = command.casefold()
+                  if (
+                      str((row or {}).get('source') or '') == 'Microsoft-Windows-Sysmon'
+                      and str((row or {}).get('event_id') or '') == '1'
+                      and 'wmic' in lowered
+                      and '/format:"http' in lowered
+                  ):
+                      parsed_hits += 1
+                      print('attack_candidate=' + command)
+          print(f'attack_raw_wmic_records={raw_hits}')
+          print(f'attack_candidate_matches={parsed_hits}')
+          assert raw_hits >= 1, raw_hits
+          assert parsed_hits == 1, parsed_hits
+          print('raw_prefilter_attack_proof=PASS')
+          PY
+
+      - name: Scan pinned benign Sysmon with raw prefilter plus product parser
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          python -u - <<'PY'
+          import hashlib
+          import shutil
+          import tarfile
+          import tempfile
+          import urllib.request
+          from pathlib import Path
+
+          import yaml
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
+
+          recipe = yaml.safe_load(Path('external_baseline/p2_09d_benign_sources.yaml').read_text(encoding='utf-8'))
+          source = recipe['source']
+          work = Path(tempfile.mkdtemp(prefix='p2-10b-fast-benign-'))
+          archive = work / source['asset_name']
+          request = urllib.request.Request(source['asset_url'], headers={'User-Agent': 'BreachScope-P2-10B/1.0'})
+          with urllib.request.urlopen(request, timeout=300) as response, archive.open('wb') as out:
+              shutil.copyfileobj(response, out, length=1024 * 1024)
+          size = archive.stat().st_size
+          digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+          assert size == int(source['size']), size
+          assert digest == source['sha256'], digest
+          print(f'archive_verified size={size} sha256={digest}', flush=True)
+
+          sysmon_name = 'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+          target = work / 'sysmon.evtx'
+          with tarfile.open(archive, 'r:gz') as tf:
+              member = tf.getmember(sysmon_name)
+              src = tf.extractfile(member)
+              assert src is not None
+              with src, target.open('wb') as out:
+                  shutil.copyfileobj(src, out, length=1024 * 1024)
+          print(f'sysmon_extracted bytes={target.stat().st_size}', flush=True)
+
+          needles = [
+              'wmic'.encode('utf-16le'),
+              'WMIC'.encode('utf-16le'),
+              b'wmic',
+              b'WMIC',
+          ]
+          total = 0
+          raw_wmic = 0
+          parsed_wmic_event1 = 0
+          parsed_wmic_format = 0
+          candidate = 0
+          examples = []
+          with Evtx(str(target)) as log:
+              for record in log.records():
+                  total += 1
+                  data = record.data()
+                  if not any(needle in data for needle in needles):
+                      if total % 100000 == 0:
+                          print(f'progress records={total} raw_wmic={raw_wmic} candidate={candidate}', flush=True)
+                      continue
+                  raw_wmic += 1
+                  row = _extract_from_xml(record.xml())
+                  if not row:
+                      continue
+                  if str(row.get('source') or '') != 'Microsoft-Windows-Sysmon':
+                      continue
+                  if str(row.get('event_id') or '') != '1':
+                      continue
+                  command = str(row.get('command_line') or '')
+                  lowered = command.casefold()
+                  if 'wmic' not in lowered:
+                      continue
+                  parsed_wmic_event1 += 1
+                  if '/format:' in lowered:
+                      parsed_wmic_format += 1
+                  if '/format:"http' in lowered:
+                      candidate += 1
+                      if len(examples) < 5:
+                          examples.append(command)
+
+          print(f'sysmon_records={total}', flush=True)
+          print(f'raw_wmic_records={raw_wmic}', flush=True)
+          print(f'event1_wmic={parsed_wmic_event1}', flush=True)
+          print(f'event1_wmic_format={parsed_wmic_format}', flush=True)
+          print(f'candidate_wmic_format_http={candidate}', flush=True)
+          for item in examples:
+              print('candidate_example=' + item, flush=True)
+          assert total == 732200, total
+          assert candidate == 0, candidate
+          print('P2-10B fast benign product-parser predicate: PASS candidate=0', flush=True)
+          PY
