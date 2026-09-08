@@ -1,4 +1,4 @@
-"""Serialize case-history read/modify/write mutations across threads and processes."""
+"""Serialize case-history operations that may mutate or quarantine the index."""
 from __future__ import annotations
 
 from contextlib import contextmanager
@@ -15,7 +15,7 @@ _PROCESS_LOCKS: dict[str, threading.RLock] = {}
 
 
 class CaseHistoryLockError(RuntimeError):
-    """Raised when the case-history mutation lock cannot be acquired safely."""
+    """Raised when the case-history lock cannot be acquired safely."""
 
 
 def _process_lock_for(index_path: Path) -> threading.RLock:
@@ -94,11 +94,17 @@ def case_history_mutation_lock(index_path: Path) -> Iterator[None]:
 
 
 def _install_mutation_lock() -> None:
+    # K's integrity guard can quarantine a corrupt index while servicing a read.
+    # Serialize those public read paths with mutations so quarantine itself cannot
+    # race with another reader or writer.
     for method_name in (
         "register_case",
         "update_case_workflow",
         "delete_case",
         "prune_cases",
+        "list_cases",
+        "get_case",
+        "workflow_summary",
     ):
         current = getattr(CaseHistoryService, method_name)
         if getattr(current, "_bs_p208l_locked", False):
@@ -117,4 +123,4 @@ def _install_mutation_lock() -> None:
 
 _install_mutation_lock()
 
-# BREACHSCOPE_P2_08L_CASE_HISTORY_MUTATION_LOCK_V1
+# BREACHSCOPE_P2_08M_CASE_HISTORY_READ_QUARANTINE_LOCK_V1
