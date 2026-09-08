@@ -1,0 +1,105 @@
+name: P2-10B Benign Sysmon Predicate Probe
+
+on:
+  push:
+    branches:
+      - measure/p2-10b-wmi-xsl
+    paths:
+      - .github/workflows/p2_10b_benign_sysmon_probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: sysmon-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.16'
+          cache: pip
+      - name: Install exact dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+      - name: Download and verify pinned benign archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/p2_10b_benign
+          curl -L --fail --retry 3 -o out/p2_10b_benign/win10-client.tgz \
+            https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+          echo 'd48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e  out/p2_10b_benign/win10-client.tgz' | sha256sum -c -
+          tar -xzf out/p2_10b_benign/win10-client.tgz -C out/p2_10b_benign \
+            'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+      - name: Scan exact normalized candidate predicate
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          from pathlib import Path
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
+
+          shard = int(os.environ['SHARD'])
+          shard_count = 8
+          path = Path('out/p2_10b_benign/Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx')
+          started = time.perf_counter()
+          event_count = 0
+          wmic_count = 0
+          format_count = 0
+          candidate_count = 0
+          candidate_samples = []
+
+          with Evtx(str(path)) as log:
+              chunks = list(log.chunks())
+              total_chunks = len(chunks)
+              start = total_chunks * shard // shard_count
+              end = total_chunks * (shard + 1) // shard_count
+              for chunk in chunks[start:end]:
+                  for record in chunk.records():
+                      row = _extract_from_xml(record.xml())
+                      if not row:
+                          continue
+                      event_count += 1
+                      cmd = str(row.get('command_line') or '')
+                      low = cmd.lower()
+                      has_wmic = 'wmic' in low
+                      has_format = '/format:' in low
+                      if has_wmic:
+                          wmic_count += 1
+                      if has_format:
+                          format_count += 1
+                      if has_wmic and has_format:
+                          candidate_count += 1
+                          if len(candidate_samples) < 10:
+                              candidate_samples.append(cmd)
+
+          result = {
+              'schema': 'breachscope.p2_10b_benign_sysmon_probe.v1',
+              'shard': shard,
+              'shard_count': shard_count,
+              'total_chunks': total_chunks,
+              'chunk_start': start,
+              'chunk_end': end,
+              'chunks_scanned': end - start,
+              'events_scanned': event_count,
+              'wmic_command_lines': wmic_count,
+              'format_command_lines': format_count,
+              'candidate_wmic_and_format_matches': candidate_count,
+              'candidate_samples': candidate_samples,
+              'elapsed_seconds': round(time.perf_counter() - started, 3),
+          }
+          print('P2_10B_SHARD_RESULT=' + json.dumps(result, sort_keys=True))
+          PY
