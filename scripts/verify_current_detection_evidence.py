@@ -15,6 +15,7 @@ import verify_reproducible_benchmark as historical
 CHAIN_SCHEMA = "breachscope.current_detection_evidence_chain.v1"
 P2_10A_SCHEMA = "breachscope.p2_10a_remediation_measurement.v1"
 P2_10B_SCHEMA = "breachscope.p2_10b_remediation_measurement.v1"
+P2_10C_SCHEMA = "breachscope.p2_10c_remediation_measurement.v1"
 DEFAULT_CHAIN = "external_baseline/current_detection_evidence.yaml"
 
 
@@ -387,6 +388,135 @@ def _verify_p2_10b(
     }
 
 
+def _verify_p2_10c(
+    repo: Path,
+    record_path: Path,
+    record: Mapping[str, Any],
+    previous_rule_hash: str,
+    base: Mapping[str, Any],
+    previous_attack_hits: int,
+) -> tuple[str, int, dict[str, Any]]:
+    label = "P2-10C"
+    _require(record.get("schema"), P2_10C_SCHEMA, f"{label} schema")
+    _require(record.get("remediation_id"), "p2-10c-domain-admins-4661", f"{label} id")
+    _require(record.get("from_rules_tree_sha256"), previous_rule_hash, f"{label} from rule hash")
+    to_hash = str(record.get("to_rules_tree_sha256") or "")
+    if len(to_hash) != 64:
+        raise CurrentEvidenceError(f"{label} to_rules_tree_sha256 must be a full SHA-256")
+
+    change = _mapping(record.get("rule_change"), f"{label} rule_change")
+    predicate = _mapping(change.get("predicate"), f"{label} predicate")
+    _require(change.get("rule_id"), "R-DOMAIN-ADMINS-4661", f"{label} rule id")
+    _require(change.get("mitre_technique"), "T1087.002", f"{label} technique")
+    _require(predicate.get("ObjectName_regex"), "-512$", f"{label} ObjectName regex")
+    _require(predicate.get("event_id_equals"), "4661", f"{label} event id")
+    _require(predicate.get("source_equals"), "Microsoft-Windows-Security-Auditing", f"{label} provider")
+    _require(predicate.get("ObjectType_equals"), "SAM_GROUP", f"{label} object type")
+    _require(predicate.get("ObjectServer_equals"), "Security Account Manager", f"{label} object server")
+
+    rule = _load_rule(repo, str(change.get("rule_file") or ""), str(change["rule_id"]))
+    _require(rule.get("field"), "ObjectName", f"live {label} rule field")
+    _require(rule.get("operator"), "regex", f"live {label} rule operator")
+    _require(rule.get("pattern"), "-512$", f"live {label} ObjectName regex")
+    _require(rule.get("severity"), "low", f"live {label} severity")
+    _require(rule.get("mitre_technique"), "T1087.002", f"live {label} technique")
+    event_id = _condition(rule, "event_id")
+    source = _condition(rule, "source")
+    object_type = _condition(rule, "ObjectType")
+    object_server = _condition(rule, "ObjectServer")
+    _require(event_id.get("operator"), "equals", f"live {label} event id operator")
+    _require(str(event_id.get("pattern")), "4661", f"live {label} event id value")
+    _require(source.get("operator"), "equals", f"live {label} provider operator")
+    _require(source.get("pattern"), "Microsoft-Windows-Security-Auditing", f"live {label} provider value")
+    _require(object_type.get("operator"), "equals", f"live {label} object type operator")
+    _require(object_type.get("pattern"), "SAM_GROUP", f"live {label} object type value")
+    _require(object_server.get("operator"), "equals", f"live {label} object server operator")
+    _require(object_server.get("pattern"), "Security Account Manager", f"live {label} object server value")
+
+    attack = _mapping(record.get("attack_external_baseline"), f"{label} attack baseline")
+    base_attack, base_corpus = _base_attack_context(base)
+    _require(attack.get("baseline_id"), base_attack.get("baseline_id"), f"{label} attack baseline id")
+    _require(attack.get("corpus_manifest_sha256"), base_corpus.get("manifest_sha256"), f"{label} attack manifest hash")
+    _require(attack.get("labels_sha256"), base_corpus.get("labels_sha256"), f"{label} attack labels hash")
+    _require(int(attack.get("source_files", -1)), 10, f"{label} attack source files")
+    _require(int(attack.get("events", -1)), 202, f"{label} attack events")
+    _require(int(attack.get("before_scenario_hits", -1)), previous_attack_hits, f"{label} before attack hits")
+    after_hits = int(attack.get("after_scenario_hits", -1))
+    _require(after_hits, 5, f"{label} after attack hits")
+    _require(int(attack.get("scenario_misses", -1)), 5, f"{label} attack misses")
+    _require(int(attack.get("scenario_total", -1)), 10, f"{label} attack total")
+    _require(float(attack.get("after_scenario_hit_rate", -1.0)), 0.5, f"{label} hit rate")
+    _require(int(attack.get("findings", -1)), 7, f"{label} findings")
+    _require(int(attack.get("flagged_events", -1)), 7, f"{label} flagged events")
+    changed = _mapping(attack.get("changed_scenario"), f"{label} changed scenario")
+    _require(changed.get("scenario_id"), "discovery-domain-admins", f"{label} changed scenario id")
+    _require(changed.get("expected_technique"), "T1087.002", f"{label} changed technique")
+    _require(changed.get("before_status"), "miss", f"{label} before status")
+    _require(changed.get("after_status"), "hit", f"{label} after status")
+    _require(
+        attack.get("remaining_miss_scenarios"),
+        [
+            "ca-lsass-mimikatz",
+            "lm-powershell-remoting",
+            "lm-wmi",
+            "lm-remote-service",
+            "persist-hidden-run-key",
+        ],
+        f"{label} remaining misses",
+    )
+
+    benign = _mapping(record.get("benign_incremental_match_proof"), f"{label} benign proof")
+    base_benign, benign_source = _base_benign_context(base)
+    _require(benign.get("baseline_id"), base_benign.get("baseline_id"), f"{label} benign baseline id")
+    _require(benign.get("corpus_sha256"), benign_source.get("sha256"), f"{label} benign corpus hash")
+    _require(int(benign.get("corpus_total_events_from_p2_09d", -1)), int(base_benign["events"]), f"{label} benign total events")
+    _require(int(benign.get("non_sysmon_source_files_scanned", -1)), 351, f"{label} non-Sysmon files")
+    _require(int(benign.get("non_sysmon_events_scanned", -1)), 34423, f"{label} non-Sysmon events")
+    _require(int(benign.get("security_4661", -1)), 0, f"{label} Security 4661")
+    _require(int(benign.get("sam_group_4661", -1)), 0, f"{label} SAM_GROUP 4661")
+    _require(int(benign.get("sam_group_rid512", -1)), 0, f"{label} RID-512 matches")
+    _require(int(benign.get("exact_predicate_matches", -1)), 0, f"{label} benign predicate matches")
+    _require(int(benign.get("sysmon_events_from_p2_09d", -1)), 732200, f"{label} Sysmon events")
+    _require(34423 + 732200, int(base_benign["events"]), f"{label} benign corpus partition accounting")
+    _require(benign.get("sysmon_provider_disjoint_from_rule_source_predicate"), True, f"{label} provider-disjoint proof")
+    if int(benign.get("probe_run_id", 0)) <= 0:
+        raise CurrentEvidenceError(f"{label} benign probe run id is required")
+    _require(benign.get("fresh_full_fp_tn_rerun"), False, f"{label} full benign rerun boundary")
+
+    control = _mapping(record.get("evaluator_reconstruction_fix"), f"{label} evaluator control")
+    if int(control.get("control_github_actions_run_id", 0)) <= 0:
+        raise CurrentEvidenceError(f"{label} evaluator control run id is required")
+    _require(control.get("control_rules_tree_sha256"), previous_rule_hash, f"{label} evaluator control rule hash")
+    _require(int(control.get("control_rules", -1)), 54, f"{label} evaluator control rules")
+    _require(int(control.get("control_scenario_hits", -1)), previous_attack_hits, f"{label} evaluator control hits")
+    _require(int(control.get("control_scenario_misses", -1)), 6, f"{label} evaluator control misses")
+    _require(int(control.get("control_findings", -1)), 5, f"{label} evaluator control findings")
+    _require(control.get("result_unchanged"), True, f"{label} evaluator control unchanged")
+    _require(int(control.get("reconstruction_tests_passed", -1)), 2, f"{label} reconstruction test count")
+
+    execution = _verify_execution(record, label, 6)
+    _require(execution.get("artifact_record_schema"), "breachscope.p2_10c_measurement.v1", f"{label} artifact record schema")
+    _verify_claims(record, label)
+    return to_hash, after_hits, {
+        "remediation_id": record["remediation_id"],
+        "measurement_repo_commit": record.get("measurement_repo_commit"),
+        "from_rules_tree_sha256": previous_rule_hash,
+        "to_rules_tree_sha256": to_hash,
+        "attack_scenario_hits_before": previous_attack_hits,
+        "attack_scenario_hits_after": after_hits,
+        "attack_scenario_total": 10,
+        "benign_scope": "non-Sysmon events",
+        "benign_events_scanned": 34423,
+        "benign_non_sysmon_events_scanned": 34423,
+        "benign_security_4661": 0,
+        "benign_exact_predicate_matches": 0,
+        "evaluator_control_scenario_hits": previous_attack_hits,
+        "evaluator_control_findings": 5,
+        "fresh_full_benign_fpr_for_new_rulepack": "NOT_CLAIMED",
+        "record_path": record_path.relative_to(repo).as_posix(),
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = _load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
@@ -420,6 +550,10 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
             )
         elif remediation_id == "p2-10b-wmi-xsl":
             previous_rule_hash, previous_attack_hits, verified = _verify_p2_10b(
+                repo, record_path, record, previous_rule_hash, base, previous_attack_hits
+            )
+        elif remediation_id == "p2-10c-domain-admins-4661":
+            previous_rule_hash, previous_attack_hits, verified = _verify_p2_10c(
                 repo, record_path, record, previous_rule_hash, base, previous_attack_hits
             )
         else:

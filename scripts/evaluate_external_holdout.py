@@ -444,6 +444,9 @@ def _record_to_event(raw: dict[str, Any]):
 
     identity = event_identity_payload(raw)
     params = inspect.signature(Event).parameters
+    event_raw = raw.get("raw")
+    if not isinstance(event_raw, dict):
+        event_raw = raw
     candidate = {
         "timestamp": identity["timestamp"],
         "host": identity["host"],
@@ -451,7 +454,7 @@ def _record_to_event(raw: dict[str, Any]):
         "event_id": identity["event_id"],
         "user": identity["user"],
         "command_line": identity["command_line"],
-        "raw": raw,
+        "raw": event_raw,
     }
     kwargs = {k: v for k, v in candidate.items() if k in params}
     return Event(**kwargs)
@@ -765,7 +768,7 @@ def parser() -> argparse.ArgumentParser:
     )
     sub = ap.add_subparsers(dest="command", required=True)
 
-    freeze = sub.add_parser("freeze", help="Freeze exact repository/rule state.")
+    freeze = sub.add_parser("freeze", help="Freeze the exact repository/rule state.")
     freeze.add_argument("--repo", default=".")
     freeze.add_argument("--rules-dir", default="rules")
     freeze.add_argument("--out", required=True)
