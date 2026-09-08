@@ -27,46 +27,40 @@ jobs:
           python scripts/verify_dependency_locks.py --strict
       - name: Build attack event index on exact main
         run: python scripts/run_external_baseline.py --out out/p2_10c_probe --timeout 120
-      - name: Print normalized identities for remaining misses
+      - name: Print deep normalized fields for remaining misses
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
+          from scripts.evaluate_external_holdout import _convert_one_evtx
 
-          misses = {
+          names = [
               'evtx-ca-lsass-mimikatz.evtx',
               'evtx-lm-powershell-remoting.evtx',
               'evtx-lm-wmi.evtx',
               'evtx-lm-remote-service.evtx',
               'evtx-persist-hidden-run-key.evtx',
               'evtx-discovery-domain-admins.evtx',
-          }
-          counts = {name: 0 for name in misses}
-          for line in Path('out/p2_10c_probe/event_index.jsonl').read_text(encoding='utf-8').splitlines():
-              row = json.loads(line)
-              source = row['source_file']
-              if source not in misses:
-                  continue
-              counts[source] += 1
-              identity = row['identity']
-              raw = row.get('raw') or {}
-              canonical = raw.get('canonical') if isinstance(raw, dict) else None
-              data = raw.get('event_data') if isinstance(raw, dict) else None
-              print('===', source, 'record', row['record_index'], '===')
-              print('identity=' + json.dumps(identity, ensure_ascii=False, sort_keys=True))
-              if isinstance(canonical, dict):
-                  interesting = {k:v for k,v in canonical.items() if v not in ('', None)}
-                  print('canonical=' + json.dumps(interesting, ensure_ascii=False, sort_keys=True))
-              if isinstance(data, dict):
-                  interesting = {k:v for k,v in data.items() if v not in ('', None)}
-                  print('event_data=' + json.dumps(interesting, ensure_ascii=False, sort_keys=True))
-          print('COUNTS=' + json.dumps(counts, sort_keys=True))
-          assert counts == {
-              'evtx-ca-lsass-mimikatz.evtx': 1,
-              'evtx-lm-powershell-remoting.evtx': 1,
-              'evtx-lm-wmi.evtx': 8,
-              'evtx-lm-remote-service.evtx': 3,
-              'evtx-persist-hidden-run-key.evtx': 1,
-              'evtx-discovery-domain-admins.evtx': 63,
-          }, counts
+          ]
+          for name in names:
+              rows = _convert_one_evtx(Path('out/p2_10c_probe/corpus') / name)
+              print(f'### {name} rows={len(rows)}')
+              for idx, row in enumerate(rows, 1):
+                  event_id = str(row.get('event_id') or '')
+                  if name == 'evtx-discovery-domain-admins.evtx' and event_id != '4661':
+                      continue
+                  raw = row.get('raw') if isinstance(row.get('raw'), dict) else {}
+                  canonical = raw.get('canonical') if isinstance(raw.get('canonical'), dict) else {}
+                  event_data = raw.get('event_data') if isinstance(raw.get('event_data'), dict) else {}
+                  interesting = {
+                      'timestamp': row.get('timestamp'),
+                      'host': row.get('host'),
+                      'source': row.get('source'),
+                      'event_id': row.get('event_id'),
+                      'user': row.get('user'),
+                      'command_line': row.get('command_line'),
+                      'canonical': canonical,
+                      'event_data': event_data,
+                  }
+                  print(f'ROW {idx} ' + json.dumps(interesting, ensure_ascii=False, sort_keys=True))
           PY
