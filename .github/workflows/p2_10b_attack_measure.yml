@@ -1,4 +1,4 @@
-name: P2-10B WMI XSL Attack Measurement
+name: P2-10B WMI Remote XSL Attack Measurement
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - name: Run pinned external attack baseline
         run: |
           python scripts/run_external_baseline.py --out out/p2_10b_attack --timeout 120
-      - name: Assert P2-10B expected improvement
+      - name: Assert narrowed P2-10B expected improvement
         run: |
           python - <<'PY'
           import json
