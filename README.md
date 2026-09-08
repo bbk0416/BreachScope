@@ -15,8 +15,8 @@
 - 공개 릴리즈: `v1.0.0`
 - 패키지 메타데이터 상태: Beta
 - Python: 3.10 / 3.11 / 3.12 CI
-- 기본 CI 실행 환경: Ubuntu
-- Windows 네이티브 수집 기능은 존재하지만 Windows runner 기반 지속 검증은 아직 별도 보강이 필요합니다.
+- 기본 회귀 CI: Ubuntu에서 Python 3.10 / 3.11 / 3.12를 검증합니다.
+- Windows 네이티브 CI: `windows-latest` / Python 3.11에서 전체 테스트, Windows 경로, EVTX 수집·변환, case-history 파일 잠금, CLI smoke를 검증합니다. 이는 실제 기업 환경의 로그·권한·운영 조건까지 검증했다는 뜻은 아닙니다.
 - 내장 demo/evaluation 데이터는 **합성(synthetic) 회귀 데이터**입니다. 실제 기업 환경의 탐지 정확도나 오탐률을 증명하지 않습니다.
 - 외부 holdout 평가 도구(`scripts/evaluate_external_holdout.py`)는 포함되어 있지만, 이 README는 아직 독립 외부 corpus의 production-grade precision/recall 결과를 주장하지 않습니다.
 

@@ -6,11 +6,11 @@ BreachScope v16부터 GitHub Actions 기반 CI, Docker 빌드 검증, 릴리즈 
 
 | Workflow | Trigger | 목적 |
 |---|---|---|
-| `.github/workflows/ci.yml` | push, pull request, manual | Python 3.10/3.11/3.12 테스트, CLI 데모 산출물 생성, 룰팩 검증 |
+| `.github/workflows/ci.yml` | push, pull request, manual | Ubuntu Python 3.10/3.11/3.12 회귀 테스트와 Windows Python 3.11 네이티브 검증 |
 | `.github/workflows/docker.yml` | push, pull request, manual | Docker 이미지 빌드, 컨테이너 health/API smoke test |
 | `.github/workflows/release.yml` | `v*` tag, manual | 테스트 후 Python package/source ZIP/checksum/manifest 생성, 태그 릴리즈 업로드 |
 
-## CI에서 확인하는 것
+## Ubuntu CI에서 확인하는 것
 
 ```bash
 python -m compileall -q breachscope api scripts tests
@@ -31,6 +31,24 @@ report.manifest.json
 report.zip
 report.pdf
 ```
+
+Ubuntu CI, release, Docker는 저장소의 SHA-256 해시가 포함된 Python별 lock을 사용합니다. 이 lock은 `scripts/compile_dependency_locks.py`에서 `x86_64-unknown-linux-gnu` 대상으로 생성되므로 Windows 설치에 재사용하지 않습니다.
+
+## Windows 네이티브 CI
+
+`windows-latest` / Python 3.11 lane은 Linux에서 모의하기 어려운 Windows 동작을 실제 Windows runner에서 확인합니다.
+
+Windows에서는 Linux 전용 lock 대신 `pyproject.toml`의 platform marker가 적용되도록 `pip install -e ".[dev]"`로 설치하고 `pip check`로 의존성 일관성을 확인합니다. 예를 들어 `uvicorn[standard]`의 Windows 미지원 선택 의존성은 Windows에서 설치 대상이 되지 않아야 합니다.
+
+- 전체 `pytest -q`
+- Windows `Path` 동작을 사용하는 work directory boundary 테스트
+- `python-evtx` 변환 경로 계약 테스트
+- `msvcrt` 기반 case-history 파일 잠금 경로
+- `wevtutil.exe`로 System 로그를 EVTX로 내보낸 뒤 JSONL로 변환하는 smoke test
+- PDF를 제외한 CLI demo 산출물 생성
+- 룰팩 검증
+
+이 lane은 **Windows에서 코드 경로가 실제로 실행되고 회귀하지 않는지** 확인하기 위한 것입니다. 실제 기업 환경의 이벤트 양, 보안 제품 간섭, 권한 정책, 도메인 환경, 장기 운영 안정성까지 검증했다는 뜻은 아닙니다.
 
 ## Docker smoke test
 
@@ -67,6 +85,8 @@ release_manifest.json
 
 ## 로컬에서 CI 비슷하게 돌리기
 
+Linux/macOS에서는:
+
 ```bash
 make ci-local
 ```
@@ -79,6 +99,8 @@ make demo-all
 make validate
 make release
 ```
+
+Windows 네이티브 동작의 기준은 로컬 모의가 아니라 GitHub Actions의 `windows-latest` lane 결과입니다.
 
 ## 빌드 메타데이터
 
