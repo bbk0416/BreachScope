@@ -1,0 +1,82 @@
+schema: breachscope.p2_10c_remediation_measurement.v1
+remediation_id: p2-10c-domain-admins-4661
+measurement_repo_commit: 2bc093de022559958029933582d530be5b718c8b
+from_rules_tree_sha256: a21e4a7b4ae9060e2cdbb77d4a7233c85d96fb16d4d97eeddbc27f948ad99aa1
+to_rules_tree_sha256: 9fff876a481f972ac88dcccb1044b38b8df22c390f74375034a72eca7a1a8fa0
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-DOMAIN-ADMINS-4661
+  name: Domain Admins SAM Group Access
+  severity: low
+  mitre_technique: T1087.002
+  predicate:
+    ObjectName_regex: '-512$'
+    event_id_equals: "4661"
+    source_equals: Microsoft-Windows-Security-Auditing
+    ObjectType_equals: SAM_GROUP
+    ObjectServer_equals: Security Account Manager
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 4
+  after_scenario_hits: 5
+  scenario_misses: 5
+  scenario_total: 10
+  after_scenario_hit_rate: 0.5
+  findings: 7
+  flagged_events: 7
+  changed_scenario:
+    scenario_id: discovery-domain-admins
+    expected_technique: T1087.002
+    before_status: miss
+    after_status: hit
+  remaining_miss_scenarios:
+    - ca-lsass-mimikatz
+    - lm-powershell-remoting
+    - lm-wmi
+    - lm-remote-service
+    - persist-hidden-run-key
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  non_sysmon_source_files_scanned: 351
+  non_sysmon_events_scanned: 34423
+  security_4661: 0
+  sam_group_4661: 0
+  sam_group_rid512: 0
+  exact_predicate_matches: 0
+  sysmon_events_from_p2_09d: 732200
+  sysmon_provider_disjoint_from_rule_source_predicate: true
+  probe_run_id: 34235448799
+  parser: python-evtx 0.8.1 plus BreachScope EVTX conversion/normalization path
+  fresh_full_fp_tn_rerun: false
+evaluator_reconstruction_fix:
+  issue: Converted EVTX JSON already stores EventData under raw, but the holdout evaluator previously wrapped the converted record again as Event.raw.
+  corrected_contract: Use converted_record.raw as Event.raw when it is a mapping; keep legacy flat JSONL records unchanged.
+  control_github_actions_run_id: 34237083371
+  control_rules_tree_sha256: a21e4a7b4ae9060e2cdbb77d4a7233c85d96fb16d4d97eeddbc27f948ad99aa1
+  control_rules: 54
+  control_scenario_hits: 4
+  control_scenario_misses: 6
+  control_findings: 5
+  result_unchanged: true
+  reconstruction_tests_passed: 2
+measurement_execution:
+  github_actions_run_id: 34238713665
+  artifact_id: 10061000192
+  artifact_digest_sha256: 979bcd74bbad5e9d26e035011e99e8afaf2f5c49f59d47a69ff0500a02c2a3c7
+  artifact_record_schema: breachscope.p2_10c_measurement.v1
+  focused_tests_passed: 6
+  detector_runtime_seconds: 0.12047055800000095
+  detector_peak_memory_mb: 0.17133331298828125
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No exact-match event for the new Security 4661 Domain Admins predicate was observed in 34,423 non-Sysmon events from the pinned benign corpus.
