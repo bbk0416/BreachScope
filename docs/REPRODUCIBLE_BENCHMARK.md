@@ -96,12 +96,13 @@ python scripts\verify_current_detection_evidence.py
 python scripts\verify_current_detection_evidence.py --json
 ```
 
-P2-10A 이후 정상 출력의 핵심은 다음과 같습니다.
+P2-10B 이후 정상 출력의 핵심은 다음과 같습니다.
 
 ```text
 Current detection evidence verification: PASS
-Attack external baseline: 2/10 -> 3/10 scenario hits
+Attack external baseline: 2/10 -> 4/10 scenario hits
 p2-10a-scheduled-task-4698: benign incremental predicate matches=0 / 34423 non-Sysmon events
+p2-10b-wmi-xsl: benign incremental predicate matches=0 / 732200 Sysmon records
 Fresh full benign FPR for current rulepack: NOT CLAIMED
 Production accuracy/FPR: NOT CLAIMED
 ```
@@ -110,6 +111,14 @@ Production accuracy/FPR: NOT CLAIMED
 
 ```text
 external_baseline/current_detection_evidence.yaml
+```
+
+현재 chain은 다음 순서를 고정합니다.
+
+```text
+P2-09E 543b4e02... / 2 HIT
+  -> P2-10A 8ade507d... / 3 HIT
+  -> P2-10B a21e4a7b... / 4 HIT
 ```
 
 ## verifier가 확인하는 것
@@ -121,13 +130,17 @@ external_baseline/current_detection_evidence.yaml
 1. P2-09E attack/benign source, result, metric, claim boundary가 여전히 서로 맞는지
 2. P2-09E의 base rule hash
 3. 각 remediation record의 `from_rules_tree_sha256` → `to_rules_tree_sha256` 연결
-4. 실제 현재 rule YAML이 remediation record의 rule ID, Event ID, provider, ATT&CK technique과 맞는지
+4. P2-10A 실제 rule YAML이 Security Event ID 4698, `Microsoft-Windows-Security-Auditing`, `T1053.005` 조건과 맞는지
 5. P2-10A 외부 공격 corpus가 P2-09C와 같은 manifest/labels hash인지
-6. P2-10A 공격 scenario가 **2/10 → 3/10**으로 바뀌었는지
-7. `exec-scheduled-task`의 `T1053.005`가 MISS → HIT로 바뀌었는지
-8. pinned benign corpus의 351개 non-Sysmon EVTX, 34,423 events에서 새 predicate match가 0인지
-9. 현재 `rules/` tree SHA-256이 remediation chain의 마지막 hash와 같은지
-10. production accuracy/FPR, final blind holdout, 새 룰팩의 fresh full benign FPR을 주장하지 않는지
+6. P2-10A 공격 scenario가 **2/10 → 3/10**으로 바뀌고 `exec-scheduled-task`가 MISS → HIT인지
+7. P2-10A pinned benign corpus 34,423 non-Sysmon events에서 새 predicate match가 0인지
+8. P2-10B 실제 rule YAML이 `wmic`, `/format:"http`, Sysmon Event ID 1, `Microsoft-Windows-Sysmon`, `T1047` 조건과 맞는지
+9. P2-10B 외부 공격 corpus가 같은 P2-09C manifest/labels hash인지
+10. P2-10B 공격 scenario가 **3/10 → 4/10**으로 바뀌고 `exec-wmi-xsl`이 MISS → HIT인지
+11. P2-10B에서 `lm-wmi`가 근거 없이 함께 HIT로 바뀌지 않고 MISS로 남았는지
+12. pinned benign Sysmon **732,200 records**에서 raw `wmic` 후보 29건을 제품 parser로 다시 확인했고 새 predicate match가 0인지
+13. 현재 `rules/` tree SHA-256이 remediation chain의 마지막 hash와 같은지
+14. production accuracy/FPR, final blind holdout, 새 룰팩의 fresh full benign FPR을 주장하지 않는지
 
 ## 전체 재실행
 
@@ -155,20 +168,26 @@ P2-09D의 `win10-client.tgz`에는 약 799MB 크기의 Sysmon Operational EVTX�
 - 같은 rule hash 상태에서 고정된 공개 goodware corpus 766,623 events 중 17 events가 flagged됐습니다.
 - 이 FPR은 해당 공개 corpus에서의 관찰값이며 production FPR이 아닙니다.
 
-### P2-10A current evidence로 추가로 말할 수 있는 것
+### P2-10A evidence로 추가로 말할 수 있는 것
 
-- 새 `Security-Auditing + Event ID 4698` 룰을 추가한 rule hash `8ade507d...`에서 같은 공개 공격 세트가 **3 HIT / 7 MISS**가 됐습니다.
+- `Security-Auditing + Event ID 4698` 룰을 추가한 rule hash `8ade507d...`에서 같은 공개 공격 세트가 **3 HIT / 7 MISS**가 됐습니다.
 - 개선된 scenario는 `exec-scheduled-task` / `T1053.005`입니다.
 - 새 predicate는 pinned benign corpus의 **34,423 non-Sysmon events에서 0건**이었습니다.
-- Sysmon source는 새 룰이 요구하는 `Microsoft-Windows-Security-Auditing` provider와 다른 source입니다.
-- 새 룰팩으로 전체 766,623 events를 다시 점수화한 fresh FP/TN/FPR은 **아직 주장하지 않습니다**.
+
+### P2-10B current evidence로 추가로 말할 수 있는 것
+
+- `WMIC + remote /format URL + Sysmon Event ID 1` 룰을 추가한 rule hash `a21e4a7b...`에서 같은 공개 공격 세트가 **4 HIT / 6 MISS**가 됐습니다.
+- 개선된 scenario는 `exec-wmi-xsl` / `T1047`입니다.
+- `lm-wmi`는 이번 변경으로 억지로 넓히지 않아 **MISS 유지**입니다.
+- pinned benign Sysmon **732,200 records**를 확인했고, raw `wmic` 후보는 29건이었지만 새 predicate와 일치한 이벤트는 **0건**이었습니다.
+- 이번 확인은 새 룰의 incremental predicate proof이며, 현재 54-rule pack으로 전체 766,623 events의 FP/TN/FPR을 새로 계산한 것은 아닙니다.
 
 다음은 말할 수 없습니다.
 
-- 실제 공격 전체 탐지율이 30%다
-- 실제 precision 또는 recall이 30%다
+- 실제 공격 전체 탐지율이 40%다
+- 실제 precision 또는 recall이 40%다
 - 현재 rulepack의 production FPR이 0.00221752%다
-- 현재 rulepack 전체 benign FPR을 fresh하게 재측정했다
+- 현재 54-rule pack 전체 benign FPR을 fresh하게 재측정했다
 - 기업 SOC 환경의 alert quality가 검증됐다
 - final blind holdout을 통과했다
 - BreachScope가 다른 탐지 엔진보다 빠르다

@@ -10,3 +10,22 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Security-Auditing
+
+- id: R-WMI-XSL-Remote
+  name: WMIC Remote XSL Execution
+  description: Sysmon process creation showing WMIC loading a remote XSL through /format
+  field: command_line
+  operator: contains
+  pattern: wmic
+  severity: low
+  mitre_technique: T1047
+  all_of:
+    - field: command_line
+      operator: contains
+      pattern: '/format:"http'
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
