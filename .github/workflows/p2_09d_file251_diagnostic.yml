@@ -24,11 +24,12 @@ jobs:
         with:
           python-version: 3.11.16
 
-      - name: Install parser backends
+      - name: Install locked product environment and Rust parser
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check python-evtx==0.8.1 evtx==0.12.1
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --disable-pip-version-check evtx==0.12.1
 
       - name: Download and verify pinned corpus
         shell: bash
@@ -51,20 +52,12 @@ jobs:
           python -u - <<'PY'
           from pathlib import Path
           import hashlib
-          import importlib.util
           import json
           import time
 
           from Evtx.Evtx import Evtx
           from evtx import PyEvtxParser
-
-          spec = importlib.util.spec_from_file_location(
-              'breachscope_ingest_exact', Path('breachscope/ingest.py')
-          )
-          ingest = importlib.util.module_from_spec(spec)
-          assert spec.loader is not None
-          spec.loader.exec_module(ingest)
-          _extract_from_xml = ingest._extract_from_xml
+          from breachscope.ingest import _extract_from_xml
 
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
@@ -126,19 +119,11 @@ jobs:
           python -u - <<'PY'
           from pathlib import Path
           import hashlib
-          import importlib.util
           import json
           import time
 
           from evtx import PyEvtxParser
-
-          spec = importlib.util.spec_from_file_location(
-              'breachscope_ingest_exact', Path('breachscope/ingest.py')
-          )
-          ingest = importlib.util.module_from_spec(spec)
-          assert spec.loader is not None
-          spec.loader.exec_module(ingest)
-          _extract_from_xml = ingest._extract_from_xml
+          from breachscope.ingest import _extract_from_xml
 
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
