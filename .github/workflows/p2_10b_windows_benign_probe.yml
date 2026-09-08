@@ -20,7 +20,6 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $recipe = Get-Content 'external_baseline/p2_09d_benign_sources.yaml' -Raw
           $url = 'https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz'
           $archive = Join-Path $env:RUNNER_TEMP 'win10-client.tgz'
           Invoke-WebRequest -Uri $url -OutFile $archive
@@ -41,6 +40,16 @@ jobs:
           if (-not (Test-Path $sysmon)) { throw 'Sysmon EVTX extraction failed' }
           Write-Host "sysmon_extracted bytes=$((Get-Item $sysmon).Length)"
 
+      - name: Inspect native event IDs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'p2-10b-benign'
+          $sysmon = Join-Path $root 'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+          $sample = @(Get-WinEvent -Path $sysmon -Oldest -MaxEvents 20)
+          if ($sample.Count -eq 0) { throw 'Sysmon EVTX contains no readable events' }
+          Write-Host ('first_event_ids=' + (($sample | ForEach-Object { $_.Id }) -join ','))
+
       - name: Query Event ID 1 and count candidate
         shell: pwsh
         run: |
@@ -52,9 +61,10 @@ jobs:
           $wmicFormat = 0
           $candidate = 0
           $examples = @()
-          Get-WinEvent -Path $sysmon -FilterXPath '*[System[(EventID=1)]]' -Oldest | ForEach-Object {
+          $rows = @(Get-WinEvent -FilterHashtable @{ Path = $sysmon; Id = 1 } -Oldest -ErrorAction SilentlyContinue)
+          foreach ($row in $rows) {
             $event1++
-            $xml = $_.ToXml()
+            $xml = $row.ToXml()
             $lower = $xml.ToLowerInvariant()
             if ($lower.Contains('wmic')) {
               $wmic++
@@ -63,9 +73,6 @@ jobs:
                 $candidate++
                 if ($examples.Count -lt 5) { $examples += $xml }
               }
-            }
-            if (($event1 % 50000) -eq 0) {
-              Write-Host "progress event1=$event1 wmic=$wmic candidate=$candidate"
             }
           }
           Write-Host "event1_records=$event1"
