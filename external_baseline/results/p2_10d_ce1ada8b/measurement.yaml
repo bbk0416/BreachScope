@@ -10,7 +10,7 @@ rule_change:
   severity: medium
   mitre_technique: T1003.001
   predicate:
-    TargetImage_endswith: '\\lsass.exe'
+    TargetImage_endswith: '\lsass.exe'
     GrantedAccess_regex: '^0x0*1010$'
     event_id_equals: "10"
     source_equals: Microsoft-Windows-Sysmon
