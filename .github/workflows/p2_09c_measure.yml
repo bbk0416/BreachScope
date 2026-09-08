@@ -74,6 +74,7 @@ jobs:
           path: |
             out/external_baseline/p2_09c/rules_freeze.json
             out/external_baseline/p2_09c/manifest.yaml
+            out/external_baseline/p2_09c/event_index.jsonl
             out/external_baseline/p2_09c/result.json
             out/external_baseline/p2_09c/summary.json
             out/external_baseline/p2_09c/SUMMARY.md
