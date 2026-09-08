@@ -51,12 +51,20 @@ jobs:
           python -u - <<'PY'
           from pathlib import Path
           import hashlib
+          import importlib.util
           import json
           import time
 
           from Evtx.Evtx import Evtx
           from evtx import PyEvtxParser
-          from breachscope.ingest import _extract_from_xml
+
+          spec = importlib.util.spec_from_file_location(
+              'breachscope_ingest_exact', Path('breachscope/ingest.py')
+          )
+          ingest = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(ingest)
+          _extract_from_xml = ingest._extract_from_xml
 
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
@@ -118,11 +126,19 @@ jobs:
           python -u - <<'PY'
           from pathlib import Path
           import hashlib
+          import importlib.util
           import json
           import time
 
           from evtx import PyEvtxParser
-          from breachscope.ingest import _extract_from_xml
+
+          spec = importlib.util.spec_from_file_location(
+              'breachscope_ingest_exact', Path('breachscope/ingest.py')
+          )
+          ingest = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(ingest)
+          _extract_from_xml = ingest._extract_from_xml
 
           root = Path('/tmp/p2-09d-corpus')
           rows = sorted(
