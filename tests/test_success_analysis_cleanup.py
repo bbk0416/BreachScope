@@ -88,6 +88,18 @@ def test_cleanup_flag_removes_successful_auto_managed_case_and_skips_history(
     assert result["case_id"] is None
     assert history_calls == []
     assert not work.exists()
+    for key in (
+        "html_path",
+        "json_path",
+        "csv_path",
+        "iocs_path",
+        "rule_catalog_path",
+        "pdf_path",
+        "manifest_path",
+        "package_path",
+        "work_dir",
+    ):
+        assert result[key] is None
 
 
 def test_cleanup_flag_preserves_explicit_workdir_and_registers_case(
@@ -120,6 +132,9 @@ def test_cleanup_flag_preserves_explicit_workdir_and_registers_case(
     assert work.exists()
     assert existing.read_bytes() == b"pre-existing evidence"
     assert (work / "out" / "report.html").exists()
+    assert result["work_dir"] == str(work)
+    assert result["html_path"] == str(work / "out" / "report.html")
+    assert result["json_path"] == str(work / "out" / "report.json")
 
 
 def test_cleanup_flag_off_preserves_successful_auto_case_and_history(
@@ -149,8 +164,16 @@ def test_cleanup_flag_off_preserves_successful_auto_case_and_history(
     assert history_calls == [work]
     assert work.exists()
     assert (work / "out" / "report.json").exists()
+    assert result["work_dir"] == str(work)
+    assert result["html_path"] == str(work / "out" / "report.html")
+    assert result["json_path"] == str(work / "out" / "report.json")
 
 
 def test_p2_08g_marker_present():
     source = open(analysis_module.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P2_08G_SUCCESS_CLEANUP_POLICY_V1" in source
+
+
+def test_p2_08h_marker_present():
+    source = open(analysis_module.__file__, "r", encoding="utf-8").read()
+    assert "BREACHSCOPE_P2_08H_NO_STALE_CLEANUP_PATHS_V1" in source
