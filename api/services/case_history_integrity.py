@@ -56,8 +56,9 @@ def _read_index_fail_closed(self: CaseHistoryService) -> Dict[str, Any]:
         return _empty_index()
 
     try:
-        data = json.loads(self.index_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
+        text = self.index_path.read_text(encoding="utf-8")
+        data = json.loads(text)
+    except (UnicodeDecodeError, json.JSONDecodeError):
         _quarantine_corrupt_index(self.index_path)
         return _empty_index()
 
@@ -77,3 +78,4 @@ def install() -> None:
 install()
 
 # BREACHSCOPE_P2_08K_CORRUPT_CASE_INDEX_FAIL_CLOSED_V1
+# BREACHSCOPE_P2_08N_INVALID_UTF8_CASE_INDEX_QUARANTINE_V1

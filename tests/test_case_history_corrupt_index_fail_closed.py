@@ -62,6 +62,41 @@ def test_non_mapping_case_rows_are_quarantined(tmp_path):
     assert (tmp_path / "case_history.json.broken").read_text(encoding="utf-8") == raw
 
 
+def test_invalid_utf8_index_is_quarantined_and_preserves_original_bytes(tmp_path):
+    index = tmp_path / "case_history.json"
+    corrupt = b'{"version":1,"cases":[]}\xff'
+    index.write_bytes(corrupt)
+
+    service = _service(index)
+
+    assert service.list_cases() == []
+    assert not index.exists()
+    assert (tmp_path / "case_history.json.broken").read_bytes() == corrupt
+
+
+def test_invalid_utf8_quarantine_failure_fails_closed_and_preserves_original_bytes(
+    tmp_path, monkeypatch
+):
+    index = tmp_path / "case_history.json"
+    corrupt = b'\xff\xfe{"cases":[]}'
+    index.write_bytes(corrupt)
+    real_replace = Path.replace
+
+    def deny_quarantine(self, target):
+        if self == index:
+            raise PermissionError("simulated quarantine denial")
+        return real_replace(self, target)
+
+    monkeypatch.setattr(Path, "replace", deny_quarantine)
+    service = _service(index)
+
+    with pytest.raises(CaseHistoryIndexCorruptionError):
+        service.list_cases()
+
+    assert index.read_bytes() == corrupt
+    assert not (tmp_path / "case_history.json.broken").exists()
+
+
 def test_quarantine_failure_fails_closed_and_preserves_corrupt_bytes(tmp_path, monkeypatch):
     index = tmp_path / "case_history.json"
     corrupt = b'{"cases": [broken'
@@ -122,6 +157,7 @@ def test_valid_index_shape_is_unchanged(tmp_path):
     assert json.loads(index.read_text(encoding="utf-8")) == data
 
 
-def test_p2_08k_marker_present():
+def test_p2_08k_and_p2_08n_markers_present():
     source = Path(integrity_module.__file__).read_text(encoding="utf-8")
     assert "BREACHSCOPE_P2_08K_CORRUPT_CASE_INDEX_FAIL_CLOSED_V1" in source
+    assert "BREACHSCOPE_P2_08N_INVALID_UTF8_CASE_INDEX_QUARANTINE_V1" in source
