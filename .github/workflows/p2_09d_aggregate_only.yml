@@ -1,0 +1,293 @@
+name: P2-09D Aggregate Only
+
+on:
+  push:
+    branches:
+      - measure/p2-09d-aggregate-only
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  MEASURED_MAIN: 789c1f45b35599adbb5816c69c2e1e5c586584c9
+  SOURCE_RUN_ID: "34212244466"
+  CORPUS_URL: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+  CORPUS_SHA256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+
+jobs:
+  aggregate:
+    name: Recompute full pinned benign corpus accounting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download completed shard accounting from source run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v4.3.0
+        with:
+          pattern: p2-09d-*
+          path: shard-results
+          merge-multiple: true
+          repository: ${{ github.repository }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+
+      - name: Verify pinned corpus and count all EVTX source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --silent --show-error -o /tmp/win10-client.tgz "$CORPUS_URL"
+          echo "$CORPUS_SHA256  /tmp/win10-client.tgz" | sha256sum -c -
+          python3 - <<'PY'
+          import tarfile
+          from pathlib import Path
+
+          archive = Path('/tmp/win10-client.tgz')
+          with tarfile.open(archive, 'r:gz') as tf:
+              evtx = sorted(
+                  member.name for member in tf.getmembers()
+                  if member.isfile() and member.name.casefold().endswith('.evtx')
+              )
+          if len(evtx) != 352:
+              raise SystemExit(f'expected 352 EVTX source files in pinned archive, got {len(evtx)}')
+          if not any(name.endswith('Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx') for name in evtx):
+              raise SystemExit('pinned Sysmon source missing from archive')
+          Path('/tmp/p2_09d_source_file_count.txt').write_text(str(len(evtx)), encoding='utf-8')
+          print(f'PINNED_CORPUS_EVTX_FILES={len(evtx)}')
+          PY
+
+      - name: Verify global identity and compute FP TN FPR
+        shell: bash
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          set -euo pipefail
+          mkdir -p out/p2_09d_distributed
+          python3 -u - <<'PY'
+          from __future__ import annotations
+          import json
+          import os
+          from collections import defaultdict
+          from pathlib import Path
+
+          expected_ids = ['non-sysmon'] + [f'sysmon-{i}' for i in range(8)]
+          expected_ranges = [
+              (0, 1487), (1487, 2974), (2974, 4461), (4461, 5948),
+              (5948, 7435), (7435, 8922), (8922, 10408), (10408, 11894),
+          ]
+          root = Path('shard-results')
+          files = sorted(root.glob('*.json'))
+          if len(files) != len(expected_ids):
+              raise SystemExit(f'expected {len(expected_ids)} shard files, got {len(files)}')
+          shards = [json.loads(path.read_text(encoding='utf-8')) for path in files]
+          by_id = {row['shard_id']: row for row in shards}
+          if sorted(by_id) != sorted(expected_ids):
+              raise SystemExit(f'unexpected shard IDs: {sorted(by_id)}')
+
+          expected_commit = os.environ['MEASURED_MAIN']
+          expected_corpus = os.environ['CORPUS_SHA256']
+          rule_hashes = {row['rules_tree_sha256'] for row in shards}
+          rule_counts = {int(row['rule_file_count']) for row in shards}
+          if any(row['repo_commit'] != expected_commit for row in shards):
+              raise SystemExit('shard repo commit mismatch')
+          if any(row['corpus_sha256'] != expected_corpus for row in shards):
+              raise SystemExit('shard corpus SHA mismatch')
+          if any(row.get('label_policy') != 'benign_by_source_intent' for row in shards):
+              raise SystemExit('shard label policy mismatch')
+          if len(rule_hashes) != 1 or len(rule_counts) != 1:
+              raise SystemExit('rule freeze mismatch across shards')
+
+          for i, expected_range in enumerate(expected_ranges):
+              row = by_id[f'sysmon-{i}']
+              actual = (int(row['chunk_start']), int(row['chunk_end']))
+              if actual != expected_range or int(row['total_chunks']) != 11894:
+                  raise SystemExit(
+                      f"Sysmon shard range mismatch sysmon-{i}: {actual} total={row['total_chunks']}"
+                  )
+
+          global_keys = set()
+          flagged = set()
+          source_events = defaultdict(int)
+          source_flagged = defaultdict(int)
+          findings = 0
+          parse_sum = 0.0
+          detector_sum = 0.0
+          shard_wall_max = 0.0
+          detector_peak_max = 0
+
+          for shard_id in expected_ids:
+              row = by_id[shard_id]
+              keys = set(row['event_keys'])
+              if len(keys) != int(row['event_count']):
+                  raise SystemExit(f'event key count mismatch in {shard_id}')
+              overlap = global_keys & keys
+              if overlap:
+                  raise SystemExit(
+                      f'duplicate event identity across shards at {shard_id}: {len(overlap)}'
+                  )
+              global_keys |= keys
+
+              shard_flagged = set(row['flagged_event_keys'])
+              if not shard_flagged.issubset(keys):
+                  raise SystemExit(f'flagged keys escape shard event keys: {shard_id}')
+              flagged |= shard_flagged
+              findings += int(row['finding_count'])
+              for source, count in row['source_events'].items():
+                  source_events[source] += int(count)
+              for source, count in row['source_flagged'].items():
+                  source_flagged[source] += int(count)
+              timing = row['timing']
+              parse_sum += float(timing['parse_seconds'])
+              detector_sum += float(timing['detector_seconds'])
+              shard_wall_max = max(shard_wall_max, float(timing['shard_wall_seconds']))
+              detector_peak_max = max(
+                  detector_peak_max,
+                  int(row['memory']['detector_peak_bytes_max_per_apply_rules_call']),
+              )
+
+          total = len(global_keys)
+          fp = len(flagged)
+          tn = total - fp
+          if total <= 0 or tn < 0:
+              raise SystemExit('invalid aggregate confusion counts')
+          fpr = fp / total
+
+          source_files_total = int(
+              Path('/tmp/p2_09d_source_file_count.txt').read_text(encoding='utf-8').strip()
+          )
+          source_files_with_events = len(source_events)
+          if source_files_total != 352:
+              raise SystemExit(f'expected 352 source files, got {source_files_total}')
+          if source_files_with_events > source_files_total:
+              raise SystemExit('non-empty source file count exceeds archive source file count')
+          if sum(source_events.values()) != total:
+              raise SystemExit('source event totals do not equal global event total')
+          if sum(source_flagged.values()) != fp:
+              raise SystemExit('source flagged totals do not equal global FP total')
+
+          top_flagged = sorted(
+              (
+                  {
+                      'source': source,
+                      'events': source_events[source],
+                      'flagged_events': source_flagged.get(source, 0),
+                      'fpr': (
+                          source_flagged.get(source, 0) / source_events[source]
+                          if source_events[source] else 0.0
+                      ),
+                  }
+                  for source in source_events
+              ),
+              key=lambda row: (-row['flagged_events'], row['source']),
+          )
+
+          summary = {
+              'schema': 'breachscope.p2_09d.distributed_result.v1',
+              'baseline_id': 'p2-09d-nextron-win10-v1',
+              'evaluation_class': 'external_baseline',
+              'measured_repo_commit': expected_commit,
+              'source_shard_run_id': os.environ['SOURCE_RUN_ID'],
+              'rules_tree_sha256': next(iter(rule_hashes)),
+              'rule_file_count': next(iter(rule_counts)),
+              'corpus': {
+                  'repository': 'NextronSystems/evtx-baseline',
+                  'release_tag': 'v0.8.4',
+                  'asset': 'win10-client.tgz',
+                  'sha256': expected_corpus,
+                  'source_files_total': source_files_total,
+                  'source_files_with_events': source_files_with_events,
+                  'events': total,
+                  'label_policy': 'benign_by_source_intent',
+              },
+              'primary_metrics': {
+                  'false_positives': fp,
+                  'true_negatives': tn,
+                  'false_positive_rate': fpr,
+                  'flagged_events_per_1000': (fp / total) * 1000.0,
+                  'findings': findings,
+                  'findings_per_1000': (findings / total) * 1000.0,
+              },
+              'timing': {
+                  'parse_seconds_sum_across_runners': parse_sum,
+                  'detector_seconds_sum_across_runners': detector_sum,
+                  'max_shard_compute_wall_seconds': shard_wall_max,
+                  'note': 'Distributed measurement telemetry; not a monolithic whole-corpus wall-clock benchmark.',
+              },
+              'memory': {
+                  'max_detector_peak_bytes_across_shards': detector_peak_max,
+                  'note': 'Maximum tracemalloc peak from a shard apply_rules call; not monolithic whole-corpus evaluator peak memory.',
+              },
+              'source_breakdown_nonempty_only': top_flagged,
+              'claim_boundary': {
+                  'production_false_positive_rate': 'not_claimed',
+                  'enterprise_environment_representative': False,
+                  'event_level_manual_adjudication': False,
+                  'measurement_method': 'full pinned corpus distributed across runners; exact parser, normalizer, event identity, rules and apply_rules from measured main',
+              },
+              'validation': {
+                  'distributed_scoring_equivalence_gate': 'PASS',
+                  'global_event_identity_unique': True,
+                  'sysmon_chunks_covered_exactly_once': '0:11894',
+                  'all_events_labeled_benign_by_source_intent': True,
+                  'all_archive_evtx_files_counted_including_empty': True,
+              },
+          }
+
+          out = Path('out/p2_09d_distributed')
+          (out / 'summary.json').write_text(
+              json.dumps(summary, indent=2, ensure_ascii=False), encoding='utf-8'
+          )
+          with (out / 'flagged_event_keys.jsonl').open('w', encoding='utf-8', newline='\n') as f:
+              for key in sorted(flagged):
+                  f.write(json.dumps({'event_key': key}) + '\n')
+
+          lines = [
+              '# P2-09D Distributed Full-Corpus Benign Baseline',
+              '',
+              f'- measured main: `{expected_commit}`',
+              f"- rules tree SHA-256: `{summary['rules_tree_sha256']}`",
+              f'- corpus SHA-256: `{expected_corpus}`',
+              f'- source EVTX files: **{source_files_total}**',
+              f'- non-empty EVTX files: **{source_files_with_events}**',
+              f'- benign events: **{total:,}**',
+              f'- FP: **{fp:,}**',
+              f'- TN: **{tn:,}**',
+              f'- FPR: **{fpr:.6%}**',
+              f'- findings: **{findings:,}**',
+              f'- flagged events / 1,000: **{(fp/total)*1000.0:.3f}**',
+              f'- findings / 1,000: **{(findings/total)*1000.0:.3f}**',
+              '',
+              '## Claim boundary',
+              '',
+              'This is the observed FPR on the pinned public goodware corpus only. It is not a production or enterprise-wide FPR.',
+              'The event labels are benign-by-source-intent, not event-level manual adjudication.',
+              'Runtime and memory are distributed-measurement telemetry, not a monolithic benchmark.',
+              '',
+              '## Most flagged non-empty sources',
+              '',
+          ]
+          for row in top_flagged[:20]:
+              lines.append(
+                  f"- `{row['source']}`: {row['flagged_events']:,}/{row['events']:,} "
+                  f"({row['fpr']:.6%})"
+              )
+          (out / 'SUMMARY.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+          print(f'P2-09D EVENTS={total}')
+          print(f'P2-09D FP={fp}')
+          print(f'P2-09D TN={tn}')
+          print(f'P2-09D FPR={fpr:.10f}')
+          print(f'P2-09D FINDINGS={findings}')
+          print(f'P2-09D SOURCE_FILES_TOTAL={source_files_total}')
+          print(f'P2-09D SOURCE_FILES_WITH_EVENTS={source_files_with_events}')
+          print(f"P2-09D RULES_SHA256={summary['rules_tree_sha256']}")
+          print('P2-09D PRODUCTION_FPR=NOT_CLAIMED')
+          print('P2-09D DISTRIBUTED_FULL_CORPUS=PASS')
+          PY
+
+      - name: Upload corrected P2-09D aggregate evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-09d-aggregate-fixed
+          path: out/p2_09d_distributed
+          if-no-files-found: error
+          retention-days: 30
