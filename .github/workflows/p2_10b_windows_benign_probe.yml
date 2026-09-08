@@ -1,0 +1,77 @@
+name: P2-10B Windows Benign Probe
+
+on:
+  push:
+    branches:
+      - measure/p2-10b-wmi-xsl
+
+permissions:
+  contents: read
+
+jobs:
+  native-benign-probe:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Download and verify pinned benign archive
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $recipe = Get-Content 'external_baseline/p2_09d_benign_sources.yaml' -Raw
+          $url = 'https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz'
+          $archive = Join-Path $env:RUNNER_TEMP 'win10-client.tgz'
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          if ((Get-Item $archive).Length -ne 70844052) { throw 'archive size mismatch' }
+          $hash = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          if ($hash -ne 'd48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e') { throw "archive hash mismatch: $hash" }
+          Write-Host "archive_verified size=$((Get-Item $archive).Length) sha256=$hash"
+
+      - name: Extract only Sysmon EVTX
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:RUNNER_TEMP 'win10-client.tgz'
+          $root = Join-Path $env:RUNNER_TEMP 'p2-10b-benign'
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+          tar -xzf $archive -C $root 'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+          $sysmon = Join-Path $root 'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+          if (-not (Test-Path $sysmon)) { throw 'Sysmon EVTX extraction failed' }
+          Write-Host "sysmon_extracted bytes=$((Get-Item $sysmon).Length)"
+
+      - name: Query Event ID 1 and count candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'p2-10b-benign'
+          $sysmon = Join-Path $root 'Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx'
+          $event1 = 0
+          $wmic = 0
+          $wmicFormat = 0
+          $candidate = 0
+          $examples = @()
+          Get-WinEvent -Path $sysmon -FilterXPath '*[System[(EventID=1)]]' -Oldest | ForEach-Object {
+            $event1++
+            $xml = $_.ToXml()
+            $lower = $xml.ToLowerInvariant()
+            if ($lower.Contains('wmic')) {
+              $wmic++
+              if ($lower.Contains('/format:')) { $wmicFormat++ }
+              if ($lower.Contains('/format:&quot;http') -or $lower.Contains('/format:"http')) {
+                $candidate++
+                if ($examples.Count -lt 5) { $examples += $xml }
+              }
+            }
+            if (($event1 % 50000) -eq 0) {
+              Write-Host "progress event1=$event1 wmic=$wmic candidate=$candidate"
+            }
+          }
+          Write-Host "event1_records=$event1"
+          Write-Host "event1_wmic=$wmic"
+          Write-Host "event1_wmic_format=$wmicFormat"
+          Write-Host "candidate_wmic_format_http=$candidate"
+          foreach ($item in $examples) { Write-Host "candidate_example=$item" }
+          if ($candidate -ne 0) { throw "candidate benign matches=$candidate" }
+          Write-Host 'P2-10B Windows benign candidate predicate: PASS candidate=0'
