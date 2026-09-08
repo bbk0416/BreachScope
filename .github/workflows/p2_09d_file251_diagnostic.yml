@@ -1,0 +1,46 @@
+name: P2-09D File 251 Diagnostic
+
+on:
+  push:
+    branches:
+      - measure/p2-09d-file251-diagnostic
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Download and verify pinned corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --silent --show-error \
+            -o /tmp/win10-client.tgz \
+            https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+          echo "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e  /tmp/win10-client.tgz" | sha256sum -c -
+
+      - name: Print EVTX entries around stalled index
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/p2-09d-corpus
+          mkdir -p /tmp/p2-09d-corpus
+          tar -xzf /tmp/win10-client.tgz -C /tmp/p2-09d-corpus
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('/tmp/p2-09d-corpus')
+          rows = sorted(
+              (p.relative_to(root).as_posix(), p.stat().st_size)
+              for p in root.rglob('*')
+              if p.is_file() and p.name.casefold().endswith('.evtx')
+          )
+          print(f'total_evtx={len(rows)}')
+          for index, (path, size) in enumerate(rows, 1):
+              if 240 <= index <= 260:
+                  print(f'{index:03d}\t{size}\t{path}')
+          assert len(rows) == 352, len(rows)
+          PY
