@@ -1,0 +1,79 @@
+schema: breachscope.p2_10g_remediation_measurement.v1
+remediation_id: p2-10g-hidden-run-key
+measurement_repo_commit: ab76f3a3f41f505ae6c5e73a2dd28bea5562006a
+from_rules_tree_sha256: af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e
+to_rules_tree_sha256: c8aab1fc9dfb54e634f4da12c81bbeb1693f3decef747b543a20bff6153a6409
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-RUNKEY-UNNAMED-13
+  name: Hidden Run/RunOnce Registry Value
+  severity: medium
+  mitre_technique: T1547.001
+  predicate:
+    TargetObject_regex: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$'
+    EventType_equals: SetValue
+    event_id_equals: '13'
+    source_equals: Microsoft-Windows-Sysmon
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 8
+  after_scenario_hits: 9
+  scenario_misses: 1
+  scenario_total: 10
+  after_scenario_hit_rate: 0.9
+  findings: 13
+  flagged_events: 13
+  changed_scenario:
+    scenario_id: persist-hidden-run-key
+    expected_technique: T1547.001
+    before_status: miss
+    after_status: hit
+  remaining_miss_scenarios:
+  - lm-wmi
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  evtx_files_total_from_p2_09d: 352
+  sysmon_source_evtx_files_scanned: 1
+  sysmon_records_scanned: 732200
+  sysmon_chunks_scanned: 11894
+  sysmon_chunks_covered: '0:11894'
+  shard_count: 32
+  sysmon_event13_scanned: 214572
+  sysmon_event13_setvalue_scanned: 214572
+  run_or_runonce_targets: 18
+  hidden_run_targets: 0
+  exact_predicate_matches: 0
+  parse_errors: 0
+  probe_github_actions_run_id: 34378996152
+  probe_commit: 3b91e449b17d0f806d12d29f8c7798294856b5b9
+  probe_artifact_id: 10115267079
+  probe_artifact_digest_sha256: b44ce8fb3c50da7440b6dcaa6a5c22f408a9650db02cfe63e21ddf3a0df2a39d
+  probe_artifact_schema: breachscope.p2_10g.hidden_run_benign_scan.v1
+  parser: python-evtx 0.8.1 plus BreachScope EVTX extraction path
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34380826293
+  artifact_id: 10115782747
+  artifact_digest_sha256: 931290c4da70d2b7ab93a0b45ef89bff1bd84d17c221be84c82bd0aab9cf7fa5
+  artifact_record_schema: breachscope.external_holdout.result.v1
+  focused_tests_passed: 8
+  detector_runtime_seconds: 0.09567232900000988
+  detector_peak_memory_mb: 0.17587661743164062
+exact_source:
+  pr_code_commit: 72dbd296265e992321378512b3688f120b32681a
+  measurement_commit: ab76f3a3f41f505ae6c5e73a2dd28bea5562006a
+  rule_file_git_blob_sha1: f867662a28f283ead51f26feffa9a7975d71f66c
+  note: The measurement commit and the PR code commit have identical detector/rule content. The later PR commit only corrected Python test-string syntax.
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No Sysmon Event ID 13 SetValue whose TargetObject ended directly at a Run or RunOnce key was observed in the 732,200 Sysmon records from the pinned public benign corpus.
