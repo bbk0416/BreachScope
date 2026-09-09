@@ -38,6 +38,8 @@ artifact에는 다음 세 파일이 들어 있습니다.
 - `p2-11a-source-hashes.json`
 - `current-detection-evidence.json`
 
+영구 기록은 `external_baseline/results/p2_11a_674615ef/freeze.yaml`에 저장합니다.
+
 ## 이 시점에 아직 하지 않은 것
 
 P2-11A 기록 시점에는 새 holdout corpus를 아직 선택하지 않았고, 새 holdout score도 실행하지 않았습니다.
