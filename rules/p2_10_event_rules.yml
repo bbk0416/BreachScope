@@ -70,3 +70,18 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Sysmon
+- id: R-WINRM-WSMPROVHOST-CHILD
+  name: PowerShell Remoting Child Process
+  description: Sysmon process creation where wsmprovhost.exe is the parent, consistent with PowerShell remoting over WinRM
+  field: ParentImage
+  operator: endswith
+  pattern: '\wsmprovhost.exe'
+  severity: medium
+  mitre_technique: T1021.006
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
