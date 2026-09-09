@@ -40,7 +40,7 @@ jobs:
           assert metrics['scenario_hits'] == 7, metrics
           assert metrics['scenario_misses'] == 3, metrics
           assert metrics['scenario_total'] == 10, metrics
-          assert summary['rules_tree_sha256'] == 'da9abfc4326c74d9e479f1262233cbb601317321b966dbb47c81053798d6f9d1', summary['rules_tree_sha256']
+          assert summary['rules_tree_sha256'] == '73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c', summary['rules_tree_sha256']
           assert summary['detection_observation']['findings'] == 9, summary['detection_observation']
           assert summary['detection_observation']['flagged_events'] == 9, summary['detection_observation']
 
