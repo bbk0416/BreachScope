@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any, Mapping
@@ -160,6 +161,13 @@ def _verify_claims(record: Mapping[str, Any], label: str) -> None:
         "NOT_CLAIMED",
         f"{label} fresh benign FPR boundary",
     )
+
+
+def _git_blob_sha1(path: Path) -> str:
+    data = path.read_bytes()
+    header = f"blob {len(data)}".encode("ascii") + bytes([0])
+    return hashlib.sha1(header + data).hexdigest()
+
 
 
 def _verify_execution(
@@ -522,6 +530,75 @@ SPECS: dict[str, dict[str, Any]] = {
         },
     },
 
+
+    "p2-10h-wmi-4688-parent-correlation": {
+        "label": "P2-10H",
+        "schema": "breachscope.p2_10h_remediation_measurement.v1",
+        "rule_id": "R-WMI-WMIPRVSE-CHILD-4688",
+        "technique": "T1047",
+        "severity": "medium",
+        "primary": (
+            "_breachscope.resolved_security_4688_parent_process_name",
+            "endswith",
+            r"\wbem\WmiPrvSE.exe",
+        ),
+        "conditions": {
+            "event_id": ("equals", "4688"),
+            "source": ("equals", "Microsoft-Windows-Security-Auditing"),
+        },
+        "predicate": {
+            "resolved_parent_endswith": r"\wbem\WmiPrvSE.exe",
+            "event_id_equals": "4688",
+            "source_equals": "Microsoft-Windows-Security-Auditing",
+        },
+        "engine_expected": {
+            "kind": "security_4688_parent_pid_correlation",
+            "parent_window_seconds": 300,
+            "same_host_required": True,
+            "forward_only": True,
+            "parent_pid_field": "ProcessId",
+            "new_pid_field": "NewProcessId",
+            "new_process_name_field": "NewProcessName",
+            "derived_parent_field": "_breachscope.resolved_security_4688_parent_process_name",
+            "parallel_pre_enrichment_before_chunking": True,
+        },
+        "analyzer_file": "breachscope/analyzer.py",
+        "analyzer_blob_sha1": "f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7",
+        "after_hits": 10,
+        "misses": 0,
+        "findings": 14,
+        "flagged_events": 14,
+        "changed_scenario": ("lm-wmi", "T1047"),
+        "remaining_misses": [],
+        "focused_tests": 8,
+        "artifact_schema": "breachscope.external_holdout.result.v1",
+        "benign_expected": {
+            "corpus_total_events_from_p2_09d": 766623,
+            "evtx_files_total": 352,
+            "non_sysmon_source_files_scanned": 351,
+            "non_sysmon_events_scanned": 34423,
+            "security_4688": 78,
+            "parent_pid_resolved_within_300s": 64,
+            "wmiprvse_parent_children_broad": 0,
+            "wmiprvse_parent_children_wbem": 0,
+            "exact_predicate_matches": 0,
+            "parse_errors": 0,
+            "timestamp_parse_errors_4688": 0,
+            "fresh_full_fp_tn_rerun": False,
+        },
+        "summary": {
+            "benign_scope": "pinned public benign non-Sysmon events",
+            "benign_events_scanned": 34423,
+            "benign_non_sysmon_events_scanned": 34423,
+            "benign_security_4688": 78,
+            "benign_parent_pid_resolved_within_300s": 64,
+            "benign_wmiprvse_parent_children_wbem": 0,
+            "benign_exact_predicate_matches": 0,
+            "benign_parse_errors": 0,
+            "analyzer_git_blob_sha1": "f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7",
+        },
+    },
+
 }
 
 
@@ -573,6 +650,24 @@ def _verify_record(
 
     change = _mapping(record.get("rule_change"), f"{label} rule_change")
     _verify_live_rule(repo, change, spec, label)
+
+
+    if "engine_expected" in spec:
+        engine = _mapping(record.get("engine_change"), f"{label} engine_change")
+        for key, expected in _mapping(spec["engine_expected"], f"{label} engine spec").items():
+            _require(engine.get(key), expected, f"{label} engine {key}")
+
+        exact_source = _mapping(record.get("exact_source"), f"{label} exact_source")
+        analyzer_file = str(spec["analyzer_file"])
+        analyzer_blob = str(spec["analyzer_blob_sha1"])
+        _require(exact_source.get("analyzer_file"), analyzer_file, f"{label} analyzer file")
+        _require(
+            exact_source.get("analyzer_git_blob_sha1"),
+            analyzer_blob,
+            f"{label} recorded analyzer blob",
+        )
+        analyzer_path = _relative_file(repo, analyzer_file, f"{label} analyzer file")
+        _require(_git_blob_sha1(analyzer_path), analyzer_blob, f"live {label} analyzer blob")
 
     base_attack, base_corpus, base_benign, benign_source = _base_context(base)
     attack = _mapping(record.get("attack_external_baseline"), f"{label} attack baseline")
