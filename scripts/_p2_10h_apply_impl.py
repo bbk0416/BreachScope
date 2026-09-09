@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
+# Temporary builder helper; never merged into the target branch.
 ANALYZER = Path("breachscope/analyzer.py")
 RULES = Path("rules/p2_10_event_rules.yml")
 TEST = Path("tests/test_p2_10h_wmi_parent_correlation.py")
