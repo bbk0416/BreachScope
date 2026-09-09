@@ -1,0 +1,100 @@
+schema: breachscope.p2_11b_external_selection.v1
+selection_id: p2-11b-atomic-evtx-v1
+selection_commit_base: fab621d634f23764e6cf229abacd8ea8ab7dfdab
+freeze_reference: external_baseline/results/p2_11a_674615ef/freeze.yaml
+evaluation_class: external_baseline
+source:
+  repository: arniki/atomic-evtx
+  pinned_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  source_manifest: full_list_of_attacks_simulated.csv
+  source_manifest_git_blob_sha1: 7c02b63efccc611d8e53e5173561866183f46581
+  scenario_root: ttp_evtx
+  provenance_note: Public Windows 10 EVTX generated with Atomic Red Team. This is a different source repository from the P2-09C sbousseaden corpus, but it is not independent of the Atomic Red Team framework family.
+selection_policy:
+  detector_results_consulted_before_selection: false
+  selected_evtx_bytes_downloaded_before_selection: false
+  categories_in_fixed_order:
+    - credential-access
+    - defense-evasion
+    - discovery
+    - lateral-movement
+    - execution
+    - persistence
+  rows_per_category: 2
+  rule: Scan full_list_of_attacks_simulated.csv from top to bottom independently for each fixed category and select the first two matching rows.
+  expected_technique_rule: Remove the final hyphenated Atomic test ordinal from TTP ID; the remaining Txxxx or Txxxx.xxx value is the expected ATT&CK technique.
+scenarios:
+  - category: credential-access
+    scenario_id: T1003-1
+    expected_technique: T1003
+    description: Gsecdump
+    source_directory: ttp_evtx/T1003-1
+  - category: credential-access
+    scenario_id: T1003-2
+    expected_technique: T1003
+    description: Credential Dumping with NPPSpy
+    source_directory: ttp_evtx/T1003-2
+  - category: defense-evasion
+    scenario_id: T1006-1
+    expected_technique: T1006
+    description: Read volume boot sector via DOS device path (PowerShell)
+    source_directory: ttp_evtx/T1006-1
+  - category: defense-evasion
+    scenario_id: T1027-2
+    expected_technique: T1027
+    description: Execute base64-encoded PowerShell
+    source_directory: ttp_evtx/T1027-2
+  - category: discovery
+    scenario_id: T1007-1
+    expected_technique: T1007
+    description: System Service Discovery
+    source_directory: ttp_evtx/T1007-1
+  - category: discovery
+    scenario_id: T1007-2
+    expected_technique: T1007
+    description: System Service Discovery - net.exe
+    source_directory: ttp_evtx/T1007-2
+  - category: lateral-movement
+    scenario_id: T1021.001-1
+    expected_technique: T1021.001
+    description: RDP to DomainController
+    source_directory: ttp_evtx/T1021.001-1
+  - category: lateral-movement
+    scenario_id: T1021.001-2
+    expected_technique: T1021.001
+    description: Changing RDP Port to Non Standard Port via Powershell
+    source_directory: ttp_evtx/T1021.001-2
+  - category: execution
+    scenario_id: T1047-1
+    expected_technique: T1047
+    description: WMI Reconnaissance Users
+    source_directory: ttp_evtx/T1047-1
+  - category: execution
+    scenario_id: T1047-2
+    expected_technique: T1047
+    description: WMI Reconnaissance Processes
+    source_directory: ttp_evtx/T1047-2
+  - category: persistence
+    scenario_id: T1136.001-4
+    expected_technique: T1136.001
+    description: Create a new user in a command prompt
+    source_directory: ttp_evtx/T1136.001-4
+  - category: persistence
+    scenario_id: T1136.001-5
+    expected_technique: T1136.001
+    description: Create a new user in PowerShell
+    source_directory: ttp_evtx/T1136.001-5
+protocol_state:
+  p2_11a_freeze_completed_before_source_selection: true
+  selected_scenario_count: 12
+  selected_scenario_evtx_hashes_bound: false
+  labels_bound: false
+  detection_executed_on_selected_scenarios: false
+  score_executed: false
+claim_boundary:
+  final_blind_holdout: false
+  reason_not_final_blind: Public corpus and public Atomic Red Team provenance; independent unseen labeling has not been established.
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: This file records source and scenario selection before downloading or scoring the selected EVTX bytes. It is not a detection result.
