@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.evaluate_external_holdout import _convert_one_evtx, event_identity_payload
+from evaluate_external_holdout import _convert_one_evtx, event_identity_payload
 
 # Temporary measurement-only probe. No detector behavior is changed on this branch.
 
