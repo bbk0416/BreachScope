@@ -1,0 +1,252 @@
+name: P2-10F Evidence Direct Patch
+
+on:
+  push:
+    branches:
+      - automation/p2-10f-evidence-direct-patch
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact P2-10F code commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: cd39a667d1b97f38a88b5cd980a21d3539a0b33c
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -e ".[dev]"
+          python -m pip check
+
+      - name: Patch P2-10F evidence directly
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          old_hash = "73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c"
+          new_hash = "af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e"
+
+          verifier = Path("scripts/verify_current_detection_evidence.py")
+          text = verifier.read_text(encoding="utf-8")
+          marker = "\n\n}\n\n\ndef _verify_live_rule("
+          assert text.count(marker) == 1, text.count(marker)
+          p2f_spec = r'''
+              "p2-10f-service-pathless-7045": {
+                  "label": "P2-10F",
+                  "schema": "breachscope.p2_10f_remediation_measurement.v1",
+                  "rule_id": "R-SERVICE-PATHLESS-7045",
+                  "technique": "T1569.002",
+                  "severity": "medium",
+                  "primary": (
+                      "ImagePath",
+                      "regex",
+                      r"^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$",
+                  ),
+                  "conditions": {
+                      "event_id": ("equals", "7045"),
+                      "source": ("equals", "Service Control Manager"),
+                  },
+                  "predicate": {
+                      "ImagePath_regex": r"^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$",
+                      "event_id_equals": "7045",
+                      "source_equals": "Service Control Manager",
+                  },
+                  "after_hits": 8,
+                  "misses": 2,
+                  "findings": 12,
+                  "flagged_events": 12,
+                  "changed_scenario": ("lm-remote-service", "T1569.002"),
+                  "remaining_misses": [
+                      "lm-wmi",
+                      "persist-hidden-run-key",
+                  ],
+                  "focused_tests": 8,
+                  "artifact_schema": "breachscope.external_holdout.result.v1",
+                  "benign_expected": {
+                      "corpus_total_events_from_p2_09d": 766623,
+                      "evtx_files_scanned": 352,
+                      "service_control_manager_7045_scanned": 26,
+                      "pathless_imagepath_matches": 0,
+                      "exact_predicate_matches": 0,
+                      "parse_errors": 0,
+                      "fresh_full_fp_tn_rerun": False,
+                  },
+                  "summary": {
+                      "benign_scope": "pinned public benign EVTX events",
+                      "benign_events_scanned": 766623,
+                      "benign_evtx_files_scanned": 352,
+                      "benign_service_control_manager_7045_scanned": 26,
+                      "benign_pathless_imagepath_matches": 0,
+                      "benign_exact_predicate_matches": 0,
+                      "benign_parse_errors": 0,
+                  },
+              },
+          '''
+          text = text.replace(marker, "\n" + p2f_spec + "\n}\n\n\ndef _verify_live_rule(")
+          verifier.write_text(text, encoding="utf-8", newline="\n")
+
+          chain = Path("external_baseline/current_detection_evidence.yaml")
+          chain.write_text('''schema: breachscope.current_detection_evidence_chain.v1
+          current_evidence_id: p2-10f-current-detection-evidence
+          base_benchmark: external_baseline/p2_09e_benchmark.yaml
+          base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+          remediations:
+          - remediation_id: p2-10a-scheduled-task-4698
+            measurement_record: external_baseline/results/p2_10a_b198604c/measurement.yaml
+          - remediation_id: p2-10b-wmi-xsl
+            measurement_record: external_baseline/results/p2_10b_927a2a63/measurement.yaml
+          - remediation_id: p2-10c-domain-admins-4661
+            measurement_record: external_baseline/results/p2_10c_2bc093de/measurement.yaml
+          - remediation_id: p2-10d-lsass-access-1010
+            measurement_record: external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
+          - remediation_id: p2-10e-winrm-wsmprovhost-child
+            measurement_record: external_baseline/results/p2_10e_147a9208/measurement.yaml
+          - remediation_id: p2-10f-service-pathless-7045
+            measurement_record: external_baseline/results/p2_10f_851214ff/measurement.yaml
+          claim_boundary:
+            production_accuracy: NOT_CLAIMED
+            production_false_positive_rate: NOT_CLAIMED
+            final_blind_holdout: false
+            fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+            note: Current rule drift from the P2-09E snapshot is accepted only when every transition
+              is backed by a recorded remediation measurement and the final rule hash equals
+              the live rules tree.
+          '''.replace("          ", ""), encoding="utf-8", newline="\n")
+
+          measurement = Path("external_baseline/results/p2_10f_851214ff/measurement.yaml")
+          measurement.parent.mkdir(parents=True, exist_ok=True)
+          measurement.write_text(r'''schema: breachscope.p2_10f_remediation_measurement.v1
+          remediation_id: p2-10f-service-pathless-7045
+          measurement_repo_commit: 851214ffb9f31862c1d25aa1f93dd158e6ea8d09
+          from_rules_tree_sha256: 73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c
+          to_rules_tree_sha256: af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e
+          rule_change:
+            rule_file: rules/p2_10_event_rules.yml
+            rule_id: R-SERVICE-PATHLESS-7045
+            name: Suspicious Pathless Service Executable
+            severity: medium
+            mitre_technique: T1569.002
+            predicate:
+              ImagePath_regex: '^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$'
+              event_id_equals: '7045'
+              source_equals: Service Control Manager
+          attack_external_baseline:
+            baseline_id: p2-09c-evtx-attack-samples-v1
+            corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+            labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+            source_files: 10
+            events: 202
+            before_scenario_hits: 7
+            after_scenario_hits: 8
+            scenario_misses: 2
+            scenario_total: 10
+            after_scenario_hit_rate: 0.8
+            findings: 12
+            flagged_events: 12
+            changed_scenario:
+              scenario_id: lm-remote-service
+              expected_technique: T1569.002
+              before_status: miss
+              after_status: hit
+            remaining_miss_scenarios:
+            - lm-wmi
+            - persist-hidden-run-key
+          benign_incremental_match_proof:
+            baseline_id: p2-09d-nextron-win10-v1
+            corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+            corpus_total_events_from_p2_09d: 766623
+            evtx_files_scanned: 352
+            service_control_manager_7045_scanned: 26
+            pathless_imagepath_matches: 0
+            exact_predicate_matches: 0
+            parse_errors: 0
+            parser: python-evtx 0.8.1 plus BreachScope EVTX extraction path
+            fresh_full_fp_tn_rerun: false
+          measurement_execution:
+            github_actions_run_id: 34374215028
+            artifact_id: 10113166748
+            artifact_digest_sha256: d966599fabb86cba6867cdf5682bbc0a19bf500ad1074bf1720309d330ba9e96
+            artifact_record_schema: breachscope.external_holdout.result.v1
+            focused_tests_passed: 8
+            detector_runtime_seconds: 0.11079527000000411
+            detector_peak_memory_mb: 0.17452621459960938
+          exact_source:
+            pr_code_commit: cd39a667d1b97f38a88b5cd980a21d3539a0b33c
+            measurement_commit: 851214ffb9f31862c1d25aa1f93dd158e6ea8d09
+            rule_file_git_blob_sha1: e834658e354070d97a2def28e8f82474cee280e9
+            note: The measurement commit has the same detector/rule content as the PR code commit and adds only the measurement workflow.
+          claim_boundary:
+            public_known_attack_corpus: true
+            final_blind_holdout: false
+            production_detection_rate: NOT_CLAIMED
+            production_false_positive_rate: NOT_CLAIMED
+            fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+            incremental_benign_statement: No Service Control Manager Event ID 7045 whose ImagePath began with a pathless executable was observed in the 766,623 events from the pinned public benign corpus.
+          '''.replace("          ", ""), encoding="utf-8", newline="\n")
+
+          test_path = Path("tests/test_reproducible_benchmark.py")
+          test = test_path.read_text(encoding="utf-8")
+          assert test.count(old_hash) == 2, test.count(old_hash)
+          test = test.replace(old_hash, new_hash)
+          test = test.replace('assert data["current_attack_scenario_hits"] == 7', 'assert data["current_attack_scenario_hits"] == 8')
+          test = test.replace('assert len(data["remediations"]) == 5', 'assert len(data["remediations"]) == 6')
+          test = test.replace('assert data["current_evidence_id"] == "p2-10e-current-detection-evidence"', 'assert data["current_evidence_id"] == "p2-10f-current-detection-evidence"')
+          order_old = '        "p2-10e-winrm-wsmprovhost-child",\n    ]'
+          order_new = '        "p2-10e-winrm-wsmprovhost-child",\n        "p2-10f-service-pathless-7045",\n    ]'
+          assert test.count(order_old) == 1, test.count(order_old)
+          test = test.replace(order_old, order_new)
+          insert_marker = "\n\ndef test_benchmark_claim_boundaries_are_explicit() -> None:"
+          assert test.count(insert_marker) == 1, test.count(insert_marker)
+          p2f_assertions = '''
+
+              p2_10f = data["remediations"][5]
+              assert p2_10f["remediation_id"] == "p2-10f-service-pathless-7045"
+              assert p2_10f["attack_scenario_hits_before"] == 7
+              assert p2_10f["attack_scenario_hits_after"] == 8
+              assert p2_10f["benign_events_scanned"] == 766623
+              assert p2_10f["benign_evtx_files_scanned"] == 352
+              assert p2_10f["benign_service_control_manager_7045_scanned"] == 26
+              assert p2_10f["benign_pathless_imagepath_matches"] == 0
+              assert p2_10f["benign_exact_predicate_matches"] == 0
+              assert p2_10f["benign_parse_errors"] == 0
+              assert p2_10f["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
+          '''.replace("              ", "")
+          test = test.replace(insert_marker, p2f_assertions + insert_marker)
+          test_path.write_text(test, encoding="utf-8", newline="\n")
+          PY
+
+      - name: Validate patch
+        run: |
+          git diff --check
+          python scripts/verify_current_detection_evidence.py --json
+          pytest tests/test_reproducible_benchmark.py tests/test_p2_10_remote_service_rule.py -q
+          pytest -q
+
+      - name: Commit validated evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add external_baseline/current_detection_evidence.yaml \
+                  external_baseline/results/p2_10f_851214ff/measurement.yaml \
+                  scripts/verify_current_detection_evidence.py \
+                  tests/test_reproducible_benchmark.py
+          git diff --cached --check
+          git commit -m "test: record P2-10F detection evidence"
+
+      - name: Replace PR branch only if expected head is unchanged
+        run: |
+          git push --force-with-lease=refs/heads/fix/p2-10f-remote-service:0d4fb64f067eb65165ac4199b20ce2be9390465b \
+            origin HEAD:refs/heads/fix/p2-10f-remote-service
