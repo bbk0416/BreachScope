@@ -27,7 +27,7 @@ def test_historical_p2_09e_verifier_fails_closed_after_rule_drift() -> None:
     assert proc.returncode == 1
     assert "current rule tree hash" in proc.stdout
     assert "543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce" in proc.stdout
-    assert "73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c" in proc.stdout
+    assert "af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e" in proc.stdout
 
 
 def test_current_detection_evidence_chain_verifies_without_network() -> None:
@@ -45,16 +45,16 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
         "543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce"
     )
     assert data["current_rules_tree_sha256"] == (
-        "73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c"
+        "af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e"
     )
     assert data["base_attack_scenario_hits"] == 2
-    assert data["current_attack_scenario_hits"] == 7
+    assert data["current_attack_scenario_hits"] == 8
     assert data["attack_scenario_total"] == 10
     assert data["historical_benign"]["events"] == 766623
     assert data["historical_benign"]["false_positives"] == 17
     assert data["historical_benign"]["true_negatives"] == 766606
     assert data["historical_benign"]["applies_to_rules_tree_sha256"] == data["base_rules_tree_sha256"]
-    assert len(data["remediations"]) == 5
+    assert len(data["remediations"]) == 6
 
     p2_10a = data["remediations"][0]
     assert p2_10a["remediation_id"] == "p2-10a-scheduled-task-4698"
@@ -102,6 +102,19 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p2_10e["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
 
 
+    p2_10f = data["remediations"][5]
+    assert p2_10f["remediation_id"] == "p2-10f-service-pathless-7045"
+    assert p2_10f["attack_scenario_hits_before"] == 7
+    assert p2_10f["attack_scenario_hits_after"] == 8
+    assert p2_10f["benign_events_scanned"] == 766623
+    assert p2_10f["benign_evtx_files_scanned"] == 352
+    assert p2_10f["benign_service_control_manager_7045_scanned"] == 26
+    assert p2_10f["benign_pathless_imagepath_matches"] == 0
+    assert p2_10f["benign_exact_predicate_matches"] == 0
+    assert p2_10f["benign_parse_errors"] == 0
+    assert p2_10f["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
+
+
 def test_benchmark_claim_boundaries_are_explicit() -> None:
     data = yaml.safe_load(MANIFEST.read_text(encoding="utf-8"))
 
@@ -127,13 +140,14 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
 
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-10e-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-10f-current-detection-evidence"
     assert [row["remediation_id"] for row in data["remediations"]] == [
         "p2-10a-scheduled-task-4698",
         "p2-10b-wmi-xsl",
         "p2-10c-domain-admins-4661",
         "p2-10d-lsass-access-1010",
         "p2-10e-winrm-wsmprovhost-child",
+        "p2-10f-service-pathless-7045",
     ]
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"

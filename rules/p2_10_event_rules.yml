@@ -85,3 +85,19 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Sysmon
+
+- id: R-SERVICE-PATHLESS-7045
+  name: Suspicious Pathless Service Executable
+  description: Service Control Manager 7045 service installation whose ImagePath begins with a pathless executable name
+  field: ImagePath
+  operator: regex
+  pattern: '^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$'
+  severity: medium
+  mitre_technique: T1569.002
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "7045"
+    - field: source
+      operator: equals
+      pattern: Service Control Manager
