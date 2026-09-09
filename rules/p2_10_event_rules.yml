@@ -57,7 +57,7 @@
   description: Sysmon process access to LSASS with access mask 0x1010 observed in the credential-access sample
   field: TargetImage
   operator: endswith
-  pattern: '\lsass.exe'
+  pattern: '\\lsass.exe'
   severity: medium
   mitre_technique: T1003.001
   all_of:
@@ -75,7 +75,7 @@
   description: Sysmon process creation where wsmprovhost.exe is the parent, consistent with PowerShell remoting over WinRM
   field: ParentImage
   operator: endswith
-  pattern: '\wsmprovhost.exe'
+  pattern: '\\wsmprovhost.exe'
   severity: medium
   mitre_technique: T1021.006
   all_of:
@@ -91,7 +91,7 @@
   description: Service Control Manager 7045 service installation whose ImagePath begins with a pathless executable name
   field: ImagePath
   operator: regex
-  pattern: '^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$'
+  pattern: '^\\s*(?:\\x22[^\\x22\\\\/:]+\\.exe\\x22|[^\\\\/: \\t]+\\.exe)(?:\\s+.*)?$'
   severity: medium
   mitre_technique: T1569.002
   all_of:
@@ -101,3 +101,22 @@
     - field: source
       operator: equals
       pattern: Service Control Manager
+
+- id: R-RUNKEY-UNNAMED-13
+  name: Hidden Run/RunOnce Registry Value
+  description: Sysmon registry SetValue where TargetObject ends at a Run or RunOnce key, consistent with an unnamed startup value
+  field: TargetObject
+  operator: regex
+  pattern: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$'
+  severity: medium
+  mitre_technique: T1547.001
+  all_of:
+    - field: EventType
+      operator: equals
+      pattern: SetValue
+    - field: event_id
+      operator: equals
+      pattern: "13"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
