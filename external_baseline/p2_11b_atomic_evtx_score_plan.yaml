@@ -1,0 +1,56 @@
+schema: breachscope.p2_11b_external_score_plan.v1
+plan_id: p2-11b-atomic-evtx-score-v1
+evaluation_class: external_baseline
+frozen_detector:
+  repo_commit: 674615ef3c92d5b4bbc4dec71f566d49de0454f4
+  rules_tree_sha256: 371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d0969f
+  analyzer_git_blob_sha1: f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7
+  p2_10_rule_file_git_blob_sha1: 3a2f853fd6c8232f7d919913fd711d7f18785108
+selection:
+  frozen_selection_commit: 7541214400507afddca40a22f2adb22504fc3946
+  selection_manifest: external_baseline/p2_11b_atomic_evtx_selection.yaml
+  byte_binding_record: external_baseline/p2_11b_atomic_evtx_byte_binding.json
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  scenario_count: 12
+  evtx_file_count: 60
+scoring_protocol:
+  unit: one selected Atomic scenario directory per evaluator score
+  source_files_per_scenario: 5
+  reason_for_scenario_isolation: Each TTP directory is a separate simulation; evaluating it independently also keeps event-identity accounting scoped to that simulation without weakening the evaluator identity contract.
+  event_labels: ignore
+  event_label_reason: No independently adjudicated event-level malicious/benign labels are provided by this selected corpus.
+  event_expected_techniques: []
+  scenario_expected_technique_source: frozen selection manifest
+  score_order:
+    - T1003-1
+    - T1003-2
+    - T1006-1
+    - T1027-2
+    - T1007-1
+    - T1007-2
+    - T1021.001-1
+    - T1021.001-2
+    - T1047-1
+    - T1047-2
+    - T1136.001-4
+    - T1136.001-5
+  run_each_selected_scenario_exactly_once: true
+  aggregate_metric: Count scenario status=hit across all 12 fixed scenarios; report every outcome and missing technique.
+  acceptance_threshold: NONE_PREDECLARED
+  fail_closed_on_hash_mismatch: true
+  fail_closed_on_parser_or_identity_error: true
+  no_rule_changes_during_score: true
+protocol_attestations:
+  ground_truth_prepared_without_breachscope_findings: true
+  selected_scenarios_fixed_before_detection: true
+  selected_evtx_hashes_fixed_before_detection: true
+  scenario_expected_techniques_fixed_before_detection: true
+  detection_executed_before_this_plan: false
+claim_boundary:
+  final_blind_holdout: false
+  event_level_precision: NOT_CLAIMED
+  event_level_recall: NOT_CLAIMED
+  event_level_false_positive_rate: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+  note: All event labels are ignore, so event-level confusion-matrix values produced by the evaluator are not interpreted as accuracy metrics. Only the fixed scenario-level technique outcomes are used for this external baseline.
