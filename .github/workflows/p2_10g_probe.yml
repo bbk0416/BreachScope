@@ -44,3 +44,93 @@ jobs:
               print('IDENTITY=', json.dumps(ident, ensure_ascii=False, sort_keys=True))
               print('ROW=', json.dumps(row, ensure_ascii=False, indent=2, sort_keys=True))
           PY
+
+      - name: Scan pinned public benign corpus for hidden Run-key predicate
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import tarfile
+          import urllib.request
+          from Evtx.Evtx import Evtx
+          from breachscope.ingest import _extract_from_xml
+
+          root = Path('out/p2_10g_benign')
+          root.mkdir(parents=True, exist_ok=True)
+          archive = root / 'win10-client.tgz'
+          url = 'https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz'
+          expected = 'd48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e'
+          if not archive.exists():
+              urllib.request.urlretrieve(url, archive)
+          actual = hashlib.sha256(archive.read_bytes()).hexdigest()
+          print('BENIGN_ARCHIVE_SHA256=', actual)
+          if actual != expected:
+              raise SystemExit(f'benign archive hash mismatch: {actual}')
+
+          corpus = root / 'corpus'
+          if not any(corpus.rglob('*.evtx')):
+              corpus.mkdir(parents=True, exist_ok=True)
+              with tarfile.open(archive, 'r:gz') as tf:
+                  tf.extractall(corpus, filter='data')
+
+          def norm_target(value):
+              return str(value or '').strip().replace('/', '\\').casefold()
+
+          def run_like(target):
+              t = norm_target(target)
+              return ('\\software\\microsoft\\windows\\currentversion\\run\\' in t or
+                      '\\software\\microsoft\\windows\\currentversion\\runonce\\' in t)
+
+          def hidden_run_target(target):
+              t = norm_target(target)
+              return (t.endswith('\\software\\microsoft\\windows\\currentversion\\run\\') or
+                      t.endswith('\\software\\microsoft\\windows\\currentversion\\runonce\\'))
+
+          files = sorted(corpus.rglob('*.evtx'))
+          total = 0
+          sysmon13 = 0
+          setvalue13 = 0
+          run_targets = 0
+          hidden_targets = 0
+          exact_candidates = 0
+          parse_errors = 0
+          examples = []
+
+          for fp in files:
+              try:
+                  with Evtx(str(fp)) as log:
+                      for rec in log.records():
+                          total += 1
+                          d = _extract_from_xml(rec.xml())
+                          if str(d.get('source', '')) != 'Microsoft-Windows-Sysmon' or str(d.get('event_id', '')) != '13':
+                              continue
+                          sysmon13 += 1
+                          raw = d.get('raw') if isinstance(d.get('raw'), dict) else d
+                          event_type = str(raw.get('EventType', ''))
+                          target = str(raw.get('TargetObject', ''))
+                          if event_type.casefold() == 'setvalue':
+                              setvalue13 += 1
+                          if run_like(target):
+                              run_targets += 1
+                          if hidden_run_target(target):
+                              hidden_targets += 1
+                          if event_type.casefold() == 'setvalue' and hidden_run_target(target):
+                              exact_candidates += 1
+                              examples.append((str(fp), raw.get('Image'), target, raw.get('Details'), raw.get('RuleName')))
+              except Exception as exc:
+                  parse_errors += 1
+                  print('PARSE_ERROR=', fp, repr(exc))
+
+          print('EVTX_FILES=', len(files))
+          print('TOTAL_RECORDS=', total)
+          print('SYSMON_EVENT13=', sysmon13)
+          print('SYSMON_EVENT13_SETVALUE=', setvalue13)
+          print('RUN_OR_RUNONCE_TARGETS=', run_targets)
+          print('HIDDEN_RUN_TARGETS=', hidden_targets)
+          print('EXACT_CANDIDATE_MATCHES=', exact_candidates)
+          print('PARSE_ERRORS=', parse_errors)
+          for row in examples:
+              print('MATCH=', row)
+          PY
