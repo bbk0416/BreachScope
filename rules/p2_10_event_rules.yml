@@ -120,3 +120,18 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Sysmon
+- id: R-WMI-WMIPRVSE-CHILD-4688
+  name: WMI Provider Host Child Process
+  description: Security 4688 child process whose recent same-host parent PID resolves to the Windows WMI provider host
+  field: _breachscope.resolved_security_4688_parent_process_name
+  operator: endswith
+  pattern: '\wbem\WmiPrvSE.exe'
+  severity: medium
+  mitre_technique: T1047
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "4688"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing

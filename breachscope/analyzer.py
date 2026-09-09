@@ -4,7 +4,7 @@ from typing import Iterable, Iterator, List, Set, Tuple, Callable, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .schemas import Event, Rule, Finding
 from . import decoder
-from .utils import get_event_key
+from .utils import get_event_key, parse_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -109,12 +109,93 @@ def _finding_event_key(event):
     return f"{base_key}|channel={channel}|event_record_id={record_id}"
 
 
+
+_WINDOWS_4688_PARENT_WINDOW_SECONDS = 300.0
+_DERIVED_PARENT_CONTAINER = "_breachscope"
+_DERIVED_PARENT_NAME = "resolved_security_4688_parent_process_name"
+_DERIVED_PARENT_AGE = "resolved_security_4688_parent_age_seconds"
+
+
+def _parse_windows_pid(value) -> Optional[int]:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = int(text, 16) if text.casefold().startswith("0x") else int(text)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed > 0 else None
+
+
+def _security_4688_raw(event: Event) -> Optional[dict]:
+    if str(event.source or "").casefold() != "microsoft-windows-security-auditing":
+        return None
+    if str(event.event_id or "") != "4688":
+        return None
+    raw = getattr(event, "raw", {}) or {}
+    return raw if isinstance(raw, dict) else None
+
+
+def _clear_derived_parent(raw: dict) -> None:
+    derived = raw.get(_DERIVED_PARENT_CONTAINER)
+    if not isinstance(derived, dict):
+        return
+    derived.pop(_DERIVED_PARENT_NAME, None)
+    derived.pop(_DERIVED_PARENT_AGE, None)
+    if not derived:
+        raw.pop(_DERIVED_PARENT_CONTAINER, None)
+
+
+def _iter_events_with_resolved_windows_4688_parents(
+    events: Iterable[Event],
+) -> Iterator[Event]:
+    """Resolve recent Security 4688 parent process names from PID linkage.
+
+    Windows Security 4688 exposes the new process ID as NewProcessId and the
+    creator/parent process ID as ProcessId.  When an earlier 4688 on the same
+    host created that parent PID, retain its NewProcessName as derived evidence
+    for the child.  A five-minute forward-only window limits stale PID reuse.
+    """
+    recent: dict[Tuple[str, int], Tuple[object, str]] = {}
+
+    for event in events:
+        raw = _security_4688_raw(event)
+        if raw is None:
+            yield event
+            continue
+
+        _clear_derived_parent(raw)
+        timestamp = parse_timestamp(str(event.timestamp or ""))
+        host = str(event.host or "").casefold()
+        parent_pid = _parse_windows_pid(raw.get("ProcessId"))
+        new_pid = _parse_windows_pid(raw.get("NewProcessId"))
+        new_process_name = str(raw.get("NewProcessName") or "").strip()
+
+        if timestamp is not None and host and parent_pid is not None:
+            parent = recent.get((host, parent_pid))
+            if parent is not None:
+                parent_timestamp, parent_process_name = parent
+                age_seconds = (timestamp - parent_timestamp).total_seconds()
+                if (
+                    0.0 <= age_seconds <= _WINDOWS_4688_PARENT_WINDOW_SECONDS
+                    and parent_process_name
+                ):
+                    derived = raw.setdefault(_DERIVED_PARENT_CONTAINER, {})
+                    if isinstance(derived, dict):
+                        derived[_DERIVED_PARENT_NAME] = parent_process_name
+                        derived[_DERIVED_PARENT_AGE] = age_seconds
+
+        if timestamp is not None and host and new_pid is not None and new_process_name:
+            recent[(host, new_pid)] = (timestamp, new_process_name)
+
+        yield event
+
 def apply_rules(events: Iterable[Event], rules: List[Rule]) -> Iterator[Finding]:
     compiled: List[Tuple[Rule, Callable[[str], Optional[Tuple[str, int, int]]]]] = [
         (r, _compile_rule_matcher(r)) for r in rules
     ]
     seen: Set[Tuple[str, str, str]] = set()  # (rule_id, event_key, match)
-    for e in events:
+    for e in _iter_events_with_resolved_windows_4688_parents(events):
         texts: List[str] = []
 
         # Base command line and PowerShell-specific decoding
@@ -328,7 +409,11 @@ def apply_rules_parallel(
     ]
 
     # 이벤트를 청크로 나누기
-    chunks = [events[i:i + chunk_size] for i in range(0, len(events), chunk_size)]
+    enriched_events = list(_iter_events_with_resolved_windows_4688_parents(events))
+    chunks = [
+        enriched_events[i:i + chunk_size]
+        for i in range(0, len(enriched_events), chunk_size)
+    ]
 
     all_findings: List[Finding] = []
     seen: Set[Tuple[str, str, str]] = set()  # 전역 중복 제거용
