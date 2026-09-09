@@ -1,0 +1,110 @@
+name: P2-11B Atomic EVTX Byte Binding
+
+on:
+  push:
+    branches: [measure/p2-11b-atomic-evtx-bind]
+
+permissions:
+  contents: read
+
+jobs:
+  bind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout frozen selection
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: 7541214400507afddca40a22f2adb22504fc3946
+          fetch-depth: 1
+
+      - name: Clone pinned external source
+        shell: bash
+        run: |
+          git clone --no-checkout https://github.com/arniki/atomic-evtx.git "$RUNNER_TEMP/atomic-evtx"
+          git -C "$RUNNER_TEMP/atomic-evtx" checkout --detach 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+          test "$(git -C "$RUNNER_TEMP/atomic-evtx" rev-parse HEAD)" = "8de5fa8f158b4d72d1e3c6f07053162c90ee6238"
+          test "$(git -C "$RUNNER_TEMP/atomic-evtx" hash-object full_list_of_attacks_simulated.csv)" = "7c02b63efccc611d8e53e5173561866183f46581"
+
+      - name: Bind selected EVTX bytes without detection
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          selection_commit = "7541214400507afddca40a22f2adb22504fc3946"
+          source_commit = "8de5fa8f158b4d72d1e3c6f07053162c90ee6238"
+          source_manifest_blob = "7c02b63efccc611d8e53e5173561866183f46581"
+          selection_path = Path("external_baseline/p2_11b_atomic_evtx_selection.yaml")
+          selection_text = selection_path.read_text(encoding="utf-8")
+          scenario_ids = re.findall(r"^\s+scenario_id:\s*(\S+)\s*$", selection_text, flags=re.MULTILINE)
+          expected = [
+              "T1003-1", "T1003-2",
+              "T1006-1", "T1027-2",
+              "T1007-1", "T1007-2",
+              "T1021.001-1", "T1021.001-2",
+              "T1047-1", "T1047-2",
+              "T1136.001-4", "T1136.001-5",
+          ]
+          if scenario_ids != expected:
+              raise SystemExit(f"selection mismatch: {scenario_ids!r}")
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "atomic-evtx"
+          manifest = root / "full_list_of_attacks_simulated.csv"
+          manifest_sha256 = hashlib.sha256(manifest.read_bytes()).hexdigest()
+
+          rows = []
+          total_bytes = 0
+          for scenario_id in scenario_ids:
+              directory = root / "ttp_evtx" / scenario_id
+              if not directory.is_dir():
+                  raise SystemExit(f"missing selected scenario directory: {scenario_id}")
+              files = sorted(directory.glob("*.evtx"))
+              if not files:
+                  raise SystemExit(f"no EVTX files: {scenario_id}")
+              bound_files = []
+              for path in files:
+                  data = path.read_bytes()
+                  if len(data) < 4096:
+                      raise SystemExit(f"unexpectedly small EVTX: {path}")
+                  digest = hashlib.sha256(data).hexdigest()
+                  rel = path.relative_to(root).as_posix()
+                  bound_files.append({"path": rel, "bytes": len(data), "sha256": digest})
+                  total_bytes += len(data)
+              rows.append({"scenario_id": scenario_id, "evtx_files": bound_files})
+
+          payload = {
+              "schema": "breachscope.p2_11b_atomic_evtx_byte_binding.v1",
+              "selection_commit": selection_commit,
+              "source_repository": "arniki/atomic-evtx",
+              "source_commit": source_commit,
+              "source_manifest_path": "full_list_of_attacks_simulated.csv",
+              "source_manifest_git_blob_sha1": source_manifest_blob,
+              "source_manifest_sha256": manifest_sha256,
+              "scenario_count": len(rows),
+              "evtx_file_count": sum(len(row["evtx_files"]) for row in rows),
+              "evtx_total_bytes": total_bytes,
+              "detection_executed": False,
+              "scenarios": rows,
+          }
+          out = Path(os.environ["RUNNER_TEMP"]) / "p2-11b-atomic-evtx-byte-binding.json"
+          out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps({
+              "scenario_count": payload["scenario_count"],
+              "evtx_file_count": payload["evtx_file_count"],
+              "evtx_total_bytes": payload["evtx_total_bytes"],
+              "source_manifest_sha256": payload["source_manifest_sha256"],
+              "detection_executed": payload["detection_executed"],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload byte-binding evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-11b-atomic-evtx-byte-binding
+          path: ${{ runner.temp }}/p2-11b-atomic-evtx-byte-binding.json
+          if-no-files-found: error
