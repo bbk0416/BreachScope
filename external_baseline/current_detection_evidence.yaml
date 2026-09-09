@@ -1,19 +1,23 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-10d-current-detection-evidence
+current_evidence_id: p2-10e-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 remediations:
-  - remediation_id: p2-10a-scheduled-task-4698
-    measurement_record: external_baseline/results/p2_10a_b198604c/measurement.yaml
-  - remediation_id: p2-10b-wmi-xsl
-    measurement_record: external_baseline/results/p2_10b_927a2a63/measurement.yaml
-  - remediation_id: p2-10c-domain-admins-4661
-    measurement_record: external_baseline/results/p2_10c_2bc093de/measurement.yaml
-  - remediation_id: p2-10d-lsass-access-1010
-    measurement_record: external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
+- remediation_id: p2-10a-scheduled-task-4698
+  measurement_record: external_baseline/results/p2_10a_b198604c/measurement.yaml
+- remediation_id: p2-10b-wmi-xsl
+  measurement_record: external_baseline/results/p2_10b_927a2a63/measurement.yaml
+- remediation_id: p2-10c-domain-admins-4661
+  measurement_record: external_baseline/results/p2_10c_2bc093de/measurement.yaml
+- remediation_id: p2-10d-lsass-access-1010
+  measurement_record: external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
+- remediation_id: p2-10e-winrm-wsmprovhost-child
+  measurement_record: external_baseline/results/p2_10e_147a9208/measurement.yaml
 claim_boundary:
   production_accuracy: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
   final_blind_holdout: false
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
-  note: Current rule drift from the P2-09E snapshot is accepted only when every transition is backed by a recorded remediation measurement and the final rule hash equals the live rules tree.
+  note: Current rule drift from the P2-09E snapshot is accepted only when every transition
+    is backed by a recorded remediation measurement and the final rule hash equals
+    the live rules tree.

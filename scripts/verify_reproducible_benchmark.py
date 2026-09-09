@@ -67,7 +67,8 @@ def _rules_tree_hash(rules_dir: Path) -> tuple[str, int]:
         rel = path.relative_to(rules_dir).as_posix()
         h.update(rel.encode("utf-8"))
         h.update(b"\0")
-        h.update(_sha256(path).encode("ascii"))
+        canonical = path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        h.update(hashlib.sha256(canonical).hexdigest().encode("ascii"))
         h.update(b"\0")
     return h.hexdigest(), len(files)
 
