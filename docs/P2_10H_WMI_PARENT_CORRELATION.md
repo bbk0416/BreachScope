@@ -47,6 +47,8 @@ rule tree SHA-256: 371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d09
 analyzer blob SHA-1: f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7
 ```
 
+현재 evidence verifier는 위 analyzer Git blob SHA-1도 live 파일과 비교하므로, 상관관계 코드가 바뀌면 현재 evidence chain은 fail-closed합니다.
+
 - before: **9 HIT / 1 MISS / 10**
 - after: **10 HIT / 0 MISS / 10**
 - rules: **60**
