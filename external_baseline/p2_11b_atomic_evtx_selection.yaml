@@ -103,18 +103,31 @@ label_binding:
   expected_techniques_frozen_in_selection_commit: 7541214400507afddca40a22f2adb22504fc3946
   event_level_labels: NOT_AVAILABLE
   event_level_precision_recall_fpr: NOT_CLAIMED
+score_result:
+  measurement_record: external_baseline/results/p2_11b_atomic_evtx_30f67ebb/measurement.yaml
+  aggregate_result: external_baseline/results/p2_11b_atomic_evtx_30f67ebb/aggregate-result.json
+  github_actions_run_id: 34389538790
+  workflow_head_commit: 30f67ebb8f75d642f1c37aeab1255a6051c2cd48
+  artifact_id: 10119080561
+  artifact_digest_sha256: 289a5384e99da9a5d9a7d0c83b4688991e9925158aab8f45c354a61d85d20ee5
+  aggregate_result_sha256: 89a309b8b59c5602afb4e3de1136fe53d9284463a8e409625f6a633629071a11
+  scenario_hits: 0
+  scenario_misses: 12
+  scenario_total: 12
 protocol_state:
   p2_11a_freeze_completed_before_source_selection: true
   selected_scenario_count: 12
   selected_scenario_evtx_hashes_bound: true
   scenario_labels_bound: true
   event_level_labels_bound: false
-  detection_executed_on_selected_scenarios: false
-  score_executed: false
+  detection_executed_on_selected_scenarios: true
+  score_executed: true
+  result_viewed: true
+  future_tuning_on_these_scenarios_is_calibration: true
 claim_boundary:
   final_blind_holdout: false
   reason_not_final_blind: Public corpus and public Atomic Red Team provenance; independent unseen labeling has not been established.
   production_precision: NOT_CLAIMED
   production_recall: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
-  note: Scenario selection and scenario-level expected techniques were frozen before selected EVTX bytes were downloaded or any BreachScope detection was run. The current state is ready for a one-time external_baseline score, not a final blind holdout.
+  note: The precommitted external_baseline score is complete at 0/12 scenario hits. Scenario selection and expected techniques were frozen before byte download and scoring. Because the result is now known, future tuning on these 12 scenarios is calibration and cannot turn this same result into a fresh blind or untouched baseline.
