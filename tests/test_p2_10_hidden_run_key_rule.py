@@ -14,7 +14,7 @@ def _rules():
 
 
 def _event(
-    target_object: str = r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\",
+    target_object: str = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\",
     *,
     event_type: str = "SetValue",
     event_id: str = "13",
@@ -50,7 +50,7 @@ def test_unnamed_run_value_matches_and_maps_to_run_keys_startup() -> None:
 
 
 def test_unnamed_runonce_value_matches() -> None:
-    target = r"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\"
+    target = "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\"
     assert len(_matches(_event(target))) == 1
 
 
@@ -65,7 +65,7 @@ def test_named_runonce_value_does_not_match() -> None:
 
 
 def test_similarly_named_key_does_not_match() -> None:
-    target = r"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunServices\"
+    target = "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServices\\"
     assert not _matches(_event(target))
 
 
