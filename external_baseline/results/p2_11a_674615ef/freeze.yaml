@@ -1,0 +1,35 @@
+schema: breachscope.p2_11a_post_remediation_freeze.v1
+freeze_id: p2-11a-post-remediation-freeze
+frozen_repo_commit: 674615ef3c92d5b4bbc4dec71f566d49de0454f4
+frozen_rules_tree_sha256: 371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d0969f
+rule_file_count: 3
+exact_source:
+  analyzer_file: breachscope/analyzer.py
+  analyzer_git_blob_sha1: f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7
+  p2_10_rule_file: rules/p2_10_event_rules.yml
+  p2_10_rule_file_git_blob_sha1: 3a2f853fd6c8232f7d919913fd711d7f18785108
+current_detection_evidence:
+  verifier_status: PASS
+  evidence_id: p2-10h-current-detection-evidence
+  public_attack_scenario_hits: 10
+  public_attack_scenario_total: 10
+  known_public_attack_corpus: true
+freeze_execution:
+  github_actions_run_id: 34387750493
+  workflow_head_commit: b349ed8c7a7becd0aacb1abb0bbef80e04029801
+  artifact_id: 10118367041
+  artifact_digest_sha256: 54f1e1ad5e7d145afab0b6e7f63086c2b387d345feb740c5058e3e7b8544aebf
+  rules_freeze_schema: breachscope.external_holdout.rules_freeze.v1
+  working_tree_clean: true
+protocol_state_at_freeze:
+  rules_frozen_before_new_holdout_selection: true
+  new_holdout_selected: false
+  new_holdout_scored: false
+  final_blind_holdout_scored: false
+claim_boundary:
+  public_attack_10_of_10_is_production_detection_rate: false
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  final_blind_holdout: NOT_YET_EXECUTED
+  note: This record freezes the post-P2-10H detector state before selecting or scoring a new holdout. It is not itself a holdout result.
