@@ -1,0 +1,58 @@
+name: P2-10H Evidence Builder
+
+on:
+  push:
+    branches:
+      - measure/p2-10h-evidence-builder
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout builder
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Preserve helper and switch target PR branch
+        run: |
+          cp scripts/_p2_10h_apply_evidence.py /tmp/p2_10h_apply_evidence.py
+          git fetch origin fix/p2-10h-wmi-parent-correlation
+          git switch fix/p2-10h-wmi-parent-correlation
+          test "$(git rev-parse HEAD)" = "4c8c9234978051fa58995dcee05cbad9fca081c0"
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11.16"
+          cache: pip
+
+      - name: Install exact locked environment
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+
+      - name: Apply permanent evidence patch
+        run: python /tmp/p2_10h_apply_evidence.py
+
+      - name: Validate evidence before push
+        run: |
+          python -m compileall -q scripts tests breachscope
+          pytest -q tests/test_p2_10h_wmi_parent_correlation.py tests/test_reproducible_benchmark.py
+          python scripts/verify_current_detection_evidence.py --json
+          python -m breachscope.cli --rules rules --validate-rules
+          test "$(git hash-object breachscope/analyzer.py)" = "f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7"
+          test "$(git hash-object rules/p2_10_event_rules.yml)" = "3a2f853fd6c8232f7d919913fd711d7f18785108"
+          git diff --check
+
+      - name: Commit and push evidence to PR branch
+        run: |
+          git config user.name "P2-10H Evidence Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/P2_10H_WMI_PARENT_CORRELATION.md external_baseline/current_detection_evidence.yaml external_baseline/results/p2_10h_652b7cad/measurement.yaml scripts/verify_current_detection_evidence.py tests/test_reproducible_benchmark.py
+          git commit -m "test: record P2-10H detection evidence"
+          git push origin HEAD:fix/p2-10h-wmi-parent-correlation
