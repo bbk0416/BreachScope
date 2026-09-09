@@ -84,15 +84,16 @@ JSON 출력:
 python scripts\verify_current_detection_evidence.py --json
 ```
 
-P2-10D 이후 핵심 출력은 다음 의미를 가집니다.
+P2-10E 이후 핵심 출력은 다음 의미를 가집니다.
 
 ```text
 Current detection evidence verification: PASS
-Attack external baseline: 2/10 -> 6/10 scenario hits
+Attack external baseline: 2/10 -> 7/10 scenario hits
 p2-10a-scheduled-task-4698: benign incremental predicate matches=0 / 34423 non-Sysmon events
 p2-10b-wmi-xsl: benign incremental predicate matches=0 / 732200 Sysmon records
 p2-10c-domain-admins-4661: benign incremental predicate matches=0 / 34423 non-Sysmon events
 p2-10d-lsass-access-1010: benign incremental predicate matches=0 / 732200 Sysmon records
+p2-10e-winrm-wsmprovhost-child: benign incremental predicate matches=0 / 732200 Sysmon records
 Fresh full benign FPR for current rulepack: NOT CLAIMED
 Production accuracy/FPR: NOT CLAIMED
 ```
@@ -111,6 +112,7 @@ P2-09E 543b4e02... / 2 HIT
   -> P2-10B a21e4a7b... / 4 HIT
   -> P2-10C 9fff876a... / 5 HIT
   -> P2-10D f6561197... / 6 HIT
+  -> P2-10E 73b05715... / 7 HIT
 ```
 
 ## P2-10A
@@ -231,6 +233,51 @@ docs/P2_10D_LSASS_REMEDIATION.md
 external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
 ```
 
+## P2-10E
+
+추가 룰은 Sysmon Event ID 1에서 `wsmprovhost.exe`가 parent인 child process creation을 찾는 좁은 조건입니다.
+
+- `source == Microsoft-Windows-Sysmon`
+- `event_id == 1`
+- `ParentImage` endswith `\wsmprovhost.exe`
+- ATT&CK `T1021.006`
+- canonical rule hash: `73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c`
+
+공격 baseline:
+
+- same public 10-scenario / 202-event corpus
+- before: **6 HIT / 4 MISS**
+- after: **7 HIT / 3 MISS**
+- findings: **9**
+- flagged events: **9**
+- changed scenario: `lm-powershell-remoting`
+- expected technique: `T1021.006`
+
+benign incremental proof:
+
+- pinned Sysmon records: **732,200**
+- Sysmon Event ID 1: **2,149**
+- exact new-predicate match: **0**
+- parse errors: **0**
+- fresh full FP/TN rerun: **false**
+
+measurement:
+
+- commit: `147a92083f8c7c8acb488b1c2aab30971d0e48bb`
+- run: `34342646853`
+- focused tests: **5 PASS**
+- artifact: `10100380267`
+- artifact ZIP SHA-256: `cc49a50bdf5014a15a4e81cce20e4870e374e494c65f02b8b3fa2718cf97179b`
+
+`wsmprovhost.exe`는 정상 WinRM 관리 작업에서도 사용될 수 있으므로, 이 룰을 PowerShell Remoting의 단독 확정 증거로 해석하지 않습니다.
+
+상세 기록:
+
+```text
+docs/P2_10E_WINRM_REMEDIATION.md
+external_baseline/results/p2_10e_147a9208/measurement.yaml
+```
+
 ## current verifier가 확인하는 것
 
 `verify_current_detection_evidence.py`는 최소한 다음을 확인합니다.
@@ -242,10 +289,11 @@ external_baseline/results/p2_10d_ce1ada8b/measurement.yaml
 5. P2-10B live rule 조건과 3→4 변화
 6. P2-10C live rule 조건과 4→5 변화
 7. P2-10D live LSASS/Event 10/GrantedAccess 조건과 5→6 변화
-8. 각 단계의 지정된 pinned benign 범위 exact match 0
-9. P2-10C evaluator reconstruction control 결과
-10. 마지막 remediation hash가 실제 live `rules/` tree SHA-256과 같은지
-11. production accuracy/FPR, final blind holdout, current rulepack fresh full benign FPR을 주장하지 않는지
+8. P2-10E live wsmprovhost parent/Event 1 조건과 6→7 변화
+9. 각 단계의 지정된 pinned benign 범위 exact match 0
+10. P2-10C evaluator reconstruction control 결과
+11. 마지막 remediation hash가 실제 live `rules/` tree SHA-256과 같은지
+12. production accuracy/FPR, final blind holdout, current rulepack fresh full benign FPR을 주장하지 않는지
 
 ## 전체 재실행
 
@@ -271,15 +319,15 @@ P2-09D의 약 799MB Sysmon EVTX는 GitHub hosted runner 단일 45분 작업에�
 
 - 역사적 P2-09E rule hash에서 공개 공격 10 scenario 중 2개 expected technique을 hit했습니다.
 - 같은 역사적 rule hash에서 공개 benign corpus 766,623 events 중 17 events가 flagged됐습니다.
-- P2-10A/B/C/D의 각각의 좁은 rule 변경은 같은 공개 공격 baseline에서 scenario coverage를 2→3→4→5→6으로 늘렸습니다.
+- P2-10A/B/C/D/E의 각각의 좁은 rule 변경은 같은 공개 공격 baseline에서 scenario coverage를 2→3→4→5→6→7로 늘렸습니다.
 - 각 새 predicate의 지정된 pinned benign 범위에서 exact match 0을 관찰했습니다.
 
 말할 수 없는 것:
 
-- 실제 공격 전체 탐지율이 60%다
-- 실제 precision 또는 recall이 60%다
-- 현재 56-rule pack의 production FPR이 0.00221752%다
-- 현재 56-rule pack 전체 benign FPR을 fresh하게 다시 측정했다
+- 실제 공격 전체 탐지율이 70%다
+- 실제 precision 또는 recall이 70%다
+- 현재 57-rule pack의 production FPR이 0.00221752%다
+- 현재 57-rule pack 전체 benign FPR을 fresh하게 다시 측정했다
 - 기업 SOC 환경 대표성이 검증됐다
 - final blind holdout을 통과했다
 - BreachScope가 다른 탐지 엔진보다 빠르다

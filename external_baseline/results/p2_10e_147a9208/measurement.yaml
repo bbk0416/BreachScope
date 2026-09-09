@@ -1,0 +1,64 @@
+schema: breachscope.p2_10e_remediation_measurement.v1
+remediation_id: p2-10e-winrm-wsmprovhost-child
+measurement_repo_commit: 147a92083f8c7c8acb488b1c2aab30971d0e48bb
+from_rules_tree_sha256: f6561197677172b671646a49a84a2ff1d3cc9d661f23ee2862037ac5ca16292e
+to_rules_tree_sha256: 73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-WINRM-WSMPROVHOST-CHILD
+  name: PowerShell Remoting Child Process
+  severity: medium
+  mitre_technique: T1021.006
+  predicate:
+    ParentImage_endswith: \wsmprovhost.exe
+    event_id_equals: '1'
+    source_equals: Microsoft-Windows-Sysmon
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 6
+  after_scenario_hits: 7
+  scenario_misses: 3
+  scenario_total: 10
+  after_scenario_hit_rate: 0.7
+  findings: 9
+  flagged_events: 9
+  changed_scenario:
+    scenario_id: lm-powershell-remoting
+    expected_technique: T1021.006
+    before_status: miss
+    after_status: hit
+  remaining_miss_scenarios:
+  - lm-wmi
+  - lm-remote-service
+  - persist-hidden-run-key
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  sysmon_records_scanned: 732200
+  sysmon_event1_scanned: 2149
+  exact_predicate_matches: 0
+  parse_errors: 0
+  parser: python-evtx 0.8.1 plus BreachScope EVTX conversion/normalization path
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34342646853
+  artifact_id: 10100380267
+  artifact_digest_sha256: cc49a50bdf5014a15a4e81cce20e4870e374e494c65f02b8b3fa2718cf97179b
+  artifact_record_schema: breachscope.p2_10e_measurement.v1
+  focused_tests_passed: 5
+  detector_runtime_seconds: 0.1361221879999448
+  detector_peak_memory_mb: 0.17343521118164062
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No event matching the new Sysmon Event ID 1 plus wsmprovhost.exe
+    parent predicate was observed in the 732,200 Sysmon records from the pinned public
+    benign corpus.

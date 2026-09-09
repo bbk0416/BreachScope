@@ -370,6 +370,51 @@ SPECS: dict[str, dict[str, Any]] = {
             "benign_exact_predicate_matches": 0,
         },
     },
+    "p2-10e-winrm-wsmprovhost-child": {
+        "label": "P2-10E",
+        "schema": "breachscope.p2_10e_remediation_measurement.v1",
+        "rule_id": "R-WINRM-WSMPROVHOST-CHILD",
+        "technique": "T1021.006",
+        "severity": "medium",
+        "primary": ("ParentImage", "endswith", r"\wsmprovhost.exe"),
+        "conditions": {
+            "event_id": ("equals", "1"),
+            "source": ("equals", "Microsoft-Windows-Sysmon"),
+        },
+        "predicate": {
+            "ParentImage_endswith": r"\wsmprovhost.exe",
+            "event_id_equals": "1",
+            "source_equals": "Microsoft-Windows-Sysmon",
+        },
+        "after_hits": 7,
+        "misses": 3,
+        "findings": 9,
+        "flagged_events": 9,
+        "changed_scenario": ("lm-powershell-remoting", "T1021.006"),
+        "remaining_misses": [
+            "lm-wmi",
+            "lm-remote-service",
+            "persist-hidden-run-key",
+        ],
+        "focused_tests": 5,
+        "artifact_schema": "breachscope.p2_10e_measurement.v1",
+        "benign_expected": {
+            "corpus_total_events_from_p2_09d": 766623,
+            "sysmon_records_scanned": 732200,
+            "sysmon_event1_scanned": 2149,
+            "exact_predicate_matches": 0,
+            "parse_errors": 0,
+            "fresh_full_fp_tn_rerun": False,
+        },
+        "summary": {
+            "benign_scope": "Sysmon records",
+            "benign_events_scanned": 732200,
+            "benign_sysmon_records_scanned": 732200,
+            "benign_sysmon_event1_scanned": 2149,
+            "benign_exact_predicate_matches": 0,
+        },
+    },
+
 }
 
 
