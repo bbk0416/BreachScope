@@ -1,0 +1,67 @@
+schema: breachscope.p2_10f_remediation_measurement.v1
+remediation_id: p2-10f-service-pathless-7045
+measurement_repo_commit: 851214ffb9f31862c1d25aa1f93dd158e6ea8d09
+from_rules_tree_sha256: 73b0571509f261ce415d8c5c3a325fc04accd309f1f30bbce30464b08728d59c
+to_rules_tree_sha256: af3b2db0fcef1a74a2728483a7db2b8df028f91be205448a03285a2a58ed960e
+rule_change:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-SERVICE-PATHLESS-7045
+  name: Suspicious Pathless Service Executable
+  severity: medium
+  mitre_technique: T1569.002
+  predicate:
+    ImagePath_regex: '^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$'
+    event_id_equals: '7045'
+    source_equals: Service Control Manager
+attack_external_baseline:
+  baseline_id: p2-09c-evtx-attack-samples-v1
+  corpus_manifest_sha256: 91fc5c2d719e2d3255fd8164485d763e49e05ee3bd420b0cd0cceda6b926b21d
+  labels_sha256: f3b3386978b2e9f8d8650d229c2b9b7e9754dc0fa1b21bda2baf6f68964cf532
+  source_files: 10
+  events: 202
+  before_scenario_hits: 7
+  after_scenario_hits: 8
+  scenario_misses: 2
+  scenario_total: 10
+  after_scenario_hit_rate: 0.8
+  findings: 12
+  flagged_events: 12
+  changed_scenario:
+    scenario_id: lm-remote-service
+    expected_technique: T1569.002
+    before_status: miss
+    after_status: hit
+  remaining_miss_scenarios:
+  - lm-wmi
+  - persist-hidden-run-key
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  corpus_total_events_from_p2_09d: 766623
+  evtx_files_scanned: 352
+  service_control_manager_7045_scanned: 26
+  pathless_imagepath_matches: 0
+  exact_predicate_matches: 0
+  parse_errors: 0
+  parser: python-evtx 0.8.1 plus BreachScope EVTX extraction path
+  fresh_full_fp_tn_rerun: false
+measurement_execution:
+  github_actions_run_id: 34374215028
+  artifact_id: 10113166748
+  artifact_digest_sha256: d966599fabb86cba6867cdf5682bbc0a19bf500ad1074bf1720309d330ba9e96
+  artifact_record_schema: breachscope.external_holdout.result.v1
+  focused_tests_passed: 8
+  detector_runtime_seconds: 0.11079527000000411
+  detector_peak_memory_mb: 0.17452621459960938
+exact_source:
+  pr_code_commit: cd39a667d1b97f38a88b5cd980a21d3539a0b33c
+  measurement_commit: 851214ffb9f31862c1d25aa1f93dd158e6ea8d09
+  rule_file_git_blob_sha1: e834658e354070d97a2def28e8f82474cee280e9
+  note: The measurement commit has the same detector/rule content as the PR code commit and adds only the measurement workflow.
+claim_boundary:
+  public_known_attack_corpus: true
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  incremental_benign_statement: No Service Control Manager Event ID 7045 whose ImagePath began with a pathless executable was observed in the 766,623 events from the pinned public benign corpus.

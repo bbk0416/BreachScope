@@ -415,6 +415,57 @@ SPECS: dict[str, dict[str, Any]] = {
         },
     },
 
+    "p2-10f-service-pathless-7045": {
+        "label": "P2-10F",
+        "schema": "breachscope.p2_10f_remediation_measurement.v1",
+        "rule_id": "R-SERVICE-PATHLESS-7045",
+        "technique": "T1569.002",
+        "severity": "medium",
+        "primary": (
+            "ImagePath",
+            "regex",
+            r"^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$",
+        ),
+        "conditions": {
+            "event_id": ("equals", "7045"),
+            "source": ("equals", "Service Control Manager"),
+        },
+        "predicate": {
+            "ImagePath_regex": r"^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$",
+            "event_id_equals": "7045",
+            "source_equals": "Service Control Manager",
+        },
+        "after_hits": 8,
+        "misses": 2,
+        "findings": 12,
+        "flagged_events": 12,
+        "changed_scenario": ("lm-remote-service", "T1569.002"),
+        "remaining_misses": [
+            "lm-wmi",
+            "persist-hidden-run-key",
+        ],
+        "focused_tests": 8,
+        "artifact_schema": "breachscope.external_holdout.result.v1",
+        "benign_expected": {
+            "corpus_total_events_from_p2_09d": 766623,
+            "evtx_files_scanned": 352,
+            "service_control_manager_7045_scanned": 26,
+            "pathless_imagepath_matches": 0,
+            "exact_predicate_matches": 0,
+            "parse_errors": 0,
+            "fresh_full_fp_tn_rerun": False,
+        },
+        "summary": {
+            "benign_scope": "pinned public benign EVTX events",
+            "benign_events_scanned": 766623,
+            "benign_evtx_files_scanned": 352,
+            "benign_service_control_manager_7045_scanned": 26,
+            "benign_pathless_imagepath_matches": 0,
+            "benign_exact_predicate_matches": 0,
+            "benign_parse_errors": 0,
+        },
+    },
+
 }
 
 
