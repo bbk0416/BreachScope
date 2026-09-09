@@ -59,6 +59,7 @@ P2-09D pinned public benign corpus의 Sysmon 원본 전체를 신규 predicate �
 - parse errors: **0**
 - benign scan run: `34378996152`
 - aggregate artifact: `10115267079`
+- aggregate artifact SHA-256: `b44ce8fb3c50da7440b6dcaa6a5c22f408a9650db02cfe63e21ddf3a0df2a39d`
 
 이는 pinned public benign Sysmon records에서의 **incremental exact-match 관찰값**입니다.
 production false positive rate가 0이라는 뜻이 아니며, 현재 59-rule pack의 fresh full benign FPR도 아닙니다.
