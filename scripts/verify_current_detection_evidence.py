@@ -466,6 +466,62 @@ SPECS: dict[str, dict[str, Any]] = {
         },
     },
 
+
+    "p2-10g-hidden-run-key": {
+        "label": "P2-10G",
+        "schema": "breachscope.p2_10g_remediation_measurement.v1",
+        "rule_id": "R-RUNKEY-UNNAMED-13",
+        "technique": "T1547.001",
+        "severity": "medium",
+        "primary": (
+            "TargetObject",
+            "regex",
+            r"\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$",
+        ),
+        "conditions": {
+            "EventType": ("equals", "SetValue"),
+            "event_id": ("equals", "13"),
+            "source": ("equals", "Microsoft-Windows-Sysmon"),
+        },
+        "predicate": {
+            "TargetObject_regex": r"\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$",
+            "EventType_equals": "SetValue",
+            "event_id_equals": "13",
+            "source_equals": "Microsoft-Windows-Sysmon",
+        },
+        "after_hits": 9,
+        "misses": 1,
+        "findings": 13,
+        "flagged_events": 13,
+        "changed_scenario": ("persist-hidden-run-key", "T1547.001"),
+        "remaining_misses": ["lm-wmi"],
+        "focused_tests": 8,
+        "artifact_schema": "breachscope.external_holdout.result.v1",
+        "benign_expected": {
+            "corpus_total_events_from_p2_09d": 766623,
+            "sysmon_records_scanned": 732200,
+            "sysmon_chunks_scanned": 11894,
+            "sysmon_event13_scanned": 214572,
+            "sysmon_event13_setvalue_scanned": 214572,
+            "run_or_runonce_targets": 18,
+            "hidden_run_targets": 0,
+            "exact_predicate_matches": 0,
+            "parse_errors": 0,
+            "fresh_full_fp_tn_rerun": False,
+        },
+        "summary": {
+            "benign_scope": "pinned public benign Sysmon records",
+            "benign_events_scanned": 732200,
+            "benign_sysmon_records_scanned": 732200,
+            "benign_sysmon_chunks_scanned": 11894,
+            "benign_sysmon_event13_scanned": 214572,
+            "benign_run_or_runonce_targets": 18,
+            "benign_hidden_run_targets": 0,
+            "benign_exact_predicate_matches": 0,
+            "benign_parse_errors": 0,
+        },
+    },
+
 }
 
 

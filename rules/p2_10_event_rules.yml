@@ -101,3 +101,22 @@
     - field: source
       operator: equals
       pattern: Service Control Manager
+
+- id: R-RUNKEY-UNNAMED-13
+  name: Hidden Run/RunOnce Registry Value
+  description: Sysmon registry SetValue where TargetObject ends at a Run or RunOnce key, consistent with an unnamed startup value
+  field: TargetObject
+  operator: regex
+  pattern: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$'
+  severity: medium
+  mitre_technique: T1547.001
+  all_of:
+    - field: EventType
+      operator: equals
+      pattern: SetValue
+    - field: event_id
+      operator: equals
+      pattern: "13"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
