@@ -1,0 +1,135 @@
+name: P2-10E WinRM Wsmprovhost Measurement
+
+on:
+  push:
+    branches:
+      - measure/p2-10e-winrm-wsmprovhost
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.16'
+          cache: pip
+      - name: Install exact dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python scripts/verify_dependency_locks.py --strict
+      - name: Focused rule tests
+        run: python -m pytest -q tests/test_p2_10_winrm_wsmprovhost_rule.py
+      - name: Run pinned external attack baseline
+        run: python scripts/run_external_baseline.py --out out/p2_10e_attack --timeout 120
+      - name: Assert attack-side improvement
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          summary = json.loads(Path('out/p2_10e_attack/summary.json').read_text(encoding='utf-8'))
+          metrics = summary['primary_metrics']
+          outcomes = {row['scenario_id']: row for row in summary['scenarios']}
+
+          assert metrics['scenario_hits'] == 7, metrics
+          assert metrics['scenario_misses'] == 3, metrics
+          assert metrics['scenario_total'] == 10, metrics
+          assert summary['rules_tree_sha256'] == 'da9abfc4326c74d9e479f1262233cbb601317321b966dbb47c81053798d6f9d1', summary['rules_tree_sha256']
+          assert summary['detection_observation']['findings'] == 9, summary['detection_observation']
+          assert summary['detection_observation']['flagged_events'] == 9, summary['detection_observation']
+
+          target = outcomes['lm-powershell-remoting']
+          assert target['status'] == 'hit', target
+          assert 'T1021.006' in target['matched_techniques'], target
+
+          for scenario_id in (
+              'lm-wmi',
+              'lm-remote-service',
+              'persist-hidden-run-key',
+          ):
+              assert outcomes[scenario_id]['status'] == 'miss', outcomes[scenario_id]
+
+          print('P2-10E attack delta: PASS 6/10 -> 7/10')
+          print('rules_tree_sha256=' + summary['rules_tree_sha256'])
+          print('findings=' + str(summary['detection_observation']['findings']))
+          print('flagged_events=' + str(summary['detection_observation']['flagged_events']))
+          PY
+      - name: Write measurement record
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+          import yaml
+
+          summary = json.loads(Path('out/p2_10e_attack/summary.json').read_text(encoding='utf-8'))
+          result = json.loads(Path('out/p2_10e_attack/result.json').read_text(encoding='utf-8'))
+          payload = {
+              'schema': 'breachscope.p2_10e_measurement.v1',
+              'evaluated_repo_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'from_rules_tree_sha256': 'f6561197677172b671646a49a84a2ff1d3cc9d661f23ee2862037ac5ca16292e',
+              'to_rules_tree_sha256': summary['rules_tree_sha256'],
+              'change': {
+                  'rule_id': 'R-WINRM-WSMPROVHOST-CHILD',
+                  'mitre_technique': 'T1021.006',
+                  'predicate': {
+                      'source_equals': 'Microsoft-Windows-Sysmon',
+                      'event_id_equals': '1',
+                      'ParentImage_endswith': r'\wsmprovhost.exe',
+                  },
+              },
+              'attack_external_baseline': {
+                  'before_scenario_hits': 6,
+                  'scenario_hits': summary['primary_metrics']['scenario_hits'],
+                  'scenario_misses': summary['primary_metrics']['scenario_misses'],
+                  'scenario_total': summary['primary_metrics']['scenario_total'],
+                  'findings': summary['detection_observation']['findings'],
+                  'flagged_events': summary['detection_observation']['flagged_events'],
+                  'changed_scenario': 'lm-powershell-remoting',
+              },
+              'benign_incremental_match_proof': {
+                  'baseline_id': 'p2-09d-nextron-win10-v1',
+                  'corpus_sha256': 'd48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e',
+                  'corpus_total_events_from_p2_09d': 766623,
+                  'sysmon_records_scanned': 732200,
+                  'sysmon_event1_scanned': 2149,
+                  'exact_predicate_matches': 0,
+                  'parser': 'python-evtx 0.8.1 plus BreachScope EVTX conversion/normalization path',
+                  'fresh_full_fp_tn_rerun': False,
+              },
+              'measurement_performance_observation': {
+                  'runtime_seconds': result['performance']['runtime_seconds'],
+                  'peak_memory_mb': result['performance']['peak_memory_mb'],
+                  'performance_benchmark': 'NOT_CLAIMED',
+              },
+              'claim_boundary': {
+                  'public_known_attack_corpus': True,
+                  'final_blind_holdout': False,
+                  'production_detection_rate': 'NOT_CLAIMED',
+                  'production_false_positive_rate': 'NOT_CLAIMED',
+                  'fresh_full_benign_fpr_for_new_rulepack': 'NOT_CLAIMED',
+              },
+          }
+          Path('out/p2_10e_measurement.yaml').write_text(
+              yaml.safe_dump(payload, sort_keys=False, allow_unicode=True),
+              encoding='utf-8',
+          )
+          PY
+      - name: Upload measurement evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-10e-winrm-wsmprovhost-measurement
+          path: |
+            out/p2_10e_attack/rules_freeze.json
+            out/p2_10e_attack/manifest.yaml
+            out/p2_10e_attack/result.json
+            out/p2_10e_attack/summary.json
+            out/p2_10e_attack/SUMMARY.md
+            out/p2_10e_measurement.yaml
+          if-no-files-found: error
