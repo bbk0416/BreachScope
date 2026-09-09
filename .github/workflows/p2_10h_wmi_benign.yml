@@ -28,4 +28,13 @@ jobs:
           python -m pip install --no-deps --no-build-isolation -e .
 
       - name: Run pinned benign WMI parent scan
-        run: python scripts/p2_10h_scan_benign_wmi_parent.py
+        run: |
+          mkdir -p out/p2_10h_wmi_benign_evidence
+          python scripts/p2_10h_scan_benign_wmi_parent.py | tee out/p2_10h_wmi_benign_evidence/scan.log
+
+      - name: Upload benign scan evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-10h-wmi-benign-evidence
+          path: out/p2_10h_wmi_benign_evidence/scan.log
+          if-no-files-found: error
