@@ -1,6 +1,8 @@
 schema: breachscope.p2_11b_external_selection.v1
 selection_id: p2-11b-atomic-evtx-v1
 selection_commit_base: fab621d634f23764e6cf229abacd8ea8ab7dfdab
+selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+selection_manifest_git_blob_sha1_at_freeze: 87c8aa190bcce43883ee9b50be3917b0d5e9feec
 freeze_reference: external_baseline/results/p2_11a_674615ef/freeze.yaml
 evaluation_class: external_baseline
 source:
@@ -8,6 +10,7 @@ source:
   pinned_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
   source_manifest: full_list_of_attacks_simulated.csv
   source_manifest_git_blob_sha1: 7c02b63efccc611d8e53e5173561866183f46581
+  source_manifest_sha256: 81d3abbe3d07aa6d153fd17c5b5274137aa853e95fd489a183ed5d7230651f8e
   scenario_root: ttp_evtx
   provenance_note: Public Windows 10 EVTX generated with Atomic Red Team. This is a different source repository from the P2-09C sbousseaden corpus, but it is not independent of the Atomic Red Team framework family.
 selection_policy:
@@ -84,11 +87,28 @@ scenarios:
     expected_technique: T1136.001
     description: Create a new user in PowerShell
     source_directory: ttp_evtx/T1136.001-5
+byte_binding:
+  record: external_baseline/p2_11b_atomic_evtx_byte_binding.json
+  scenario_count: 12
+  evtx_file_count: 60
+  evtx_total_bytes: 9420800
+  github_actions_run_id: 34388844124
+  workflow_head_commit: 4dad1cea06937cc04df69ac8a6a302c941f5e3a7
+  artifact_id: 10118796880
+  artifact_digest_sha256: 58ad166a8eecb9f71ba1c5510b7aa54421f3089795eabda7993972c83334116d
+  detection_executed: false
+label_binding:
+  level: scenario
+  source: full_list_of_attacks_simulated.csv TTP ID selected in the frozen selection manifest
+  expected_techniques_frozen_in_selection_commit: 7541214400507afddca40a22f2adb22504fc3946
+  event_level_labels: NOT_AVAILABLE
+  event_level_precision_recall_fpr: NOT_CLAIMED
 protocol_state:
   p2_11a_freeze_completed_before_source_selection: true
   selected_scenario_count: 12
-  selected_scenario_evtx_hashes_bound: false
-  labels_bound: false
+  selected_scenario_evtx_hashes_bound: true
+  scenario_labels_bound: true
+  event_level_labels_bound: false
   detection_executed_on_selected_scenarios: false
   score_executed: false
 claim_boundary:
@@ -97,4 +117,4 @@ claim_boundary:
   production_precision: NOT_CLAIMED
   production_recall: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
-  note: This file records source and scenario selection before downloading or scoring the selected EVTX bytes. It is not a detection result.
+  note: Scenario selection and scenario-level expected techniques were frozen before selected EVTX bytes were downloaded or any BreachScope detection was run. The current state is ready for a one-time external_baseline score, not a final blind holdout.
