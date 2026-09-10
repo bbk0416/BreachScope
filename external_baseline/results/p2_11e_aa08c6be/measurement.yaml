@@ -74,7 +74,8 @@ measurement_execution:
   artifact_id: 10136572099
   artifact_digest_sha256: 329d7c7f8eed02fca7dd9f06b30bf59d20aaf8904484d1a5909452f3bc6e0c1f
   aggregate_result: external_baseline/results/p2_11e_aa08c6be/aggregate-result.json
-  aggregate_result_sha256: 2e54f6dda00bc4657761051df3e0484e1b2427a2838e9f30d8e175d5935bea9b
+  artifact_inner_aggregate_result_sha256: 2e54f6dda00bc4657761051df3e0484e1b2427a2838e9f30d8e175d5935bea9b
+  aggregate_result_sha256: 15f6353f738caa7719fd6caca06857c5cb60349efc0ca1e9d1227397fb3a3ca7
   rules_freeze_sha256: dfbc7c77c5ccf775428e1ce00edd997aad873969273ba7410faf03e09f0d1a5c
   freeze_probe_run_id: 34436963895
   freeze_probe_artifact_id: 10136515911
