@@ -53,12 +53,36 @@
     "target_domain_matches_host": true,
     "candidate_matches": 2
   },
+  "calibration_score": {
+    "historical_p2_11b_scenario_hits": 0,
+    "historical_p2_11b_scenario_total": 12,
+    "detector_repo_commit": "456b2a8238837026c8249ae1020b16249715bc04",
+    "rules_tree_sha256": "b42725734f70cfc87ccd0122e6ab90da2169d7599b2abaaf22c27050efa0c4d2",
+    "rule_file_count": 4,
+    "rules": 61,
+    "events": 902,
+    "findings": 84,
+    "flagged_events": 80,
+    "scenario_hits": 2,
+    "scenario_misses": 10,
+    "scenario_total": 12,
+    "changed_scenarios": [
+      "T1136.001-4",
+      "T1136.001-5"
+    ],
+    "workflow_run_id": 34434077438,
+    "workflow_control_head_commit": "60b181021422bbff98998d592d1b13c60d74cb28",
+    "artifact_id": 10135538509,
+    "artifact_sha256": "9f4a28b595c98afbd4f973ade5742654d96eed620f3133617234e5d9db533c11",
+    "aggregate_result_sha256": "f059c386a85d028938adafe2bc9519a732261d324711654b590e65544dbb1920"
+  },
   "claim_boundary": {
     "p2_11b_historical_score_unchanged": true,
     "final_blind_holdout": false,
+    "fresh_external_baseline": false,
     "production_false_positive_rate": "NOT_CLAIMED",
     "current_rulepack_false_positive_rate": "NOT_CLAIMED",
     "event_level_precision_recall": "NOT_CLAIMED",
-    "note": "Zero observed benign candidate matches applies only to this pinned public benign-by-source-intent corpus and exact candidate predicate."
+    "note": "Zero observed benign candidate matches applies only to this pinned public benign-by-source-intent corpus and exact candidate predicate. The 2/12 score is repeated external calibration on the already-observed P2-11B Atomic-EVTX suite."
   }
 }
