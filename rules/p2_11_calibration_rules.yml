@@ -54,3 +54,31 @@
     - field: command_line
       operator: regex
       pattern: '\bnet1?(?:\.exe)?"?\s+start\s*$'
+
+- id: R-DIRECT-VOLUME-POWERSHELL-FILESTREAM-READ
+  name: PowerShell Raw Volume FileStream Read Command
+  description: Sysmon process creation where PowerShell or Pwsh invokes FileStream with Open and Read semantics against a DOS raw logical-volume device path
+  field: command_line
+  operator: regex
+  pattern: '\\{2}\.\\[A-Za-z]:'
+  severity: medium
+  mitre_technique: T1006
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: Image
+      operator: regex
+      pattern: '\\(?:powershell|pwsh)\.exe$'
+    - field: command_line
+      operator: regex
+      pattern: '(?:System\.)?IO\.FileStream|\bFileStream\b'
+    - field: command_line
+      operator: regex
+      pattern: '\bOpen\b'
+    - field: command_line
+      operator: regex
+      pattern: '\bRead\b'
