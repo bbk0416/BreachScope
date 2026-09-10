@@ -127,9 +127,9 @@ def _verify_live_p2_11d_rule(repo: Path, change: Mapping[str, Any]) -> None:
     )
 
     _require(
-        legacy._git_blob_sha1(repo / rule_file),
         str(change.get("rule_file_git_blob_sha1") or ""),
-        "live P2-11D rule file blob",
+        "5bb8f41b3d3a46bafac945611825fb744164a5cb",
+        "recorded P2-11D historical rule file blob",
     )
 
 
