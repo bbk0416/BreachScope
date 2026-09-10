@@ -1,0 +1,125 @@
+schema: breachscope.p2_11b_external_baseline_measurement.v1
+measurement_id: p2-11b-atomic-evtx-external-baseline
+measurement_class: external_baseline
+p2_11a_freeze:
+  repo_commit: 674615ef3c92d5b4bbc4dec71f566d49de0454f4
+  rules_tree_sha256: 371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d0969f
+  rule_file_count: 3
+  analyzer_git_blob_sha1: f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7
+  p2_10_rule_file_git_blob_sha1: 3a2f853fd6c8232f7d919913fd711d7f18785108
+selection:
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  source_manifest_git_blob_sha1: 7c02b63efccc611d8e53e5173561866183f46581
+  source_manifest_sha256: 81d3abbe3d07aa6d153fd17c5b5274137aa853e95fd489a183ed5d7230651f8e
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  scoring_plan_frozen_commit: cb86f4b5dbde0c517c395217e2fcf2a9a213a6cf
+  scenario_count: 12
+  categories:
+    - credential-access
+    - defense-evasion
+    - discovery
+    - lateral-movement
+    - execution
+    - persistence
+byte_binding:
+  record: external_baseline/p2_11b_atomic_evtx_byte_binding.json
+  github_actions_run_id: 34388844124
+  artifact_id: 10118796880
+  artifact_digest_sha256: 58ad166a8eecb9f71ba1c5510b7aa54421f3089795eabda7993972c83334116d
+  evtx_file_count: 60
+  evtx_total_bytes: 9420800
+  detection_executed: false
+score_execution:
+  github_actions_run_id: 34389538790
+  workflow_head_commit: 30f67ebb8f75d642f1c37aeab1255a6051c2cd48
+  artifact_id: 10119080561
+  artifact_digest_sha256: 289a5384e99da9a5d9a7d0c83b4688991e9925158aab8f45c354a61d85d20ee5
+  aggregate_result: external_baseline/results/p2_11b_atomic_evtx_30f67ebb/aggregate-result.json
+  aggregate_result_sha256: 89a309b8b59c5602afb4e3de1136fe53d9284463a8e409625f6a633629071a11
+  run_each_selected_scenario_exactly_once: true
+  acceptance_threshold: NONE_PREDECLARED
+result:
+  rules: 60
+  events: 902
+  findings: 82
+  flagged_events: 78
+  flagged_ignored_events: 78
+  scenario_total: 12
+  scenario_hits: 0
+  scenario_misses: 12
+  scenario_hit_rate: 0.0
+  runtime_seconds_sum: 0.8812590089999901
+  peak_memory_mb_max: 0.1754894256591797
+  observed_technique_scenario_counts:
+    T1070.001: 12
+    T1021.006: 7
+    T1059.001: 2
+    T1087.001: 1
+    T1135: 1
+outcomes:
+  - scenario_id: T1003-1
+    expected: T1003
+    status: miss
+    observed: [T1021.006, T1070.001]
+  - scenario_id: T1003-2
+    expected: T1003
+    status: miss
+    observed: [T1070.001]
+  - scenario_id: T1006-1
+    expected: T1006
+    status: miss
+    observed: [T1070.001]
+  - scenario_id: T1027-2
+    expected: T1027
+    status: miss
+    observed: [T1021.006, T1059.001, T1070.001]
+  - scenario_id: T1007-1
+    expected: T1007
+    status: miss
+    observed: [T1021.006, T1070.001]
+  - scenario_id: T1007-2
+    expected: T1007
+    status: miss
+    observed: [T1070.001]
+  - scenario_id: T1021.001-1
+    expected: T1021.001
+    status: miss
+    observed: [T1021.006, T1070.001]
+  - scenario_id: T1021.001-2
+    expected: T1021.001
+    status: miss
+    observed: [T1070.001]
+  - scenario_id: T1047-1
+    expected: T1047
+    status: miss
+    observed: [T1021.006, T1070.001]
+  - scenario_id: T1047-2
+    expected: T1047
+    status: miss
+    observed: [T1070.001]
+  - scenario_id: T1136.001-4
+    expected: T1136.001
+    status: miss
+    observed: [T1021.006, T1070.001, T1087.001, T1135]
+  - scenario_id: T1136.001-5
+    expected: T1136.001
+    status: miss
+    observed: [T1021.006, T1059.001, T1070.001]
+event_level_ground_truth:
+  labels: all_ignore
+  scored_events: 0
+  precision: NOT_CLAIMED
+  recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+interpretation_boundary:
+  public_attack_10_of_10_from_p2_10h_generalized_to_this_suite: false
+  remediation_on_these_12_after_viewing_result_may_be_external_calibration: true
+  same_12_must_not_be_represented_as_a_fresh_blind_or_untouched_baseline_after_tuning: true
+claim_boundary:
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: The fixed external_baseline result is 0/12 scenario hits. This is evidence of a generalization gap on this selected public Atomic-EVTX suite, not a production accuracy estimate.

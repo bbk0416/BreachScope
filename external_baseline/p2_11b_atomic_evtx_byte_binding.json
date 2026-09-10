@@ -1,0 +1,135 @@
+{
+  "detection_executed": false,
+  "evtx_file_count": 60,
+  "evtx_total_bytes": 9420800,
+  "scenario_count": 12,
+  "scenarios": [
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1003-1/T1003-1_Application.evtx", "sha256": "cc6724f28f7f5e70e3e12bb0339128e221762df7baf573f29d64935954f3da99"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-1/T1003-1_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "fb16710d05b8627b8925ab07181e55bb133ce92830d1aae02400a6e7a797be9e"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-1/T1003-1_Security.evtx", "sha256": "2293ec6e6f1c42fbd19a7c93790f8b26a0e5564cfc21a974110d70c84ca885ac"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-1/T1003-1_System.evtx", "sha256": "09bf4495b2118cd4e68c89fa54127dd3d85b1ca9c4a06cea20fcda42fb22e857"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-1/T1003-1_Windows PowerShell.evtx", "sha256": "3ac16582d6846cc82209efa8dbbc6021530dd82fd87e0ef94c192b4610fb5297"}
+      ],
+      "scenario_id": "T1003-1"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1003-2/T1003-2_Application.evtx", "sha256": "8c807772c357ef7ea2c530bbf36934b62dadeec9ae67f6ea1f993b60d3ae70cc"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-2/T1003-2_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "bc4de0b1c5bf8d40e18e0fc14f592c8c42ac9d2ad2019932f395b5ebc477c864"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-2/T1003-2_Security.evtx", "sha256": "0f1be3d12a2fcfbbc6a8d669c004ff1c30b76e6302ae7bb68a4ce373b792b4bb"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-2/T1003-2_System.evtx", "sha256": "222b7db5528858401c03ff5772092aabefd538aff452dfdc7e49140b09f79d3b"},
+        {"bytes": 69632, "path": "ttp_evtx/T1003-2/T1003-2_Windows PowerShell.evtx", "sha256": "d4163916554037547a1319ad60e7933e42980152505e5f8f7c96638df68ea635"}
+      ],
+      "scenario_id": "T1003-2"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1006-1/T1006-1_Application.evtx", "sha256": "bdd23aa3ab51347504cb10ccb47dc1dbff255f5f25971793b52984c4df8320e2"},
+        {"bytes": 69632, "path": "ttp_evtx/T1006-1/T1006-1_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "d3be78b6c066d8ed10c377b38976b413aa901c78f9f4914b4b9cc2a2b8077957"},
+        {"bytes": 69632, "path": "ttp_evtx/T1006-1/T1006-1_Security.evtx", "sha256": "077b487c02404baa22e1ba8e98576d8af73a2a49e9b05cae17809c1dfb8c9b91"},
+        {"bytes": 69632, "path": "ttp_evtx/T1006-1/T1006-1_System.evtx", "sha256": "00c3088eb7646a3ebddeb00f48d6926a9277f07e747bac3d822e4a96f46daf9a"},
+        {"bytes": 69632, "path": "ttp_evtx/T1006-1/T1006-1_Windows PowerShell.evtx", "sha256": "8827e95948e7623d71d6d28632beab8cf159348b94ae021f4af24516f632af09"}
+      ],
+      "scenario_id": "T1006-1"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1027-2/T1027-2_Application.evtx", "sha256": "c6a84c7bb208f2cabce63c80830939820b9c59c223b3d4d3b3927721b47175b5"},
+        {"bytes": 1118208, "path": "ttp_evtx/T1027-2/T1027-2_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "c5dc39feb9a47ad85bbc24af2c3b08ca52cb6671d7014259322bb8d38cee94f5"},
+        {"bytes": 69632, "path": "ttp_evtx/T1027-2/T1027-2_Security.evtx", "sha256": "604834e8b8a9f146dad3cf98940fe6c065e8574191867f46d5d1dc6529e9c978"},
+        {"bytes": 69632, "path": "ttp_evtx/T1027-2/T1027-2_System.evtx", "sha256": "fdaea2178b38e4027bbe832dae058929cc8de524ced42dc033458313c5afe2e2"},
+        {"bytes": 69632, "path": "ttp_evtx/T1027-2/T1027-2_Windows PowerShell.evtx", "sha256": "a2be99417f086f8500746c9c7cf39a4cb99e468a04230d5636283f9e17096ec5"}
+      ],
+      "scenario_id": "T1027-2"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1007-1/T1007-1_Application.evtx", "sha256": "f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-1/T1007-1_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "2a07c6017ea8edd8634f314917218f76c3d532aed1aab879f809fef6b34e52c5"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-1/T1007-1_Security.evtx", "sha256": "36aabb77a1bff76f9144de011817efc0dd435a0466ac2daee92eb411ea208880"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-1/T1007-1_System.evtx", "sha256": "a1cde4e7f27d821924c57825ddd9336f601674744ff684fc2e058e838a74b97e"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-1/T1007-1_Windows PowerShell.evtx", "sha256": "9f55e457c00b3aca0829a2c096a757aae95561b57b57e8edc38d4f8c357779fa"}
+      ],
+      "scenario_id": "T1007-1"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1007-2/T1007-2_Application.evtx", "sha256": "220354786ad857587512949c2393ca1d88693f4385fcecf42d4baaa85df5467a"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-2/T1007-2_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "74d25560d4f45060eefcf71ea9024f384895b7ab53daa92f19536cdbc9672b37"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-2/T1007-2_Security.evtx", "sha256": "c6d482e8797b61d18fc69c186d3fa4ca7d0013a415ed4e82fc1f592d8a01765a"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-2/T1007-2_System.evtx", "sha256": "b8ae69427670af1cb50a41f0aba899bb27940634c9ca914162b4dda81fa555f1"},
+        {"bytes": 69632, "path": "ttp_evtx/T1007-2/T1007-2_Windows PowerShell.evtx", "sha256": "fec04b8bc540d58986102190f9c4f8ed3ec459a5f233fa892385357887eeb2f5"}
+      ],
+      "scenario_id": "T1007-2"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-1/T1021.001-1_Application.evtx", "sha256": "4bdc2099901a8114c0d89948993f0b5ca830759c155db32bfa6f62f5da38800f"},
+        {"bytes": 1118208, "path": "ttp_evtx/T1021.001-1/T1021.001-1_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "a06307805ec19e9fe8d0d16c937727d9fc9f74dd9d0e03da99e7d336fb39aa13"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-1/T1021.001-1_Security.evtx", "sha256": "f8a3799e069a24e50057df56b311643c9b4fa508310f973021bcb650c6ba300b"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-1/T1021.001-1_System.evtx", "sha256": "ffc9f290eddf7624b8f5e73b425bbb1b84dc36ef9c60127ef93d151f4d8a9c96"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-1/T1021.001-1_Windows PowerShell.evtx", "sha256": "e72ec9ea706fd8e0bddddf101a4920c0dffe127f082b4da204e334a7965d37be"}
+      ],
+      "scenario_id": "T1021.001-1"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-2/T1021.001-2_Application.evtx", "sha256": "b520c60578ca222b1ba95e5b8786fd67249259f89e1690cac1701cf0ebab59c5"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-2/T1021.001-2_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "27d7e70f481aa7ff305bd55066c7c9fe2cafcb2d082d82ad65c8e07eaf96a0b8"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-2/T1021.001-2_Security.evtx", "sha256": "c09e69178f7582f2207b48293c6e19048cc5c1c7484eb5922d333456aa7d7575"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-2/T1021.001-2_System.evtx", "sha256": "b03a871e26b1f07ccbe67599f484e5428b9261588867d53b9060c26875887268"},
+        {"bytes": 69632, "path": "ttp_evtx/T1021.001-2/T1021.001-2_Windows PowerShell.evtx", "sha256": "a03f373049a23266d3669f5b612a66b068842e56001d78af10f9647652d8ee0f"}
+      ],
+      "scenario_id": "T1021.001-2"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1047-1/T1047-1_Application.evtx", "sha256": "5a364fd5136b277aa42b2d34e9b52ccd35cd7596bca7790417def74ab7716c0f"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-1/T1047-1_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "d6304e53a760220c3aeb379ef63c22cc7b914c31a9d41d5d7eefc766c13d3f08"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-1/T1047-1_Security.evtx", "sha256": "fb6a7da56f907768e5871b7819d909fdf8ae55a91bf55b3e134f23eaf80b64fe"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-1/T1047-1_System.evtx", "sha256": "7c0b29a12abe6c04bc923667e7072ffc5dfd157233673176aa4667795f54b199"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-1/T1047-1_Windows PowerShell.evtx", "sha256": "f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b"}
+      ],
+      "scenario_id": "T1047-1"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1047-2/T1047-2_Application.evtx", "sha256": "08e7ec12ad143b9b570d08de07f840e15198251c6aad568f9645983288e7f7b0"},
+        {"bytes": 1118208, "path": "ttp_evtx/T1047-2/T1047-2_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "492b13212ee2cf2f2fe28898504f1adc9567ca913e49cc59e786c5a119593ed2"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-2/T1047-2_Security.evtx", "sha256": "389fb5053641f21ee04a9ac0fcd7dde5d584c8a086b071df20394db47792728f"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-2/T1047-2_System.evtx", "sha256": "bb187c3d3acf97bcea89fcc6f30d8c3c5b514b0da2c171549123bd30219cdba5"},
+        {"bytes": 69632, "path": "ttp_evtx/T1047-2/T1047-2_Windows PowerShell.evtx", "sha256": "9f34b1f42ab115c1de4792aa7cb8b6742c2ec955ee16217dd5ce66edb9d0f859"}
+      ],
+      "scenario_id": "T1047-2"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-4/T1136.001-4_Application.evtx", "sha256": "c72579fab5136cbd70f5168880aaeb149ba913560fcfefdd506509beb34ec2f0"},
+        {"bytes": 1118208, "path": "ttp_evtx/T1136.001-4/T1136.001-4_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "14545d72bf1913f6571ac51492d3a0ae9da5cf5c3d0ac302ed00bcc046f332d3"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-4/T1136.001-4_Security.evtx", "sha256": "7d133347b24ae36e1f7ec04448d26f8edfba36274b0b69c29d12dbdff163493d"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-4/T1136.001-4_System.evtx", "sha256": "aa8ecccea0d67be237e3a1459bbfbebbb13e2bd60f2744a101a2c7f9210a9986"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-4/T1136.001-4_Windows PowerShell.evtx", "sha256": "c95468eb0ec1cd914056bab194720469b1b575155a0e79b31edafd2c89407910"}
+      ],
+      "scenario_id": "T1136.001-4"
+    },
+    {
+      "evtx_files": [
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-5/T1136.001-5_Application.evtx", "sha256": "f4dec7af4789fc80dfcda25547f60c5868119fa832caf961ed48c0b874040ec5"},
+        {"bytes": 1118208, "path": "ttp_evtx/T1136.001-5/T1136.001-5_Microsoft-Windows-Sysmon_Operational.evtx", "sha256": "cf7a6acff6431b49a10a6d4aab391bef01326e599e60178bccf278a70a8ddeb8"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-5/T1136.001-5_Security.evtx", "sha256": "bbe0d941df73eb7444bb2792befc403d2f3ef0a9fd88eddf48aa3683e4708c7b"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-5/T1136.001-5_System.evtx", "sha256": "1647f93a37ab60d6c4ca99369bdf387c430f0c2d688b1afbac529727dc89b3cc"},
+        {"bytes": 69632, "path": "ttp_evtx/T1136.001-5/T1136.001-5_Windows PowerShell.evtx", "sha256": "ebe65434e5c18ebc9086cd08a718ff58f6c2b2aed0ce910fca6153fca27c7ba5"}
+      ],
+      "scenario_id": "T1136.001-5"
+    }
+  ],
+  "schema": "breachscope.p2_11b_atomic_evtx_byte_binding.v1",
+  "selection_commit": "7541214400507afddca40a22f2adb22504fc3946",
+  "source_commit": "8de5fa8f158b4d72d1e3c6f07053162c90ee6238",
+  "source_manifest_git_blob_sha1": "7c02b63efccc611d8e53e5173561866183f46581",
+  "source_manifest_path": "full_list_of_attacks_simulated.csv",
+  "source_manifest_sha256": "81d3abbe3d07aa6d153fd17c5b5274137aa853e95fd489a183ed5d7230651f8e",
+  "source_repository": "arniki/atomic-evtx"
+}
