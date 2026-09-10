@@ -38,8 +38,9 @@ benign_incremental_match_proof:
   probe_commit: dfa9fcab2b0feb47df3028dd617be3997624aa5f
   artifact_id: 10136342936
   artifact_digest_sha256: cc9aed4f73264195bc7a89ceaa1382bc09f8cc8689e32c6180ab1fd48c671177
+  artifact_inner_result_sha256: 2d56eb00882440cebd6d066d11e5e6d567cf60ab82b86439f96b6271e77a48fa
   stored_result: external_baseline/results/p2_11e_aa08c6be/benign-probe.json
-  stored_result_sha256: 2d56eb00882440cebd6d066d11e5e6d567cf60ab82b86439f96b6271e77a48fa
+  stored_result_sha256: 1c00795eb10693f8866c3c2f1ec2d5931a43aa88dc3ab563e7da8ccc55cf3b25
   fresh_full_fp_tn_rerun: false
 external_calibration:
   previous_measurement_record: external_baseline/results/p2_11d_456b2a82/measurement.yaml
