@@ -2,6 +2,15 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 
+class _TechniquePrimary(str):
+    """Backward-compatible primary ATT&CK ID carrying the rule's full mapping."""
+
+    def __new__(cls, primary: str, all_techniques: List[str]):
+        obj = str.__new__(cls, primary)
+        obj.all_techniques = tuple(all_techniques)
+        return obj
+
+
 @dataclass
 class Event:
     timestamp: str
@@ -26,6 +35,17 @@ class Rule:
     operator: Optional[str] = None  # regex|contains|startswith|endswith|equals
     fields: Optional[List[str]] = None  # additional fields to check
     all_of: Optional[List[Dict[str, str]]] = None  # structured AND conditions
+    mitre_techniques: List[str] = field(default_factory=list, init=False)
+
+    def __post_init__(self) -> None:
+        from .attack_annotations import rule_techniques
+
+        values = rule_techniques(self.id, self.mitre_technique)
+        self.mitre_techniques = values
+        if values:
+            self.mitre_technique = _TechniquePrimary(values[0], values)
+        else:
+            self.mitre_technique = None
 
 
 @dataclass
@@ -37,6 +57,15 @@ class Finding:
     event: Event
     matched_value: Optional[str]
     matched_context: Optional[str] = None
+    mitre_techniques: List[str] = field(default_factory=list, init=False)
+
+    def __post_init__(self) -> None:
+        primary = self.mitre_technique
+        values = list(getattr(primary, "all_techniques", ()) or ())
+        if not values and primary not in (None, ""):
+            values = [str(primary).strip().upper()]
+        self.mitre_techniques = values
+        self.mitre_technique = values[0] if values else None
 
 
 @dataclass
