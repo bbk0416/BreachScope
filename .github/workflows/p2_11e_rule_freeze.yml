@@ -34,7 +34,7 @@ jobs:
         run: |
           cd detector
           python -m pytest -q tests/test_p2_11e_service_discovery_rules.py
-          python scripts/validate_rulepack.py rules
+          python scripts/run.py --validate-rules
           python scripts/evaluate_external_holdout.py freeze --repo . --rules-dir rules --out "$RUNNER_TEMP/p2-11e-rules-freeze.json"
           cat "$RUNNER_TEMP/p2-11e-rules-freeze.json"
       - name: Upload freeze
