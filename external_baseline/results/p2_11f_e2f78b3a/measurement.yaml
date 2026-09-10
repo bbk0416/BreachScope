@@ -1,0 +1,85 @@
+schema: breachscope.p2_11f_external_calibration_measurement.v1
+calibration_id: p2-11f-t1006-direct-volume-access
+measurement_class: external_calibration
+measurement_repo_commit: e2f78b3addb0a6f7549f8911537c9999b65e3609
+from_rules_tree_sha256: 9b5d45c4f0edc37c788cda17451de6cf6b9114b8b6353c4522d15c294add053c
+to_rules_tree_sha256: 1626aca8b7b9a8e2a7e1f42360c65b504827ff43e52159eb3716613ebb540a50
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: 4dc26895301a6ff1212a83e86f3d1f02248615e3
+  rules:
+  - rule_id: R-DIRECT-VOLUME-RAW-LOGICAL-DRIVE
+    mitre_technique: T1006
+    predicate:
+      source_equals: Microsoft-Windows-Sysmon
+      event_id_equals: '1'
+      command_line_regex: '\\{2}\.\\[A-Za-z]:'
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  sysmon_records: 732200
+  sysmon_chunks: 11894
+  sysmon_event1: 2149
+  sysmon_event9: 4292
+  powershell_event1: 5
+  parse_errors: 0
+  raw_volume_path_any: 0
+  powershell_raw_volume: 0
+  filestream_raw_volume: 0
+  filestream_open_read_raw_volume: 0
+  probe_run_id: 34441210104
+  probe_commit: 3dd821f47eff85bdff0f4452802f00d948cda444
+  artifact_id: 10138066242
+  artifact_digest_sha256: 0c0abfc1c9772e83909c3aed31368e02a25fab2868c6ebbd17288b68cc36900a
+  artifact_inner_result_sha256: fa1e171892ae95306c30097879e81e1bb4f2d2f9a1649ed869971bcdbbd540f6
+  stored_result: external_baseline/results/p2_11f_e2f78b3a/benign-probe.json
+  stored_result_sha256: fa1e171892ae95306c30097879e81e1bb4f2d2f9a1649ed869971bcdbbd540f6
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11e_aa08c6be/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 4
+  after_scenario_hits: 5
+  scenario_misses: 7
+  scenario_total: 12
+  events: 902
+  rules: 64
+  findings: 89
+  flagged_events: 85
+  changed_scenarios:
+  - T1006-1
+  remaining_miss_scenarios:
+  - T1003-1
+  - T1003-2
+  - T1027-2
+  - T1021.001-1
+  - T1021.001-2
+  - T1047-1
+  - T1047-2
+measurement_execution:
+  github_actions_run_id: 34491513237
+  workflow_control_head_commit: aee0f425abf857f8e69e552a9f0b3875c5dc79cb
+  detector_repo_commit: e2f78b3addb0a6f7549f8911537c9999b65e3609
+  artifact_id: 10157960153
+  artifact_digest_sha256: b603371a6c94e1dcbf9c966a478d0264f8a0caa0787d062fc275fc7840f6e553
+  aggregate_result: external_baseline/results/p2_11f_e2f78b3a/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 8ffae533b35cabdf405b81d775da882d71ff28bf0ce6d75147a776b3633b91ca
+  aggregate_result_sha256: 8ffae533b35cabdf405b81d775da882d71ff28bf0ce6d75147a776b3633b91ca
+  rules_freeze_sha256: e1f7908e0e7d5a996a614948b51c4c5b646e5fec0fe9bba6621fbba4f857aac8
+  freeze_probe_run_id: 34491513161
+  freeze_probe_artifact_id: 10157939995
+  freeze_probe_artifact_digest_sha256: a8f30e04886effbe2813580dab1af66c9263b8ac03ef8bf853e9499c743bfb33
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: This is repeated scoring of the already-observed public P2-11B Atomic-EVTX
+    suite after T1006 tuning. The 5/12 result is external calibration only. The benign
+    result is an exact-predicate scan of the pinned public Sysmon source, not a fresh
+    full-rulepack FPR measurement.

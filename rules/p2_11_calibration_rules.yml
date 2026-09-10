@@ -54,3 +54,19 @@
     - field: command_line
       operator: regex
       pattern: '\bnet1?(?:\.exe)?"?\s+start\s*$'
+
+- id: R-DIRECT-VOLUME-RAW-LOGICAL-DRIVE
+  name: Direct Raw Logical Volume Access
+  description: Sysmon process creation whose command line references a DOS raw logical-volume device path
+  field: command_line
+  operator: regex
+  pattern: '\\{2}\.\\[A-Za-z]:'
+  severity: medium
+  mitre_technique: T1006
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
