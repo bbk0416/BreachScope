@@ -16,3 +16,41 @@
     - field: TargetDomainName
       operator: equals_field
       pattern: host
+
+- id: R-SERVICE-DISCOVERY-SC-LIST
+  name: Service Discovery via SC Query Listing
+  description: Sysmon process creation for sc.exe listing services with query or query state=all, excluding named-service queries
+  field: Image
+  operator: endswith
+  pattern: '\sc.exe'
+  severity: low
+  mitre_technique: T1007
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\bsc(?:\.exe)?"?\s+query(?:\s+state\s*=\s*all)?\s*$'
+
+- id: R-SERVICE-DISCOVERY-NET-START-LIST
+  name: Service Discovery via Net Start Listing
+  description: Sysmon process creation for net.exe or net1.exe listing started services with no service-name argument
+  field: Image
+  operator: regex
+  pattern: '\\net1?\.exe$'
+  severity: low
+  mitre_technique: T1007
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\bnet1?(?:\.exe)?"?\s+start\s*$'

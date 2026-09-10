@@ -1,0 +1,91 @@
+schema: breachscope.p2_11e_external_calibration_measurement.v1
+calibration_id: p2-11e-t1007-service-discovery
+measurement_class: external_calibration
+measurement_repo_commit: aa08c6beca2720a69165aed37562ba9730a8a62f
+from_rules_tree_sha256: b42725734f70cfc87ccd0122e6ab90da2169d7599b2abaaf22c27050efa0c4d2
+to_rules_tree_sha256: 9b5d45c4f0edc37c788cda17451de6cf6b9114b8b6353c4522d15c294add053c
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: 7af75f7edefa93c38ebb2e2a41ca9cc885e606c3
+  rules:
+    - rule_id: R-SERVICE-DISCOVERY-SC-LIST
+      mitre_technique: T1007
+      predicate:
+        Image_endswith: '\\sc.exe'
+        source_equals: Microsoft-Windows-Sysmon
+        event_id_equals: "1"
+        command_line_regex: '\\bsc(?:\\.exe)?"?\\s+query(?:\\s+state\\s*=\\s*all)?\\s*$'
+    - rule_id: R-SERVICE-DISCOVERY-NET-START-LIST
+      mitre_technique: T1007
+      predicate:
+        Image_regex: '\\\\net1?\\.exe$'
+        source_equals: Microsoft-Windows-Sysmon
+        event_id_equals: "1"
+        command_line_regex: '\\bnet1?(?:\\.exe)?"?\\s+start\\s*$'
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  sysmon_records: 732200
+  sysmon_chunks: 11894
+  sysmon_event1: 2149
+  sc_exe_event1: 4
+  net_exe_event1: 0
+  net1_exe_event1: 0
+  sc_query_list_exact: 0
+  net_start_list_exact: 0
+  parse_errors: 0
+  probe_run_id: 34436267099
+  probe_commit: dfa9fcab2b0feb47df3028dd617be3997624aa5f
+  artifact_id: 10136342936
+  artifact_digest_sha256: cc9aed4f73264195bc7a89ceaa1382bc09f8cc8689e32c6180ab1fd48c671177
+  artifact_inner_result_sha256: 2d56eb00882440cebd6d066d11e5e6d567cf60ab82b86439f96b6271e77a48fa
+  stored_result: external_baseline/results/p2_11e_aa08c6be/benign-probe.json
+  stored_result_sha256: 1c00795eb10693f8866c3c2f1ec2d5931a43aa88dc3ab563e7da8ccc55cf3b25
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11d_456b2a82/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 2
+  after_scenario_hits: 4
+  scenario_misses: 8
+  scenario_total: 12
+  events: 902
+  rules: 63
+  findings: 88
+  flagged_events: 84
+  changed_scenarios:
+    - T1007-1
+    - T1007-2
+  remaining_miss_scenarios:
+    - T1003-1
+    - T1003-2
+    - T1006-1
+    - T1027-2
+    - T1021.001-1
+    - T1021.001-2
+    - T1047-1
+    - T1047-2
+measurement_execution:
+  github_actions_run_id: 34437094844
+  workflow_control_head_commit: 6581dc1f61f445cc768a688ce5f96b5aa74d99df
+  detector_repo_commit: aa08c6beca2720a69165aed37562ba9730a8a62f
+  artifact_id: 10136572099
+  artifact_digest_sha256: 329d7c7f8eed02fca7dd9f06b30bf59d20aaf8904484d1a5909452f3bc6e0c1f
+  aggregate_result: external_baseline/results/p2_11e_aa08c6be/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 2e54f6dda00bc4657761051df3e0484e1b2427a2838e9f30d8e175d5935bea9b
+  aggregate_result_sha256: 15f6353f738caa7719fd6caca06857c5cb60349efc0ca1e9d1227397fb3a3ca7
+  rules_freeze_sha256: dfbc7c77c5ccf775428e1ce00edd997aad873969273ba7410faf03e09f0d1a5c
+  freeze_probe_run_id: 34436963895
+  freeze_probe_artifact_id: 10136515911
+  freeze_probe_artifact_digest_sha256: d7b7d1281302667815d04d79e88e7b890ee309768f9a950db62e44b172e66c71
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: This is repeated scoring of the already-observed public P2-11B Atomic-EVTX suite after T1007 tuning. The 4/12 result is external calibration only. The benign result is an exact-predicate scan of the pinned public Sysmon source, not a fresh full-rulepack FPR measurement.
