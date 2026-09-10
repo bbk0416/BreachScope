@@ -15,7 +15,7 @@ from Evtx.Evtx import Evtx
 
 EVENT_ID_RE = re.compile(r"<EventID(?:\s+[^>]*)?>(\d+)</EventID>", re.IGNORECASE)
 DATA_RE = re.compile(r'<Data\s+Name="([^"]+)">(.*?)</Data>', re.IGNORECASE | re.DOTALL)
-RAW_VOLUME_RE = re.compile(r"\\\\\\.\\[A-Za-z]:", re.IGNORECASE)
+RAW_VOLUME_RE = re.compile(r"\\{2}\.\\[A-Za-z]:", re.IGNORECASE)
 FILESTREAM_RE = re.compile(r"(?:System\.)?IO\.FileStream|\bFileStream\b", re.IGNORECASE)
 OPEN_RE = re.compile(r"\bOpen\b", re.IGNORECASE)
 READ_RE = re.compile(r"\bRead\b", re.IGNORECASE)
@@ -41,10 +41,8 @@ def _classify_event1(image: str, command_line: str) -> list[str]:
     hits: list[str] = []
     if not RAW_VOLUME_RE.search(command_line):
         return hits
-
     hits.append("raw_volume_path_any")
-    exe = _basename(image)
-    if exe in {"powershell.exe", "pwsh.exe"}:
+    if _basename(image) in {"powershell.exe", "pwsh.exe"}:
         hits.append("powershell_raw_volume")
     if FILESTREAM_RE.search(command_line):
         hits.append("filestream_raw_volume")
@@ -64,8 +62,10 @@ def _selftest() -> None:
     }
     if kinds != expected:
         raise SystemExit(f"candidate regex self-test failed: {sorted(kinds)}")
-    negative = r'powershell.exe -c Get-Content C:\Windows\win.ini'
-    if _classify_event1(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe", negative):
+    if _classify_event1(
+        r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+        r"powershell.exe -c Get-Content C:\Windows\win.ini",
+    ):
         raise SystemExit("candidate regex negative self-test failed")
 
 
@@ -183,7 +183,7 @@ def main() -> int:
             "production_false_positive_rate": "NOT_CLAIMED",
             "fresh_full_rulepack_fpr": "NOT_CLAIMED",
             "note": "Counts apply only to the pinned public benign-by-source-intent Sysmon corpus and these exact candidate predicates."
-        }
+        },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
