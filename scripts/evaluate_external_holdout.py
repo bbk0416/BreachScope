@@ -60,6 +60,32 @@ def _get(value: Any, key: str, default: Any = "") -> Any:
     return getattr(value, key, default)
 
 
+def _attack_requirement_satisfied(required: Any, observed: Any) -> bool:
+    from breachscope.attack_annotations import attack_requirement_satisfied
+
+    return attack_requirement_satisfied(required, observed)
+
+
+def _finding_techniques(finding: Any) -> set[str]:
+    values = getattr(finding, "mitre_techniques", None)
+    candidates: list[Any] = []
+    if isinstance(values, (list, tuple, set)):
+        candidates.extend(values)
+    elif values not in (None, ""):
+        candidates.append(values)
+
+    primary = getattr(finding, "mitre_technique", None)
+    if primary not in (None, ""):
+        candidates.append(primary)
+
+    normalized = {
+        str(value).strip().upper()
+        for value in candidates
+        if str(value or "").strip()
+    }
+    return normalized
+
+
 def event_identity_payload(event: Any) -> dict[str, str]:
     """Canonical identity used only for holdout accounting, not evidence integrity."""
     raw = _get(event, "raw", {})
@@ -521,8 +547,15 @@ def scenario_outcomes(
         observed: set[str] = set()
         for key in keys:
             observed.update(techniques_by_key.get(key, set()))
-        matched = expected & observed
-        missing = expected - observed
+        matched = {
+            required
+            for required in expected
+            if any(
+                _attack_requirement_satisfied(required, technique)
+                for technique in observed
+            )
+        }
+        missing = expected - matched
         outcomes.append(
             {
                 "scenario_id": scenario_id,
@@ -602,9 +635,7 @@ def score_holdout(
             unknown_finding_events += 1
             continue
         flagged_keys.add(key)
-        technique = str(getattr(finding, "mitre_technique", "") or "").upper()
-        if technique:
-            techniques_by_key[key].add(technique)
+        techniques_by_key[key].update(_finding_techniques(finding))
 
     if unknown_finding_events:
         raise HoldoutError(
@@ -637,7 +668,14 @@ def score_holdout(
             expected = set(label["expected_techniques"])
             if expected:
                 expected_technique_total += len(expected)
-                expected_technique_hits += len(expected & techniques_by_key.get(key, set()))
+                observed = techniques_by_key.get(key, set())
+                expected_technique_hits += sum(
+                    any(
+                        _attack_requirement_satisfied(required, technique)
+                        for technique in observed
+                    )
+                    for required in expected
+                )
 
     ignored_keys = {
         row["event_key"] for row in records if labels[row["event_key"]]["label"] == "ignore"
