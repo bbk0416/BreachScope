@@ -54,7 +54,9 @@ def main() -> int:
                 })
 
     result = {"parsed_security_events": parsed, "parse_errors": errors, "event_4720": matches}
-    Path(args.out).write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(result, ensure_ascii=False))
     if errors:
         raise SystemExit(f"parse errors: {errors}")
