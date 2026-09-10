@@ -32,7 +32,7 @@ jobs:
 
       - name: Extract miss-analysis evidence
         run: |
-          python scripts/p2_11c_atomic_miss_probe.py --atomic-root atomic-evtx --out out/p2_11c_probe
+          PYTHONPATH="$GITHUB_WORKSPACE" python scripts/p2_11c_atomic_miss_probe.py --atomic-root atomic-evtx --out out/p2_11c_probe
           cat out/p2_11c_probe/summary.json
 
       - name: Upload probe artifact
