@@ -1,0 +1,289 @@
+{
+  "schema": "breachscope.p2_11c_atomic_miss_taxonomy.v1",
+  "analysis_class": "external_calibration",
+  "base_main_commit": "ff279db1593bee8fd6f4d247de3670e86eaa574b",
+  "frozen_detector_commit": "674615ef3c92d5b4bbc4dec71f566d49de0454f4",
+  "frozen_rule_tree_sha256": "371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d0969f",
+  "source": {
+    "repository": "arniki/atomic-evtx",
+    "pinned_commit": "8de5fa8f158b4d72d1e3c6f07053162c90ee6238",
+    "p2_11b_result_sha256": "89a309b8b59c5602afb4e3de1136fe53d9284463a8e409625f6a633629071a11"
+  },
+  "probe": {
+    "workflow_run_id": 34431613536,
+    "workflow_head_commit": "831fd55c4b87bf0827bc9693b94296ff32a37c68",
+    "artifact_id": 10134693051,
+    "artifact_digest_sha256": "8cc51f57ffa87c7cff484395e634d83a52fc6372530fbae327464f275ab787b7",
+    "summary_sha256": "f02ebc003b225cff4932e0ced05f8383af9731ec4077dc314746277bd411388e",
+    "interesting_events_sha256": "0d24d6bd3416ae900b291b0e37861888d2bfff59b4287deae2247761f145471a",
+    "scenario_count": 12,
+    "event_count": 902,
+    "parse_errors": 0,
+    "note": "The probe re-read the already-known P2-11B Atomic-EVTX suite for calibration analysis. It did not change detector or rule semantics."
+  },
+  "taxonomy": {
+    "parser_gap_scenarios": 0,
+    "direct_event_rule_gap": [
+      "T1136.001-4",
+      "T1136.001-5"
+    ],
+    "command_line_rule_gap": [
+      "T1006-1",
+      "T1007-1",
+      "T1007-2"
+    ],
+    "technique_mapping_gap": [
+      "T1027-2"
+    ],
+    "clear_but_potentially_noisy_admin_telemetry": [
+      "T1021.001-1",
+      "T1047-1",
+      "T1047-2"
+    ],
+    "label_context_mismatch_or_weak_direct_proof": [
+      "T1021.001-2"
+    ],
+    "tool_or_configuration_specific_evidence_only": [
+      "T1003-1",
+      "T1003-2"
+    ]
+  },
+  "scenarios": [
+    {
+      "scenario_id": "T1003-1",
+      "expected_technique": "T1003",
+      "description": "Gsecdump",
+      "events": 44,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 shows cmd.exe executing gsecdump.exe -a.",
+        "No Sysmon Event 10 or other direct credential-access event appears in this five-channel scenario capture."
+      ],
+      "root_cause": "The action is visible primarily through a tool-specific process command line. Existing credential-dumping rules target LSASS access, SAM/SYSTEM saves, NTDS, or other narrower behaviors and do not match this invocation.",
+      "classification": "tool_or_configuration_specific_evidence_only",
+      "calibration_priority": "hold",
+      "reason": "Adding a gsecdump-name rule would be easy but would be strongly tool-specific. Prefer a tool-independent credential-access signal if available before adding coverage."
+    },
+    {
+      "scenario_id": "T1003-2",
+      "expected_technique": "T1003",
+      "description": "Credential Dumping with NPPSpy",
+      "events": 44,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 captures the PowerShell command that copies NPPSPY.dll and modifies HKLM SYSTEM CurrentControlSet Control NetworkProvider Order and Services NPPSpy NetworkProvider settings.",
+        "This capture contains Sysmon process create/terminate events but no Sysmon registry Event 13 for those changes."
+      ],
+      "root_cause": "Credential-capture setup is visible inside a long PowerShell command, but the available capture lacks a direct registry-change event and current rules do not model network-provider credential capture.",
+      "classification": "tool_or_configuration_specific_evidence_only",
+      "calibration_priority": "hold",
+      "reason": "A rule based on the NPPSpy name would overfit. A broader NetworkProvider configuration rule may be possible, but it needs a benign collision study before use."
+    },
+    {
+      "scenario_id": "T1006-1",
+      "expected_technique": "T1006",
+      "description": "Read volume boot sector via DOS device path (PowerShell)",
+      "events": 79,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 captures PowerShell constructing IO.FileStream for \\.\\C: with Open and Read and then reading bytes."
+      ],
+      "root_cause": "The raw-volume read is present in command-line telemetry, but the 60-rule pack has no T1006 rule for direct volume/device access.",
+      "classification": "command_line_rule_gap",
+      "calibration_priority": "medium",
+      "reason": "The behavior can be described without the Atomic test name, but the candidate must be checked against pinned benign PowerShell/device-path usage before adoption."
+    },
+    {
+      "scenario_id": "T1027-2",
+      "expected_technique": "T1027",
+      "description": "Execute base64-encoded PowerShell",
+      "events": 114,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 captures powershell.exe -EncodedCommand with a concrete Base64 payload.",
+        "The current Encoded PowerShell rule maps this behavior to T1059.001, which was observed in P2-11B, not to the suite's expected T1027."
+      ],
+      "root_cause": "This is primarily an ATT&CK technique-mapping/granularity gap rather than a failure to notice encoded PowerShell.",
+      "classification": "technique_mapping_gap",
+      "calibration_priority": "medium",
+      "reason": "Do not replace the existing PowerShell mapping merely to fit the suite. Consider dual-tagging only if the rule semantics and ATT&CK mapping are independently justified."
+    },
+    {
+      "scenario_id": "T1007-1",
+      "expected_technique": "T1007",
+      "description": "System Service Discovery",
+      "events": 58,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 records sc.exe query and sc.exe query state= all, spawned from cmd.exe."
+      ],
+      "root_cause": "Service-discovery command telemetry is clear, but the 60-rule pack has no T1007 rule.",
+      "classification": "command_line_rule_gap",
+      "calibration_priority": "high",
+      "reason": "A semantic sc.exe query rule is straightforward and not tied to the Atomic scenario name, but benign administrative use must be measured."
+    },
+    {
+      "scenario_id": "T1007-2",
+      "expected_technique": "T1007",
+      "description": "System Service Discovery - net.exe",
+      "events": 63,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 records net.exe start and the corresponding net1.exe start process chain."
+      ],
+      "root_cause": "Service-discovery command telemetry is clear, but the 60-rule pack has no T1007 rule for this form.",
+      "classification": "command_line_rule_gap",
+      "calibration_priority": "high",
+      "reason": "A net.exe/net1.exe service-listing rule is semantically direct but likely overlaps legitimate administration, so benign measurement is required."
+    },
+    {
+      "scenario_id": "T1021.001-1",
+      "expected_technique": "T1021.001",
+      "description": "RDP to DomainController",
+      "events": 124,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 captures PowerShell preparing TERMSRV credentials with cmdkey and launching mstsc.exe /v:.",
+        "The selected five-channel capture does not include TerminalServices operational channels that would directly prove a completed RDP session."
+      ],
+      "root_cause": "RDP client invocation is visible, but the existing T1021.001 rule focuses on enabling/configuring RDP rather than mstsc client use.",
+      "classification": "clear_but_potentially_noisy_admin_telemetry",
+      "calibration_priority": "medium",
+      "reason": "mstsc /v is a clear RDP-use signal but is common in legitimate administration. Treat as low-confidence technique telemetry unless additional context narrows it."
+    },
+    {
+      "scenario_id": "T1021.001-2",
+      "expected_technique": "T1021.001",
+      "description": "Changing RDP Port to Non Standard Port via Powershell",
+      "events": 70,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 captures Set-ItemProperty on HKLM SYSTEM CurrentControlSet Control Terminal Server WinStations RDP-Tcp PortNumber to 4489 and New-NetFirewallRule for TCP 4489.",
+        "No actual RDP client or completed RDP-session event is present in the selected five channels for this scenario."
+      ],
+      "root_cause": "The captured action is RDP service configuration, while the expected scenario technique is Remote Services: RDP. The available telemetry does not itself prove remote-service use.",
+      "classification": "label_context_mismatch_or_weak_direct_proof",
+      "calibration_priority": "hold",
+      "reason": "Do not add a T1021.001 hit solely to improve this score unless the project explicitly decides that RDP-port configuration itself should map to that technique."
+    },
+    {
+      "scenario_id": "T1047-1",
+      "expected_technique": "T1047",
+      "description": "WMI Reconnaissance Users",
+      "events": 61,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 records WMIC.exe with command line wmic useraccount get /ALL /format:csv."
+      ],
+      "root_cause": "WMI query use is explicit, but existing T1047 rules cover WMI process creation, remote XSL execution, or WmiPrvSE child-process execution rather than reconnaissance queries.",
+      "classification": "clear_but_potentially_noisy_admin_telemetry",
+      "calibration_priority": "medium",
+      "reason": "A generic WMIC-query rule would increase technique coverage but can match legitimate administration. Benign frequency must be measured before adoption."
+    },
+    {
+      "scenario_id": "T1047-2",
+      "expected_technique": "T1047",
+      "description": "WMI Reconnaissance Processes",
+      "events": 63,
+      "parse_errors": 0,
+      "evidence": [
+        "Sysmon Event 1 records WMIC.exe with command line wmic process get caption,executablepath,commandline /format:csv.",
+        "A WmiPrvSE.exe process is also present, but this scenario does not rely on the Security 4688 parent-child form used by the existing P2-10H rule."
+      ],
+      "root_cause": "WMI query use is explicit but outside the current T1047 rule shapes.",
+      "classification": "clear_but_potentially_noisy_admin_telemetry",
+      "calibration_priority": "medium",
+      "reason": "Same tradeoff as T1047-1: semantically valid WMI telemetry, but potentially noisy if any WMIC query is treated as suspicious."
+    },
+    {
+      "scenario_id": "T1136.001-4",
+      "expected_technique": "T1136.001",
+      "description": "Create a new user in a command prompt",
+      "events": 81,
+      "parse_errors": 0,
+      "evidence": [
+        "Security Event 4720 directly records creation of local account T1136.001_CMD.",
+        "Sysmon Event 1 also records net.exe user /add and net1.exe user /add."
+      ],
+      "root_cause": "Direct account-creation telemetry exists, but the 60-rule pack has no Security 4720 rule mapped to T1136.001.",
+      "classification": "direct_event_rule_gap",
+      "calibration_priority": "highest",
+      "reason": "Security 4720 is a generic, tool-independent account-creation event and covers the behavior without depending on Atomic-specific names or command syntax."
+    },
+    {
+      "scenario_id": "T1136.001-5",
+      "expected_technique": "T1136.001",
+      "description": "Create a new user in PowerShell",
+      "events": 101,
+      "parse_errors": 0,
+      "evidence": [
+        "Security Event 4720 directly records creation of local account T1136.001_PowerShell.",
+        "Sysmon Event 1 records PowerShell New-LocalUser -NoPassword."
+      ],
+      "root_cause": "Direct account-creation telemetry exists, but the 60-rule pack has no Security 4720 rule mapped to T1136.001.",
+      "classification": "direct_event_rule_gap",
+      "calibration_priority": "highest",
+      "reason": "The same Security 4720 rule can cover both account-creation scenarios without command- or tool-specific overfitting."
+    }
+  ],
+  "recommended_order": [
+    {
+      "rank": 1,
+      "candidate": "Security 4720 -> T1136.001",
+      "covers": ["T1136.001-4", "T1136.001-5"],
+      "status": "BENIGN_CHECK_FIRST"
+    },
+    {
+      "rank": 2,
+      "candidate": "Sysmon service-discovery commands -> T1007",
+      "covers": ["T1007-1", "T1007-2"],
+      "status": "BENIGN_CHECK_FIRST"
+    },
+    {
+      "rank": 3,
+      "candidate": "PowerShell raw-volume device-path read -> T1006",
+      "covers": ["T1006-1"],
+      "status": "BENIGN_CHECK_FIRST"
+    },
+    {
+      "rank": 4,
+      "candidate": "Encoded PowerShell dual-technique mapping review",
+      "covers": ["T1027-2"],
+      "status": "MAPPING_REVIEW"
+    },
+    {
+      "rank": 5,
+      "candidate": "WMIC query telemetry -> T1047",
+      "covers": ["T1047-1", "T1047-2"],
+      "status": "BENIGN_CHECK_AND_NOISE_REVIEW"
+    },
+    {
+      "rank": 6,
+      "candidate": "mstsc /v RDP-client telemetry -> T1021.001",
+      "covers": ["T1021.001-1"],
+      "status": "BENIGN_CHECK_AND_NOISE_REVIEW"
+    }
+  ],
+  "hold": [
+    {
+      "scenario_id": "T1021.001-2",
+      "reason": "Available telemetry proves RDP configuration change, not an RDP remote-services session."
+    },
+    {
+      "scenario_id": "T1003-1",
+      "reason": "Current direct evidence is primarily the gsecdump tool invocation; avoid a tool-name-only rule."
+    },
+    {
+      "scenario_id": "T1003-2",
+      "reason": "Current direct evidence is primarily an NPPSpy-specific PowerShell configuration command and lacks a direct registry-change event in this capture."
+    }
+  ],
+  "claim_boundary": {
+    "p2_11b_baseline_is_immutable_historical_result": true,
+    "p2_11b_result": "0 HIT / 12 MISS",
+    "future_runs_on_same_12_scenarios": "external_calibration",
+    "final_blind_holdout": false,
+    "event_level_precision_recall_fpr": "NOT_CLAIMED",
+    "production_detection_rate": "NOT_CLAIMED"
+  }
+}
