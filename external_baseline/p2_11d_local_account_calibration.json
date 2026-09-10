@@ -1,0 +1,64 @@
+{
+  "schema": "breachscope.p2_11d_local_account_calibration.v1",
+  "analysis_class": "external_calibration",
+  "base_main_commit": "8a9c17a4d47ab733c5f3b97e6e535347793138fa",
+  "candidate": {
+    "rule_id": "R-LOCAL-ACCOUNT-4720-NONSYSTEM",
+    "mitre_technique": "T1136.001",
+    "conditions": [
+      "source == Microsoft-Windows-Security-Auditing",
+      "event_id == 4720",
+      "SubjectUserSid != S-1-5-18",
+      "TargetDomainName equals event.host, case-insensitive, with short-host alias support"
+    ]
+  },
+  "benign_probe": {
+    "corpus_repository": "NextronSystems/evtx-baseline",
+    "release_tag": "v0.8.4",
+    "asset_name": "win10-client.tgz",
+    "asset_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+    "workflow_run_id": 34432322245,
+    "workflow_head_commit": "878289eaa80aa08b6b5b910317a36c2eaaf2d40a",
+    "artifact_id": 10134963918,
+    "artifact_sha256": "270416fcf136564d489eec59ef3eb3da99c45461b15f891318f8668953d25a08",
+    "artifact_size_bytes": 2583,
+    "evtx_files": 352,
+    "non_sysmon_evtx_files": 351,
+    "non_sysmon_events": 34423,
+    "parse_errors": 0,
+    "security_4720_events": 3,
+    "security_4720_subject_sids": [
+      "S-1-5-18",
+      "S-1-5-18",
+      "S-1-5-18"
+    ],
+    "candidate_matches": 0
+  },
+  "attack_probe": {
+    "corpus_repository": "arniki/atomic-evtx",
+    "pinned_commit": "8de5fa8f158b4d72d1e3c6f07053162c90ee6238",
+    "workflow_run_id": 34432731759,
+    "workflow_head_commit": "eda61964f92bc5778eb31f05286186a4ada24373",
+    "artifact_id": 10135070305,
+    "artifact_sha256": "5de4882e4b1913c7761409edfe1d114f0b0541399a30fd73a772ce54a57197ba",
+    "artifact_size_bytes": 580,
+    "parsed_security_events": 26,
+    "parse_errors": 0,
+    "security_4720_events": 2,
+    "scenario_ids": [
+      "T1136.001-4",
+      "T1136.001-5"
+    ],
+    "subject_sid_suffix": "-1006",
+    "target_domain_matches_host": true,
+    "candidate_matches": 2
+  },
+  "claim_boundary": {
+    "p2_11b_historical_score_unchanged": true,
+    "final_blind_holdout": false,
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "current_rulepack_false_positive_rate": "NOT_CLAIMED",
+    "event_level_precision_recall": "NOT_CLAIMED",
+    "note": "Zero observed benign candidate matches applies only to this pinned public benign-by-source-intent corpus and exact candidate predicate."
+  }
+}
