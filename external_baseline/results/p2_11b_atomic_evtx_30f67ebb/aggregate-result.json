@@ -33,17 +33,340 @@
     "note": "Known public Atomic Red Team corpus scored as an external_baseline after precommitted selection, byte binding, scenario labels, and scoring protocol. Event-level labels were all ignore."
   },
   "outcomes": [
-    {"scenario_id":"T1003-1","source_files":["T1003-1_Application.evtx","T1003-1_Microsoft-Windows-Sysmon_Operational.evtx","T1003-1_Security.evtx","T1003-1_System.evtx","T1003-1_Windows PowerShell.evtx"],"event_count":44,"expected_techniques":["T1003"],"observed_techniques":["T1021.006","T1070.001"],"matched_techniques":[],"missing_techniques":["T1003"],"technique_recall":0.0,"status":"miss","manifest_sha256":"a18777af2fcaa3634f722eb87bbffd61c9c3f20e9cc768d21160bb02a9a49d1f","labels_sha256":"efc94ef47fc12b9b785138b266e4cdbb590784a19979701976d9f5c6c00a961b","findings":11,"flagged_events":11},
-    {"scenario_id":"T1003-2","source_files":["T1003-2_Application.evtx","T1003-2_Microsoft-Windows-Sysmon_Operational.evtx","T1003-2_Security.evtx","T1003-2_System.evtx","T1003-2_Windows PowerShell.evtx"],"event_count":44,"expected_techniques":["T1003"],"observed_techniques":["T1070.001"],"matched_techniques":[],"missing_techniques":["T1003"],"technique_recall":0.0,"status":"miss","manifest_sha256":"e2627a0d352bc49076908749756d83416a19d2f8c5e4e5acfbf4151eb7d9063b","labels_sha256":"b87b6b780eca16b81424383c6908be123005713ba5b100207b5faf5916d52f8b","findings":3,"flagged_events":3},
-    {"scenario_id":"T1006-1","source_files":["T1006-1_Application.evtx","T1006-1_Microsoft-Windows-Sysmon_Operational.evtx","T1006-1_Security.evtx","T1006-1_System.evtx","T1006-1_Windows PowerShell.evtx"],"event_count":79,"expected_techniques":["T1006"],"observed_techniques":["T1070.001"],"matched_techniques":[],"missing_techniques":["T1006"],"technique_recall":0.0,"status":"miss","manifest_sha256":"bc6cb34b1f8287fc1f308124e3c58f5190f27c1baa4fe1fc017906e3bcf18681","labels_sha256":"fba5d62c7f49bfea460d7a26fc6e3b4d8d06082e7f5d69cc51b2559a8abf6dc5","findings":3,"flagged_events":3},
-    {"scenario_id":"T1027-2","source_files":["T1027-2_Application.evtx","T1027-2_Microsoft-Windows-Sysmon_Operational.evtx","T1027-2_Security.evtx","T1027-2_System.evtx","T1027-2_Windows PowerShell.evtx"],"event_count":114,"expected_techniques":["T1027"],"observed_techniques":["T1021.006","T1059.001","T1070.001"],"matched_techniques":[],"missing_techniques":["T1027"],"technique_recall":0.0,"status":"miss","manifest_sha256":"4f07abc9b3eaf26810c7bf79b5cf62a12c8401d9916ea6f76a930799838a9243","labels_sha256":"326e4881b63e2cdff6c2851c69f7e1fbb6682e21b1d542b12696c8ce9e48ca5b","findings":15,"flagged_events":12},
-    {"scenario_id":"T1007-1","source_files":["T1007-1_Application.evtx","T1007-1_Microsoft-Windows-Sysmon_Operational.evtx","T1007-1_Security.evtx","T1007-1_System.evtx","T1007-1_Windows PowerShell.evtx"],"event_count":58,"expected_techniques":["T1007"],"observed_techniques":["T1021.006","T1070.001"],"matched_techniques":[],"missing_techniques":["T1007"],"technique_recall":0.0,"status":"miss","manifest_sha256":"53c163fa539729eeee99af7782f3be7f94e3fa42aadeff17af97863a54e62bf9","labels_sha256":"9f0a871a14a1e03c0cd19f46354393452b4cb0a3bc621cab2e90c755d04d782c","findings":4,"flagged_events":4},
-    {"scenario_id":"T1007-2","source_files":["T1007-2_Application.evtx","T1007-2_Microsoft-Windows-Sysmon_Operational.evtx","T1007-2_Security.evtx","T1007-2_System.evtx","T1007-2_Windows PowerShell.evtx"],"event_count":63,"expected_techniques":["T1007"],"observed_techniques":["T1070.001"],"matched_techniques":[],"missing_techniques":["T1007"],"technique_recall":0.0,"status":"miss","manifest_sha256":"4af24cb5d0441653a9855a3f86a1adec4493da24d2cb20884d17da6fc9e83d7a","labels_sha256":"cb6e031ae75104990a80a5ce2f1ace2d478b9d8d3130c8fde4fe093a9d7162d4","findings":3,"flagged_events":3},
-    {"scenario_id":"T1021.001-1","source_files":["T1021.001-1_Application.evtx","T1021.001-1_Microsoft-Windows-Sysmon_Operational.evtx","T1021.001-1_Security.evtx","T1021.001-1_System.evtx","T1021.001-1_Windows PowerShell.evtx"],"event_count":124,"expected_techniques":["T1021.001"],"observed_techniques":["T1021.006","T1070.001"],"matched_techniques":[],"missing_techniques":["T1021.001"],"technique_recall":0.0,"status":"miss","manifest_sha256":"234307641eba98870d87074c0722f5e2531d82dc0d66bfffd6e119951c4bc89e","labels_sha256":"a7562dbd738314b436ca78101c331ef3a2696d9a4744dc154141f3f4b0ae825d","findings":11,"flagged_events":11},
-    {"scenario_id":"T1021.001-2","source_files":["T1021.001-2_Application.evtx","T1021.001-2_Microsoft-Windows-Sysmon_Operational.evtx","T1021.001-2_Security.evtx","T1021.001-2_System.evtx","T1021.001-2_Windows PowerShell.evtx"],"event_count":70,"expected_techniques":["T1021.001"],"observed_techniques":["T1070.001"],"matched_techniques":[],"missing_techniques":["T1021.001"],"technique_recall":0.0,"status":"miss","manifest_sha256":"5fb0700a3675a0e105c8408c42511db2185610843bf5d39495ecba84a0014328","labels_sha256":"e72f42f4ca496532920c2952a26c7a48868cde8df44f0a127f37305991b97eb3","findings":3,"flagged_events":3},
-    {"scenario_id":"T1047-1","source_files":["T1047-1_Application.evtx","T1047-1_Microsoft-Windows-Sysmon_Operational.evtx","T1047-1_Security.evtx","T1047-1_System.evtx","T1047-1_Windows PowerShell.evtx"],"event_count":61,"expected_techniques":["T1047"],"observed_techniques":["T1021.006","T1070.001"],"matched_techniques":[],"missing_techniques":["T1047"],"technique_recall":0.0,"status":"miss","manifest_sha256":"48f0e8502d833c1e891f066266258417f8de60e757f66f2921f55647c1024815","labels_sha256":"bacc32eb715674c234409670dd46139b530f7b115af3476031f4ea304f5cec9f","findings":9,"flagged_events":9},
-    {"scenario_id":"T1047-2","source_files":["T1047-2_Application.evtx","T1047-2_Microsoft-Windows-Sysmon_Operational.evtx","T1047-2_Security.evtx","T1047-2_System.evtx","T1047-2_Windows PowerShell.evtx"],"event_count":63,"expected_techniques":["T1047"],"observed_techniques":["T1070.001"],"matched_techniques":[],"missing_techniques":["T1047"],"technique_recall":0.0,"status":"miss","manifest_sha256":"718c438c49437b55206867931211ab5de18d90cdc2457f6ad3a9942aea9db2bd","labels_sha256":"f3888974e6cede767cadd1dfa0c1109fade47ba64d812e20b4ab73fc9ce71f7b","findings":3,"flagged_events":3},
-    {"scenario_id":"T1136.001-4","source_files":["T1136.001-4_Application.evtx","T1136.001-4_Microsoft-Windows-Sysmon_Operational.evtx","T1136.001-4_Security.evtx","T1136.001-4_System.evtx","T1136.001-4_Windows PowerShell.evtx"],"event_count":81,"expected_techniques":["T1136.001"],"observed_techniques":["T1021.006","T1070.001","T1087.001","T1135"],"matched_techniques":[],"missing_techniques":["T1136.001"],"technique_recall":0.0,"status":"miss","manifest_sha256":"d763f2ce7b5aca058e7275e09fe3374021f1143d5b9a357c1020540c1a395345","labels_sha256":"96a53cc8dc0a52264041194f2f00ef5b0ff853db88d97a4d5f6d52d65380a875","findings":11,"flagged_events":10},
-    {"scenario_id":"T1136.001-5","source_files":["T1136.001-5_Application.evtx","T1136.001-5_Microsoft-Windows-Sysmon_Operational.evtx","T1136.001-5_Security.evtx","T1136.001-5_System.evtx","T1136.001-5_Windows PowerShell.evtx"],"event_count":101,"expected_techniques":["T1136.001"],"observed_techniques":["T1021.006","T1059.001","T1070.001"],"matched_techniques":[],"missing_techniques":["T1136.001"],"technique_recall":0.0,"status":"miss","manifest_sha256":"6c527d77e032406023e4667390e888b4a1bc3a921fe5eecbcf21d1a9ba2c94da","labels_sha256":"49ba8fa51ff837dc929036f85e944a1d2caffcca12cdadd59346984687b84e6c","findings":6,"flagged_events":6}
+    {
+      "scenario_id": "T1003-1",
+      "source_files": [
+        "T1003-1_Application.evtx",
+        "T1003-1_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1003-1_Security.evtx",
+        "T1003-1_System.evtx",
+        "T1003-1_Windows PowerShell.evtx"
+      ],
+      "event_count": 44,
+      "expected_techniques": [
+        "T1003"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1003"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "a18777af2fcaa3634f722eb87bbffd61c9c3f20e9cc768d21160bb02a9a49d1f",
+      "labels_sha256": "efc94ef47fc12b9b785138b266e4cdbb590784a19979701976d9f5c6c00a961b",
+      "findings": 11,
+      "flagged_events": 11
+    },
+    {
+      "scenario_id": "T1003-2",
+      "source_files": [
+        "T1003-2_Application.evtx",
+        "T1003-2_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1003-2_Security.evtx",
+        "T1003-2_System.evtx",
+        "T1003-2_Windows PowerShell.evtx"
+      ],
+      "event_count": 44,
+      "expected_techniques": [
+        "T1003"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1003"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "e2627a0d352bc49076908749756d83416a19d2f8c5e4e5acfbf4151eb7d9063b",
+      "labels_sha256": "b87b6b780eca16b81424383c6908be123005713ba5b100207b5faf5916d52f8b",
+      "findings": 3,
+      "flagged_events": 3
+    },
+    {
+      "scenario_id": "T1006-1",
+      "source_files": [
+        "T1006-1_Application.evtx",
+        "T1006-1_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1006-1_Security.evtx",
+        "T1006-1_System.evtx",
+        "T1006-1_Windows PowerShell.evtx"
+      ],
+      "event_count": 79,
+      "expected_techniques": [
+        "T1006"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1006"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "bc6cb34b1f8287fc1f308124e3c58f5190f27c1baa4fe1fc017906e3bcf18681",
+      "labels_sha256": "fba5d62c7f49bfea460d7a26fc6e3b4d8d06082e7f5d69cc51b2559a8abf6dc5",
+      "findings": 3,
+      "flagged_events": 3
+    },
+    {
+      "scenario_id": "T1027-2",
+      "source_files": [
+        "T1027-2_Application.evtx",
+        "T1027-2_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1027-2_Security.evtx",
+        "T1027-2_System.evtx",
+        "T1027-2_Windows PowerShell.evtx"
+      ],
+      "event_count": 114,
+      "expected_techniques": [
+        "T1027"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1059.001",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1027"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "4f07abc9b3eaf26810c7bf79b5cf62a12c8401d9916ea6f76a930799838a9243",
+      "labels_sha256": "326e4881b63e2cdff6c2851c69f7e1fbb6682e21b1d542b12696c8ce9e48ca5b",
+      "findings": 15,
+      "flagged_events": 12
+    },
+    {
+      "scenario_id": "T1007-1",
+      "source_files": [
+        "T1007-1_Application.evtx",
+        "T1007-1_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1007-1_Security.evtx",
+        "T1007-1_System.evtx",
+        "T1007-1_Windows PowerShell.evtx"
+      ],
+      "event_count": 58,
+      "expected_techniques": [
+        "T1007"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1007"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "53c163fa539729eeee99af7782f3be7f94e3fa42aadeff17af97863a54e62bf9",
+      "labels_sha256": "9f0a871a14a1e03c0cd19f46354393452b4cb0a3bc621cab2e90c755d04d782c",
+      "findings": 4,
+      "flagged_events": 4
+    },
+    {
+      "scenario_id": "T1007-2",
+      "source_files": [
+        "T1007-2_Application.evtx",
+        "T1007-2_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1007-2_Security.evtx",
+        "T1007-2_System.evtx",
+        "T1007-2_Windows PowerShell.evtx"
+      ],
+      "event_count": 63,
+      "expected_techniques": [
+        "T1007"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1007"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "4af24cb5d0441653a9855a3f86a1adec4493da24d2cb20884d17da6fc9e83d7a",
+      "labels_sha256": "cb6e031ae75104990a80a5ce2f1ace2d478b9d8d3130c8fde4fe093a9d7162d4",
+      "findings": 3,
+      "flagged_events": 3
+    },
+    {
+      "scenario_id": "T1021.001-1",
+      "source_files": [
+        "T1021.001-1_Application.evtx",
+        "T1021.001-1_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1021.001-1_Security.evtx",
+        "T1021.001-1_System.evtx",
+        "T1021.001-1_Windows PowerShell.evtx"
+      ],
+      "event_count": 124,
+      "expected_techniques": [
+        "T1021.001"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1021.001"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "234307641eba98870d87074c0722f5e2531d82dc0d66bfffd6e119951c4bc89e",
+      "labels_sha256": "a7562dbd738314b436ca78101c331ef3a2696d9a4744dc154141f3f4b0ae825d",
+      "findings": 11,
+      "flagged_events": 11
+    },
+    {
+      "scenario_id": "T1021.001-2",
+      "source_files": [
+        "T1021.001-2_Application.evtx",
+        "T1021.001-2_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1021.001-2_Security.evtx",
+        "T1021.001-2_System.evtx",
+        "T1021.001-2_Windows PowerShell.evtx"
+      ],
+      "event_count": 70,
+      "expected_techniques": [
+        "T1021.001"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1021.001"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "5fb0700a3675a0e105c8408c42511db2185610843bf5d39495ecba84a0014328",
+      "labels_sha256": "e72f42f4ca496532920c2952a26c7a48868cde8df44f0a127f37305991b97eb3",
+      "findings": 3,
+      "flagged_events": 3
+    },
+    {
+      "scenario_id": "T1047-1",
+      "source_files": [
+        "T1047-1_Application.evtx",
+        "T1047-1_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1047-1_Security.evtx",
+        "T1047-1_System.evtx",
+        "T1047-1_Windows PowerShell.evtx"
+      ],
+      "event_count": 61,
+      "expected_techniques": [
+        "T1047"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1047"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "48f0e8502d833c1e891f066266258417f8de60e757f66f2921f55647c1024815",
+      "labels_sha256": "bacc32eb715674c234409670dd46139b530f7b115af3476031f4ea304f5cec9f",
+      "findings": 9,
+      "flagged_events": 9
+    },
+    {
+      "scenario_id": "T1047-2",
+      "source_files": [
+        "T1047-2_Application.evtx",
+        "T1047-2_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1047-2_Security.evtx",
+        "T1047-2_System.evtx",
+        "T1047-2_Windows PowerShell.evtx"
+      ],
+      "event_count": 63,
+      "expected_techniques": [
+        "T1047"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1047"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "718c438c49437b55206867931211ab5de18d90cdc2457f6ad3a9942aea9db2bd",
+      "labels_sha256": "f3888974e6cede767cadd1dfa0c1109fade47ba64d812e20b4ab73fc9ce71f7b",
+      "findings": 3,
+      "flagged_events": 3
+    },
+    {
+      "scenario_id": "T1136.001-4",
+      "source_files": [
+        "T1136.001-4_Application.evtx",
+        "T1136.001-4_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1136.001-4_Security.evtx",
+        "T1136.001-4_System.evtx",
+        "T1136.001-4_Windows PowerShell.evtx"
+      ],
+      "event_count": 81,
+      "expected_techniques": [
+        "T1136.001"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001",
+        "T1087.001",
+        "T1135"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1136.001"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "d763f2ce7b5aca058e7275e09fe3374021f1143d5b9a357c1020540c1a395345",
+      "labels_sha256": "96a53cc8dc0a52264041194f2f00ef5b0ff853db88d97a4d5f6d52d65380a875",
+      "findings": 11,
+      "flagged_events": 10
+    },
+    {
+      "scenario_id": "T1136.001-5",
+      "source_files": [
+        "T1136.001-5_Application.evtx",
+        "T1136.001-5_Microsoft-Windows-Sysmon_Operational.evtx",
+        "T1136.001-5_Security.evtx",
+        "T1136.001-5_System.evtx",
+        "T1136.001-5_Windows PowerShell.evtx"
+      ],
+      "event_count": 101,
+      "expected_techniques": [
+        "T1136.001"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1059.001",
+        "T1070.001"
+      ],
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1136.001"
+      ],
+      "technique_recall": 0.0,
+      "status": "miss",
+      "manifest_sha256": "6c527d77e032406023e4667390e888b4a1bc3a921fe5eecbcf21d1a9ba2c94da",
+      "labels_sha256": "49ba8fa51ff837dc929036f85e944a1d2caffcca12cdadd59346984687b84e6c",
+      "findings": 6,
+      "flagged_events": 6
+    }
   ]
 }
