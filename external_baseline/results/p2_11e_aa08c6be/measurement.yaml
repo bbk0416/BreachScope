@@ -38,8 +38,9 @@ benign_incremental_match_proof:
   probe_commit: dfa9fcab2b0feb47df3028dd617be3997624aa5f
   artifact_id: 10136342936
   artifact_digest_sha256: cc9aed4f73264195bc7a89ceaa1382bc09f8cc8689e32c6180ab1fd48c671177
+  artifact_inner_result_sha256: 2d56eb00882440cebd6d066d11e5e6d567cf60ab82b86439f96b6271e77a48fa
   stored_result: external_baseline/results/p2_11e_aa08c6be/benign-probe.json
-  stored_result_sha256: 2d56eb00882440cebd6d066d11e5e6d567cf60ab82b86439f96b6271e77a48fa
+  stored_result_sha256: 1c00795eb10693f8866c3c2f1ec2d5931a43aa88dc3ab563e7da8ccc55cf3b25
   fresh_full_fp_tn_rerun: false
 external_calibration:
   previous_measurement_record: external_baseline/results/p2_11d_456b2a82/measurement.yaml
@@ -73,7 +74,8 @@ measurement_execution:
   artifact_id: 10136572099
   artifact_digest_sha256: 329d7c7f8eed02fca7dd9f06b30bf59d20aaf8904484d1a5909452f3bc6e0c1f
   aggregate_result: external_baseline/results/p2_11e_aa08c6be/aggregate-result.json
-  aggregate_result_sha256: 2e54f6dda00bc4657761051df3e0484e1b2427a2838e9f30d8e175d5935bea9b
+  artifact_inner_aggregate_result_sha256: 2e54f6dda00bc4657761051df3e0484e1b2427a2838e9f30d8e175d5935bea9b
+  aggregate_result_sha256: 15f6353f738caa7719fd6caca06857c5cb60349efc0ca1e9d1227397fb3a3ca7
   rules_freeze_sha256: dfbc7c77c5ccf775428e1ce00edd997aad873969273ba7410faf03e09f0d1a5c
   freeze_probe_run_id: 34436963895
   freeze_probe_artifact_id: 10136515911
