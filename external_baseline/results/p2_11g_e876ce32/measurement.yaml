@@ -1,0 +1,61 @@
+schema: breachscope.p2_11g_mapping_calibration_measurement.v1
+calibration_id: p2-11g-t1027-encoded-powershell-mapping
+measurement_class: external_calibration
+change_class: technique_mapping_and_evaluator_semantics_only
+measurement_repo_commit: e876ce32c6b5c9846ca553b03a291548a7a7aa93
+from_rules_tree_sha256: 1626aca8b7b9a8e2a7e1f42360c65b504827ff43e52159eb3716613ebb540a50
+to_rules_tree_sha256: 1626aca8b7b9a8e2a7e1f42360c65b504827ff43e52159eb3716613ebb540a50
+predicate_change: false
+mapping_change:
+  rule_id: R-ENC
+  primary_technique: T1059.001
+  additional_techniques:
+  - T1027.010
+  expected_parent_technique: T1027
+  evaluator_relation: parent_requirement_may_be_satisfied_by_child
+  duplicate_findings_introduced: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11f_e2f78b3a/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 5
+  after_scenario_hits: 6
+  scenario_misses: 6
+  scenario_total: 12
+  events: 902
+  rules: 64
+  findings: 89
+  flagged_events: 85
+  changed_scenarios:
+  - T1027-2
+  remaining_miss_scenarios:
+  - T1003-1
+  - T1003-2
+  - T1021.001-1
+  - T1021.001-2
+  - T1047-1
+  - T1047-2
+measurement_execution:
+  github_actions_run_id: 34499756767
+  workflow_control_head_commit: 913e7c6d58992e382ab06c419c308fcb52ccba09
+  detector_repo_commit: e876ce32c6b5c9846ca553b03a291548a7a7aa93
+  artifact_id: 10161361100
+  artifact_digest_sha256: 2b0f3e8debc4bd72ee8e7d9ed33dcdb487a5111916e7bacdd886e3bc173aefa0
+  aggregate_result: external_baseline/results/p2_11g_e876ce32/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 5be90a775a2b6f5216a61ab0b061a095797bd302f4480caa6916fef79f83431b
+  aggregate_result_sha256: 5be90a775a2b6f5216a61ab0b061a095797bd302f4480caa6916fef79f83431b
+  rules_freeze: external_baseline/results/p2_11g_e876ce32/rules-freeze.json
+  rules_freeze_sha256: 73535d68e868b1918a30fddb8ac7678b42908ef96f21d9f6629080eef81a983f
+  freeze_probe_run_id: 34499756832
+  freeze_probe_artifact_id: 10161345939
+  freeze_probe_artifact_digest_sha256: ad9a87db7b71383706eea1fa5b00312067e401f10c4799fa0476adbd697cc877
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: P2-11G reruns the already-observed public P2-11B Atomic-EVTX suite after an ATT&CK mapping/evaluator-semantics correction. The rule tree and finding/flagged-event counts are unchanged from P2-11F. The 6/12 result is external calibration only, not a fresh blind holdout or production performance measurement.
