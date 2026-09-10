@@ -1,0 +1,18 @@
+- id: R-LOCAL-ACCOUNT-4720-NONSYSTEM
+  name: Local Account Creation by Non-System Principal
+  description: Security 4720 account creation where the creating principal is not SYSTEM and TargetDomainName matches the local host
+  field: event_id
+  operator: equals
+  pattern: "4720"
+  severity: medium
+  mitre_technique: T1136.001
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
+    - field: SubjectUserSid
+      operator: regex
+      pattern: '^(?!S-1-5-18$).+'
+    - field: TargetDomainName
+      operator: equals_field
+      pattern: host

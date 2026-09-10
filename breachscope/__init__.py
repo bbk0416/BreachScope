@@ -61,3 +61,13 @@ from . import correlator as _correlator
 from .correlator_session_scope import install as _install_correlator_session_scope
 
 _install_correlator_session_scope(_correlator)
+
+# BREACHSCOPE_P2_11D_EVENT_FIELD_COMPARISON_V1
+# Native rules may compare one event field with another only inside all_of.
+# The installer keeps top-level matcher semantics unchanged and desugars
+# equals_field into an internal field-reference condition.
+from . import analyzer as _analyzer
+from . import rules as _rules
+from .rule_field_compare import install as _install_rule_field_compare
+
+_install_rule_field_compare(_rules, _analyzer)

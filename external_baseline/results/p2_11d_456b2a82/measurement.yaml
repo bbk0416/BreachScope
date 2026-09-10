@@ -1,0 +1,85 @@
+schema: breachscope.p2_11d_external_calibration_measurement.v1
+calibration_id: p2-11d-local-account-4720
+measurement_class: external_calibration
+measurement_repo_commit: 456b2a8238837026c8249ae1020b16249715bc04
+from_rules_tree_sha256: 371e73c4447cbce853dbdf936bdc40141bb4b0b496c11bcd63c41f8c42d0969f
+to_rules_tree_sha256: b42725734f70cfc87ccd0122e6ab90da2169d7599b2abaaf22c27050efa0c4d2
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: 5bb8f41b3d3a46bafac945611825fb744164a5cb
+  rule_id: R-LOCAL-ACCOUNT-4720-NONSYSTEM
+  mitre_technique: T1136.001
+  predicate:
+    event_id_equals: "4720"
+    source_equals: Microsoft-Windows-Security-Auditing
+    SubjectUserSid_regex: '^(?!S-1-5-18$).+'
+    TargetDomainName_equals_field: host
+engine_change:
+  module_file: breachscope/rule_field_compare.py
+  module_git_blob_sha1: 6e4ed6b1c3ddbd5d23f773bbc83f73b8ae41e350
+  initializer_file: breachscope/__init__.py
+  initializer_git_blob_sha1: d4ffc87021e1a3e5f0aeda11ee3b897257df0090
+  operator: equals_field
+  scope: all_of_only
+  missing_fields_fail_closed: true
+  host_short_name_alias: true
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  evtx_files: 352
+  non_sysmon_evtx_files: 351
+  non_sysmon_events: 34423
+  security_4720_events: 3
+  security_4720_system_creator_events: 3
+  exact_predicate_matches: 0
+  parse_errors: 0
+  probe_run_id: 34432322245
+  probe_commit: 878289eaa80aa08b6b5b910317a36c2eaaf2d40a
+  artifact_id: 10134963918
+  artifact_digest_sha256: 270416fcf136564d489eec59ef3eb3da99c45461b15f891318f8668953d25a08
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  historical_result_record: external_baseline/results/p2_11b_atomic_evtx_30f67ebb/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 0
+  after_scenario_hits: 2
+  scenario_misses: 10
+  scenario_total: 12
+  events: 902
+  rules: 61
+  findings: 84
+  flagged_events: 80
+  changed_scenarios:
+    - T1136.001-4
+    - T1136.001-5
+  remaining_miss_scenarios:
+    - T1003-1
+    - T1003-2
+    - T1006-1
+    - T1027-2
+    - T1007-1
+    - T1007-2
+    - T1021.001-1
+    - T1021.001-2
+    - T1047-1
+    - T1047-2
+measurement_execution:
+  github_actions_run_id: 34434077438
+  workflow_control_head_commit: 60b181021422bbff98998d592d1b13c60d74cb28
+  detector_repo_commit: 456b2a8238837026c8249ae1020b16249715bc04
+  artifact_id: 10135538509
+  artifact_digest_sha256: 9f4a28b595c98afbd4f973ade5742654d96eed620f3133617234e5d9db533c11
+  aggregate_result: external_baseline/results/p2_11d_456b2a82/aggregate-result.json
+  aggregate_result_sha256: f059c386a85d028938adafe2bc9519a732261d324711654b590e65544dbb1920
+  rules_freeze_sha256: 475c4110eb96c3e732c63e93587fc813d038f16fa8ecaa8825104be3a38ab6e7
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: This is repeated scoring of the already-observed public P2-11B Atomic-EVTX suite after tuning. The 2/12 result is external calibration only.
