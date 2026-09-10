@@ -1,0 +1,331 @@
+{
+  "schema": "breachscope.p2_11f_t1006_benign_probe.v1",
+  "corpus_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+  "scope": {
+    "sysmon_records": 732200,
+    "sysmon_chunks": 11894,
+    "sysmon_event1": 2149,
+    "sysmon_event9": 4292,
+    "powershell_event1": 5,
+    "parse_errors": 0
+  },
+  "candidate_counts": {
+    "raw_volume_path_any": 0,
+    "powershell_raw_volume": 0,
+    "filestream_raw_volume": 0,
+    "filestream_open_read_raw_volume": 0
+  },
+  "samples": {
+    "raw_volume_path_any": [],
+    "powershell_raw_volume": [],
+    "filestream_raw_volume": [],
+    "filestream_open_read_raw_volume": [],
+    "event9_raw_access_read": [
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:41:19.341"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:41:19.341"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:41:19.341"
+      },
+      {
+        "image": "C:\\Windows\\System32\\MoUsoCoreWorker.exe",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "3616",
+        "utc_time": "2022-02-08 11:41:19.638"
+      },
+      {
+        "image": "C:\\Windows\\System32\\MoUsoCoreWorker.exe",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "3616",
+        "utc_time": "2022-02-08 11:41:19.638"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:46:25.038"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:46:25.038"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:46:25.038"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:46:31.711"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:46:31.711"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:49:47.175"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:49:47.175"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:49:47.175"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:49:48.861"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:49:48.861"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:55:03.140"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:55:03.140"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:55:03.140"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:55:06.811"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:55:06.811"
+      },
+      {
+        "image": "C:\\Windows\\SystemApps\\Microsoft.Windows.Search_cw5n1h2txyewy\\SearchApp.exe",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "3192",
+        "utc_time": "2022-02-08 11:59:23.577"
+      },
+      {
+        "image": "C:\\Windows\\SystemApps\\Microsoft.Windows.Search_cw5n1h2txyewy\\SearchApp.exe",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "3192",
+        "utc_time": "2022-02-08 11:59:23.577"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:59:25.483"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:59:25.483"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 11:59:25.483"
+      },
+      {
+        "image": "C:\\Windows\\System32\\svchost.exe",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "1084",
+        "utc_time": "2022-02-08 12:03:04.217"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:03:21.274"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:03:21.274"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:03:21.274"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:03:25.539"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:05:57.577"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:05:57.577"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:05:57.577"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:05:59.093"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:05:59.093"
+      },
+      {
+        "image": "C:\\Windows\\System32\\SearchIndexer.exe",
+        "device": "\\Device\\Harddisk0\\DR0",
+        "process_id": "8156",
+        "utc_time": "2022-02-08 12:09:43.327"
+      },
+      {
+        "image": "C:\\Windows\\System32\\SearchIndexer.exe",
+        "device": "\\Device\\Harddisk0\\DR0",
+        "process_id": "8156",
+        "utc_time": "2022-02-08 12:09:43.327"
+      },
+      {
+        "image": "C:\\Windows\\System32\\SearchIndexer.exe",
+        "device": "\\Device\\Harddisk0\\DR0",
+        "process_id": "8156",
+        "utc_time": "2022-02-08 12:09:43.327"
+      },
+      {
+        "image": "C:\\Windows\\System32\\SearchIndexer.exe",
+        "device": "\\Device\\Harddisk0\\DR0",
+        "process_id": "8156",
+        "utc_time": "2022-02-08 12:09:43.327"
+      },
+      {
+        "image": "C:\\Windows\\System32\\SearchIndexer.exe",
+        "device": "\\Device\\Harddisk0\\DR0",
+        "process_id": "8156",
+        "utc_time": "2022-02-08 12:09:43.343"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:25.961"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:25.961"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:25.961"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:26.383"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:26.383"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:51.085"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:51.085"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume2",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:51.085"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume3",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:51.163"
+      },
+      {
+        "image": "System",
+        "device": "\\Device\\HarddiskVolume1",
+        "process_id": "4",
+        "utc_time": "2022-02-08 12:11:51.163"
+      }
+    ]
+  },
+  "claim_boundary": {
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "fresh_full_rulepack_fpr": "NOT_CLAIMED",
+    "note": "Counts apply only to the pinned public benign-by-source-intent Sysmon corpus and these exact candidate predicates."
+  }
+}
