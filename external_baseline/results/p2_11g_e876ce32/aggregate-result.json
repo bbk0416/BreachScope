@@ -255,6 +255,10 @@
       "labels_sha256": "9ebef9732b47f8b83b8589ac0eca0868f7f9f41ad48ec120786bb37a367b7d0d",
       "manifest_sha256": "032611ebc7e9da2d3f0863bd2b426b11dd1bd8b1757e09b135ddb13058ae4bbf",
       "matched_techniques": [
+        "T1136.001"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
         "T1021.006",
         "T1059.001",
         "T1070.001",
