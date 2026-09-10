@@ -1,0 +1,33 @@
+{
+  "schema": "breachscope.p2_11e_t1007_benign_probe.v1",
+  "corpus_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+  "scope": {
+    "sysmon_records": 732200,
+    "sysmon_chunks": 11894,
+    "sysmon_event1": 2149,
+    "parse_errors": 0
+  },
+  "process_counts": {
+    "sc_exe_event1": 4,
+    "net_exe_event1": 0,
+    "net1_exe_event1": 0
+  },
+  "candidate_counts": {
+    "sc_query_broad": 0,
+    "sc_query_list_exact": 0,
+    "sc_query_other": 0,
+    "net_start_list_exact": 0,
+    "net_start_named_service": 0
+  },
+  "samples": {
+    "sc_query_broad": [],
+    "sc_query_list_exact": [],
+    "sc_query_other": [],
+    "net_start_list_exact": [],
+    "net_start_named_service": []
+  },
+  "claim_boundary": {
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "note": "Counts apply only to the pinned public benign-by-source-intent Sysmon corpus and exact command predicates."
+  }
+}
