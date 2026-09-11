@@ -1,0 +1,33 @@
+{
+  "schema": "breachscope.p2_11h_t1047_benign_probe.v1",
+  "corpus_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+  "scope": {
+    "sysmon_records": 732200,
+    "sysmon_chunks": 11894,
+    "sysmon_event1": 2149,
+    "parse_errors": 0
+  },
+  "candidate_counts": {
+    "wmic_event1": 0,
+    "wmic_get_any": 0,
+    "wmic_get_non_remote_xsl": 0,
+    "wmic_useraccount_get": 0,
+    "wmic_process_get": 0,
+    "wmic_user_or_process_get": 0,
+    "wmic_get_format_csv": 0,
+    "wmic_get_remote_format_http": 0
+  },
+  "samples": {
+    "wmic_event1": [],
+    "wmic_get_any": [],
+    "wmic_get_non_remote_xsl": [],
+    "wmic_useraccount_get": [],
+    "wmic_process_get": [],
+    "wmic_get_remote_format_http": []
+  },
+  "claim_boundary": {
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "fresh_full_rulepack_fpr": "NOT_CLAIMED",
+    "note": "Counts apply only to the pinned public benign-by-source-intent Sysmon corpus and these WMIC query candidate predicates."
+  }
+}

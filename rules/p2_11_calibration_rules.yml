@@ -70,3 +70,22 @@
     - field: event_id
       operator: equals
       pattern: "1"
+
+- id: R-WMI-QUERY-GET
+  name: WMIC Query Telemetry
+  description: Sysmon process creation for WMIC query operations using the get verb, excluding remote XSL format URLs handled by the dedicated WMI XSL rule
+  field: command_line
+  operator: regex
+  pattern: '^(?!.*\/format\s*:\s*.*https?:\/\/).*\bget\b'
+  severity: low
+  mitre_technique: T1047
+  all_of:
+    - field: Image
+      operator: endswith
+      pattern: '\wmic.exe'
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"

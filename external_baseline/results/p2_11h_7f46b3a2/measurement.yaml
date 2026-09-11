@@ -1,0 +1,88 @@
+schema: breachscope.p2_11h_external_calibration_measurement.v1
+calibration_id: p2-11h-t1047-wmic-query
+measurement_class: external_calibration
+change_class: wmic_query_telemetry_rule_addition
+measurement_repo_commit: 7f46b3a29306328716dc02c176b4501eb2ef261b
+from_rules_tree_sha256: 1626aca8b7b9a8e2a7e1f42360c65b504827ff43e52159eb3716613ebb540a50
+to_rules_tree_sha256: c8b35af39d19f569c0a54c723dfdda35d61a966f54016cd8568b19cdecb4b2ec
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: 0571c33e8d3ab0a7c25ab91a4fb9594a8c2b9c75
+  rules:
+  - rule_id: R-WMI-QUERY-GET
+    mitre_technique: T1047
+    predicate:
+      source_equals: Microsoft-Windows-Sysmon
+      event_id_equals: '1'
+      image_endswith: \wmic.exe
+      command_line_regex: ^(?!.*\/format\s*:\s*.*https?:\/\/).*\bget\b
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  sysmon_records: 732200
+  sysmon_chunks: 11894
+  sysmon_event1: 2149
+  parse_errors: 0
+  wmic_event1: 0
+  wmic_get_any: 0
+  wmic_get_non_remote_xsl: 0
+  wmic_useraccount_get: 0
+  wmic_process_get: 0
+  wmic_user_or_process_get: 0
+  wmic_get_format_csv: 0
+  wmic_get_remote_format_http: 0
+  probe_run_id: 34554436633
+  probe_commit: 7607c9abdd8015d360ca624758805f6efe41ff6f
+  artifact_id: 10182076804
+  artifact_digest_sha256: ef512726590305b95802e74ccc222d6c89e06102c6bf91f3667eaaec8c920704
+  artifact_inner_result_sha256: 33bd265a51625bf104078b7a91ff63a0a83e32606c17af825224d56d2bff2789
+  stored_result: external_baseline/results/p2_11h_7f46b3a2/benign-probe.json
+  stored_result_sha256: 33bd265a51625bf104078b7a91ff63a0a83e32606c17af825224d56d2bff2789
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11g_e876ce32/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 6
+  after_scenario_hits: 8
+  scenario_misses: 4
+  scenario_total: 12
+  events: 902
+  rules: 65
+  findings: 91
+  flagged_events: 87
+  changed_scenarios:
+  - T1047-1
+  - T1047-2
+  remaining_miss_scenarios:
+  - T1003-1
+  - T1003-2
+  - T1021.001-1
+  - T1021.001-2
+measurement_execution:
+  github_actions_run_id: 34555286447
+  workflow_control_head_commit: 722b1a9e23a91b1836ae06a119687d4a284554c2
+  detector_repo_commit: 7f46b3a29306328716dc02c176b4501eb2ef261b
+  artifact_id: 10182325376
+  artifact_digest_sha256: 420df5a561b6d50489119bffa794d07ddbb94551cda77e8dc9d3b91fbdfcf0fd
+  aggregate_result: external_baseline/results/p2_11h_7f46b3a2/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 137a445d293f1659a965cd62f2f15a0966b9a1ce375d4a0714ad2f442c11dc1e
+  aggregate_result_sha256: 137a445d293f1659a965cd62f2f15a0966b9a1ce375d4a0714ad2f442c11dc1e
+  rules_freeze: external_baseline/results/p2_11h_7f46b3a2/rules-freeze.json
+  rules_freeze_sha256: 7ae70b315c92a3a1c2030fb5b787059218216759d7e15350e563eda8dc5961d6
+  freeze_probe_run_id: 34555286457
+  freeze_probe_artifact_id: 10182311143
+  freeze_probe_artifact_digest_sha256: edd77d62ab36e25b13e1dc2611fd797c9cd828e82bbf1b55acd142092a149c55
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: P2-11H reruns the already-observed public P2-11B Atomic-EVTX suite after adding
+    generic WMIC get-query telemetry. The 8/12 result is external calibration only.
+    The benign result is an exact-predicate scan of the pinned public Sysmon source,
+    not a fresh full-rulepack FPR measurement.
