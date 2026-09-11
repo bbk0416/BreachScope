@@ -89,3 +89,19 @@
     - field: event_id
       operator: equals
       pattern: "1"
+
+- id: R-NETWORKPROVIDER-CREDENTIAL-CAPTURE-CONFIG
+  name: Network Provider Credential Capture Configuration
+  description: Low-confidence Sysmon process telemetry for a command line that both modifies NetworkProvider provider order and registers a provider path; configuration alone does not prove credentials were captured
+  field: command_line
+  operator: regex
+  pattern: '(?is)(?=.*currentcontrolset\\+control\\+networkprovider\\+order)(?=.*\bproviderorder\b)(?=.*currentcontrolset\\+services\\+.+?\\+networkprovider)(?=.*\bproviderpath\b).*'
+  severity: low
+  mitre_technique: T1003
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
