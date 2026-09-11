@@ -41,7 +41,7 @@ def _mapping(value: Any, label: str) -> Mapping[str, Any]:
 
 def _locked_json(repo: Path, value: Any, sha256: str, label: str) -> dict[str, Any]:
     path = legacy._relative_file(repo, value, label)
-    _require(previous._sha256(path), sha256, f"{label} SHA")
+    _require(previous.previous._sha256(path), sha256, f"{label} SHA")
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise CurrentEvidenceError(f"{label} must be a JSON object")
