@@ -89,3 +89,22 @@
     - field: event_id
       operator: equals
       pattern: "1"
+
+- id: R-RDP-CLIENT-MSTSC-V
+  name: RDP Client Target Telemetry
+  description: Sysmon process creation for mstsc.exe with an explicit /v: remote target; low-confidence RDP-use telemetry rather than proof of a completed session
+  field: command_line
+  operator: regex
+  pattern: '(?i)(?:^|\s)/v\s*:\s*(?:"[^"]+"|\S+)'
+  severity: low
+  mitre_technique: T1021.001
+  all_of:
+    - field: Image
+      operator: endswith
+      pattern: '\mstsc.exe'
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
