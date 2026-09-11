@@ -1,0 +1,87 @@
+{
+  "schema": "breachscope.p2_11k_residual_miss_closure.v1",
+  "review_id": "p2-11k-residual-miss-closure",
+  "review_class": "evidence_only_no_rule_change",
+  "base_main_commit": "84b0143cc8c891dfe6c40f099f90ee44975a5562",
+  "current_detection_evidence_id": "p2-11j-current-detection-evidence",
+  "current_measurement_record": "external_baseline/results/p2_11j_357b7ea8/measurement.yaml",
+  "current_rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "current_rule_count": 66,
+  "current_external_calibration": {
+    "scenario_hits": 9,
+    "scenario_misses": 3,
+    "scenario_total": 12,
+    "events": 902,
+    "findings": 92,
+    "flagged_events": 88,
+    "remaining_miss_scenarios": [
+      "T1003-1",
+      "T1021.001-1",
+      "T1021.001-2"
+    ]
+  },
+  "source": {
+    "repository": "arniki/atomic-evtx",
+    "commit": "8de5fa8f158b4d72d1e3c6f07053162c90ee6238",
+    "taxonomy_record": "external_baseline/p2_11c_atomic_miss_taxonomy.json"
+  },
+  "residual_reviews": [
+    {
+      "scenario_id": "T1003-1",
+      "expected_technique": "T1003",
+      "description": "Gsecdump",
+      "disposition": "NO_GO_HOLD",
+      "direct_evidence": [
+        "The Atomic run reports: The system cannot execute the specified program.",
+        "The Atomic run exits with code 1.",
+        "The selected capture exposes the scenario primarily as a gsecdump.exe -a process invocation and does not contain a direct credential-access event such as Sysmon Event 10."
+      ],
+      "reason": "A new hit would require a tool-name-specific gsecdump rule or another weak proxy despite the test execution itself failing. That would be calibration-score chasing rather than a tool-independent credential-access detector.",
+      "reopen_condition": "Revisit only if an independent capture provides a generic credential-access signal that does not depend on the gsecdump executable name."
+    },
+    {
+      "scenario_id": "T1021.001-1",
+      "expected_technique": "T1021.001",
+      "description": "RDP to DomainController",
+      "disposition": "NO_GO_HOLD",
+      "direct_evidence": [
+        "The Atomic prerequisite Computer must be domain joined is reported as failed.",
+        "The concrete Sysmon child process captured during P2-11I is mstsc.exe /v: with no remote target value.",
+        "The selected five-channel capture does not include TerminalServices operational telemetry proving a completed RDP session."
+      ],
+      "reason": "P2-11I benign-first review showed that an explicit-target mstsc /v:<target> rule is defensible, but the fixed scenario contains only a targetless /v: invocation. Expanding the rule to targetless mstsc solely to convert this scenario would weaken the detector.",
+      "related_review": "PR #129 closed unmerged as NO-GO / HOLD",
+      "reopen_condition": "Revisit only with a capture containing an explicit RDP target or direct session-establishment telemetry."
+    },
+    {
+      "scenario_id": "T1021.001-2",
+      "expected_technique": "T1021.001",
+      "description": "Changing RDP Port to Non Standard Port via Powershell",
+      "disposition": "NO_GO_HOLD",
+      "direct_evidence": [
+        "The Atomic execution succeeds while changing the RDP listener port and creating an inbound firewall rule.",
+        "The selected capture contains RDP service configuration activity but no RDP client or completed-session event."
+      ],
+      "reason": "The available telemetry proves configuration of an RDP service endpoint, not use of Remote Services: RDP. Mapping the configuration change itself to a T1021.001 scenario hit solely to improve the calibration score is not justified by the captured behavior.",
+      "reopen_condition": "Revisit only if project semantics explicitly redefine RDP endpoint configuration as sufficient T1021.001 evidence, or if a capture contains actual RDP use telemetry."
+    }
+  ],
+  "decision": {
+    "new_rule_added": false,
+    "rule_tree_changed": false,
+    "calibration_rerun_required": false,
+    "external_calibration_ceiling_for_current_fixed_suite": "9/12",
+    "status": "CLOSE_RESIDUALS_NO_GO",
+    "note": "The remaining three misses are retained rather than weakened into hits. P2-11K is an evidence-only closure review and does not change detector semantics, the rule tree, or the current P2-11J calibration result."
+  },
+  "claim_boundary": {
+    "historical_p2_11b_baseline": "0/12_IMMUTABLE",
+    "current_external_calibration": "9/12_EXTERNAL_CALIBRATION_ONLY",
+    "production_detection_rate": "NOT_CLAIMED",
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "fresh_blind_holdout": false,
+    "fresh_external_baseline": false
+  }
+}
