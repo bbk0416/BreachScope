@@ -89,3 +89,28 @@
     - field: event_id
       operator: equals
       pattern: "1"
+
+- id: R-NETWORK-PROVIDER-CREDENTIAL-CAPTURE-SETUP
+  name: Network Provider Credential Capture Setup
+  description: Sysmon process creation whose command line combines NetworkProvider order modification semantics with registration of a provider DLL path
+  field: command_line
+  operator: regex
+  pattern: '\\SYSTEM\\CurrentControlSet\\Control\\NetworkProvider\\Order'
+  severity: medium
+  mitre_technique: T1003
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\bProviderOrder\b'
+    - field: command_line
+      operator: regex
+      pattern: '\\SYSTEM\\CurrentControlSet\\Services\\[^\\\s"]+\\NetworkProvider'
+    - field: command_line
+      operator: regex
+      pattern: '\bProviderPath\b'

@@ -1,0 +1,289 @@
+{
+  "change_class": "networkprovider_credential_capture_setup_rule_addition",
+  "claim_boundary": {
+    "final_blind_holdout": false,
+    "fresh_external_baseline": false,
+    "note": "Same public Atomic-EVTX scenarios were already observed in P2-11B and used for calibration. P2-11J adds generic NetworkProvider order plus provider-DLL registration telemetry; this remains external calibration only.",
+    "production_detection_rate": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED"
+  },
+  "detector_repo_commit": "357b7ea88c5949d899ec637c95f56bad61605f3c",
+  "evaluation_class": "external_calibration",
+  "event_level": {
+    "false_positive_rate": "NOT_CLAIMED",
+    "labels": "all_ignore",
+    "precision": "NOT_CLAIMED",
+    "recall": "NOT_CLAIMED",
+    "scored_events": 0
+  },
+  "events": 902,
+  "findings": 92,
+  "flagged_events": 88,
+  "flagged_ignored_events": 88,
+  "observed_technique_scenario_counts": {
+    "T1003": 1,
+    "T1006": 1,
+    "T1007": 2,
+    "T1021.006": 7,
+    "T1027.010": 1,
+    "T1047": 2,
+    "T1059.001": 2,
+    "T1070.001": 12,
+    "T1087.001": 1,
+    "T1135": 1,
+    "T1136.001": 2
+  },
+  "outcomes": [
+    {
+      "expected_techniques": [
+        "T1003"
+      ],
+      "findings": 11,
+      "flagged_events": 11,
+      "labels_sha256": "46f3b8558e96af49c790a46de6b4b61f542adea8c33612db9fc675af844c3a8f",
+      "manifest_sha256": "1b30e48d6387142be20dd3d52c17530c7d918d59461c794903e6dedf7e157a00",
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1003"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "scenario_id": "T1003-1",
+      "status": "miss"
+    },
+    {
+      "expected_techniques": [
+        "T1003"
+      ],
+      "findings": 4,
+      "flagged_events": 4,
+      "labels_sha256": "41b53689f3c7257832c5675d5d8bbb95a7d3b036070973e24172ec8a5d0ad975",
+      "manifest_sha256": "32bfceadec44d9719a2a7aac87ca3bc34ab1e620c2ae648fed3c5f2ae52ad16a",
+      "matched_techniques": [
+        "T1003"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1003",
+        "T1070.001"
+      ],
+      "scenario_id": "T1003-2",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1006"
+      ],
+      "findings": 4,
+      "flagged_events": 4,
+      "labels_sha256": "91abd234e08905b048b852ff568c6bddd1a4b0bc4b63a6325327e6b9359c955e",
+      "manifest_sha256": "72f74c9cde37099152176ebad4863765193fe911b57f84066ef4e84c48101ddc",
+      "matched_techniques": [
+        "T1006"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1006",
+        "T1070.001"
+      ],
+      "scenario_id": "T1006-1",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1027"
+      ],
+      "findings": 15,
+      "flagged_events": 12,
+      "labels_sha256": "d4ce4dac78ebc313ff85ed4a145b24eedb36f22a7389eb31e18b92be3694a17c",
+      "manifest_sha256": "042af5824ae3ee2043aab73d58f72e026e2f1e8a0c72d3b8d38d7012a8260ec2",
+      "matched_techniques": [
+        "T1027"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1021.006",
+        "T1027.010",
+        "T1059.001",
+        "T1070.001"
+      ],
+      "scenario_id": "T1027-2",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1007"
+      ],
+      "findings": 6,
+      "flagged_events": 6,
+      "labels_sha256": "f691b29497aa11ea1ddc363452514d8ad9a0f729700192e95f6445df4b2e1170",
+      "manifest_sha256": "7150cfcb8f3392263fd98fad8740aae5e331d3c27e9637478eae5f3b202d4b6a",
+      "matched_techniques": [
+        "T1007"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1007",
+        "T1021.006",
+        "T1070.001"
+      ],
+      "scenario_id": "T1007-1",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1007"
+      ],
+      "findings": 5,
+      "flagged_events": 5,
+      "labels_sha256": "b08b2bfbb018eeff3ec331bef8c7ec8f5f31700a2724d1875d8f59f2b8a82bcb",
+      "manifest_sha256": "e3a58cc4d77d536b7a5751c328d483c0600192e8ff9d3275e89ca9c60135bdc9",
+      "matched_techniques": [
+        "T1007"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1007",
+        "T1070.001"
+      ],
+      "scenario_id": "T1007-2",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1021.001"
+      ],
+      "findings": 11,
+      "flagged_events": 11,
+      "labels_sha256": "48a70a0119ffd269b538e29363886714c8b85489f4ce9a474446660f7df7a710",
+      "manifest_sha256": "ae33fb40fe5ca301c301afdc644c3f6a61cded609e5bceb6115f5f034ace5893",
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1021.001"
+      ],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001"
+      ],
+      "scenario_id": "T1021.001-1",
+      "status": "miss"
+    },
+    {
+      "expected_techniques": [
+        "T1021.001"
+      ],
+      "findings": 3,
+      "flagged_events": 3,
+      "labels_sha256": "26abd7eb2c5f222f5d3e7642e16008e47a1e1d2312757fedb92b1536a09debdc",
+      "manifest_sha256": "53e97f67ca76c6f5c597c878640fcf3b4262d6630196c55dffa8614807c4f32e",
+      "matched_techniques": [],
+      "missing_techniques": [
+        "T1021.001"
+      ],
+      "observed_techniques": [
+        "T1070.001"
+      ],
+      "scenario_id": "T1021.001-2",
+      "status": "miss"
+    },
+    {
+      "expected_techniques": [
+        "T1047"
+      ],
+      "findings": 10,
+      "flagged_events": 10,
+      "labels_sha256": "ff49c5b1e9848feb6d0901cd11cb4913f4a7c62546f9c3cca2b26e9bb7f01b52",
+      "manifest_sha256": "a1527c900a8f64b6d9d6c946fe6689c239dc81c8ed3e51ad63bd6d15f409872b",
+      "matched_techniques": [
+        "T1047"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1021.006",
+        "T1047",
+        "T1070.001"
+      ],
+      "scenario_id": "T1047-1",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1047"
+      ],
+      "findings": 4,
+      "flagged_events": 4,
+      "labels_sha256": "f6178abba711be629544526aea73dbbcea32edadb6e44ef6cd1ea80bde3598e3",
+      "manifest_sha256": "efe1a91b72ffa6899259b7bf1b0d8be06406767fd15343108fa65115beee6a54",
+      "matched_techniques": [
+        "T1047"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1047",
+        "T1070.001"
+      ],
+      "scenario_id": "T1047-2",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1136.001"
+      ],
+      "findings": 12,
+      "flagged_events": 11,
+      "labels_sha256": "7ad27b07503e4819031894e06fe3c63954e6da37401b9bfc0a284937baac44ce",
+      "manifest_sha256": "891c937cd931f6448ea75ba022eaf9a52bf9c14d3630b407cb11acbe0a0363f3",
+      "matched_techniques": [
+        "T1136.001"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1021.006",
+        "T1070.001",
+        "T1087.001",
+        "T1135",
+        "T1136.001"
+      ],
+      "scenario_id": "T1136.001-4",
+      "status": "hit"
+    },
+    {
+      "expected_techniques": [
+        "T1136.001"
+      ],
+      "findings": 7,
+      "flagged_events": 7,
+      "labels_sha256": "f49656466a2f5d114ed982274fdf1830ac1faa3c30679684f0b730a766bb6bd1",
+      "manifest_sha256": "8726c1174b7fce8e75429a7fe9006965345bdb0bd4b5db6f577fc43847755297",
+      "matched_techniques": [
+        "T1136.001"
+      ],
+      "missing_techniques": [],
+      "observed_techniques": [
+        "T1021.006",
+        "T1059.001",
+        "T1070.001",
+        "T1136.001"
+      ],
+      "scenario_id": "T1136.001-5",
+      "status": "hit"
+    }
+  ],
+  "peak_memory_mb_max": 0.18410491943359375,
+  "rule_file_count": 4,
+  "rules": 66,
+  "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "runtime_seconds_sum": 1.5384895460005055,
+  "scenario_hit_rate": 0.75,
+  "scenario_hits": 9,
+  "scenario_misses": 3,
+  "scenario_total": 12,
+  "schema": "breachscope.p2_11j_external_calibration_result.v1",
+  "selection_frozen_commit": "7541214400507afddca40a22f2adb22504fc3946",
+  "source_commit": "8de5fa8f158b4d72d1e3c6f07053162c90ee6238",
+  "source_repository": "arniki/atomic-evtx"
+}
