@@ -1,0 +1,87 @@
+schema: breachscope.p2_11j_external_calibration_measurement.v1
+calibration_id: p2-11j-t1003-networkprovider-credential-capture
+measurement_class: external_calibration
+change_class: networkprovider_credential_capture_setup_rule_addition
+measurement_repo_commit: 357b7ea88c5949d899ec637c95f56bad61605f3c
+from_rules_tree_sha256: c8b35af39d19f569c0a54c723dfdda35d61a966f54016cd8568b19cdecb4b2ec
+to_rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: aa6e24f5117dbbcacf11a844aae4cc66dec9613c
+  rules:
+  - rule_id: R-NETWORK-PROVIDER-CREDENTIAL-CAPTURE-SETUP
+    mitre_technique: T1003
+    predicate:
+      source_equals: Microsoft-Windows-Sysmon
+      event_id_equals: '1'
+      command_line_order_path_regex: \\SYSTEM\\CurrentControlSet\\Control\\NetworkProvider\\Order
+      command_line_providerorder_regex: \bProviderOrder\b
+      command_line_service_networkprovider_regex: \\SYSTEM\\CurrentControlSet\\Services\\[^\\\s\"]+\\NetworkProvider
+      command_line_providerpath_regex: \bProviderPath\b
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  sysmon_records: 732200
+  sysmon_chunks: 11894
+  sysmon_event1: 2149
+  parse_errors: 0
+  networkprovider_any: 0
+  networkprovider_order: 0
+  providerorder: 0
+  setitem_providerorder: 0
+  service_networkprovider: 0
+  service_providerpath: 0
+  order_and_service_providerpath: 0
+  probe_run_id: 34599085112
+  probe_commit: 2b20c6e56e7e0938fa5c9db25266fa402afc6961
+  artifact_id: 10263218975
+  artifact_digest_sha256: 3379ce899268e50c20839436e7eaf269f7f4bc66262a8c526e87f0da35f13b90
+  artifact_inner_result_sha256: 4942c9782ade6c2dc1148a214efc54db4579ba219d3196dfa52bf1a6b08f8b65
+  stored_result: external_baseline/results/p2_11j_357b7ea8/benign-probe.json
+  stored_result_sha256: 4942c9782ade6c2dc1148a214efc54db4579ba219d3196dfa52bf1a6b08f8b65
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11h_7f46b3a2/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 8
+  after_scenario_hits: 9
+  scenario_misses: 3
+  scenario_total: 12
+  events: 902
+  rules: 66
+  findings: 92
+  flagged_events: 88
+  changed_scenarios:
+  - T1003-2
+  remaining_miss_scenarios:
+  - T1003-1
+  - T1021.001-1
+  - T1021.001-2
+measurement_execution:
+  github_actions_run_id: 34600156570
+  workflow_control_head_commit: a81dd2fae4c6bd39c21f64a3bf81b3bc5d48b491
+  detector_repo_commit: 357b7ea88c5949d899ec637c95f56bad61605f3c
+  artifact_id: 10264215439
+  artifact_digest_sha256: abe3055f7a2cfc636278539e47f97ca5308f0f38487c7e046d0d9c7dc45c07c2
+  aggregate_result: external_baseline/results/p2_11j_357b7ea8/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 82cd205ac90b17d72a947448418d17382926967c1cf801a0882745900c03a0f7
+  aggregate_result_sha256: 82cd205ac90b17d72a947448418d17382926967c1cf801a0882745900c03a0f7
+  rules_freeze: external_baseline/results/p2_11j_357b7ea8/rules-freeze.json
+  rules_freeze_sha256: 9975bdbc0efcf31d7a7a92c7cb28f4e9186704f0660282abc603c61d10cee5fc
+  freeze_probe_run_id: 34600156592
+  freeze_probe_artifact_id: 10263483514
+  freeze_probe_artifact_digest_sha256: e616268c218a0fc9f71f82c95e01b1b06741f5a23926e8caf56fcb5dfb25460a
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: P2-11J reruns the already-observed public P2-11B Atomic-EVTX suite after adding
+    generic NetworkProvider order plus provider-DLL registration telemetry. The 9/12
+    result is external calibration only. The benign result is an exact-predicate scan
+    of the pinned public Sysmon source, not a fresh full-rulepack FPR measurement.

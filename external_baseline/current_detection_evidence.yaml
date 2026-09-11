@@ -1,5 +1,5 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-11h-current-detection-evidence
+current_evidence_id: p2-11j-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 remediations:
@@ -30,15 +30,20 @@ calibrations:
   measurement_record: external_baseline/results/p2_11g_e876ce32/measurement.yaml
 - calibration_id: p2-11h-t1047-wmic-query
   measurement_record: external_baseline/results/p2_11h_7f46b3a2/measurement.yaml
+- calibration_id: p2-11j-t1003-networkprovider-credential-capture
+  measurement_record: external_baseline/results/p2_11j_357b7ea8/measurement.yaml
 claim_boundary:
   production_accuracy: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
   final_blind_holdout: false
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
-  note: P2-10 remediation measurements and later external calibration transitions
+  note: 'P2-10 remediation measurements and later external calibration transitions
     are kept separate. Historical baseline results remain immutable. P2-11D through
-    P2-11H reuse the already-observed public Atomic-EVTX suite and are external calibration
+    P2-11J reuse the already-observed public Atomic-EVTX suite and are external calibration
     only. P2-11G changes ATT&CK mapping/evaluator semantics without changing the rule
     tree (5/12 to 6/12). P2-11H adds generic WMIC get-query telemetry and moves the
-    same calibration suite from 6/12 to 8/12. None of these results is a fresh blind
-    holdout or production performance measurement.
+    same calibration suite from 6/12 to 8/12. P2-11I was reviewed and intentionally
+    closed unmerged because the captured mstsc /v: target was empty. P2-11J adds generic
+    NetworkProvider order plus provider-DLL registration telemetry and moves the same
+    calibration suite from 8/12 to 9/12. None of these results is a fresh blind holdout
+    or production performance measurement.'

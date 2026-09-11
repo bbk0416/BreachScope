@@ -1,0 +1,33 @@
+{
+  "schema": "breachscope.p2_11j_t1003_2_benign_probe.v1",
+  "corpus_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+  "scope": {
+    "sysmon_records": 732200,
+    "sysmon_chunks": 11894,
+    "sysmon_event1": 2149,
+    "parse_errors": 0
+  },
+  "candidate_counts": {
+    "networkprovider_any": 0,
+    "networkprovider_order": 0,
+    "providerorder": 0,
+    "setitem_providerorder": 0,
+    "service_networkprovider": 0,
+    "service_providerpath": 0,
+    "order_and_service_providerpath": 0
+  },
+  "samples": {
+    "networkprovider_any": [],
+    "networkprovider_order": [],
+    "providerorder": [],
+    "setitem_providerorder": [],
+    "service_networkprovider": [],
+    "service_providerpath": [],
+    "order_and_service_providerpath": []
+  },
+  "claim_boundary": {
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "fresh_full_rulepack_fpr": "NOT_CLAIMED",
+    "note": "Counts apply only to the pinned public benign-by-source-intent Sysmon corpus and these NetworkProvider configuration candidate predicates."
+  }
+}
