@@ -96,7 +96,7 @@
   field: command_line
   operator: regex
   pattern: '\\SYSTEM\\CurrentControlSet\\Control\\NetworkProvider\\Order'
-  severity: medium
+  severity: low
   mitre_technique: T1003
   all_of:
     - field: source
