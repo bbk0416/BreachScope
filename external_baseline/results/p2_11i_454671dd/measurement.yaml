@@ -1,0 +1,95 @@
+schema: breachscope.p2_11i_external_calibration_measurement.v1
+calibration_id: p2-11i-t1021-001-rdp-client
+measurement_class: external_calibration
+change_class: rdp_client_mstsc_v_telemetry_rule_addition
+measurement_repo_commit: 454671dd38f6c628dfe726929e31c83d7ae65204
+from_rules_tree_sha256: c8b35af39d19f569c0a54c723dfdda35d61a966f54016cd8568b19cdecb4b2ec
+to_rules_tree_sha256: 655f41d452a570938ff444b0d0ab156db1cf2267d1c8cb6c6b5544c8e57bfd32
+rule_change:
+  rule_file: rules/p2_11_calibration_rules.yml
+  rule_file_git_blob_sha1: bb30b54a4f05fe794d3abd03ddaa898604e5f4be
+  rules:
+  - rule_id: R-RDP-CLIENT-MSTSC-V
+    mitre_technique: T1021.001
+    predicate:
+      source_equals: Microsoft-Windows-Sysmon
+      event_id_equals: '1'
+      image_endswith: \mstsc.exe
+      command_line_regex: (?i)(?:^|\s)/v\s*:\s*(?:"[^"]+"|\S+)
+benign_incremental_match_proof:
+  baseline_id: p2-09d-nextron-win10-v1
+  corpus_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  sysmon_records: 732200
+  sysmon_chunks: 11894
+  sysmon_event1: 2149
+  parse_errors: 0
+  mstsc_event1: 0
+  mstsc_v: 0
+  mstsc_v_admin: 0
+  mstsc_v_restrictedadmin: 0
+  probe_run_id: 34559208746
+  probe_commit: bcf405c635aefcff41c97b83003d149262c5c9a7
+  artifact_id: 10183769008
+  artifact_digest_sha256: c81c8c311538a1e2e34fba516d259ab37f28069bebd17c1d978451095639e986
+  artifact_inner_result_sha256: 1004b0242fd73ef6d60aba85d31df89b6540372f76aba22e6fb5dccb929788c0
+  stored_result: external_baseline/results/p2_11i_454671dd/benign-probe.json
+  stored_result_sha256: 1004b0242fd73ef6d60aba85d31df89b6540372f76aba22e6fb5dccb929788c0
+  fresh_full_fp_tn_rerun: false
+external_calibration:
+  previous_measurement_record: external_baseline/results/p2_11h_7f46b3a2/measurement.yaml
+  source_repository: arniki/atomic-evtx
+  source_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+  selection_frozen_commit: 7541214400507afddca40a22f2adb22504fc3946
+  before_scenario_hits: 8
+  after_scenario_hits: 8
+  scenario_misses: 4
+  scenario_total: 12
+  events: 902
+  rules: 66
+  findings: 91
+  flagged_events: 87
+  changed_scenarios: []
+  remaining_miss_scenarios:
+  - T1003-1
+  - T1003-2
+  - T1021.001-1
+  - T1021.001-2
+scenario_observation:
+  scenario_id: T1021.001-1
+  diagnostic_run_id: 34563783591
+  diagnostic_head_commit: cc6e91036b9412008208141bfe6440a46c6e269a
+  sysmon_records: 79
+  matching_context_records: 3
+  captured_mstsc_record_index: 35
+  captured_mstsc_command_line: '"C:\Windows\system32\mstsc.exe" /v:'
+  captured_target_present: false
+  interpretation: 'The captured child mstsc.exe process has an empty /v: target. The P2-11I rule intentionally
+    requires a non-empty target, so T1021.001-1 remains a miss rather than broadening the rule to fit
+    an incomplete execution.'
+measurement_execution:
+  github_actions_run_id: 34560449688
+  workflow_control_head_commit: 5152dbc66219830ca7f5fc1cb73145778d4383c7
+  detector_repo_commit: 454671dd38f6c628dfe726929e31c83d7ae65204
+  artifact_id: 10184128874
+  artifact_digest_sha256: 4ef25e6ce8fb68b7555efd77d63d36e37747703394fc48ea99d886fe9ec66e5c
+  aggregate_result: external_baseline/results/p2_11i_454671dd/aggregate-result.json
+  artifact_inner_aggregate_result_sha256: 1c888935f9e7434c2e7d4e048b35eca1ad18fe47bb32707c445dc901d4324cb1
+  aggregate_result_sha256: 1c888935f9e7434c2e7d4e048b35eca1ad18fe47bb32707c445dc901d4324cb1
+  rules_freeze: external_baseline/results/p2_11i_454671dd/rules-freeze.json
+  rules_freeze_sha256: aa946b2d0601b9ab2423092691f1ec34d83cc9102ba8129ef39d3e18973645ec
+  freeze_probe_run_id: 34560449678
+  freeze_probe_artifact_id: 10184116507
+  freeze_probe_artifact_digest_sha256: ea1a89f40d442b3579687fdfaafc9fe66204b0711d8c011a5b08ed011fd20bcd
+claim_boundary:
+  final_blind_holdout: false
+  fresh_external_baseline: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  note: 'P2-11I reruns the already-observed public P2-11B Atomic-EVTX suite after adding low-confidence
+    mstsc /v target telemetry. The result remains 8/12 external calibration. T1021.001-1 stays a miss
+    because the captured mstsc.exe child has an empty /v: target; the rule was not broadened to fit that
+    incomplete execution. The benign result is an exact-predicate scan of the pinned public Sysmon source,
+    not a fresh full-rulepack FPR measurement.'
