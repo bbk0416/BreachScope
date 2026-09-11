@@ -92,7 +92,7 @@
 
 - id: R-RDP-CLIENT-MSTSC-V
   name: RDP Client Target Telemetry
-  description: Sysmon process creation for mstsc.exe with an explicit /v: remote target; low-confidence RDP-use telemetry rather than proof of a completed session
+  description: 'Sysmon process creation for mstsc.exe with an explicit /v: remote target; low-confidence RDP-use telemetry rather than proof of a completed session'
   field: command_line
   operator: regex
   pattern: '(?i)(?:^|\s)/v\s*:\s*(?:"[^"]+"|\S+)'
