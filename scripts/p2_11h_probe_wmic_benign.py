@@ -9,7 +9,6 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from Evtx.Evtx import Evtx
 
 EXPECTED_CORPUS_SHA256 = "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e"
 EXPECTED_CHUNKS = 11894
@@ -19,8 +18,8 @@ EXPECTED_EVENT1 = 2149
 EVENT_ID_RE = re.compile(r'<EventID(?:\s+[^>]*)?>(\d+)</EventID>', re.I)
 DATA_RE = re.compile(r'<Data\s+Name="([^"]+)">(.*?)</Data>', re.I | re.S)
 GET_RE = re.compile(r'(?<!\S)get(?!\S)', re.I)
-USERACCOUNT_GET_RE = re.compile(r'\buseraccount\b.\*\bget\b', re.I)
-PROCESS_GET_RE = re.compile(r'\bprocess\b.\*\bget\b', re.I)
+USERACCOUNT_GET_RE = re.compile(r'\buseraccount\b.*\bget\b', re.I)
+PROCESS_GET_RE = re.compile(r'\bprocess\b.*\bget\b', re.I)
 FORMAT_CSV_RE = re.compile(r'/format\s*:\s*["\']?csv(?:["\']|\s|$)', re.I)
 REMOTE_FORMAT_RE = re.compile(r'/format\s*:\s*["\']?https?://', re.I)
 
@@ -45,6 +44,8 @@ def sample(data: dict[str, str]) -> dict[str, str]:
 
 
 def scan_shard(args: argparse.Namespace) -> None:
+    from Evtx.Evtx import Evtx
+
     idx = args.shard_index
     base, rem = divmod(args.total_chunks, args.shard_count)
     start = idx * base + min(idx, rem)
