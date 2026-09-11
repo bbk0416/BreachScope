@@ -1,0 +1,97 @@
+name: P2-11H T1047 Distributed Benign Probe
+
+on:
+  push:
+    branches: [analysis/p2-11h-t1047-wmic-benign-dist]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CORPUS_URL: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+  CORPUS_SHA256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  SYSMON_REL: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  TOTAL_CHUNKS: 11894
+  SHARD_COUNT: 16
+
+jobs:
+  shard:
+    name: Scan sysmon-${{ matrix.shard }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11.16"
+          cache: pip
+      - name: Install locked dependencies
+        run: |
+          python -m pip install --require-hashes -r requirements-lock-py311.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+      - name: Download and verify pinned Sysmon corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 --silent --show-error -o /tmp/win10-client.tgz "$CORPUS_URL"
+          test "$(stat -c %s /tmp/win10-client.tgz)" = "70844052"
+          echo "$CORPUS_SHA256  /tmp/win10-client.tgz" | sha256sum -c -
+          rm -rf /tmp/p2-11h-corpus && mkdir -p /tmp/p2-11h-corpus
+          tar -xzf /tmp/win10-client.tgz -C /tmp/p2-11h-corpus "$SYSMON_REL"
+          test -f "/tmp/p2-11h-corpus/$SYSMON_REL"
+      - name: Scan assigned chunk range
+        env:
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: |
+          mkdir -p shard-out
+          python scripts/p2_11h_probe_wmic_benign.py shard \
+            --shard-index "$SHARD_INDEX" \
+            --shard-count "$SHARD_COUNT" \
+            --total-chunks "$TOTAL_CHUNKS" \
+            --evtx "/tmp/p2-11h-corpus/$SYSMON_REL" \
+            --corpus-sha256 "$CORPUS_SHA256" \
+            --out "shard-out/sysmon-$SHARD_INDEX.json"
+      - name: Upload shard result
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-11h-t1047-sysmon-${{ matrix.shard }}
+          path: shard-out/sysmon-${{ matrix.shard }}.json
+          if-no-files-found: error
+          retention-days: 7
+
+  aggregate:
+    name: Aggregate T1047 benign probe
+    needs: shard
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Download shard results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: p2-11h-t1047-sysmon-*
+          path: shard-results
+          merge-multiple: true
+      - name: Aggregate and enforce full coverage
+        run: |
+          mkdir -p aggregate-out
+          python scripts/p2_11h_probe_wmic_benign.py aggregate \
+            --input-dir shard-results \
+            --shard-count "$SHARD_COUNT" \
+            --out aggregate-out/p2_11h_t1047_benign_probe.json
+          sha256sum aggregate-out/p2_11h_t1047_benign_probe.json
+      - name: Upload aggregate evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-11h-t1047-benign-aggregate
+          path: aggregate-out/p2_11h_t1047_benign_probe.json
+          if-no-files-found: error
+          retention-days: 30
