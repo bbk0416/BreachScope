@@ -1,0 +1,7 @@
+{
+  "schema": "breachscope.external_holdout.rules_freeze.v1",
+  "repo_commit": "454671dd38f6c628dfe726929e31c83d7ae65204",
+  "rules_dir": "/home/runner/work/BreachScope/BreachScope/detector/rules",
+  "rules_tree_sha256": "655f41d452a570938ff444b0d0ab156db1cf2267d1c8cb6c6b5544c8e57bfd32",
+  "rule_file_count": 4
+}
