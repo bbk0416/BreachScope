@@ -1,0 +1,75 @@
+schema: breachscope.p2_12c_fresh_external_measurement.v1
+measurement_id: p2-12c-otrf-apt29-day1-fresh-holdout
+measurement_class: fresh_external_holdout
+selection_record: external_baseline/p2_12a_fresh_apt29_day1_selection.yaml
+binding_record: external_baseline/p2_12b_apt29_day1_binding.yaml
+protocol:
+  source_selected_before_archive_download: true
+  archive_bytes_bound_before_detection: true
+  source_labels_bound_before_detection: true
+  detector_results_unseen_before_first_scoring: true
+  first_scoring_run_id: 34661035143
+  first_scoring_control_head: 38fdb44e3aeaf15ac7f64fd7b994df9dd4c66ac6
+  day2_reserved_unscored: true
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
+source:
+  repository: OTRF/Security-Datasets
+  commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  corpus: compound/apt29/day1
+  archive_sha256: 98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5
+  total_events: 196081
+  parse_errors: 0
+result:
+  stored_result: external_baseline/results/p2_12c_13eb8f6a/apt29-day1-result.json
+  stored_result_sha256: 5315dea908fe716a960f46fbcc68260a0732b08889be33886a6b36652ef93599
+  rules_freeze: external_baseline/results/p2_12c_13eb8f6a/rules-freeze.json
+  rules_freeze_sha256: 49ce5c828fd51a6638da085a62ced8b1d458e5045baa00826449f8ec61ea5f86
+  findings: 38
+  flagged_events: 35
+  detected_rule_count: 8
+  detected_rule_ids:
+  - R-DOMAIN-ADMINS-4661
+  - R-LSASS-Dump
+  - R-MSBUILD-InlineTask
+  - R-PS-Bypass
+  - R-PS-DownloadString
+  - R-PS-FromBase64String
+  - R-PS-InvokeExpression
+  - R-PSEXEC-RemoteService
+  detected_technique_count: 6
+  detected_technique_ids:
+  - T1003.001
+  - T1059.001
+  - T1087.002
+  - T1127.001
+  - T1140
+  - T1569.002
+source_label_comparison:
+  semantics: exact_upstream_legacy_attack_id_intersection_only
+  source_legacy_technique_total: 45
+  exact_legacy_id_overlap_count: 1
+  exact_legacy_id_overlap:
+  - T1140
+  exact_legacy_id_overlap_fraction: 0.022222222222222223
+  interpretation: This is not recall. The 2020 source uses legacy ATT&CK IDs while the detector uses current and sub-technique IDs; no post-result remapping is applied.
+execution_evidence:
+  github_actions_run_id: 34661035143
+  workflow_control_head_commit: 38fdb44e3aeaf15ac7f64fd7b994df9dd4c66ac6
+  artifact_id: 10286798867
+  artifact_digest_sha256: 6e7f65290d80595f56f27f46bd7751376a71415afc365b6e48bb0e57e43fb77f
+  artifact_inner_result_sha256: 5315dea908fe716a960f46fbcc68260a0732b08889be33886a6b36652ef93599
+  artifact_inner_rules_freeze_sha256: 49ce5c828fd51a6638da085a62ced8b1d458e5045baa00826449f8ec61ea5f86
+claim_boundary:
+  fresh_external_holdout: true
+  final_blind_holdout: false
+  event_level_labels: NOT_AVAILABLE
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  exact_legacy_id_overlap_is_recall: false
+  note: This is the first detector execution on the pre-selected and byte/label-bound OTRF APT29 Day 1 corpus. It is valid fresh external holdout evidence for this frozen detector, but it has no event-level ground truth and therefore does not establish precision, recall, FPR, or production detection rate. Day 2 remains reserved and unscored.
