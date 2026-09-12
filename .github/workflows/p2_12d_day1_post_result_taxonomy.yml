@@ -1,0 +1,51 @@
+name: P2-12D Day 1 Post-Result Taxonomy
+
+on:
+  push:
+    branches:
+      - evidence/p2-12d-day1-post-result-taxonomy
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Run post-result taxonomy analysis
+        run: python scripts/p2_12d_post_result_taxonomy.py
+
+      - name: Fail closed on claim boundary and Day 2
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          p = Path('p2_12d_post_result_taxonomy.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          assert d['analysis_class'] == 'post_result_descriptive_analysis'
+          assert d['day2_accessed'] is False
+          assert d['fresh_precommitted_result_preserved']['exact_legacy_id_overlap_count'] == 1
+          assert d['fresh_precommitted_result_preserved']['exact_legacy_id_overlap'] == ['T1140']
+          assert d['claim_boundary']['fresh_primary_metric_recomputed'] is False
+          assert d['claim_boundary']['post_result_semantic_match_is_fresh_metric'] is False
+          assert d['claim_boundary']['production_recall'] == 'NOT_CLAIMED'
+          print('P2_12D_FAIL_CLOSED=PASS')
+
+      - name: Upload taxonomy artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2-12d-day1-post-result-taxonomy
+          path: p2_12d_post_result_taxonomy.json
+          if-no-files-found: error
