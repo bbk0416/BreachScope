@@ -1,0 +1,53 @@
+schema: breachscope.p2_13b_win11_benign_binding_record.v1
+binding_id: p2-13b-win11-client-2023-byte-inventory-binding
+binding_class: fresh_benign_by_source_intent_pre_scoring_byte_binding
+selection_record: external_baseline/p2_13a_win11_benign_selection.yaml
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win11-client-2023.tgz
+  asset_id: 371539645
+  asset_size_bytes: 169460461
+  archive_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+binding_execution:
+  method: chunk_sharded_full_evtx_xml_inventory
+  shard_count: 16
+  source_shard_run_id: 34680672963
+  source_shard_head_sha: 6efb3d17262effa7dffefad9ffcac8707f6bf4c7
+  source_shard_jobs_successful: 16
+  source_aggregate_job_status: failed
+  source_aggregate_failure_class: aggregate_runner_missing_python_evtx
+  source_aggregate_failure_note: All 16 EVTX chunk-shard jobs completed successfully and uploaded artifacts. The original aggregate runner failed before aggregation because python-evtx was not installed in that aggregate job.
+  recovery_run_id: 34681354126
+  recovery_head_sha: 5efabdd7685cc35f58dfe0e03c1c57d2fb4b6082
+  recovery_status: success
+  canonical_artifact_id: 10293984052
+  canonical_artifact_zip_sha256: 037a975fe7e3422154c4c3a863ed99272ab36a5af247294970969762060bfdda
+  canonical_inner_result_sha256: b37bb8c1ca9b37eb5165f8d318da5b348fdb5b538ce20c4e39a5e29c263d34c3
+stored_result:
+  path: external_baseline/p2_13b_win11_benign_binding.json
+  sha256: b37bb8c1ca9b37eb5165f8d318da5b348fdb5b538ce20c4e39a5e29c263d34c3
+inventory:
+  evtx_files: 381
+  evtx_chunks: 39927
+  total_records: 1741090
+  sysmon_records: 1425626
+  sysmon_event1: 2302
+  parse_errors: 51
+protocol:
+  detector_imported: false
+  detector_executed: false
+  detector_results_consulted: false
+  full_rulepack_scoring_performed: false
+  detector_tuning_performed: false
+frozen_detector_reserved_for_next_stage:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
+claim_boundary:
+  production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  independent_benign_population: NOT_CLAIMED
+  note: P2-13B binds the selected archive bytes and inventories every discovered EVTX chunk exactly once before scoring. The 51 parse errors are retained as observed and are not hidden or converted into benign negatives. No BreachScope detector execution occurred in this stage.
