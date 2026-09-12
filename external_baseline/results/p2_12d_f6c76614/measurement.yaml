@@ -17,8 +17,10 @@ execution:
   control_head_commit: 5e1042afdd81b2d0a6aa6172a2b4c71da47f1beb
   artifact_id: 10288347710
   artifact_digest_sha256: b52637b4fc01465f23dedca75ede5a64f90bc9879a52f50c93001d83c8105d3f
+  artifact_inner_result_sha256: b9b121023c1cfb649c51672cb3a138e1ede4202f731f17ca9b6029e6754b063d
   stored_result: external_baseline/results/p2_12d_f6c76614/post-result-taxonomy.json
-  stored_result_sha256: b9b121023c1cfb649c51672cb3a138e1ede4202f731f17ca9b6029e6754b063d
+  stored_result_sha256: 373f830692760342e7ddd56c44eb4204b7ce115f38d079e90d6a50bb2da93b91
+  stored_result_semantics: JSON-equivalent to the artifact result; repository serialization differs only in insignificant JSON whitespace.
 observations:
   source_legacy_id_total: 45
   v19_2_active: 27
