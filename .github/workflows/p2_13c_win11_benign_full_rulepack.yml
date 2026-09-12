@@ -1,0 +1,153 @@
+name: P2-13C Win11 Benign Full Rulepack
+
+on:
+  push:
+    branches:
+      - measure/p2-13c-win11-benign-full-rulepack
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  DETECTOR_COMMIT: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  ARCHIVE_SHA256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+  ARCHIVE_URL: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win11-client-2023.tgz
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scoring control head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Checkout frozen detector
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.DETECTOR_COMMIT }}
+          path: detector
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install detector dependencies
+        run: python -m pip install --disable-pip-version-check -r detector/requirements.txt
+      - name: Freeze exact runtime rulepack
+        run: |
+          python detector/scripts/evaluate_external_holdout.py freeze \
+            --repo detector \
+            --rules-dir detector/rules \
+            --out rules-freeze.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('rules-freeze.json').read_text())
+          assert d['repo_commit']=='13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb'
+          assert d['rules_tree_sha256']=='9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92'
+          assert int(d['rule_file_count'])==4
+          print('P2_13C_RUNTIME_FREEZE=PASS')
+          PY
+      - name: Upload runtime freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13c-runtime-freeze
+          path: rules-freeze.json
+          if-no-files-found: error
+
+  score:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scoring control head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Checkout frozen detector
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.DETECTOR_COMMIT }}
+          path: detector
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install detector dependencies
+        run: python -m pip install --disable-pip-version-check -r detector/requirements.txt
+      - name: Download runtime freeze
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: p2-13c-runtime-freeze
+          path: freeze
+      - name: Download and verify precommitted corpus
+        run: |
+          curl -L --fail --retry 4 --retry-delay 3 "$ARCHIVE_URL" -o win11-client-2023.tgz
+          echo "$ARCHIVE_SHA256  win11-client-2023.tgz" | sha256sum -c -
+          mkdir corpus
+          tar -xzf win11-client-2023.tgz -C corpus
+      - name: Score assigned units exactly once
+        run: |
+          python scripts/p2_13c_score_win11_benign.py shard \
+            --archive win11-client-2023.tgz \
+            --extracted corpus \
+            --detector detector \
+            --freeze freeze/rules-freeze.json \
+            --shard ${{ matrix.shard }} \
+            --shards 16 \
+            --samples-per-rule 3 \
+            --output shard-${{ matrix.shard }}.json
+      - name: Upload shard result
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13c-win11-score-shard-${{ matrix.shard }}
+          path: shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: score
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scoring control head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install aggregate dependency
+        run: python -m pip install --disable-pip-version-check python-evtx==0.8.1
+      - name: Download shard results
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: p2-13c-win11-score-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate and fail closed
+        run: |
+          python scripts/p2_13c_score_win11_benign.py aggregate \
+            --inputs shards \
+            --shards 16 \
+            --samples-per-rule 5 \
+            --output p2_13c_win11_benign_full_rulepack.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('p2_13c_win11_benign_full_rulepack.json').read_text())
+          assert d['evaluation_class']=='fresh_benign_by_source_intent_operational_alert_volume'
+          assert d['archive_sha256']=='739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117'
+          assert d['detector_repo_commit']=='13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb'
+          assert d['rules_tree_sha256']=='9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92'
+          assert d['rules']==66
+          assert d['total_records']==1741090
+          assert d['parse_errors']==51
+          assert d['tuning_performed_after_result'] is False
+          assert d['claim_boundary']['operational_alert_volume']=='MEASURED'
+          assert d['claim_boundary']['production_false_positive_rate']=='NOT_CLAIMED'
+          print('P2_13C_AGGREGATE_FAIL_CLOSED=PASS')
+          PY
+      - name: Upload canonical scoring result
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13c-win11-benign-full-rulepack-result
+          path: p2_13c_win11_benign_full_rulepack.json
+          if-no-files-found: error
