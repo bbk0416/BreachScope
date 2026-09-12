@@ -1,0 +1,54 @@
+schema: breachscope.p2_12a_fresh_external_selection.v1
+selection_id: p2-12a-otrf-apt29-day1-v1
+evaluation_class: fresh_external_holdout_candidate
+selection_base_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  dataset_family: compound/apt29
+  provenance: MITRE ATT&CK Evaluations Round 2 APT29 activity replicated by OTRF
+  atomic_red_team_source: false
+selection_policy:
+  detector_results_consulted_before_selection: false
+  selected_archive_bytes_downloaded_before_selection: false
+  selected_archive_contents_inspected_before_selection: false
+  rule: Select OTRF APT29 compound Day 1 host dataset before downloading or scoring its archive bytes. Reserve Day 2 as a separate future corpus and do not consult it for P2-12A scoring.
+selected_corpus:
+  scenario_id: otrf-apt29-day1
+  source_path: datasets/compound/apt29/day1/apt29_evals_day1_manual.zip
+  git_blob_sha1: 7352679a173ec0310f9d0ed587782545182dd394
+  repository_reported_size_bytes: 13944973
+  upstream_readme_blob_sha1: c67a01214faf8b7944c1b525672dd9397e4638fc
+  upstream_summary:
+    sysmon_records: 143884
+    security_records: 28627
+    lowercase_security_records: 12375
+    powershell_operational_records: 5694
+    windows_powershell_records: 5285
+    system_records: 91
+    wmi_activity_records: 90
+    terminalservices_remoteconnectionmanager_records: 15
+    terminalservices_localsessionmanager_records: 9
+    firewall_records: 10
+    bits_client_records: 1
+protocol:
+  phase_a_selection_frozen_before_byte_download: true
+  phase_b_byte_binding_required_before_detection: true
+  phase_b_label_binding_required_before_detection: true
+  detection_must_not_run_until_byte_and_label_binding_committed: true
+  archive_sha256: PENDING_P2_12B
+  expected_technique_binding: PENDING_P2_12B
+  event_level_labels: NOT_ASSUMED
+  precision_recall_fpr: NOT_CLAIMED
+  day2_reserved_unseen_for_future_validation: true
+claim_boundary:
+  fresh_external_holdout_result: NOT_YET_MEASURED
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: P2-12A freezes source selection only. No selected archive bytes have been downloaded or scored in this phase. Fresh-holdout status can be retained only if byte binding and expected-label binding are committed before the detector is executed on the selected archive.
