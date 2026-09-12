@@ -1,0 +1,89 @@
+schema: breachscope.p2_12h_day2_post_result_taxonomy_measurement.v1
+measurement_id: p2-12h-apt29-day2-post-result-taxonomy
+measurement_class: post_result_descriptive_analysis
+source_result: external_baseline/results/p2_12g_13eb8f6a/apt29-day2-result.json
+binding_record: external_baseline/p2_12f_apt29_day2_binding.yaml
+analysis_script: scripts/p2_12h_post_result_taxonomy.py
+preserved_confirmatory_result:
+  evaluation_class: confirmatory_same_campaign_holdout
+  source_legacy_id_total: 41
+  exact_legacy_id_overlap_count: 1
+  exact_legacy_id_overlap:
+    - T1047
+  exact_legacy_id_overlap_fraction: 0.024390243902439025
+  interpretation: Corpus-level exact source-label overlap only; not recall.
+attack_reference:
+  repository: mitre-attack/attack-stix-data
+  commit: 6cda5ad8462c79e14fbb872f4e09059b18e0cfc4
+  release: Enterprise ATT&CK v19.2
+  path: enterprise-attack/enterprise-attack-19.2.json
+  sha256: dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4
+  mapping_rule: Only exact active IDs and official STIX revoked-by relationships are used; deprecated IDs without official replacement are not guessed.
+result:
+  source_id_status_counts_v19_2:
+    active: 25
+    revoked: 15
+    deprecated: 1
+    missing: 0
+  officially_replaced_source_id_count: 15
+  resolvable_source_id_count: 40
+  post_result_semantic_source_match_count: 6
+  semantic_source_matches:
+    - source_id: T1003
+      effective_current_id: T1003
+      matched_observed_id: T1003.001
+      basis: active_parent_to_observed_subtechnique
+    - source_id: T1027
+      effective_current_id: T1027
+      matched_observed_id: T1027.010
+      basis: active_parent_to_observed_subtechnique
+    - source_id: T1028
+      effective_current_id: T1021.006
+      matched_observed_id: T1021.006
+      basis: official_revoked_by
+    - source_id: T1047
+      effective_current_id: T1047
+      matched_observed_id: T1047
+      basis: exact_active_id
+    - source_id: T1086
+      effective_current_id: T1059.001
+      matched_observed_id: T1059.001
+      basis: official_revoked_by
+    - source_id: T1136
+      effective_current_id: T1136
+      matched_observed_id: T1136.001
+      basis: active_parent_to_observed_subtechnique
+  matched_observed_detector_ids:
+    - T1003.001
+    - T1021.006
+    - T1027.010
+    - T1047
+    - T1059.001
+    - T1136.001
+  unmatched_observed_detector_ids:
+    - T1053.005
+    - T1087.002
+execution_evidence:
+  github_actions_run_id: 34672968876
+  workflow_control_head_commit: 07ca8b86bb5ed901463b534152fb94ce4fc9ffb6
+  artifact_id: 10291551792
+  artifact_digest_sha256: 76ce16f50b827ce1abd325ab0e45aacb407f58e045b686bc46de812e75ea3a51
+  artifact_inner_full_taxonomy_sha256: 5ea92bfc026dc47ef0db8eece9a2796ce5e623a9d1488075627708c224e9fb79
+  artifact_inner_full_taxonomy_bytes: 12037
+  stored_summary_record: external_baseline/results/p2_12h_d0b58a98/post-result-taxonomy.json
+  note: The stored JSON is a concise evidence record. The workflow artifact is the full 41-row taxonomy output and is separately hash-locked.
+protocol:
+  result_observed_before_analysis: true
+  detector_rerun: false
+  detector_or_rule_change: false
+  post_result_mapping_used_for_primary_metric: false
+claim_boundary:
+  confirmatory_primary_metric_recomputed: false
+  post_result_semantic_match_is_confirmatory_metric: false
+  independent_fresh_external_holdout: false
+  final_blind_holdout: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: The six semantic mappings are post-result descriptive ATT&CK-version analysis only. They do not replace or improve the immutable P2-12G 1/41 exact legacy-ID overlap observation.
