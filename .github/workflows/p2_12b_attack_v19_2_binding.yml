@@ -1,0 +1,57 @@
+name: P2-12B ATT&CK v19.2 Active ID Binding
+
+on:
+  push:
+    branches:
+      - evidence/p2-12b-apt29-day1-byte-label-binding
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout BreachScope
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download pinned MITRE ATT&CK v19.2 STIX
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p p2_12b_attack
+          curl --fail --location --retry 3 \
+            'https://raw.githubusercontent.com/mitre-attack/attack-stix-data/6cda5ad8462c79e14fbb872f4e09059b18e0cfc4/enterprise-attack/enterprise-attack-19.2.json' \
+            --output p2_12b_attack/enterprise-attack-19.2.json
+
+      - name: Classify Day 1 source technique IDs before detection
+        run: |
+          python scripts/p2_12b_classify_attack_ids.py \
+            --stix p2_12b_attack/enterprise-attack-19.2.json \
+            --out p2_12b_attack/attack-id-binding.json
+
+      - name: Assert no detector execution
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('p2_12b_attack/attack-id-binding.json').read_text())
+          assert d['scoring_policy']['detector_results_consulted'] is False
+          assert d['scoring_policy']['detector_executed'] is False
+          assert d['source_day1_technique_count'] == 45
+          print('P2_12B_ATTACK_ID_BINDING=PASS')
+          PY
+
+      - name: Upload ATT&CK ID binding artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2-12b-attack-v19-2-id-binding
+          path: p2_12b_attack/attack-id-binding.json
+          if-no-files-found: error
+          retention-days: 30
