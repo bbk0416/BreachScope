@@ -11,9 +11,9 @@ RESULT = ROOT / "external_baseline" / "results" / "p2_12d_f6c76614" / "post-resu
 MEASUREMENT = ROOT / "external_baseline" / "results" / "p2_12d_f6c76614" / "measurement.yaml"
 
 
-def test_p2_12d_artifact_bytes_and_status_counts_are_locked() -> None:
+def test_p2_12d_stored_result_and_status_counts_are_locked() -> None:
     assert hashlib.sha256(RESULT.read_bytes()).hexdigest() == (
-        "b9b121023c1cfb649c51672cb3a138e1ede4202f731f17ca9b6029e6754b063d"
+        "373f830692760342e7ddd56c44eb4204b7ce115f38d079e90d6a50bb2da93b91"
     )
     d = json.loads(RESULT.read_text(encoding="utf-8"))
     assert d["schema"] == "breachscope.p2_12d_day1_post_result_taxonomy.v1"
@@ -62,13 +62,19 @@ def test_p2_12d_preserves_fresh_result_and_only_reports_post_result_semantics() 
     assert claim["production_recall"] == "NOT_CLAIMED"
 
 
-def test_p2_12d_measurement_keeps_day2_unseen_and_no_detector_rerun() -> None:
+def test_p2_12d_measurement_keeps_day2_unseen_and_hashes_distinct() -> None:
     m = yaml.safe_load(MEASUREMENT.read_text(encoding="utf-8"))
     assert m["analysis_class"] == "post_result_descriptive_analysis"
     assert m["execution"]["github_actions_run_id"] == 34663944588
     assert m["execution"]["artifact_id"] == 10288347710
     assert m["execution"]["artifact_digest_sha256"] == (
         "b52637b4fc01465f23dedca75ede5a64f90bc9879a52f50c93001d83c8105d3f"
+    )
+    assert m["execution"]["artifact_inner_result_sha256"] == (
+        "b9b121023c1cfb649c51672cb3a138e1ede4202f731f17ca9b6029e6754b063d"
+    )
+    assert m["execution"]["stored_result_sha256"] == (
+        "373f830692760342e7ddd56c44eb4204b7ce115f38d079e90d6a50bb2da93b91"
     )
     assert m["observations"]["fresh_precommitted_exact_overlap_count"] == 1
     assert m["observations"]["post_result_semantic_source_match_count"] == 5
