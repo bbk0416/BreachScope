@@ -1,0 +1,43 @@
+schema: breachscope.p2_13a_win11_benign_selection.v1
+selection_id: p2-13a-win11-client-2023-benign
+selection_class: fresh_benign_by_source_intent_pre_download
+selected_before_archive_download: true
+selected_before_detector_execution: true
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  release_id: 295655133
+  asset_name: win11-client-2023.tgz
+  asset_id: 371539645
+  asset_size_bytes: 169460461
+  github_digest_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+  source_intent: goodware software installation and ordinary user interaction
+freshness_boundary:
+  prior_benign_corpus_seen:
+    asset_name: win10-client.tgz
+    sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  selected_asset_previously_scored_by_breachscope: false
+  selected_asset_bytes_downloaded_before_selection: false
+  selected_asset_detector_results_consulted_before_selection: false
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
+planned_measurement:
+  run_full_rulepack: true
+  parse_all_available_evtx_files: true
+  record_total_events: true
+  record_parse_errors: true
+  record_findings: true
+  record_flagged_events: true
+  record_findings_by_rule: true
+  record_flagged_events_by_rule: true
+  record_sample_matches: true
+  tune_detector_after_result: false
+claim_boundary:
+  production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  independent_benign_population: NOT_CLAIMED
+  note: This selection reserves a previously unscored public benign-by-source-intent Windows 11 corpus for a one-pass full-rulepack operational alert-volume measurement. Even after scoring, the result must not be presented as a production false-positive rate without event-level ground truth and representative production sampling.
