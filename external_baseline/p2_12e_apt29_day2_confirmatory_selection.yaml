@@ -1,0 +1,44 @@
+schema: breachscope.p2_12e_confirmatory_selection.v1
+selection_id: p2-12e-otrf-apt29-day2-confirmatory-v1
+evaluation_class: confirmatory_same_campaign_holdout_pre_download
+selection_parent_main: d004f106654b1eab4988abd66b9967f9114e44c5
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source_selection:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  campaign: APT29 ATT&CK Evaluation Round 2 reproduction
+  split: day2
+  archive_path: datasets/compound/apt29/day2/apt29_evals_day2_manual.zip
+  archive_git_blob_sha1: 15e1e9d2d88a729b832c6430fa285c3e87bb70e4
+  repository_reported_archive_size_bytes: 43033041
+  label_source_path: datasets/compound/apt29/emulationplans/apt29.xlsx
+independence_boundary:
+  independent_external_source_from_day1: false
+  same_repository_as_day1: true
+  same_campaign_as_day1: true
+  different_reserved_day_split: true
+  classification: confirmatory_same_campaign_holdout
+  note: Day 2 is a separately reserved split but comes from the same OTRF APT29 campaign as Day 1. It must not be described as an independent fresh external corpus.
+selection_protocol:
+  archive_bytes_downloaded: false
+  archive_payload_inspected: false
+  archive_sha256_known: false
+  day2_label_rows_inspected: false
+  day2_expected_technique_ids_known: false
+  detector_executed_on_day2: false
+  detector_results_viewed: false
+  day1_result_already_observed: true
+  tuning_after_day1_before_day2_forbidden: true
+  next_allowed_phase: P2-12F_DAY2_BYTE_AND_LABEL_BINDING
+claim_boundary:
+  day2_result: NOT_YET_MEASURED
+  independent_fresh_external_holdout: NOT_CLAIMED
+  confirmatory_holdout_result: NOT_YET_MEASURED
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: This record freezes only Day 2 selection metadata visible from the pinned repository tree. Day 2 archive bytes and Day 2 label rows have not been downloaded or inspected, and no detector execution has occurred.
