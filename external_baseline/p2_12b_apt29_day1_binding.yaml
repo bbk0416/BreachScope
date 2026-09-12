@@ -1,0 +1,132 @@
+schema: breachscope.p2_12b_fresh_external_binding.v1
+binding_id: p2-12b-otrf-apt29-day1-v1
+selection_record: external_baseline/p2_12a_fresh_apt29_day1_selection.yaml
+evaluation_class: fresh_external_holdout_candidate
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+archive_binding:
+  source_path: datasets/compound/apt29/day1/apt29_evals_day1_manual.zip
+  git_blob_sha1: 7352679a173ec0310f9d0ed587782545182dd394
+  sha256: 98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5
+  compressed_bytes: 13944973
+  member_count: 1
+  member_name: apt29_evals_day1_manual_2020-05-01225525.json
+  member_uncompressed_bytes: 385334029
+  format: newline_delimited_json
+emulation_plan_binding:
+  source_path: datasets/compound/apt29/emulationplans/apt29.xlsx
+  git_blob_sha1: e2b95dc306967a6a2d9af033cf1fe7c3ad155c13
+  sha256: 053e70c6ba95eac481b370f8b1545ec3f1f00306c828634741a8c7399719c228
+  bytes: 25051
+  worksheet: day1
+actual_archive_counts:
+  total_events: 196081
+  parse_errors: 0
+  channels:
+    Microsoft-Windows-Bits-Client/Operational: 1
+    Microsoft-Windows-PowerShell/Operational: 5694
+    Microsoft-Windows-Sysmon/Operational: 143884
+    Microsoft-Windows-TerminalServices-LocalSessionManager/Operational: 9
+    Microsoft-Windows-TerminalServices-RemoteConnectionManager/Operational: 15
+    Microsoft-Windows-WMI-Activity/Operational: 90
+    Microsoft-Windows-Windows Firewall With Advanced Security/Firewall: 10
+    Security: 28627
+    System: 91
+    Windows PowerShell: 5285
+    security: 12375
+  sysmon_event_ids:
+    '1': 447
+    '2': 209
+    '3': 1229
+    '4': 1
+    '5': 401
+    '7': 20259
+    '8': 95
+    '9': 652
+    '10': 39283
+    '11': 1649
+    '12': 61151
+    '13': 17541
+    '15': 18
+    '17': 84
+    '18': 362
+    '22': 81
+    '23': 422
+metadata_conflict_resolution:
+  parent_readme_sysmon_records: 143884
+  day1_readme_sysmon_records: 164435
+  authoritative_for_p2_12: actual_archive_parse
+  resolved_sysmon_records: 143884
+label_binding:
+  source: pinned apt29.xlsx day1 worksheet
+  labeled_rows: 25
+  unique_technique_count: 45
+  semantics: exact_upstream_legacy_attack_ids_no_post_result_remapping
+  technique_ids:
+    - T1002
+    - T1003
+    - T1005
+    - T1016
+    - T1018
+    - T1022
+    - T1027
+    - T1028
+    - T1032
+    - T1033
+    - T1035
+    - T1036
+    - T1041
+    - T1043
+    - T1045
+    - T1048
+    - T1050
+    - T1056
+    - T1057
+    - T1059
+    - T1060
+    - T1063
+    - T1065
+    - T1069
+    - T1071
+    - T1074
+    - T1077
+    - T1078
+    - T1081
+    - T1082
+    - T1083
+    - T1086
+    - T1088
+    - T1105
+    - T1106
+    - T1107
+    - T1112
+    - T1113
+    - T1115
+    - T1119
+    - T1122
+    - T1134
+    - T1140
+    - T1145
+    - T1204
+  event_level_labels: NOT_AVAILABLE
+protocol_state:
+  selection_frozen_before_byte_download: true
+  archive_bytes_bound: true
+  emulation_plan_bytes_bound: true
+  labels_bound_before_detection: true
+  detector_executed_on_selected_archive: false
+  detector_results_consulted: false
+  day2_reserved_unscored: true
+  next_allowed_phase: P2-12C_FRESH_SCORING
+claim_boundary:
+  fresh_external_holdout_result: NOT_YET_MEASURED
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  technique_coverage_interpretation: Source-label exact intersection may be reported after scoring, but legacy IDs are not silently remapped and event-level precision/recall/FPR remain unavailable.
