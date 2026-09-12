@@ -1,0 +1,70 @@
+{
+  "schema": "breachscope.p2_12h_day2_post_result_taxonomy_record.v1",
+  "analysis_class": "post_result_descriptive_analysis",
+  "confirmatory_result_record": "external_baseline/results/p2_12g_13eb8f6a/apt29-day2-result.json",
+  "binding_record": "external_baseline/p2_12f_apt29_day2_binding.yaml",
+  "detector_rerun": false,
+  "attack_reference": {
+    "repository": "mitre-attack/attack-stix-data",
+    "commit": "6cda5ad8462c79e14fbb872f4e09059b18e0cfc4",
+    "release": "Enterprise ATT&CK v19.2",
+    "path": "enterprise-attack/enterprise-attack-19.2.json",
+    "sha256": "dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4",
+    "mapping_rule": "Only exact active IDs and official STIX revoked-by relationships are used. Deprecated IDs without a revoked-by replacement are not guessed or silently remapped."
+  },
+  "confirmatory_precommitted_result_preserved": {
+    "source_legacy_id_total": 41,
+    "exact_legacy_id_overlap": ["T1047"],
+    "exact_legacy_id_overlap_count": 1,
+    "exact_legacy_id_overlap_fraction": 0.024390243902439025,
+    "interpretation": "Corpus-level exact source-label overlap only; not recall."
+  },
+  "observed_detector_current_ids": [
+    "T1003.001",
+    "T1021.006",
+    "T1027.010",
+    "T1047",
+    "T1053.005",
+    "T1059.001",
+    "T1087.002",
+    "T1136.001"
+  ],
+  "source_id_status_counts_v19_2": {
+    "active": 25,
+    "revoked": 15,
+    "deprecated": 1,
+    "missing": 0
+  },
+  "officially_replaced_source_id_count": 15,
+  "resolvable_source_id_count": 40,
+  "post_result_semantic_source_match_count": 6,
+  "post_result_semantic_source_matches": [
+    {"source_id": "T1003", "status_v19_2": "active", "official_replacement_chain": [], "effective_current_id": "T1003", "matched_observed_ids": ["T1003.001"]},
+    {"source_id": "T1027", "status_v19_2": "active", "official_replacement_chain": [], "effective_current_id": "T1027", "matched_observed_ids": ["T1027.010"]},
+    {"source_id": "T1028", "status_v19_2": "revoked", "official_replacement_chain": ["T1021.006"], "effective_current_id": "T1021.006", "matched_observed_ids": ["T1021.006"]},
+    {"source_id": "T1047", "status_v19_2": "active", "official_replacement_chain": [], "effective_current_id": "T1047", "matched_observed_ids": ["T1047"]},
+    {"source_id": "T1086", "status_v19_2": "revoked", "official_replacement_chain": ["T1059.001"], "effective_current_id": "T1059.001", "matched_observed_ids": ["T1059.001"]},
+    {"source_id": "T1136", "status_v19_2": "active", "official_replacement_chain": [], "effective_current_id": "T1136", "matched_observed_ids": ["T1136.001"]}
+  ],
+  "matched_observed_detector_ids": ["T1003.001", "T1021.006", "T1027.010", "T1047", "T1059.001", "T1136.001"],
+  "unmatched_observed_detector_ids": ["T1053.005", "T1087.002"],
+  "execution_evidence": {
+    "github_actions_run_id": 34672968876,
+    "workflow_control_head_commit": "07ca8b86bb5ed901463b534152fb94ce4fc9ffb6",
+    "artifact_id": 10291551792,
+    "artifact_digest_sha256": "76ce16f50b827ce1abd325ab0e45aacb407f58e045b686bc46de812e75ea3a51",
+    "artifact_inner_full_taxonomy_sha256": "5ea92bfc026dc47ef0db8eece9a2796ce5e623a9d1488075627708c224e9fb79",
+    "artifact_inner_full_taxonomy_bytes": 12037
+  },
+  "claim_boundary": {
+    "confirmatory_primary_metric_recomputed": false,
+    "post_result_semantic_match_is_confirmatory_metric": false,
+    "independent_fresh_external_holdout": false,
+    "final_blind_holdout": false,
+    "production_detection_rate": "NOT_CLAIMED",
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "note": "This analysis was performed after the P2-12G Day 2 result was observed. It may explain ATT&CK-version drift, but it must not replace or improve the precommitted confirmatory 1/41 exact-overlap observation."
+  }
+}
