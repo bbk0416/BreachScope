@@ -1,0 +1,59 @@
+name: P2-13B Win11 Benign Byte Binding V4 Aggregate Repair
+
+on:
+  push:
+    branches:
+      - measure/p2-13b-win11-benign-binding-v4-aggregate-repair
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact repair head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install EVTX parser dependency required by v4 module import
+        run: python -m pip install --disable-pip-version-check python-evtx==0.8.1
+      - name: Download completed V4 shard artifacts from original run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          github-token: ${{ github.token }}
+          repository: bbk0416/BreachScope
+          run-id: 34680672963
+          pattern: p2-13b-win11-chunk-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate and fail closed
+        run: |
+          python scripts/p2_13b_win11_benign_binding_v4.py aggregate \
+            --inputs shards \
+            --shards 16 \
+            --output p2_13b_win11_benign_binding.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('p2_13b_win11_benign_binding.json').read_text())
+          assert d['archive_sha256']=='739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117'
+          assert d['evtx_files']==381
+          assert d['evtx_chunks'] > 0
+          assert d['total_records'] > 0
+          assert d['detector_imported'] is False
+          assert d['detector_executed'] is False
+          assert d['results_consulted'] is False
+          assert d['claim_boundary']['production_false_positive_rate']=='NOT_CLAIMED'
+          print('P2_13B_V4_AGGREGATE_REPAIR_FAIL_CLOSED=PASS')
+          PY
+      - name: Upload aggregate artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13b-win11-benign-binding-v4-aggregate-repair
+          path: p2_13b_win11_benign_binding.json
+          if-no-files-found: error
