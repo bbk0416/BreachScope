@@ -1,0 +1,472 @@
+{
+  "analysis_class": "post_result_descriptive_analysis",
+  "attack_reference": {
+    "commit": "6cda5ad8462c79e14fbb872f4e09059b18e0cfc4",
+    "mapping_rule": "Only exact active IDs and official STIX revoked-by relationships are used. Deprecated IDs without a revoked-by replacement are not guessed or silently remapped.",
+    "path": "enterprise-attack/enterprise-attack-19.2.json",
+    "release": "Enterprise ATT&CK v19.2",
+    "repository": "mitre-attack/attack-stix-data",
+    "sha256": "dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4"
+  },
+  "binding_record": "external_baseline/p2_12b_apt29_day1_binding.yaml",
+  "claim_boundary": {
+    "fresh_primary_metric_recomputed": false,
+    "note": "This analysis was performed after the P2-12C Day 1 result was observed. It may explain ATT&CK-version drift, but it must not replace or improve the precommitted fresh 1/45 exact-overlap observation. Day 2 remains unseen and unscored.",
+    "post_result_semantic_match_is_fresh_metric": false,
+    "production_detection_rate": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED"
+  },
+  "day2_accessed": false,
+  "fresh_precommitted_result_preserved": {
+    "exact_legacy_id_overlap": [
+      "T1140"
+    ],
+    "exact_legacy_id_overlap_count": 1,
+    "exact_legacy_id_overlap_fraction": 0.022222222222222223,
+    "interpretation": "Corpus-level exact source-label overlap only; not recall.",
+    "source_legacy_id_total": 45
+  },
+  "fresh_result_record": "external_baseline/results/p2_12c_13eb8f6a/apt29-day1-result.json",
+  "matched_observed_detector_ids": [
+    "T1003.001",
+    "T1059.001",
+    "T1140",
+    "T1569.002"
+  ],
+  "observed_detector_current_ids": [
+    "T1003.001",
+    "T1059.001",
+    "T1087.002",
+    "T1127.001",
+    "T1140",
+    "T1569.002"
+  ],
+  "officially_replaced_source_id_count": 17,
+  "post_result_semantic_source_match_count": 5,
+  "post_result_semantic_source_matches": [
+    {
+      "effective_current_id": "T1003",
+      "matched_observed_ids": [
+        "T1003.001"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1003",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1569.002",
+      "matched_observed_ids": [
+        "T1569.002"
+      ],
+      "official_replacement_chain": [
+        "T1569.002"
+      ],
+      "source_id": "T1035",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1059",
+      "matched_observed_ids": [
+        "T1059.001"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1059",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1059.001",
+      "matched_observed_ids": [
+        "T1059.001"
+      ],
+      "official_replacement_chain": [
+        "T1059.001"
+      ],
+      "source_id": "T1086",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1140",
+      "matched_observed_ids": [
+        "T1140"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1140",
+      "status_v19_2": "active"
+    }
+  ],
+  "resolvable_source_id_count": 44,
+  "schema": "breachscope.p2_12d_day1_post_result_taxonomy.v1",
+  "source_id_status_counts_v19_2": {
+    "active": 27,
+    "deprecated": 1,
+    "missing": 0,
+    "revoked": 17
+  },
+  "source_id_taxonomy": [
+    {
+      "effective_current_id": "T1560",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1560"
+      ],
+      "source_id": "T1002",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1003",
+      "matched_observed_ids": [
+        "T1003.001"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1003",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1005",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1005",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1016",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1016",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1018",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1018",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1560",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1560"
+      ],
+      "source_id": "T1022",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1027",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1027",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1021.006",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1021.006"
+      ],
+      "source_id": "T1028",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1573",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1573"
+      ],
+      "source_id": "T1032",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1033",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1033",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1569.002",
+      "matched_observed_ids": [
+        "T1569.002"
+      ],
+      "official_replacement_chain": [
+        "T1569.002"
+      ],
+      "source_id": "T1035",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1036",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1036",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1041",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1041",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": null,
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1043",
+      "status_v19_2": "deprecated"
+    },
+    {
+      "effective_current_id": "T1027.002",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1027.002"
+      ],
+      "source_id": "T1045",
+        "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1048",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1048",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1543.003",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1543.003"
+      ],
+      "source_id": "T1050",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1056",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1056",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1057",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1057",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1059",
+      "matched_observed_ids": [
+        "T1059.001"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1059",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1547.001",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1547.001"
+      ],
+      "source_id": "T1060",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1518.001",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1518.001"
+      ],
+      "source_id": "T1063",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1571",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1571"
+      ],
+      "source_id": "T1065",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1069",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1069",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1071",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1071",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1074",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1074",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1021.002",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1021.002"
+      ],
+      "source_id": "T1077",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1078",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1078",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1552.001",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1552.001"
+      ],
+      "source_id": "T1081",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1082",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1082",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1083",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1083",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1059.001",
+      "matched_observed_ids": [
+        "T1059.001"
+      ],
+      "official_replacement_chain": [
+        "T1059.001"
+      ],
+      "source_id": "T1086",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1548.002",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1548.002"
+      ],
+      "source_id": "T1088",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1105",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1105",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1106",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1106",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1070.004",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1070.004"
+      ],
+      "source_id": "T1107",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1112",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1112",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1113",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1113",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1115",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1115",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1119",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1119",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1546.015",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1546.015"
+      ],
+      "source_id": "T1122",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1134",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1134",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1140",
+      "matched_observed_ids": [
+        "T1140"
+      ],
+      "official_replacement_chain": [],
+      "source_id": "T1140",
+      "status_v19_2": "active"
+    },
+    {
+      "effective_current_id": "T1552.004",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [
+        "T1552.004"
+      ],
+      "source_id": "T1145",
+      "status_v19_2": "revoked"
+    },
+    {
+      "effective_current_id": "T1204",
+      "matched_observed_ids": [],
+      "official_replacement_chain": [],
+      "source_id": "T1204",
+      "status_v19_2": "active"
+    }
+  ],
+  "unmatched_observed_detector_ids": [
+    "T1087.002",
+    "T1127.001"
+  ]
+}

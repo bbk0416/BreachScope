@@ -1,0 +1,72 @@
+schema: breachscope.p2_12d_day1_post_result_taxonomy_measurement.v1
+analysis_id: p2-12d-apt29-day1-post-result-taxonomy
+analysis_class: post_result_descriptive_analysis
+source_result: external_baseline/results/p2_12c_13eb8f6a/apt29-day1-result.json
+source_binding: external_baseline/p2_12b_apt29_day1_binding.yaml
+detector_repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+rule_count: 66
+attack_reference:
+  repository: mitre-attack/attack-stix-data
+  commit: 6cda5ad8462c79e14fbb872f4e09059b18e0cfc4
+  release: Enterprise ATT&CK v19.2
+  path: enterprise-attack/enterprise-attack-19.2.json
+  sha256: dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4
+execution:
+  github_actions_run_id: 34663944588
+  control_head_commit: 5e1042afdd81b2d0a6aa6172a2b4c71da47f1beb
+  artifact_id: 10288347710
+  artifact_digest_sha256: b52637b4fc01465f23dedca75ede5a64f90bc9879a52f50c93001d83c8105d3f
+  artifact_inner_result_sha256: b9b121023c1cfb649c51672cb3a138e1ede4202f731f17ca9b6029e6754b063d
+  stored_result: external_baseline/results/p2_12d_f6c76614/post-result-taxonomy.json
+  stored_result_sha256: 373f830692760342e7ddd56c44eb4204b7ce115f38d079e90d6a50bb2da93b91
+  stored_result_semantics: JSON-equivalent to the artifact result; repository serialization differs only in insignificant JSON whitespace.
+observations:
+  source_legacy_id_total: 45
+  v19_2_active: 27
+  v19_2_revoked: 17
+  v19_2_deprecated: 1
+  v19_2_missing: 0
+  officially_replaced_source_ids: 17
+  resolvable_source_ids: 44
+  fresh_precommitted_exact_overlap_count: 1
+  fresh_precommitted_exact_overlap_ids:
+    - T1140
+  post_result_semantic_source_match_count: 5
+  post_result_semantic_matches:
+    - source_id: T1003
+      effective_current_id: T1003
+      observed_id: T1003.001
+    - source_id: T1035
+      effective_current_id: T1569.002
+      observed_id: T1569.002
+    - source_id: T1059
+      effective_current_id: T1059
+      observed_id: T1059.001
+    - source_id: T1086
+      effective_current_id: T1059.001
+      observed_id: T1059.001
+    - source_id: T1140
+      effective_current_id: T1140
+      observed_id: T1140
+  matched_observed_detector_ids:
+    - T1003.001
+    - T1059.001
+    - T1140
+    - T1569.002
+  unmatched_observed_detector_ids:
+    - T1087.002
+    - T1127.001
+protocol_state:
+  day2_accessed: false
+  day2_scored: false
+  detector_rerun_for_p2_12d: false
+  fresh_primary_metric_recomputed: false
+claim_boundary:
+  fresh_external_holdout_exact_overlap: 1/45
+  post_result_semantic_match_is_fresh_metric: false
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: The 5 post-result semantic source matches explain ATT&CK version drift using only exact active IDs and official revoked-by relationships. They do not replace, improve, or reinterpret the precommitted P2-12C fresh 1/45 exact-overlap observation.
