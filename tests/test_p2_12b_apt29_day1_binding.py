@@ -49,7 +49,7 @@ def test_p2_12b_labels_are_bound_before_detection() -> None:
     labels = data["label_binding"]
     state = data["protocol_state"]
 
-    assert labels["worksheet"] if "worksheet" in labels else data["emulation_plan_binding"]["worksheet"] == "day1"
+    assert data["emulation_plan_binding"]["worksheet"] == "day1"
     assert labels["labeled_rows"] == 25
     assert labels["unique_technique_count"] == 45
     assert len(labels["technique_ids"]) == 45
