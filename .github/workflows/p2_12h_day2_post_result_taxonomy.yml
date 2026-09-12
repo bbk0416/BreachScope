@@ -1,0 +1,45 @@
+name: P2-12H Day 2 Post-Result ATT&CK Taxonomy
+
+on:
+  push:
+    branches: [measure/p2-12h-day2-post-result-taxonomy]
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout analysis control
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11.16"
+      - name: Install YAML dependency
+        run: python -m pip install 'PyYAML==6.0.3'
+      - name: Run post-result taxonomy analysis only
+        run: python scripts/p2_12h_post_result_taxonomy.py
+      - name: Assert claim boundary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('p2_12h_post_result_taxonomy.json').read_text(encoding='utf-8'))
+          assert p['analysis_class'] == 'post_result_descriptive_analysis'
+          assert p['detector_rerun'] is False
+          assert p['confirmatory_precommitted_result_preserved']['exact_legacy_id_overlap'] == ['T1047']
+          assert p['confirmatory_precommitted_result_preserved']['exact_legacy_id_overlap_count'] == 1
+          assert p['claim_boundary']['confirmatory_primary_metric_recomputed'] is False
+          assert p['claim_boundary']['post_result_semantic_match_is_confirmatory_metric'] is False
+          assert p['claim_boundary']['independent_fresh_external_holdout'] is False
+          print('P2_12H_CLAIM_BOUNDARY=PASS')
+          PY
+      - name: Upload post-result taxonomy artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-12h-day2-post-result-taxonomy
+          path: p2_12h_post_result_taxonomy.json
+          if-no-files-found: error
+          retention-days: 90
