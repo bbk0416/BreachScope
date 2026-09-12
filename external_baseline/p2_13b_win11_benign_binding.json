@@ -1,0 +1,27 @@
+{
+  "archive_sha256": "739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117",
+  "archive_size_bytes": 169460461,
+  "asset": "win11-client-2023.tgz",
+  "asset_id": 371539645,
+  "claim_boundary": {
+    "note": "Recovered aggregate from the 16 successful chunk-shard artifacts of run 34680672963 after its aggregate job failed only because the aggregate runner lacked python-evtx. No BreachScope detector execution occurred in P2-13B.",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED"
+  },
+  "detector_executed": false,
+  "detector_imported": false,
+  "evtx_chunks": 39927,
+  "evtx_files": 381,
+  "mode": "aggregate",
+  "parse_errors": 51,
+  "release": "v0.8.4",
+  "results_consulted": false,
+  "schema": "breachscope.p2_13b_win11_benign_binding.v4",
+  "source_repository": "NextronSystems/evtx-baseline",
+  "source_shard_head_sha": "6efb3d17262effa7dffefad9ffcac8707f6bf4c7",
+  "source_shard_run_id": 34680672963,
+  "sysmon_event1": 2302,
+  "sysmon_records": 1425626,
+  "total_records": 1741090
+}
