@@ -1,0 +1,165 @@
+schema: breachscope.p2_12b_fresh_external_binding.v1
+binding_id: p2-12b-otrf-apt29-day1-v1
+selection_record: external_baseline/p2_12a_fresh_apt29_day1_selection.yaml
+evaluation_class: fresh_external_holdout_pre_scoring
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source_binding:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  archive_path: datasets/compound/apt29/day1/apt29_evals_day1_manual.zip
+  archive_git_blob_sha1: 7352679a173ec0310f9d0ed587782545182dd394
+  archive_size_bytes: 13944973
+  archive_sha256: 98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5
+  zip_entry_count: 1
+  total_uncompressed_bytes: 385334029
+  payload_name: apt29_evals_day1_manual_2020-05-01225525.json
+  payload_crc32: 181204c3
+emulation_plan_binding:
+  path: datasets/compound/apt29/emulationplans/apt29.xlsx
+  git_blob_sha1: e2b95dc306967a6a2d9af033cf1fe7c3ad155c13
+  size_bytes: 25051
+  sha256: 053e70c6ba95eac481b370f8b1545ec3f1f00306c828634741a8c7399719c228
+  day1_source_technique_count: 45
+  day1_source_techniques:
+    - T1002
+    - T1003
+    - T1005
+    - T1016
+    - T1018
+    - T1022
+    - T1027
+    - T1028
+    - T1032
+    - T1033
+    - T1035
+    - T1036
+    - T1041
+    - T1043
+    - T1045
+    - T1048
+    - T1050
+    - T1056
+    - T1057
+    - T1059
+    - T1060
+    - T1063
+    - T1065
+    - T1069
+    - T1071
+    - T1074
+    - T1077
+    - T1078
+    - T1081
+    - T1082
+    - T1083
+    - T1086
+    - T1088
+    - T1105
+    - T1106
+    - T1107
+    - T1112
+    - T1113
+    - T1115
+    - T1119
+    - T1122
+    - T1134
+    - T1140
+    - T1145
+    - T1204
+attack_version_binding:
+  repository: mitre-attack/attack-stix-data
+  pinned_commit: 6cda5ad8462c79e14fbb872f4e09059b18e0cfc4
+  release: Enterprise ATT&CK v19.2
+  path: enterprise-attack/enterprise-attack-19.2.json
+  sha256: dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4
+  active_exact_id_count: 27
+  active_exact_ids:
+    - T1003
+    - T1005
+    - T1016
+    - T1018
+    - T1027
+    - T1033
+    - T1036
+    - T1041
+    - T1048
+    - T1056
+    - T1057
+    - T1059
+    - T1069
+    - T1071
+    - T1074
+    - T1078
+    - T1082
+    - T1083
+    - T1105
+    - T1106
+    - T1112
+    - T1113
+    - T1115
+    - T1119
+    - T1134
+    - T1140
+    - T1204
+  inactive_exact_id_count: 18
+  inactive_exact_ids:
+    - T1002
+    - T1022
+    - T1028
+    - T1032
+    - T1035
+    - T1043
+    - T1045
+    - T1050
+    - T1060
+    - T1063
+    - T1065
+    - T1077
+    - T1081
+    - T1086
+    - T1088
+    - T1107
+    - T1122
+    - T1145
+  missing_exact_id_count: 0
+  missing_exact_ids: []
+scoring_contract:
+  unit: full_day1_compound_scenario
+  primary_metric: active_technique_coverage
+  denominator: 27
+  denominator_source: attack_version_binding.active_exact_ids
+  matching_rule: An expected active parent technique is satisfied by the exact observed technique ID or by an observed sub-technique whose ID begins with the expected ID plus a dot.
+  inactive_legacy_ids: REPORT_SEPARATELY_NOT_SILENTLY_REMAPPED
+  event_level_labels: NOT_AVAILABLE
+  event_level_precision: NOT_CLAIMED
+  event_level_recall: NOT_CLAIMED
+  event_level_false_positive_rate: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+execution_binding:
+  byte_label_binding_run_id: 34661256646
+  byte_label_binding_artifact_id: 10287662357
+  byte_label_binding_artifact_digest_sha256: 5ea42b6a4c2148b8b766665e8d83943cc8605db3db69f69e0d303ff31c09f3b5
+  byte_label_binding_inner_sha256: f86d52a7ce361ea6087e99b8b26cdc32d7c5c5e6b308df6e57235cafb742dda0
+  attack_id_binding_run_id: 34661403937
+  attack_id_binding_artifact_id: 10287408204
+  attack_id_binding_artifact_digest_sha256: ab4d91522e11b6dfa105638d92d4deb284ba4755a49d5054d614a8c30fed490a
+  attack_id_binding_inner_sha256: d9a241add2df93e8bcbbad0027291d24987a311bc67dda291ab19fd2271a0803
+protocol_state:
+  selection_committed_before_archive_download: true
+  archive_bytes_bound_before_detection: true
+  expected_labels_bound_before_detection: true
+  attack_version_and_denominator_bound_before_detection: true
+  detector_executed_on_selected_archive: false
+  detector_results_viewed: false
+  day2_reserved_unseen: true
+  tuning_before_first_score_forbidden: true
+claim_boundary:
+  fresh_external_holdout_result: NOT_YET_MEASURED
+  compound_technique_coverage: NOT_YET_MEASURED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  note: P2-12B binds the selected Day 1 bytes, source labels, ATT&CK v19.2 active-ID denominator, and scoring contract before detector execution. The 18 inactive legacy IDs are preserved and reported separately rather than silently remapped. No detection result has been viewed in this phase.
