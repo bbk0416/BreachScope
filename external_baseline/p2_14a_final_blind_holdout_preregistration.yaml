@@ -1,0 +1,60 @@
+schema: breachscope.p2_14a_final_blind_holdout_preregistration.v1
+phase_id: P2-14A
+status: PREREGISTERED_BEFORE_CORPUS_SELECTION
+purpose: >-
+  Define the rules for one final independent external holdout before a corpus is selected,
+  downloaded, inspected for detector outcomes, or scored. The goal is to reduce the current
+  final_blind_holdout evidence gap without changing the frozen detector or retrofitting the
+  evaluation contract after results are known.
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
+selection_contract:
+  corpus_must_be_external_to_breachscope: true
+  corpus_must_not_be_from_otrf_security_datasets: true
+  corpus_must_not_be_from_nextronsystems_evtx_baseline: true
+  corpus_must_not_have_been_used_in_p2_09_through_p2_13: true
+  source_must_be_publicly_retrievable_and_byte_pinnable: true
+  source_must_include_windows_event_log_or_equivalent_event_records_usable_by_current_detector: true
+  detector_outcomes_must_not_be_inspected_before_selection_is_frozen: true
+  selection_must_be_recorded_with_source_revision_asset_identity_size_and_sha256_before_scoring: true
+  no_detector_or_rule_changes_after_selection: true
+  no_threshold_or_scoring_contract_changes_after_selection: true
+  no_post_result_denominator_substitution: true
+execution_contract:
+  step_order:
+    - select_one_eligible_corpus_without_scoring
+    - bind_source_revision_asset_identity_size_and_sha256
+    - inventory_and_parse_without_detector_scoring
+    - freeze_exact_scoring_contract
+    - run_frozen_66_rule_detector_once
+    - aggregate_once
+    - record_results_without_detector_tuning
+  parse_failures_must_be_reported: true
+  failed_or_partial_runs_cannot_be_promoted_to_canonical_results: true
+  canonical_result_must_be_content_hashable: true
+claim_contract:
+  final_blind_holdout_can_become_true_only_if:
+    - selection_contract_satisfied
+    - byte_binding_completed_before_scoring
+    - frozen_detector_identity_matches
+    - scoring_executed_once_after_contract_freeze
+    - no_detector_tuning_or_rule_change_after_result
+  production_accuracy: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  event_level_ground_truth: NOT_ASSUMED
+  note: >-
+    A successful P2-14 holdout may justify setting final_blind_holdout=true for that evaluation
+    protocol only. It does not by itself create event-level ground truth or justify production
+    accuracy, recall, precision, detection-rate, false-positive-rate, or population-representativeness claims.
+forbidden_actions_before_p2_14a_merge:
+  - select_final_corpus
+  - download_final_corpus_for_detector_scoring
+  - inspect_detector_findings_on_candidate_corpora
+  - tune_rules_or_detector_for_candidate_corpora
