@@ -1,0 +1,116 @@
+name: P2-14C Final Holdout Inventory
+
+on:
+  push:
+    branches:
+      - measure/p2-14c-final-holdout-inventory
+    paths:
+      - '.github/workflows/p2_14c_final_holdout_inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install pinned EVTX parser dependencies from frozen main lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOCK_URL='https://raw.githubusercontent.com/bbk0416/BreachScope/9ecf8817d5bfbf8e7425102267b2134a0f1c71bd/requirements-lock-py312.txt'
+          curl --fail --location --retry 3 --retry-all-errors --output requirements-lock-py312.txt "$LOCK_URL"
+          python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-lock-py312.txt
+
+      - name: Download and verify bound final holdout bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://codeload.github.com/sbousseaden/EVTX-ATTACK-SAMPLES/tar.gz/4ceed2f4706daf601c212a8f91c113dd85349a2c'
+          curl --fail --location --retry 3 --retry-all-errors --output final-holdout.tar.gz "$URL"
+          test "$(stat -c '%s' final-holdout.tar.gz)" = '6053609'
+          echo '99e0ca3dae2f7582d9757dfe41b4f1fb149b197fe3bb751613760087f2d68594  final-holdout.tar.gz' | sha256sum -c -
+          tar -tzf final-holdout.tar.gz | awk 'tolower($0) ~ /\.evtx$/ {print}' | LC_ALL=C sort > evtx_paths.txt
+          test "$(wc -l < evtx_paths.txt | tr -d ' ')" = '278'
+          echo '33ace64e0154e14698c462ae185c60acee54a3ee88023d0cb792d86cf76dcb5a  evtx_paths.txt' | sha256sum -c -
+          mkdir corpus
+          tar -xzf final-holdout.tar.gz -C corpus
+
+      - name: Inventory and parse without detector scoring
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from Evtx.Evtx import Evtx
+
+          root = Path('corpus')
+          paths = sorted(p for p in root.rglob('*') if p.is_file() and p.suffix.lower() == '.evtx')
+          if len(paths) != 278:
+              raise SystemExit(f'expected 278 EVTX files, got {len(paths)}')
+
+          total_records = 0
+          parsed_records = 0
+          parse_errors = 0
+          files_opened = 0
+          file_open_errors = 0
+          zero_record_files = 0
+          per_file = []
+
+          for path in paths:
+              rel = path.relative_to(root).as_posix()
+              record_count = 0
+              file_errors = 0
+              open_error = None
+              try:
+                  with Evtx(str(path)) as log:
+                      files_opened += 1
+                      for record in log.records():
+                          total_records += 1
+                          record_count += 1
+                          try:
+                              record.xml()
+                              parsed_records += 1
+                          except Exception as exc:
+                              parse_errors += 1
+                              file_errors += 1
+                  if record_count == 0:
+                      zero_record_files += 1
+              except Exception as exc:
+                  file_open_errors += 1
+                  open_error = f'{type(exc).__name__}: {exc}'
+
+              per_file.append({
+                  'path': rel,
+                  'records': record_count,
+                  'parse_errors': file_errors,
+                  'open_error': open_error,
+              })
+
+          result = {
+              'schema': 'breachscope.p2_14c_final_holdout_inventory.v1',
+              'phase': 'P2-14C',
+              'source_repository': 'sbousseaden/EVTX-ATTACK-SAMPLES',
+              'source_commit': '4ceed2f4706daf601c212a8f91c113dd85349a2c',
+              'archive_size_bytes': 6053609,
+              'archive_sha256': '99e0ca3dae2f7582d9757dfe41b4f1fb149b197fe3bb751613760087f2d68594',
+              'evtx_file_count': len(paths),
+              'files_opened': files_opened,
+              'file_open_errors': file_open_errors,
+              'zero_record_files': zero_record_files,
+              'total_records': total_records,
+              'parsed_records': parsed_records,
+              'parse_errors': parse_errors,
+              'detector_executed': False,
+              'scoring_performed': False,
+              'per_file': per_file,
+          }
+          payload = json.dumps(result, indent=2, sort_keys=True) + '\n'
+          Path('p2_14c_inventory.json').write_text(payload, encoding='utf-8')
+          digest = hashlib.sha256(payload.encode('utf-8')).hexdigest()
+          print(payload, end='')
+          print(f'P2_14C_INVENTORY_SHA256={digest}')
+          PY
