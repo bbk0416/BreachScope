@@ -1,0 +1,85 @@
+schema: breachscope.p2_13d_win11_benign_alert_adjudication_record.v1
+adjudication_id: p2-13d-win11-client-2023-full-rulepack-alert-adjudication
+measurement_record: external_baseline/p2_13c_win11_benign_full_rulepack.yaml
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win11-client-2023.tgz
+  archive_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+execution:
+  run_id: 34764978817
+  control_head_sha: edf4be22b7ca72b9f5ee24fcd95b3315e8cab1f3
+  canonical_artifact_id: 10320797645
+  canonical_artifact_zip_sha256: 091e5c6d4f1786116a181e15670738aafb27cfc52eec6806912c10bc25a316e8
+  canonical_inner_result_sha256: aeb597133c297b5cccabf25f0c707382d4ca9e7ea9d606446ff9516c57e6ee55
+  shard_count: 16
+  shard_jobs_successful: 16
+  aggregate_status: success
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+inventory:
+  total_records: 1741090
+  parse_errors: 51
+  parsed_records: 1741039
+measurement_reproduced:
+  findings: 54
+  flagged_events: 54
+  detected_rule_count: 7
+  complete_samples_collected: 54
+adjudication:
+  classification_vocabulary:
+    benign_consistent: Alert metadata is directly consistent with ordinary software installation, update, registration, crash reporting, UI, or restore activity. This is not event-level benign ground truth.
+    indeterminate_sensitive_action: The event records a genuinely sensitive action and available metadata is insufficient to establish whether it was authorized or malicious.
+  counts:
+    benign_consistent: 50
+    indeterminate_sensitive_action: 4
+  by_rule:
+    R-BROWSER-CredStore:
+      total: 36
+      benign_consistent: 36
+      indeterminate_sensitive_action: 0
+      basis: Chromium/Electron-style command lines from Dropbox, AVG, Avast, and Discord matched the generic token "Cookies" in feature flags or service arguments rather than evidence of browser credential-store access.
+    R-DL:
+      total: 2
+      benign_consistent: 2
+      indeterminate_sensitive_action: 0
+      basis: Google Drive File Stream crashpad_handler processes used the Google crash-report URL; the generic download rule matched text in the command line rather than an observed payload retrieval action.
+    R-PS-Bypass:
+      total: 8
+      benign_consistent: 8
+      indeterminate_sensitive_action: 0
+      basis: PowerShell invocations were attributable to Avast setup, PowerShell 7 registration/update scripts, and Visual Studio developer-shell telemetry initialization.
+    R-SC-Service-Create:
+      total: 2
+      benign_consistent: 2
+      indeterminate_sensitive_action: 0
+      basis: sc.exe created the Dropbox service DbxSvc pointing to C:\Windows\System32\DbxSvc.exe with automatic start.
+    R-SCHTASKS-Create:
+      total: 2
+      benign_consistent: 2
+      indeterminate_sensitive_action: 0
+      basis: schtasks created TeamViewer TVInstallRestore to run TeamViewer_.exe /RESTORE as SYSTEM on logon.
+    R-EVENTLOG-Clear-Audit-104:
+      total: 3
+      benign_consistent: 0
+      indeterminate_sensitive_action: 3
+      basis: Three Microsoft-Windows-Eventlog event ID 104 records at 2023-10-25 22:53:10Z under Administrator record actual log-clear activity. Available metadata does not establish authorization or intent.
+    R-EVENTLOG-Clear-Audit-1102:
+      total: 1
+      benign_consistent: 0
+      indeterminate_sensitive_action: 1
+      basis: One Microsoft-Windows-Eventlog Security event ID 1102 at the same timestamp under Administrator records audit-log clearing. Available metadata does not establish authorization or intent.
+protocol:
+  detector_tuning_performed: false
+  rule_changes_performed: false
+  classification_changed_p2_13c_measurement: false
+claim_boundary:
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  confirmed_false_positives: NOT_CLAIMED
+  note: P2-13D is post-measurement adjudication of all 54 alert metadata records. Fifty alerts are directly consistent with ordinary software activity, while four log-clear alerts remain indeterminate because source intent alone does not prove event-level benignity. No detector tuning or rule modification was performed.
