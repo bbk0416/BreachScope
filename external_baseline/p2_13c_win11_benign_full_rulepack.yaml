@@ -1,0 +1,53 @@
+schema: breachscope.p2_13c_win11_benign_full_rulepack_record.v1
+measurement_id: p2-13c-win11-client-2023-full-rulepack-operational-alert-volume
+measurement_class: fresh_benign_by_source_intent_operational_alert_volume
+selection_record: external_baseline/p2_13a_win11_benign_selection.yaml
+binding_record: external_baseline/p2_13b_win11_benign_binding.yaml
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win11-client-2023.tgz
+  archive_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+execution:
+  run_id: 34681845194
+  control_head_sha: f7b3c1741568d44bd1b8520aae621574db3b0ea3
+  canonical_artifact_id: 10294577794
+  canonical_artifact_zip_sha256: bb05ae809f518abef31965e362ab5d69c5280bc94364dc3a482a0ce4bc70dae3
+  canonical_inner_result_sha256: bf16d6b0b1b299d346efa136d2b1918a644ed9c56436c9684cd59b4c84bba940
+  shard_count: 16
+  shard_jobs_successful: 16
+  aggregate_status: success
+frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
+inventory:
+  evtx_files: 381
+  total_records: 1741090
+  parse_errors: 51
+  parsed_records: 1741039
+measurement:
+  findings: 54
+  flagged_events: 54
+  detected_rule_count: 7
+  flagged_event_fraction_of_parsed_records: 3.101596230756462e-05
+  flagged_event_percent_of_parsed_records: 0.003101596231
+  findings_by_rule:
+    R-BROWSER-CredStore: 36
+    R-DL: 2
+    R-EVENTLOG-Clear-Audit-104: 3
+    R-EVENTLOG-Clear-Audit-1102: 1
+    R-PS-Bypass: 8
+    R-SC-Service-Create: 2
+    R-SCHTASKS-Create: 2
+  tuning_performed_after_result: false
+claim_boundary:
+  operational_alert_volume: MEASURED
+  fresh_public_benign_by_source_intent_corpus: true
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  note: The 54 flagged events are descriptive alert volume on this precommitted public benign-by-source-intent corpus. They are not a production false-positive rate. The 51 parse errors remain explicit and are excluded from the parsed-record denominator.
