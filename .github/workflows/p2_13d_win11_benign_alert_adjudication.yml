@@ -1,0 +1,158 @@
+name: P2-13D Win11 Benign Alert Adjudication Evidence
+
+on:
+  push:
+    branches:
+      - measure/p2-13d-win11-benign-alert-adjudication
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DETECTOR_COMMIT: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  SCORER_COMMIT: f7b3c1741568d44bd1b8520aae621574db3b0ea3
+  ARCHIVE_SHA256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+  ARCHIVE_URL: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win11-client-2023.tgz
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout frozen detector
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.DETECTOR_COMMIT }}
+          path: detector
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install detector dependencies
+        run: python -m pip install --disable-pip-version-check -r detector/requirements.txt
+      - name: Freeze exact runtime rulepack
+        run: |
+          python detector/scripts/evaluate_external_holdout.py freeze \
+            --repo detector \
+            --rules-dir detector/rules \
+            --out rules-freeze.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('rules-freeze.json').read_text())
+          assert d['repo_commit']=='13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb'
+          assert d['rules_tree_sha256']=='9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92'
+          assert int(d['rule_file_count'])==4
+          print('P2_13D_RUNTIME_FREEZE=PASS')
+          PY
+      - name: Upload runtime freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13d-runtime-freeze
+          path: rules-freeze.json
+          if-no-files-found: error
+
+  collect:
+    needs: freeze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout original P2-13C scorer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.SCORER_COMMIT }}
+          path: scorer
+      - name: Checkout frozen detector
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.DETECTOR_COMMIT }}
+          path: detector
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install detector dependencies
+        run: python -m pip install --disable-pip-version-check -r detector/requirements.txt
+      - name: Download runtime freeze
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: p2-13d-runtime-freeze
+          path: freeze
+      - name: Download and verify precommitted corpus
+        run: |
+          curl -L --fail --retry 4 --retry-delay 3 "$ARCHIVE_URL" -o win11-client-2023.tgz
+          echo "$ARCHIVE_SHA256  win11-client-2023.tgz" | sha256sum -c -
+          mkdir corpus
+          tar -xzf win11-client-2023.tgz -C corpus
+      - name: Collect assigned alert evidence without tuning
+        run: |
+          python scorer/scripts/p2_13c_score_win11_benign.py shard \
+            --archive win11-client-2023.tgz \
+            --extracted corpus \
+            --detector detector \
+            --freeze freeze/rules-freeze.json \
+            --shard ${{ matrix.shard }} \
+            --shards 16 \
+            --samples-per-rule 100 \
+            --output shard-${{ matrix.shard }}.json
+      - name: Upload shard evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13d-win11-alert-evidence-shard-${{ matrix.shard }}
+          path: shard-${{ matrix.shard }}.json
+          if-no-files-found: error
+
+  aggregate:
+    needs: collect
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout original P2-13C scorer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.SCORER_COMMIT }}
+          path: scorer
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install aggregate dependency
+        run: python -m pip install --disable-pip-version-check python-evtx==0.8.1
+      - name: Download shard evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: p2-13d-win11-alert-evidence-shard-*
+          path: shards
+          merge-multiple: true
+      - name: Aggregate complete alert evidence and fail closed
+        run: |
+          python scorer/scripts/p2_13c_score_win11_benign.py aggregate \
+            --inputs shards \
+            --shards 16 \
+            --samples-per-rule 100 \
+            --output p2_13d_win11_alert_evidence.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('p2_13d_win11_alert_evidence.json').read_text())
+          assert d['archive_sha256']=='739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117'
+          assert d['detector_repo_commit']=='13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb'
+          assert d['rules_tree_sha256']=='9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92'
+          assert d['rules']==66
+          assert d['total_records']==1741090
+          assert d['parse_errors']==51
+          assert d['findings']==54
+          assert d['flagged_events']==54
+          assert d['detected_rule_count']==7
+          assert sum(len(v) for v in d['samples_by_rule'].values())==54
+          assert d['tuning_performed_after_result'] is False
+          print('P2_13D_COMPLETE_ALERT_EVIDENCE=PASS')
+          PY
+      - name: Upload complete adjudication evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-13d-win11-complete-alert-evidence
+          path: p2_13d_win11_alert_evidence.json
+          if-no-files-found: error
