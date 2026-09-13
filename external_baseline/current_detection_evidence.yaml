@@ -1,5 +1,5 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-13e-current-detection-evidence
+current_evidence_id: p2-11j-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 current_frozen_detector:
@@ -86,4 +86,4 @@ claim_boundary:
   event_level_ground_truth: NOT_AVAILABLE
   confirmed_false_positives: NOT_CLAIMED
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
-  note: 'This file is an evidence index, not a performance summary. P2-10 remediation results and P2-11 calibration results remain historical evidence. P2-12 adds one fresh external Day 1 holdout and one separately reserved same-campaign Day 2 confirmatory result under the frozen 66-rule detector; their source ATT&CK-label overlaps are not recall and are not combined. P2-13 adds a fresh public benign-by-source-intent full-rulepack alert-volume measurement and post-measurement adjudication of all 54 alerts; 50 are benign-consistent and 4 remain indeterminate, but event-level benign ground truth is unavailable. No production accuracy, precision, recall, detection rate, false-positive rate, confirmed false-positive rate, representative production population, or final blind holdout is claimed.'
+  note: 'This file is an evidence index, not a performance summary. current_evidence_id continues to identify the latest detector/calibration-chain change at P2-11J; P2-12 and P2-13 are linked as later evidence obtained under the same frozen 66-rule detector. P2-12 adds one fresh external Day 1 holdout and one separately reserved same-campaign Day 2 confirmatory result; their source ATT&CK-label overlaps are not recall and are not combined. P2-13 adds a fresh public benign-by-source-intent full-rulepack alert-volume measurement and post-measurement adjudication of all 54 alerts; 50 are benign-consistent and 4 remain indeterminate, but event-level benign ground truth is unavailable. No production accuracy, precision, recall, detection rate, false-positive rate, confirmed false-positive rate, representative production population, or final blind holdout is claimed.'
