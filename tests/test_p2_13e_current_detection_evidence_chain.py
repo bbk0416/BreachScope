@@ -10,7 +10,7 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-13e-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-11j-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb",
         "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
