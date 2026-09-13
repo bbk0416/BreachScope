@@ -1,0 +1,40 @@
+schema: breachscope.p2_14b_final_blind_holdout_selection.v1
+phase: P2-14B
+selection_status: SELECTED_BINDING_PENDING
+preregistration_record: external_baseline/p2_14a_final_blind_holdout_preregistration.yaml
+selection_basis:
+  detector_outcomes_inspected_before_selection: false
+  source_metadata_only: true
+  excluded_prior_sources:
+    - OTRF/Security-Datasets
+    - NextronSystems/evtx-baseline
+selected_corpus:
+  repository: sbousseaden/EVTX-ATTACK-SAMPLES
+  source_class: public_external_windows_evtx_attack_samples
+  source_commit: 4ceed2f4706daf601c212a8f91c113dd85349a2c
+  source_commit_date_utc: '2023-01-24T12:02:50Z'
+  source_description: Windows EVTX attack and post-exploitation samples mapped at ATT&CK technique level by the source project.
+  archive_url: https://codeload.github.com/sbousseaden/EVTX-ATTACK-SAMPLES/tar.gz/4ceed2f4706daf601c212a8f91c113dd85349a2c
+  archive_size_bytes: PENDING_BINDING_WORKFLOW
+  archive_sha256: PENDING_BINDING_WORKFLOW
+  evtx_file_count: PENDING_BINDING_WORKFLOW
+binding_contract:
+  workflow: .github/workflows/p2_14b_bind_final_holdout.yml
+  detector_execution_allowed: false
+  archive_download_only: true
+  permitted_outputs:
+    - archive_size_bytes
+    - archive_sha256
+    - evtx_file_count
+    - sorted_evtx_path_manifest_sha256
+  detector_results: PROHIBITED
+  scoring: PROHIBITED
+next_step_after_binding: P2-14C_INVENTORY_AND_PARSE
+claim_boundary:
+  final_blind_holdout: false
+  event_level_ground_truth: NOT_AVAILABLE
+  production_accuracy: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
