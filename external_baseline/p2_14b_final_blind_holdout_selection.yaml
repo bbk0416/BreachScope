@@ -1,6 +1,6 @@
 schema: breachscope.p2_14b_final_blind_holdout_selection.v1
 phase: P2-14B
-selection_status: SELECTED_BINDING_PENDING
+selection_status: SELECTED_AND_BYTE_BOUND
 preregistration_record: external_baseline/p2_14a_final_blind_holdout_preregistration.yaml
 selection_basis:
   detector_outcomes_inspected_before_selection: false
@@ -15,11 +15,20 @@ selected_corpus:
   source_commit_date_utc: '2023-01-24T12:02:50Z'
   source_description: Windows EVTX attack and post-exploitation samples mapped at ATT&CK technique level by the source project.
   archive_url: https://codeload.github.com/sbousseaden/EVTX-ATTACK-SAMPLES/tar.gz/4ceed2f4706daf601c212a8f91c113dd85349a2c
-  archive_size_bytes: PENDING_BINDING_WORKFLOW
-  archive_sha256: PENDING_BINDING_WORKFLOW
-  evtx_file_count: PENDING_BINDING_WORKFLOW
-binding_contract:
+  archive_size_bytes: 6053609
+  archive_sha256: 99e0ca3dae2f7582d9757dfe41b4f1fb149b197fe3bb751613760087f2d68594
+  evtx_file_count: 278
+  sorted_evtx_path_manifest_sha256: 33ace64e0154e14698c462ae185c60acee54a3ee88023d0cb792d86cf76dcb5a
+binding_execution:
   workflow: .github/workflows/p2_14b_bind_final_holdout.yml
+  github_actions_run_id: 34769408395
+  workflow_control_head_commit: 82116f7016e96fa45e8f8c5e98e561b1d96b740e
+  artifact_id: 10321975153
+  artifact_digest_sha256: e9c800de247471c893f4c5ddc2a19107eb74f910097fb2aa48ff9f37bae7844b
+  binding_json_sha256: 53c76a1dc7ed8a5cd263a2048342d1882efeb4ea7221a1067841343c1ef918bf
+  detector_executed: false
+  scoring_performed: false
+binding_contract:
   detector_execution_allowed: false
   archive_download_only: true
   permitted_outputs:
