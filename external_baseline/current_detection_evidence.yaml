@@ -2,6 +2,11 @@ schema: breachscope.current_detection_evidence_chain.v1
 current_evidence_id: p2-11j-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
+current_frozen_detector:
+  repo_commit: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+  rule_file_count: 4
 remediations:
 - remediation_id: p2-10a-scheduled-task-4698
   measurement_record: external_baseline/results/p2_10a_b198604c/measurement.yaml
@@ -32,18 +37,53 @@ calibrations:
   measurement_record: external_baseline/results/p2_11h_7f46b3a2/measurement.yaml
 - calibration_id: p2-11j-t1003-networkprovider-credential-capture
   measurement_record: external_baseline/results/p2_11j_357b7ea8/measurement.yaml
+external_holdout_evidence:
+- evidence_id: p2-12-external-evidence-closure
+  closure_record: external_baseline/p2_12_external_evidence_closure.yaml
+  detector_rule_count: 66
+  day1:
+    class: fresh_external_holdout
+    events: 196081
+    parse_errors: 0
+    exact_legacy_id_overlap_count: 1
+    source_legacy_technique_total: 45
+    exact_overlap_interpretation: corpus_level_source_label_overlap_not_recall
+  day2:
+    class: confirmatory_same_campaign_holdout
+    events: 587286
+    parse_errors: 0
+    exact_legacy_id_overlap_count: 1
+    source_legacy_technique_total: 41
+    exact_overlap_interpretation: corpus_level_source_label_overlap_not_recall
+  combined_performance_metric: NOT_COMPUTED
+benign_operational_evidence:
+- evidence_id: p2-13-win11-client-2023
+  selection_record: external_baseline/p2_13a_win11_benign_selection.yaml
+  binding_record: external_baseline/p2_13b_win11_benign_binding.yaml
+  measurement_record: external_baseline/p2_13c_win11_benign_full_rulepack.yaml
+  adjudication_record: external_baseline/p2_13d_win11_benign_alert_adjudication.yaml
+  detector_rule_count: 66
+  total_records: 1741090
+  parse_errors: 51
+  parsed_records: 1741039
+  findings: 54
+  flagged_events: 54
+  detected_rule_count: 7
+  operational_alert_fraction_of_parsed_records: 3.101596230756462e-05
+  adjudication:
+    benign_consistent: 50
+    indeterminate_sensitive_action: 4
+    event_level_benign_ground_truth: NOT_AVAILABLE
+    confirmed_false_positives: NOT_CLAIMED
 claim_boundary:
   production_accuracy: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
   final_blind_holdout: false
+  event_level_ground_truth: NOT_AVAILABLE
+  confirmed_false_positives: NOT_CLAIMED
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
-  note: 'P2-10 remediation measurements and later external calibration transitions
-    are kept separate. Historical baseline results remain immutable. P2-11D through
-    P2-11J reuse the already-observed public Atomic-EVTX suite and are external calibration
-    only. P2-11G changes ATT&CK mapping/evaluator semantics without changing the rule
-    tree (5/12 to 6/12). P2-11H adds generic WMIC get-query telemetry and moves the
-    same calibration suite from 6/12 to 8/12. P2-11I was reviewed and intentionally
-    closed unmerged because the captured mstsc /v: target was empty. P2-11J adds generic
-    NetworkProvider order plus provider-DLL registration telemetry and moves the same
-    calibration suite from 8/12 to 9/12. None of these results is a fresh blind holdout
-    or production performance measurement.'
+  note: 'This file is an evidence index, not a performance summary. current_evidence_id continues to identify the latest detector/calibration-chain change at P2-11J; P2-12 and P2-13 are linked as later evidence obtained under the same frozen 66-rule detector. P2-12 adds one fresh external Day 1 holdout and one separately reserved same-campaign Day 2 confirmatory result; their source ATT&CK-label overlaps are not recall and are not combined. P2-13 adds a fresh public benign-by-source-intent full-rulepack alert-volume measurement and post-measurement adjudication of all 54 alerts; 50 are benign-consistent and 4 remain indeterminate, but event-level benign ground truth is unavailable. No production accuracy, precision, recall, detection rate, false-positive rate, confirmed false-positive rate, representative production population, or final blind holdout is claimed.'
