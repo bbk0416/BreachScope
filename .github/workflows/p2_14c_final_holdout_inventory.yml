@@ -111,6 +111,17 @@ jobs:
           payload = json.dumps(result, indent=2, sort_keys=True) + '\n'
           Path('p2_14c_inventory.json').write_text(payload, encoding='utf-8')
           digest = hashlib.sha256(payload.encode('utf-8')).hexdigest()
+          Path('p2_14c_inventory.sha256').write_text(digest + '  p2_14c_inventory.json\n', encoding='utf-8')
           print(payload, end='')
           print(f'P2_14C_INVENTORY_SHA256={digest}')
           PY
+
+      - name: Upload canonical inventory evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-14c-final-holdout-inventory
+          path: |
+            p2_14c_inventory.json
+            p2_14c_inventory.sha256
+            evtx_paths.txt
+          if-no-files-found: error
