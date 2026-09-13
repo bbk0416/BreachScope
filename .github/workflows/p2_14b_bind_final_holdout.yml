@@ -1,0 +1,64 @@
+name: P2-14B Bind Final Holdout
+
+on:
+  push:
+    branches:
+      - evidence/p2-14b-final-holdout-selection
+    paths:
+      - '.github/workflows/p2_14b_bind_final_holdout.yml'
+      - 'external_baseline/p2_14b_final_blind_holdout_selection.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bind:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout BreachScope
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Download selected external corpus archive only
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://codeload.github.com/sbousseaden/EVTX-ATTACK-SAMPLES/tar.gz/4ceed2f4706daf601c212a8f91c113dd85349a2c'
+          curl --fail --location --retry 3 --retry-all-errors --output final-holdout.tar.gz "$URL"
+
+      - name: Bind bytes without detector execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          size=$(stat -c '%s' final-holdout.tar.gz)
+          sha=$(sha256sum final-holdout.tar.gz | awk '{print $1}')
+          tar -tzf final-holdout.tar.gz | awk 'tolower($0) ~ /\.evtx$/ {print}' | LC_ALL=C sort > evtx_paths.txt
+          evtx_count=$(wc -l < evtx_paths.txt | tr -d ' ')
+          manifest_sha=$(sha256sum evtx_paths.txt | awk '{print $1}')
+          python - "$size" "$sha" "$evtx_count" "$manifest_sha" <<'PY'
+          import json, sys
+          from pathlib import Path
+          size, sha, count, manifest_sha = sys.argv[1:]
+          result = {
+              'schema': 'breachscope.p2_14b_final_holdout_byte_binding.v1',
+              'source_repository': 'sbousseaden/EVTX-ATTACK-SAMPLES',
+              'source_commit': '4ceed2f4706daf601c212a8f91c113dd85349a2c',
+              'archive_url': 'https://codeload.github.com/sbousseaden/EVTX-ATTACK-SAMPLES/tar.gz/4ceed2f4706daf601c212a8f91c113dd85349a2c',
+              'archive_size_bytes': int(size),
+              'archive_sha256': sha,
+              'evtx_file_count': int(count),
+              'sorted_evtx_path_manifest_sha256': manifest_sha,
+              'detector_executed': False,
+              'scoring_performed': False,
+          }
+          Path('p2_14b_binding.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
+
+      - name: Upload binding evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-14b-final-holdout-byte-binding
+          path: |
+            p2_14b_binding.json
+            evtx_paths.txt
+          if-no-files-found: error
