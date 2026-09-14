@@ -13,6 +13,8 @@ It does **not** replace the full test suite. Instead, it checks whether the repo
 - built-in demo scenario coverage
 - test/documentation depth
 
+The checker also does **not** validate whether public detection-performance claims are supported by external evidence. Before a release or portfolio update, compare any accuracy, precision, recall, detection-rate, false-positive-rate, or production-readiness wording against the sealed evidence and claim boundary in `docs/EXTERNAL_HOLDOUT_EVALUATION.md` and `docs/evidence/p2_14e_canonical_one_pass_result.md`.
+
 ## Run locally
 
 ```bash
@@ -55,3 +57,5 @@ Before tagging a release:
 make ci-local
 python scripts/project_check.py --strict
 ```
+
+Then perform a manual evidence/claim check: public wording must not exceed what the sealed external-holdout evidence actually supports. P2-14E records operational outputs from one frozen one-pass run; it does not establish production accuracy, precision, recall, detection rate, or false-positive rate.
