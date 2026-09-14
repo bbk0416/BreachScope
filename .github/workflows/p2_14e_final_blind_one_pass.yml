@@ -30,12 +30,12 @@ jobs:
           test "$CONFIRMATION" = 'RUN-P2-14E-CANONICAL-ONCE'
 
       - name: Checkout control repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           path: control
 
       - name: Checkout frozen detector
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
           path: detector
