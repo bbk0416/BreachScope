@@ -21,6 +21,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 DEFAULT_EXCLUDES = (
+    ".git",
     ".git/*",
     ".github/workflows/*.local.yml",
     ".pytest_cache/*",
