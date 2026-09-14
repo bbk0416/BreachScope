@@ -21,10 +21,11 @@ When `BS_API_KEY` is set, protected API calls accept one of the following:
 ```text
 X-API-Key: <key>
 Authorization: Bearer <key>
-?api_key=<key>
 ```
 
-The query-string form exists for browser download links. Prefer headers for scripts and integrations.
+### v2 authentication migration
+
+Starting with source version `2.0.0`, query-string API-key authentication (`?api_key=...`) is no longer accepted. Existing clients must send the key in the `X-API-Key` header or `Authorization: Bearer` header. Also, `/api/info` is protected whenever runtime authentication is enabled; it is no longer an authentication-exempt endpoint as it was in `v1.0.0`.
 
 When `BS_ADMIN_PASSWORD` is set, browser users can sign in through `/api/auth/login`. Successful login sets an HttpOnly `bs_session` cookie signed with `BS_SESSION_SECRET` when available. Use `BS_COOKIE_SECURE=1` behind HTTPS to force Secure cookies.
 
