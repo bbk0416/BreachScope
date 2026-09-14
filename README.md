@@ -18,7 +18,7 @@
 - 기본 회귀 CI: Ubuntu에서 Python 3.10 / 3.11 / 3.12를 검증합니다.
 - Windows 네이티브 CI: `windows-latest` / Python 3.11에서 전체 테스트, Windows 경로, EVTX 수집·변환, case-history 파일 잠금, CLI smoke를 검증합니다. 이는 실제 기업 환경의 로그·권한·운영 조건까지 검증했다는 뜻은 아닙니다.
 - 내장 demo/evaluation 데이터는 **합성(synthetic) 회귀 데이터**입니다. 실제 기업 환경의 탐지 정확도나 오탐률을 증명하지 않습니다.
-- 외부 holdout 평가 도구(`scripts/evaluate_external_holdout.py`)는 포함되어 있지만, 이 README는 아직 독립 외부 corpus의 production-grade precision/recall 결과를 주장하지 않습니다.
+- P2-14E final blind one-pass 결과는 `docs/evidence/p2_14e_canonical_one_pass_result.md`에 봉인되어 있습니다. 이 결과는 고정된 입력·룰·실행에서 얻은 **operational output**을 기록하며, production accuracy·precision·recall·detection rate·false-positive rate를 입증하는 근거로 사용하지 않습니다.
 
 따라서 현재 BreachScope는 **포트폴리오, 연구, 내부 DFIR 보조, 사고 triage** 용도로 보는 것이 맞습니다. 사람의 확인 없이 자동 차단·법적 판단·기업 전사 운영을 맡기는 production-grade DFIR 플랫폼으로 주장하지 않습니다.
 
@@ -160,7 +160,7 @@ python scripts/evaluate_external_holdout.py --help
 - scenario hit 결과
 - 실행 시간과 peak memory
 
-외부 baseline 방법은 저장소의 evaluation 문서를 참고하세요.
+외부 baseline 방법은 [docs/EXTERNAL_HOLDOUT_EVALUATION.md](docs/EXTERNAL_HOLDOUT_EVALUATION.md)를 참고하세요. 봉인된 P2-14E one-pass 결과와 claim boundary는 [docs/evidence/p2_14e_canonical_one_pass_result.md](docs/evidence/p2_14e_canonical_one_pass_result.md)에 기록되어 있습니다.
 
 ## 성능에 대한 현재 입장
 

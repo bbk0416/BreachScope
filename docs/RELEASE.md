@@ -18,6 +18,17 @@ make validate
 - `report.manifest.json`과 `report.zip` 생성
 - 룰팩 50개 및 ATT&CK 커버리지 출력 정상
 
+### 평가 증거 / 공개 문구 확인
+
+릴리즈 노트, README, 포트폴리오, 고객 전달 문구에서 탐지 성능을 언급할 경우 다음 문서와 반드시 맞춰 확인합니다.
+
+- `docs/EXTERNAL_HOLDOUT_EVALUATION.md`
+- `docs/evidence/p2_14e_canonical_one_pass_result.md`
+
+P2-14E는 고정된 corpus·rule pack·scoring contract로 수행한 한 번의 final blind one-pass 결과를 봉인한 기록입니다. 여기서 나온 event/finding/rule-hit 수치는 **operational output**으로만 다룹니다. 별도의 authoritative ground truth가 없으므로 이 결과를 production accuracy, precision, recall, detection rate, false-positive rate의 근거로 표현하지 않습니다.
+
+이미 봉인된 P2-14E 결과를 더 좋아 보이게 만들기 위한 재실행, threshold 조정, rule tuning, denominator 변경은 기존 final-blind claim을 보존하는 릴리즈 절차에 포함하지 않습니다.
+
 ## 2. 로컬 릴리즈 번들 생성
 
 ```bash
