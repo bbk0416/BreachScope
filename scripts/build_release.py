@@ -17,14 +17,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from breachscope.release import build_release_bundle, clean_dist  # noqa: E402
+from breachscope.release import build_release_bundle  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build BreachScope release artifacts")
     parser.add_argument("--repo-root", default=str(ROOT), help="Repository root")
     parser.add_argument("--dist", default=str(ROOT / "dist"), help="Output dist directory")
-    parser.add_argument("--clean", action="store_true", help="Delete dist directory before building")
+    parser.add_argument("--clean", action="store_true", help="Delete release-bundle outputs before building; preserve wheel/sdist artifacts")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON only")
     return parser.parse_args()
 
@@ -32,7 +32,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.clean:
-        clean_dist(args.dist)
+        dist = Path(args.dist)
+        for name in ("SHA256SUMS.txt", "release_manifest.json"):
+            (dist / name).unlink(missing_ok=True)
+        for path in dist.glob("*-source.zip"):
+            path.unlink()
     result = build_release_bundle(args.repo_root, args.dist)
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
