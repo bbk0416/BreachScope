@@ -16,7 +16,7 @@ make validate
 - 10개 내장 시나리오 전체 실행 성공
 - `report.pdf` 한글 깨짐 없음
 - `report.manifest.json`과 `report.zip` 생성
-- 룰팩 50개 및 ATT&CK 커버리지 출력 정상
+- 현재 룰팩 검증 및 ATT&CK 커버리지 출력 정상
 
 ### 평가 증거 / 공개 문구 확인
 
