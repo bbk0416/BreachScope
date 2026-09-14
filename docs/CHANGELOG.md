@@ -1,8 +1,10 @@
 # BreachScope 변경 이력
 
-## 2.0.0 - Release preparation
+## 2.0.0 - Released 2026-09-15
 
-- Bumped the source package version from `1.0.0` to `2.0.0`. No Git tag or GitHub Release is created by this change.
+- Published Git tag and GitHub Release `v2.0.0` from commit `b041321bd84367ec8dcf09aa4c6c8ddea7894b7d`.
+- Published verified release assets: wheel, sdist, source ZIP, `SHA256SUMS.txt`, and `release_manifest.json`.
+- Bumped the source package version from `1.0.0` to `2.0.0`.
 - Major version is required because public v1.0.0 authentication behavior is not fully backward compatible: query-string API-key authentication (`?api_key=...`) has been removed, and `/api/info` is protected when authentication is enabled.
 - Existing API clients must use `X-API-Key` or `Authorization: Bearer` instead of query-string credentials.
 - The sealed P2-14E final blind evidence and its claim boundary are unchanged; no scoring rerun is performed for this version bump.
