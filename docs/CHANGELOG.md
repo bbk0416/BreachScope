@@ -1,5 +1,16 @@
 # BreachScope 변경 이력
 
+## 2026-09-15 - P2-14E Final Blind One-Pass Evaluation
+
+- Sealed the first successful canonical P2-14E one-pass evaluation against the frozen external holdout.
+- Frozen detector commit: `13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb`; frozen rule count: `66`.
+- Holdout: `278` EVTX files / `37,364` records; all `37,364` parsed with `0` parse errors.
+- Operational outputs: `152` findings, `134` unique flagged events, and findings from `37` of `66` rules.
+- Canonical deterministic payload SHA256: `086f3cc0d48cde4a1eb525eff7dd18a6c7cba4797639282f1804c766b971f3ef`.
+- Preserved result JSON SHA256: `7374dd7fc92137091e9b7421217a0bf8cdbd92f17f7804b2bb77b063bf16deae`.
+- Event-level ground truth is `NOT_AVAILABLE`; these outputs do not establish production accuracy, precision, recall, detection rate, or false-positive rate.
+- The successful canonical run is sealed and must not be rerun for tuning or result improvement.
+
 ## v22 - Public Publish Prep & Final Artifact Hygiene
 
 - Added `scripts/publish_prep.py` and `breachscope/publish.py` to build a final public-launch handoff package.
