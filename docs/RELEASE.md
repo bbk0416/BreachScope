@@ -51,12 +51,22 @@ sha256sum -c dist/SHA256SUMS.txt
 
 ## 3. GitHub 태그 릴리즈
 
+`pyproject.toml`의 `project.version`이 릴리즈 버전의 단일 기준입니다. 태그의 선행 `v`를 제외한 값과 패키지 버전이 정확히 같아야 합니다. 예를 들어 `project.version = "1.1.0"`이면 태그는 `v1.1.0`이어야 합니다.
+
+태그 생성 전에 로컬에서 확인할 수 있습니다.
+
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+python scripts/verify_release_version.py --tag v1.1.0
 ```
 
-태그가 `v*` 형식이면 `.github/workflows/release.yml`이 실행되어 테스트, 패키징, checksum 생성 후 GitHub Release에 업로드합니다.
+그 다음 동일한 버전으로 태그를 생성합니다.
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+태그가 `v*` 형식이면 `.github/workflows/release.yml`이 실행됩니다. workflow는 태그와 `pyproject.toml` 버전이 다르면 패키징 전에 실패하며, 일치할 때만 테스트, source ZIP, Python wheel/sdist, checksum, manifest를 생성한 뒤 GitHub Release에 업로드합니다.
 
 ## 4. 전달 패키지에서 제외되는 파일
 
