@@ -154,10 +154,10 @@ python scripts/evaluate_external_holdout.py --help
 - BreachScope commit SHA
 - rule pack hash
 - corpus/source와 SHA-256
-- labeling 기준
-- TP / FP / TN / FN
-- precision / recall / false-positive rate
-- scenario hit 결과
+- labeling/ground-truth availability 기준
+- authoritative event-level ground truth가 있을 때만 TP / FP / TN / FN 및 precision / recall / false-positive rate
+- ground truth가 없으면 해당 metric을 NOT_AVAILABLE로 두고 claim boundary를 명시
+- scenario-level ground truth가 별도로 있을 때만 scenario hit 결과
 - 실행 시간과 peak memory
 
 외부 baseline 방법은 [docs/EXTERNAL_HOLDOUT_EVALUATION.md](docs/EXTERNAL_HOLDOUT_EVALUATION.md)를 참고하세요. 봉인된 P2-14E one-pass 결과와 claim boundary는 [docs/evidence/p2_14e_canonical_one_pass_result.md](docs/evidence/p2_14e_canonical_one_pass_result.md)에 기록되어 있습니다.
