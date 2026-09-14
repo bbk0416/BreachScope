@@ -8,6 +8,39 @@ evidence.
 `scripts/evaluate_external_holdout.py` provides a separate protocol for
 externally sourced holdout data.
 
+## Sealed P2-14E final blind result
+
+The first successful canonical P2-14E one-pass run is sealed in
+`docs/evidence/p2_14e_canonical_one_pass_result.md`.
+
+Frozen identities and input:
+
+- detector commit: `13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb`
+- frozen rules: `66`
+- corpus: `278` EVTX / `37,364` records
+- corpus archive SHA-256: `99e0ca3dae2f7582d9757dfe41b4f1fb149b197fe3bb751613760087f2d68594`
+
+Observed operational output:
+
+- parsed records: `37,364`
+- parse errors: `0`
+- findings: `152`
+- unique flagged events: `134`
+- rules with at least one finding: `37` of `66`
+- canonical deterministic payload SHA-256: `086f3cc0d48cde4a1eb525eff7dd18a6c7cba4797639282f1804c766b971f3ef`
+- preserved result JSON SHA-256: `7374dd7fc92137091e9b7421217a0bf8cdbd92f17f7804b2bb77b063bf16deae`
+
+Event-level ground truth was not available for this corpus, so these are
+**operational outputs only**. They do not establish production accuracy,
+precision, recall, detection rate, or false-positive rate. In particular,
+`134 / 37,364` is a flagged-event fraction and MUST NOT be represented as a
+false-positive rate.
+
+The successful canonical run is sealed and MUST NOT be rerun for tuning,
+threshold selection, denominator changes, rule changes, or result improvement.
+The label-based evaluator described below remains the preferred protocol when
+authoritative event-level ground truth is available.
+
 ## Evaluation classes
 
 The manifest may declare one of three classes:
