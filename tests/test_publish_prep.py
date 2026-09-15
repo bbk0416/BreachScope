@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from breachscope.publish import build_publish_prep, inspect_zip_hygiene
+from breachscope.release import get_project_metadata
 
 client = TestClient(app)
 
@@ -19,13 +20,14 @@ def test_build_publish_prep_creates_final_launch_package(tmp_path):
     assert result["go_live"]["score"] >= 95
     assert result["zip_hygiene_status"] == "pass"
 
+    version = get_project_metadata(".").version
     required = [
         "PUBLIC_LAUNCH_SUMMARY.md",
         "GITHUB_PUBLISH_COMMANDS.md",
         "RELEASE_NOTE_DRAFT.md",
         "publish_manifest.json",
         "SHA256SUMS.txt",
-        "dist/breachscope-1.0.0-source.zip",
+        f"dist/breachscope-{version}-source.zip",
         "dist/SHA256SUMS.txt",
         "dist/release_manifest.json",
         "demo_pack/breachscope-demo-pack.zip",
