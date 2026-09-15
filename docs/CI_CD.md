@@ -68,8 +68,8 @@ GET /api/ops/release-info
 태그를 push하면 릴리즈 워크플로가 실행됩니다.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 생성 산출물:
@@ -107,9 +107,9 @@ Windows 네이티브 동작의 기준은 로컬 모의가 아니라 GitHub Actio
 Docker/CI 환경에서 다음 값을 주입할 수 있습니다.
 
 ```bash
-BS_BUILD_VERSION=v1.0.0
+BS_BUILD_VERSION=X.Y.Z
 BS_BUILD_SHA=<git sha>
-BS_BUILD_TAG=v1.0.0
+BS_BUILD_TAG=vX.Y.Z
 BS_BUILD_TIME=<build timestamp>
 ```
 

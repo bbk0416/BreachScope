@@ -190,7 +190,9 @@ def _portfolio_pitch(demo: dict[str, Any]) -> str:
     ])
 
 
-def _github_upload_checklist() -> str:
+def _github_upload_checklist(meta: dict[str, Any]) -> str:
+    version = str(meta.get("version") or "X.Y.Z").strip()
+    tag = version if version.startswith("v") else f"v{version}"
     return "\n".join([
         "# GitHub Upload Checklist",
         "",
@@ -202,12 +204,12 @@ def _github_upload_checklist() -> str:
         "- [ ] `dist/`, `out/`, `*.jsonl`, `*.db`, `*.log`가 커밋되지 않았는지 확인",
         "- [ ] README 첫 문단과 데모 명령 확인",
         "",
-        "## First release",
+        "## Release tag",
         "",
         "```bash",
         "python scripts/build_release.py --clean",
-        "git tag v1.0.0",
-        "git push origin v1.0.0",
+        f"git tag {tag}",
+        f"git push origin {tag}",
         "```",
         "",
         "## First production run",
@@ -227,8 +229,8 @@ def _release_notes(meta: dict[str, Any], demo: dict[str, Any]) -> str:
         "## Highlights",
         "",
         "- Product-style DFIR web console with CLI and API workflows",
-        "- 50-rule ATT&CK-aligned Windows detection rulepack",
-        "- 10 safe synthetic incident scenarios for demonstrations",
+        f"- {demo['rule_count']}-rule ATT&CK-aligned Windows detection rulepack",
+        f"- {demo['scenario_count']} safe synthetic incident scenarios for demonstrations",
         "- IOC CSV, rule catalog CSV, manifest, case ZIP, and Korean PDF report outputs",
         "- Case history, workflow status, assignee, notes, and closure summary",
         "- Authentication, audit trail, backups, retention pruning, health checks, metrics, and self-test",
@@ -340,7 +342,7 @@ def build_demo_pack(
     _write_file(out / "02_DEMO_WALKTHROUGH.md", _demo_walkthrough(demo, scenarios))
     _write_file(out / "03_PORTFOLIO_PITCH.md", _portfolio_pitch(demo))
     _write_file(out / "04_RELEASE_NOTES.md", _release_notes(meta, demo))
-    _write_file(out / "05_GITHUB_UPLOAD_CHECKLIST.md", _github_upload_checklist())
+    _write_file(out / "05_GITHUB_UPLOAD_CHECKLIST.md", _github_upload_checklist(meta))
     _write_file(out / "06_SCREENSHOT_GUIDE.md", _screenshot_guide())
 
     rules = load_rules(root / "rules")

@@ -21,6 +21,7 @@ from breachscope.demo_scenarios import SCENARIOS, write_demo_scenario
 from breachscope.pipeline import Pipeline
 from breachscope.rulepack import summarize_rules
 from breachscope.rules import load_rules
+from breachscope.version import get_project_version
 
 SERVICE_STARTED_AT = time.time()
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -104,7 +105,7 @@ def live_status() -> dict[str, Any]:
     return {
         "status": "live",
         "service": "BreachScope",
-        "version": "1.0.0",
+        "version": get_project_version(PROJECT_ROOT),
         "started_at_epoch": SERVICE_STARTED_AT,
         "uptime_seconds": round(time.time() - SERVICE_STARTED_AT, 3),
         "timestamp": _now_iso(),

@@ -17,7 +17,10 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
+
 from zipfile import ZIP_DEFLATED, ZipFile
+
+from .version import get_build_version
 
 
 DEFAULT_EXCLUDES = (
@@ -98,7 +101,7 @@ def get_project_metadata(repo_root: str | Path = ".") -> ProjectMetadata:
     project = _read_pyproject(root).get("project", {})
     return ProjectMetadata(
         name=str(project.get("name") or "breachscope"),
-        version=str(os.getenv("BS_BUILD_VERSION") or project.get("version") or "0.0.0"),
+        version=get_build_version(root),
         description=str(project.get("description") or "BreachScope DFIR console"),
         python_requires=str(project.get("requires-python") or ">=3.10"),
         generated_at=utc_now_iso(),

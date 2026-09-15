@@ -26,6 +26,7 @@ def test_api_info():
     response = client.get("/api/info")
     assert response.status_code == 200
     assert response.json()["name"] == "BreachScope"
+    assert response.json()["version"] == app.version
 
 
 def test_health_check():

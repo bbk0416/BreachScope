@@ -53,7 +53,7 @@ Suggested walkthrough:
 
 ## 5. Close with the engineering highlights
 
-- 50-rule Windows-focused detection pack with ATT&CK coverage summary.
+- Windows-focused detection pack with ATT&CK coverage summary.
 - 10 synthetic incident scenarios for safe repeatable demos.
 - Case history, workflow, audit trail, backups, retention pruning, and health checks.
 - API key plus HttpOnly session authentication for internal deployments.

@@ -43,6 +43,12 @@ def test_build_publish_prep_creates_final_launch_package(tmp_path):
     assert "breachscope-public-launch-pack/GITHUB_PUBLISH_COMMANDS.md" in names
     assert not any("__pycache__" in name or name.endswith(".pyc") for name in names)
 
+    tag = version if version.startswith("v") else f"v{version}"
+    commands = (out / "GITHUB_PUBLISH_COMMANDS.md").read_text(encoding="utf-8")
+    release_note = (out / "RELEASE_NOTE_DRAFT.md").read_text(encoding="utf-8")
+    assert f"git tag {tag}" in commands
+    assert f"breachscope-{version}-source.zip" in release_note
+
 
 def test_inspect_zip_hygiene_detects_cache_files(tmp_path):
     bad_zip = tmp_path / "bad.zip"

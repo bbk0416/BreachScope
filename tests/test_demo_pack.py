@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from breachscope.demo_pack import build_demo_pack
+from breachscope.release import get_project_metadata
 
 client = TestClient(app)
 
@@ -45,6 +46,14 @@ def test_build_demo_pack_creates_shareable_bundle(tmp_path):
     assert "breachscope-demo-pack/README.md" in names
     assert "breachscope-demo-pack/reports/breachscope_demo_report.html" in names
     assert "breachscope-demo-pack/demo_pack_manifest.json" in names
+
+    version = get_project_metadata(".").version
+    tag = version if version.startswith("v") else f"v{version}"
+    checklist = (out / "05_GITHUB_UPLOAD_CHECKLIST.md").read_text(encoding="utf-8")
+    notes = (out / "04_RELEASE_NOTES.md").read_text(encoding="utf-8")
+    assert f"git tag {tag}" in checklist
+    assert f"{result['demo_summary']['rule_count']}-rule" in notes
+    assert f"{result['demo_summary']['scenario_count']} safe synthetic" in notes
 
 
 def test_demo_pack_preview_api():
