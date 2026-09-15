@@ -1,4 +1,4 @@
-﻿"""Static showcase/landing-page builder for BreachScope.
+"""Static showcase/landing-page builder for BreachScope.
 
 The demo pack is meant to be downloaded and reviewed offline. The showcase is
 meant to be published as a tiny static site, for example with GitHub Pages, so a
@@ -129,7 +129,7 @@ def _social_preview_svg(meta: dict[str, Any], demo: dict[str, Any]) -> str:
     <text x="120" y="165" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="70" font-weight="700">{title}</text>
     <text x="124" y="220" fill="#93c5fd" font-family="Arial, sans-serif" font-size="30">{subtitle}</text>
     <text x="124" y="304" fill="#f8fafc" font-family="Arial, sans-serif" font-size="38" font-weight="700">{demo['findings']} findings · Risk {demo['risk_score']}/100 · {demo['rule_count']} rules</text>
-    <text x="124" y="358" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="28">10 safe demo scenarios · {demo['rule_coverage']}% core Windows ATT&amp;CK coverage</text>
+    <text x="124" y="358" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="28">{demo['scenario_count']} safe demo scenarios · {demo['rule_coverage']}% core Windows ATT&amp;CK coverage</text>
     <g transform="translate(124 420)">
       <rect width="190" height="62" rx="18" fill="#1d4ed8"/><text x="28" y="40" fill="#fff" font-family="Arial, sans-serif" font-size="23" font-weight="700">Web Console</text>
       <rect x="214" width="170" height="62" rx="18" fill="#166534"/><text x="248" y="40" fill="#fff" font-family="Arial, sans-serif" font-size="23" font-weight="700">IOC CSV</text>
@@ -194,9 +194,9 @@ def _index_html(meta: dict[str, Any], demo: dict[str, Any], readiness: dict[str,
 
     <section class="grid two">
       <article class="panel">
-        <h2>What it proves</h2>
+        <h2>What this demo includes</h2>
         <ul class="feature-list">
-          <li>50개 룰팩과 ATT&CK 전술/기법 커버리지</li>
+          <li>{esc(demo['rule_count'])}개 룰팩과 ATT&CK 전술/기법 커버리지</li>
           <li>IOC CSV, 룰 카탈로그, manifest, case ZIP 산출물</li>
           <li>케이스 이력, 담당자, 상태, 분석 메모, 종결 요약</li>
           <li>인증, 감사 로그, 백업, 헬스체크, 메트릭, 셀프테스트</li>
