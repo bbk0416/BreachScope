@@ -1,14 +1,16 @@
 # BreachScope 변경 이력
 
-## 2.0.1 - Release preparation
+## 2.0.1 - Released 2026-09-16
 
+- Published Git tag and GitHub Release `v2.0.1` from commit `adac36a3ae881837fac56f9dc05852ca37766d82`.
+- Published verified release assets: wheel, sdist, source ZIP, `SHA256SUMS.txt`, and `release_manifest.json`.
 - Correct runtime/package/API version reporting so project version surfaces follow the package SemVer instead of the stale hard-coded `1.0.0` value.
 - Keep build labels such as `BS_BUILD_VERSION=ci` separate from the package/API version while preserving them in release metadata.
 - Make generated Demo Pack and publish-prep release commands, source ZIP names, rule counts, and scenario counts use current project metadata instead of stale v1-era constants.
 - Refresh current-facing release examples and documentation without changing detector/rule behavior.
 - Make the P2-11D current-evidence verifier preserve the historical initializer blob while validating the live detector installer wiring semantically, so unrelated package metadata edits do not invalidate the evidence chain.
 - Fix release metadata lookup for temporary/source repositories so their own `pyproject.toml` version is used instead of the installed BreachScope distribution version.
-- The published `v2.0.0` tag and assets remain unchanged; this patch is prepared as a new immutable release.
+- The published `v2.0.0` tag and assets remain unchanged.
 - The sealed P2-14E final blind evidence and claim boundary remain unchanged; no scoring rerun is performed.
 
 ## 2.0.0 - Released 2026-09-15
