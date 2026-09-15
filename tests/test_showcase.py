@@ -1,10 +1,10 @@
-﻿from pathlib import Path
+from pathlib import Path
 from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
 
 from api.main import app
-from breachscope.showcase import build_showcase
+from breachscope.showcase import _index_html, _social_preview_svg, build_showcase
 
 client = TestClient(app)
 
@@ -61,4 +61,22 @@ def test_showcase_preview_api():
     assert payload["showcase"]["rule_count"] >= 50
     assert payload["showcase"]["entrypoint"] == "index.html"
     assert "python scripts/build_showcase.py" in payload["showcase"]["recommended_command"]
+
+def test_showcase_copy_uses_dynamic_counts():
+    demo = {
+        "risk_score": 1,
+        "risk_level": "low",
+        "findings": 2,
+        "events": 3,
+        "rule_count": 123,
+        "rule_techniques": 45,
+        "rule_coverage": 67.8,
+        "scenario_count": 17,
+        "top_tactics": [],
+    }
+    page = _index_html({"generated_at": "now", "version": "9.9.9"}, demo, {"score": 1}, {"score": 1}, [])
+    preview = _social_preview_svg({"name": "BreachScope"}, demo)
+    assert "<li>123" in page
+    assert "What this demo includes" in page
+    assert "17 safe demo scenarios" in preview
 
