@@ -12,7 +12,7 @@ This folder is a static, GitHub-Pages-ready showcase for BreachScope.
 
 ## Snapshot
 
-- Version: `2.0.0`
+- Version: `2.0.1`
 - Demo events: **48**
 - Findings: **54**
 - Risk: **100/100 (critical)**

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "tool": "BreachScope",
-  "generated_at": "2026-09-15T16:28:40.828235+00:00",
+  "generated_at": "2026-09-15T18:39:18.390635+00:00",
   "case": {
     "total_events": 48,
     "total_findings": 54,
@@ -22,7 +22,7 @@
       "WS-701"
     ]
   },
-  "report_sha256": "39566ff341c1a12516fd3af9ee03734567d12ef934d0de627f740401d649fd59",
+  "report_sha256": "daae5e98c2e7400efa8dc2700f050c63d6b821b7d6c49c0635a3856ebd5f56b8",
   "evidence_hashes": {
     "events": [
       {
@@ -906,37 +906,37 @@
   "artifacts": [
     {
       "name": "breachscope_showcase_report.html",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.html",
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.html",
       "size_bytes": 205458,
-      "sha256": "fa9f086f8b9f5e8be2fa64de46ea6ae78f74df8ed24f9ada3417dee7127a4dd3"
+      "sha256": "0a5d84597b345b41d806dcc1b79da25bc46145f21386287230f03f5357f27350"
     },
     {
       "name": "breachscope_showcase_report.pdf",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.pdf",
-      "size_bytes": 120016,
-      "sha256": "089825bf6395c38eb49f91fbd10ad630826c5d574731ee688c3e34d82417eb78"
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.pdf",
+      "size_bytes": 120018,
+      "sha256": "65680777894961556e0b98ea6ccdbd33147bdb78083cf9cba6f60666564b7373"
     },
     {
       "name": "breachscope_showcase_report.json",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.json",
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.json",
       "size_bytes": 102649,
-      "sha256": "0eb25812ac4d31ec02abfe9cb66c452040aa6125b8744845cdaa117da5e78eb3"
+      "sha256": "75e22c74286eae206d7b528a2f5efb785c3233f5689effec190a9ecdaaf0bb81"
     },
     {
       "name": "breachscope_showcase_report.csv",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.csv",
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.csv",
       "size_bytes": 9589,
       "sha256": "0a84dd14b7392e998b78dcc03a901a93ca4fa09dc591f42ca794979f3e68d405"
     },
     {
       "name": "breachscope_showcase_report.iocs.csv",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.iocs.csv",
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.iocs.csv",
       "size_bytes": 4725,
       "sha256": "8e30bc91288e9b54acdd6a1682af993cb6dc864d8b13ded7b9d08e721aa9f439"
     },
     {
       "name": "breachscope_showcase_report.rules.csv",
-      "path": "/tmp/showcase/_generated/breachscope_showcase_report.rules.csv",
+      "path": "/src/out/showcase/_generated/breachscope_showcase_report.rules.csv",
       "size_bytes": 16810,
       "sha256": "66520bb2bdcf38061924a83f830a0eeab5304d633a71c1c79a5dccbe39d919dc"
     }
