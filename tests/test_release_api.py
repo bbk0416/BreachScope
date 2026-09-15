@@ -23,5 +23,6 @@ def test_api_info_includes_release_info(monkeypatch):
     response = client.get("/api/info")
     assert response.status_code == 200
     payload = response.json()
+    assert payload["version"] == app.version
     assert payload["release_info_endpoint"] == "/api/ops/release-info"
     assert payload["release"]["version"] == "v16-info"

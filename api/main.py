@@ -14,6 +14,7 @@ from breachscope.exceptions import BreachScopeError
 from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
 from api.middleware import setup_middleware
 from breachscope.release import runtime_build_info
+from breachscope.version import get_project_version
 
 # 로깅 설정
 logging.basicConfig(
@@ -28,7 +29,7 @@ docs_enabled = os.getenv("BS_DISABLE_DOCS", "").strip().lower() not in {"1", "tr
 app = FastAPI(
     title="BreachScope",
     description="디지털 포렌식 로그 분석 시스템",
-    version="1.0.0",
+    version=get_project_version(),
     docs_url="/api/docs" if docs_enabled else None,
     redoc_url="/api/redoc" if docs_enabled else None,
 )
@@ -54,7 +55,7 @@ async def api_info():
     """API 정보 엔드포인트"""
     return {
         "name": "BreachScope",
-        "version": "1.0.0",
+        "version": get_project_version(),
         "description": "디지털 포렌식 로그 분석 시스템",
         "docs": "/api/docs" if docs_enabled else None,
         "auth_enabled": bool(os.getenv("BS_API_KEY", "").strip() or os.getenv("BS_ADMIN_PASSWORD", "").strip()),

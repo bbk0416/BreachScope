@@ -23,7 +23,7 @@ python scripts/publish_prep.py --clean --no-pdf
 ```text
 out/publish/
 ├── dist/
-│   ├── breachscope-1.0.0-source.zip
+│   ├── breachscope-X.Y.Z-source.zip
 │   ├── SHA256SUMS.txt
 │   └── release_manifest.json
 ├── demo_pack/
@@ -66,8 +66,8 @@ git status
 git add .
 git commit -m "Prepare BreachScope public release"
 git push -u origin main
-git tag v1.0.0
-git push origin v1.0.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 ## 주의

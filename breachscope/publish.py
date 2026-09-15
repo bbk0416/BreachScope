@@ -138,7 +138,9 @@ def _render_launch_summary(payload: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _render_publish_commands() -> str:
+def _render_publish_commands(metadata: dict[str, Any]) -> str:
+    version = str(metadata.get("version") or "X.Y.Z").strip()
+    tag = version if version.startswith("v") else f"v{version}"
     return "\n".join([
         "# GitHub Publish Commands",
         "",
@@ -160,11 +162,11 @@ def _render_publish_commands() -> str:
         "git push -u origin main",
         "```",
         "",
-        "## 3. Create the first release tag",
+        "## 3. Create the release tag",
         "",
         "```bash",
-        "git tag v1.0.0",
-        "git push origin v1.0.0",
+        f"git tag {tag}",
+        f"git push origin {tag}",
         "```",
         "",
         "## 4. Enable GitHub Pages",
@@ -184,8 +186,9 @@ def _render_publish_commands() -> str:
 
 def _render_release_note(payload: dict[str, Any]) -> str:
     metadata = payload.get("metadata", {})
+    version = str(metadata.get("version") or "X.Y.Z")
     return "\n".join([
-        f"# BreachScope {metadata.get('version', '1.0.0')} Public Release Note",
+        f"# BreachScope {version} Public Release Note",
         "",
         "## Summary",
         "",
@@ -193,7 +196,7 @@ def _render_release_note(payload: dict[str, Any]) -> str:
         "",
         "## Recommended assets to attach",
         "",
-        "- `dist/breachscope-1.0.0-source.zip`",
+        f"- `dist/breachscope-{version}-source.zip`",
         "- `dist/SHA256SUMS.txt`",
         "- `dist/release_manifest.json`",
         "- `demo_pack/breachscope-demo-pack.zip`",
@@ -285,7 +288,7 @@ def build_publish_prep(
         "artifacts": [asdict(item) for item in artifacts],
     }
 
-    _write_text(out / "GITHUB_PUBLISH_COMMANDS.md", _render_publish_commands())
+    _write_text(out / "GITHUB_PUBLISH_COMMANDS.md", _render_publish_commands(metadata))
     _write_text(out / "RELEASE_NOTE_DRAFT.md", _render_release_note(payload))
     _write_text(out / "PUBLIC_LAUNCH_SUMMARY.md", _render_launch_summary(payload))
     _write_checksums(out, artifacts)

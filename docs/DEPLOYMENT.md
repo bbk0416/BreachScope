@@ -134,9 +134,9 @@ POST /api/cases/prune?keep_last=50&older_than_days=30&dry_run=false
 Docker 빌드 또는 CI에서 아래 값을 주입하면 운영 API에서 배포 버전을 확인할 수 있습니다.
 
 ```bash
-BS_BUILD_VERSION=v1.0.0
+BS_BUILD_VERSION=X.Y.Z
 BS_BUILD_SHA=<git sha>
-BS_BUILD_TAG=v1.0.0
+BS_BUILD_TAG=vX.Y.Z
 BS_BUILD_TIME=<build timestamp>
 ```
 

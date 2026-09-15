@@ -6,7 +6,7 @@ BreachScope is a product-shaped DFIR console that analyzes Windows/security logs
 
 ## 30-second version
 
-I built BreachScope to show that I can take a security idea beyond a simple script. It includes a 50-rule detection pack, 10 synthetic incident scenarios, IOC extraction, attack timelines, risk scoring, case history, analyst workflow, audit logs, backups, health checks, Docker deployment, and GitHub Actions release automation. The goal is to turn raw logs into a prioritized incident package that an analyst or manager can actually use.
+I built BreachScope to show that I can take a security idea beyond a simple script. It includes a Windows-focused detection rulepack, built-in synthetic incident scenarios, IOC extraction, attack timelines, risk scoring, case history, analyst workflow, audit logs, backups, health checks, Docker deployment, and GitHub Actions release automation. The goal is to turn raw logs into a prioritized incident package that an analyst or manager can actually use.
 
 ## 60-second version
 

@@ -36,7 +36,7 @@ body:
     id: version
     attributes:
       label: Version / commit
-      placeholder: v1.0.0 or git SHA
+      placeholder: vX.Y.Z or git SHA
   - type: dropdown
     id: area
     attributes:
