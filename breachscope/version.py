@@ -18,10 +18,9 @@ def get_project_version(repo_root: str | Path | None = None) -> str:
     try:
         with pyproject.open("rb") as fh:
             project = tomllib.load(fh).get("project", {})
-        if str(project.get("name") or "").strip().lower() == "breachscope":
-            value = str(project.get("version") or "").strip()
-            if value:
-                return value
+        value = str(project.get("version") or "").strip()
+        if value:
+            return value
     except (OSError, tomllib.TOMLDecodeError):
         pass
 

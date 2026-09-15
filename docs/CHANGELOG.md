@@ -6,6 +6,8 @@
 - Keep build labels such as `BS_BUILD_VERSION=ci` separate from the package/API version while preserving them in release metadata.
 - Make generated Demo Pack and publish-prep release commands, source ZIP names, rule counts, and scenario counts use current project metadata instead of stale v1-era constants.
 - Refresh current-facing release examples and documentation without changing detector/rule behavior.
+- Make the P2-11D current-evidence verifier preserve the historical initializer blob while validating the live detector installer wiring semantically, so unrelated package metadata edits do not invalidate the evidence chain.
+- Fix release metadata lookup for temporary/source repositories so their own `pyproject.toml` version is used instead of the installed BreachScope distribution version.
 - The published `v2.0.0` tag and assets remain unchanged; this patch is prepared as a new immutable release.
 - The sealed P2-14E final blind evidence and claim boundary remain unchanged; no scoring rerun is performed.
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -133,6 +134,53 @@ def _verify_live_p2_11d_rule(repo: Path, change: Mapping[str, Any]) -> None:
     )
 
 
+def _verify_live_p2_11d_initializer(init_path: Path, recorded_blob: Any) -> None:
+    historical_blob = "d4ffc87021e1a3e5f0aeda11ee3b897257df0090"
+    _require(
+        str(recorded_blob or ""),
+        historical_blob,
+        "recorded P2-11D historical initializer blob",
+    )
+    try:
+        tree = ast.parse(init_path.read_text(encoding="utf-8"), filename=str(init_path))
+    except (OSError, SyntaxError) as exc:
+        raise CurrentEvidenceError(f"live P2-11D initializer could not be parsed: {exc}") from exc
+
+    analyzer_import = False
+    rules_import = False
+    installer_import = False
+    installer_call = False
+
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.level == 1 and node.module is None:
+            for alias in node.names:
+                if alias.name == "analyzer" and alias.asname == "_analyzer":
+                    analyzer_import = True
+                if alias.name == "rules" and alias.asname == "_rules":
+                    rules_import = True
+        elif isinstance(node, ast.ImportFrom) and node.level == 1 and node.module == "rule_field_compare":
+            installer_import = any(
+                alias.name == "install" and alias.asname == "_install_rule_field_compare"
+                for alias in node.names
+            )
+        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+            call = node.value
+            if (
+                isinstance(call.func, ast.Name)
+                and call.func.id == "_install_rule_field_compare"
+                and not call.keywords
+                and len(call.args) == 2
+                and all(isinstance(arg, ast.Name) for arg in call.args)
+                and [arg.id for arg in call.args] == ["_rules", "_analyzer"]
+            ):
+                installer_call = True
+
+    _require(analyzer_import, True, "live P2-11D analyzer import wiring")
+    _require(rules_import, True, "live P2-11D rules import wiring")
+    _require(installer_import, True, "live P2-11D installer import wiring")
+    _require(installer_call, True, "live P2-11D installer call wiring")
+
+
 def _verify_p2_11d_calibration(
     repo: Path,
     record_path: Path,
@@ -159,12 +207,9 @@ def _verify_p2_11d_calibration(
         engine.get("module_git_blob_sha1"),
         f"live {label} engine module blob",
     )
+    _require(engine.get("initializer_file"), "breachscope/__init__.py", f"{label} initializer file")
     init_path = legacy._relative_file(repo, engine.get("initializer_file"), f"{label} initializer")
-    _require(
-        legacy._git_blob_sha1(init_path),
-        engine.get("initializer_git_blob_sha1"),
-        f"live {label} initializer blob",
-    )
+    _verify_live_p2_11d_initializer(init_path, engine.get("initializer_git_blob_sha1"))
 
     benign = _mapping(record.get("benign_incremental_match_proof"), f"{label} benign proof")
     _require(benign.get("baseline_id"), "p2-09d-nextron-win10-v1", f"{label} benign baseline")

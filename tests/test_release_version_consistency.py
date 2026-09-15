@@ -52,3 +52,10 @@ def test_build_version_override_is_separate_from_project_version(monkeypatch):
     monkeypatch.setenv("BS_BUILD_VERSION", "ci-build")
     assert get_project_version(".") == expected
     assert get_build_version(".") == "ci-build"
+
+def test_project_version_resolver_uses_supplied_pyproject_version(tmp_path: Path):
+    (tmp_path / "pyproject.toml").write_text(
+        '[project]\nname = "breachscope-test"\nversion = "9.9.9"\n',
+        encoding="utf-8",
+    )
+    assert get_project_version(tmp_path) == "9.9.9"
