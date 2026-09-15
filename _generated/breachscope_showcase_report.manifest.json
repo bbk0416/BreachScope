@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
   "tool": "BreachScope",
-  "generated_at": "2026-06-11T16:24:55.644330+00:00",
+  "generated_at": "2026-09-15T16:03:06.035429+00:00",
   "case": {
     "total_events": 48,
-    "total_findings": 53,
+    "total_findings": 54,
     "risk_score": 100,
     "risk_level": "critical",
     "affected_hosts": [
@@ -22,7 +22,7 @@
       "WS-701"
     ]
   },
-  "report_sha256": "a55dfec95c8336e4c6029b1cb3877ae282fe7e546dc117b97d75053495c1250e",
+  "report_sha256": "62f41b3503ed7809b9bce9745c71ee579beab41bb472ffe88fdab4e946758e19",
   "evidence_hashes": {
     "events": [
       {
@@ -679,104 +679,111 @@
       },
       {
         "index": 38,
+        "hash": "a3c89a67b277a0d40a02814feb7543f2d076f797d86679f69d0328d9fd109f20",
+        "rule_id": "2d4d3f79-4af2-4bc6-9fe8-6e2317be5511",
+        "severity": "medium",
+        "mitre_technique": "T1059.001"
+      },
+      {
+        "index": 39,
         "hash": "cf33f90f0ede674a80f8390e2e7523954ed8b61cb24450c8c92182acae4165da",
         "rule_id": "R-DL",
         "severity": "medium",
         "mitre_technique": "T1105"
       },
       {
-        "index": 39,
+        "index": 40,
         "hash": "6592fb5065be4ef03aa54c030b07baa4f8ec4dc254d43e4b6a22c791a7ea575a",
         "rule_id": "R-DL",
         "severity": "medium",
         "mitre_technique": "T1105"
       },
       {
-        "index": 40,
+        "index": 41,
         "hash": "64c3ae9c72438ab9389e06abb936ef24ab2bdc03c9868b2a5864f55f42796bfb",
         "rule_id": "R-PS-DownloadString",
         "severity": "high",
         "mitre_technique": "T1059.001"
       },
       {
-        "index": 41,
+        "index": 42,
         "hash": "61acbcd4b94ebeb167ce9bb5a2ec609cb45af305af4b677062f2408c5679107f",
         "rule_id": "R-PS-InvokeExpression",
         "severity": "medium",
         "mitre_technique": "T1059.001"
       },
       {
-        "index": 42,
+        "index": 43,
         "hash": "72c58822ba8d3b4fa804a5c1f416d12f51a330037147358ae26f8cbcf36220b8",
         "rule_id": "R-DEFENDER-Disable",
         "severity": "high",
         "mitre_technique": "T1562.001"
       },
       {
-        "index": 43,
+        "index": 44,
         "hash": "f18be4c42d68e88d33e8b39f888a2853978e402c9eda143e3ad6696dd0925397",
         "rule_id": "R-RECOVERY-Disable",
         "severity": "high",
         "mitre_technique": "T1490"
       },
       {
-        "index": 44,
+        "index": 45,
         "hash": "bc3aa5477cb4d31fe3395d6b1b276413bc2e80a8b0cbdabf527a5c04cfdf798e",
         "rule_id": "R-RANSOM-Delete-Shadows",
         "severity": "critical",
         "mitre_technique": "T1490"
       },
       {
-        "index": 45,
+        "index": 46,
         "hash": "f9779f888ba4b463d6d1ac5f4411fc39a5f90025c7dc9970fb98b5746d907e24",
         "rule_id": "R-RECOVERY-Disable",
         "severity": "high",
         "mitre_technique": "T1490"
       },
       {
-        "index": 46,
+        "index": 47,
         "hash": "60f6989fde03c36d40275cef344654b0f77835063c30161d882a2c3682a36a67",
         "rule_id": "R-RANSOM-Delete-Shadows",
         "severity": "critical",
         "mitre_technique": "T1490"
       },
       {
-        "index": 47,
+        "index": 48,
         "hash": "67412c6fc1861e88ee58dc69c33ba3998bf1081697a800d885222cb92d3e9f93",
         "rule_id": "R-RECOVERY-Disable",
         "severity": "high",
         "mitre_technique": "T1490"
       },
       {
-        "index": 48,
+        "index": 49,
         "hash": "365498bb5ecdbec3935d798728c25e321e6ae7bdd1f233f9c991b274dec7a688",
         "rule_id": "R-EVENTLOG-Clear",
         "severity": "high",
         "mitre_technique": "T1070.001"
       },
       {
-        "index": 49,
+        "index": 50,
         "hash": "9c34ba37f94da3bb217df7e47e86cdddbd04eb54d0f9b0502d4df5766edd9175",
         "rule_id": "R-BROWSER-CredStore",
         "severity": "medium",
         "mitre_technique": "T1555.003"
       },
       {
-        "index": 50,
+        "index": 51,
         "hash": "375473c0440c887711c2d088610d9cf4487625d831ead99367bb2088bf6e9e8c",
         "rule_id": "R-CLIPBOARD-Access",
         "severity": "low",
         "mitre_technique": "T1115"
       },
       {
-        "index": 51,
+        "index": 52,
         "hash": "cae0c59b56ce80ec2ce8791be25827e734a00f25f01a874c5049c63965fe7ed7",
         "rule_id": "R-SCREENSHOT-Capture",
         "severity": "medium",
         "mitre_technique": "T1113"
       },
       {
-        "index": 52,
+        "index": 53,
         "hash": "fd2a2bf1d881ab8a303f09a00aa6e6c5175fe49eabbc1a14be5f529bb6be45f4",
         "rule_id": "R-ARCHIVE-Collection",
         "severity": "low",
@@ -792,110 +799,146 @@
       },
       {
         "index": 1,
-        "hash": "c6388a2478704ae0dab1c04e47ecf3b2407b4994d7d6c8250f03fff6909869cf",
-        "chain_id": "session_WS-101_CORP\\alice",
-        "chain_type": "session"
+        "hash": "dca4cb40c859316304f955c123c4796b4f267bc171385c930a479a15df4468cc",
+        "chain_id": "activity_1",
+        "chain_type": "activity"
       },
       {
         "index": 2,
-        "hash": "9a8d6d7a45763123746b90126ec20fd1c8acf8d83e3efebc64f956cb9ed43e2f",
-        "chain_id": "session_SRV-DC01_CORP\\svc-backup",
-        "chain_type": "session"
+        "hash": "96408d6c422ed561c8772a31646b5be4293f5d20a54f39f803f4602ea8774e44",
+        "chain_id": "activity_2",
+        "chain_type": "activity"
       },
       {
         "index": 3,
-        "hash": "e81dd6dfff8ab30e350d8b1483bfbfcaf12a57caac67d91290e1677d19ffa47e",
-        "chain_id": "session_SRV-DC01_CORP\\admin",
-        "chain_type": "session"
+        "hash": "c3134c63dadecaa31af06c531f1ba6b8200d7ad8716c88af6f1e6790e8df7cb9",
+        "chain_id": "activity_3",
+        "chain_type": "activity"
       },
       {
         "index": 4,
-        "hash": "5e0c7c46314a0af6f91d31a429df70fc920d7334dfbc6ea9ced6d69cf18868b5",
-        "chain_id": "session_FS-01_CORP\\ops",
-        "chain_type": "session"
+        "hash": "2d825ad06286c2fda6688649b8e184752ffc2230b0faa8b57db709e9b02e574c",
+        "chain_id": "activity_4",
+        "chain_type": "activity"
       },
       {
         "index": 5,
-        "hash": "b20211f7071493caf946112a0b3dee6dbe3af09cc0650cb069344184d1990018",
-        "chain_id": "session_WS-203_CORP\\helpdesk",
-        "chain_type": "session"
+        "hash": "533462d0f65bd930da2eb0944ce6bff8d9d032b2f34f28be35a50ce02794ba10",
+        "chain_id": "activity_5",
+        "chain_type": "activity"
       },
       {
         "index": 6,
-        "hash": "1ccf9603263aa2559dca5a88ac44ecf1312de19bb93c58e469fdf9e74d1bdb2b",
-        "chain_id": "session_WS-301_CORP\\analyst",
-        "chain_type": "session"
+        "hash": "2d5b73da76cb3c6d37abf420bd2f35db82636e64824b773512593475d0670f07",
+        "chain_id": "activity_6",
+        "chain_type": "activity"
       },
       {
         "index": 7,
-        "hash": "1edb4595cc3b73f00ae9ec224056085d9fec36600f6a69f05b8808af4028be4e",
-        "chain_id": "session_WS-401_CORP\\dev",
-        "chain_type": "session"
+        "hash": "3c9e07f4ac40bc6b01c0c71fd5b663229ae9520f61405ae5e49388dd86991d0f",
+        "chain_id": "activity_7",
+        "chain_type": "activity"
       },
       {
         "index": 8,
-        "hash": "d2b1450c188192156ff1ac8b4115e92125b2b2caeb76ceb73b0a8108fe8bb729",
-        "chain_id": "session_FS-02_CORP\\data",
-        "chain_type": "session"
+        "hash": "726405e22714d4ce63a013850a475e25201066061604256d78dbdb22973e185d",
+        "chain_id": "activity_8",
+        "chain_type": "activity"
       },
       {
         "index": 9,
-        "hash": "36cfc2fc5c60f7d07e5de1fc9ef01ff559a9a80083ef6389c691916c50a6d074",
-        "chain_id": "session_WS-501_CORP\\user1",
-        "chain_type": "session"
+        "hash": "e45c72c2f445fd21e7dc071a4c10247f86ed74496466cf647f74a443e0fc3871",
+        "chain_id": "activity_9",
+        "chain_type": "activity"
       },
       {
         "index": 10,
-        "hash": "4116811547399a503a6d0fc279abf229bd39c0d111a9f946a6d92ed34c16c05c",
-        "chain_id": "session_WS-601_CORP\\operator",
-        "chain_type": "session"
+        "hash": "752ea858f7e108d687882a8b08165f2f66792d7e099ead02720936a881683174",
+        "chain_id": "activity_10",
+        "chain_type": "activity"
       },
       {
         "index": 11,
-        "hash": "d99cb071218c4ba72d36124b738617c8d12fc004d497e0a70ac267bff3b9fae7",
-        "chain_id": "session_WS-701_CORP\\designer",
-        "chain_type": "session"
+        "hash": "d10102f52c85d0e8c7b5566afdd90c6733f1271070d6526a12dd8d802fc47099",
+        "chain_id": "activity_11",
+        "chain_type": "activity"
       }
     ],
     "scenarios": [
       {
         "index": 0,
-        "hash": "0006c734613d25091ea3eb6b3374b57f47f36c709e8ae32d3f6a7ad144ac2846",
-        "scenario_id": "scenario_chain_download_0",
+        "hash": "95ea6b296b7e392707b1a54b3044853c563c8927d05d536f73f433ab060ae75b",
+        "scenario_id": "scope_5bf306f7b6c2bbd0_scenario_chain_download_0",
         "name": "웹 다운로드 및 실행"
+      },
+      {
+        "index": 1,
+        "hash": "5838bd2f828699b193c9dcede075fb7d34eb1681ca5da5d8357e23de8656ca8f",
+        "scenario_id": "scope_5842930ae7fbcadd_scenario_1_wmi_lateral",
+        "name": "WMI를 통한 측면 이동"
+      },
+      {
+        "index": 2,
+        "hash": "cb452767c4f8be28983ccf13503753986ceabd226e915499d2c297f6cce34ecc",
+        "scenario_id": "scope_5842930ae7fbcadd_scenario_2_service_creation",
+        "name": "서비스 생성 및 실행"
+      },
+      {
+        "index": 3,
+        "hash": "8ceb054ed7eb361b0cba9522d15aaab4710f30c74c5edb45d45c17ad5b6fa9f3",
+        "scenario_id": "scope_91503828c10265d6_scenario_1_registry_persistence",
+        "name": "레지스트리 영구성 설정"
+      },
+      {
+        "index": 4,
+        "hash": "43bdeebed8bb44dd0b087a021d0cca7d6e28548bedd15261244bf58c452ebeaa",
+        "scenario_id": "scope_91503828c10265d6_scenario_2_scheduled_task_execution",
+        "name": "스케줄된 작업을 통한 실행"
+      },
+      {
+        "index": 5,
+        "hash": "f1ec61bba35fa6350452dce44c921bd1ddd99f31da67439d1191ea01679aad7e",
+        "scenario_id": "scope_91503828c10265d6_scenario_3_service_creation",
+        "name": "서비스 생성 및 실행"
       }
     ]
   },
   "artifacts": [
     {
       "name": "breachscope_showcase_report.html",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.html",
-      "size_bytes": 207471,
-      "sha256": "0149ec8d752f49c5ad2c92717f459555865615c6e2140ba5cdd3175317f4dca1"
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.html",
+      "size_bytes": 205458,
+      "sha256": "b546b720c0b03ed7c2962aa6c7ea23ba1d95d45d104f288142fdceb76ed01ed5"
+    },
+    {
+      "name": "breachscope_showcase_report.pdf",
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.pdf",
+      "size_bytes": 120018,
+      "sha256": "6b9c196bdaba27fa89ab5cab7b98f00e0c0030b0604f834a21ff8dc687f4ca98"
     },
     {
       "name": "breachscope_showcase_report.json",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.json",
-      "size_bytes": 104632,
-      "sha256": "c2b255e0f3438658f25eb3952f28c6d60e5158e0ebc670225f4971a86b4cf027"
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.json",
+      "size_bytes": 102649,
+      "sha256": "1d9212b9f81d86216afaebf04f1f7d59e23dc5e5ac5fec03396eb6926719a312"
     },
     {
       "name": "breachscope_showcase_report.csv",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.csv",
-      "size_bytes": 9416,
-      "sha256": "939df3c8a4922a0f549c4d9468ca5df2e09b0077ab863aedda91cce3b99842be"
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.csv",
+      "size_bytes": 9589,
+      "sha256": "0a84dd14b7392e998b78dcc03a901a93ca4fa09dc591f42ca794979f3e68d405"
     },
     {
       "name": "breachscope_showcase_report.iocs.csv",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.iocs.csv",
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.iocs.csv",
       "size_bytes": 4725,
       "sha256": "8e30bc91288e9b54acdd6a1682af993cb6dc864d8b13ded7b9d08e721aa9f439"
     },
     {
       "name": "breachscope_showcase_report.rules.csv",
-      "path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\_generated\\breachscope_showcase_report.rules.csv",
-      "size_bytes": 12569,
-      "sha256": "64d3d9ca898691280900613914341362c5dcfe087ba3ca4793dc386c6fc06b62"
+      "path": "/tmp/showcase/_generated/breachscope_showcase_report.rules.csv",
+      "size_bytes": 16810,
+      "sha256": "66520bb2bdcf38061924a83f830a0eeab5304d633a71c1c79a5dccbe39d919dc"
     }
   ]
 }

@@ -1,17 +1,17 @@
 {
   "summary": {
-    "total_findings": 53,
+    "total_findings": 54,
     "risk": {
       "score": 100,
       "level": "critical",
-      "raw_score": 1180,
+      "raw_score": 1195,
       "unique_hosts": 12,
       "unique_techniques": 35,
       "formula": "severity weights + host/technique spread bonus, capped at 100"
     },
     "executive_summary": [
-      "총 53건의 의심 이벤트가 탐지되었고, 주요 영향 호스트는 WS-301입니다.",
-      "가장 많이 관측된 ATT&CK 기법은 T1490(Inhibit System Recovery)입니다.",
+      "총 54건의 의심 이벤트가 탐지되었고, 주요 영향 호스트는 WS-301입니다.",
+      "가장 많이 관측된 ATT&CK 기법은 T1059.001(Command and Scripting Interpreter: PowerShell)입니다.",
       "high/critical 등급 탐지가 22건 있어 우선 확인이 필요합니다."
     ],
     "recommended_actions": [
@@ -114,6 +114,22 @@
         "top_rule": "MSHTA Remote Load"
       },
       {
+        "host": "WS-101",
+        "score": 100,
+        "level": "critical",
+        "findings": 7,
+        "highest_severity": "high",
+        "techniques": [
+          "T1059.001",
+          "T1105"
+        ],
+        "severity_counts": {
+          "medium": 6,
+          "high": 1
+        },
+        "top_rule": "Suspicious Web Download"
+      },
+      {
         "host": "FS-01",
         "score": 100,
         "level": "critical",
@@ -129,22 +145,6 @@
           "critical": 2
         },
         "top_rule": "Recovery Inhibition"
-      },
-      {
-        "host": "WS-101",
-        "score": 100,
-        "level": "critical",
-        "findings": 6,
-        "highest_severity": "high",
-        "techniques": [
-          "T1059.001",
-          "T1105"
-        ],
-        "severity_counts": {
-          "medium": 5,
-          "high": 1
-        },
-        "top_rule": "Suspicious Web Download"
       },
       {
         "host": "SRV-DC01",
@@ -308,6 +308,18 @@
         "mitre_name": "Command and Scripting Interpreter: PowerShell",
         "tactic": "Execution",
         "delta_seconds": 120,
+        "context": "powershell.exe -encodedcommand AAAABBBBCCCCDDDDEEEEFFFF"
+      },
+      {
+        "timestamp": "2026-01-15T09:02:00+00:00",
+        "host": "WS-101",
+        "user": "CORP\\alice",
+        "severity": "medium",
+        "rule": "EncodedCommand Generic (Safe)",
+        "mitre_technique": "T1059.001",
+        "mitre_name": "Command and Scripting Interpreter: PowerShell",
+        "tactic": "Execution",
+        "delta_seconds": 0,
         "context": "powershell.exe -encodedcommand AAAABBBBCCCCDDDDEEEEFFFF"
       },
       {
@@ -633,18 +645,6 @@
         "tactic": "Discovery",
         "delta_seconds": 60,
         "context": "tasklist /svc"
-      },
-      {
-        "timestamp": "2026-01-15T09:51:00+00:00",
-        "host": "WS-301",
-        "user": "CORP\\analyst",
-        "severity": "medium",
-        "rule": "Security Software Discovery",
-        "mitre_technique": "T1518.001",
-        "mitre_name": "Software Discovery: Security Software Discovery",
-        "tactic": "Discovery",
-        "delta_seconds": 60,
-        "context": "mespace root/SecurityCenter2 -ClassName AntivirusProduct"
       }
     ],
     "attack_coverage": [
@@ -699,7 +699,7 @@
       },
       {
         "tactic": "Execution",
-        "findings": 6,
+        "findings": 7,
         "techniques": [
           "T1047",
           "T1059.001",
@@ -1343,7 +1343,7 @@
     ],
     "severity_counts": {
       "low": 13,
-      "medium": 18,
+      "medium": 19,
       "high": 19,
       "critical": 3
     },
@@ -1383,6 +1383,7 @@
       "PowerShell New-Service Persistence": 1,
       "PowerShell Bypass/Hidden Flags": 1,
       "Encoded PowerShell Command": 1,
+      "EncodedCommand Generic (Safe)": 1,
       "PowerShell DownloadString Execution": 1,
       "PowerShell Invoke-Expression": 1,
       "Recovery Inhibition": 3,
@@ -1422,7 +1423,7 @@
       "T1202": 1,
       "T1547.001": 1,
       "T1053.005": 1,
-      "T1059.001": 4,
+      "T1059.001": 5,
       "T1490": 5,
       "T1070.001": 1,
       "T1555.003": 1,
@@ -1439,7 +1440,7 @@
       "WS-203": 2,
       "WS-401": 7,
       "WS-501": 4,
-      "WS-101": 6,
+      "WS-101": 7,
       "FS-01": 7,
       "WS-701": 4
     },
@@ -1497,25 +1498,25 @@
     "max_severity": 19,
     "max_host": 8,
     "max_mitre": 5,
-    "generated_at": "2026-06-11T16:24:55.577837+00:00",
+    "generated_at": "2026-09-15T16:03:05.445686+00:00",
     "rules": {
-      "count": 50
+      "count": 66
     },
     "rule_pack": {
-      "total_rules": 50,
-      "mapped_rules": 50,
+      "total_rules": 66,
+      "mapped_rules": 66,
       "unmapped_rules": [],
-      "unique_techniques": 40,
+      "unique_techniques": 44,
       "severity_counts": {
-        "medium": 19,
-        "low": 13,
-        "high": 16,
+        "medium": 27,
+        "low": 19,
+        "high": 18,
         "critical": 2
       },
       "tactic_coverage": [
         {
           "tactic": "Execution",
-          "rules": 7,
+          "rules": 11,
           "techniques": [
             "T1047",
             "T1059.001",
@@ -1523,14 +1524,14 @@
           ],
           "highest_severity": "high",
           "severity_counts": {
-            "medium": 4,
-            "low": 1,
+            "medium": 6,
+            "low": 3,
             "high": 2
           }
         },
         {
           "tactic": "Persistence",
-          "rules": 4,
+          "rules": 6,
           "techniques": [
             "T1053.005",
             "T1543.003",
@@ -1538,13 +1539,13 @@
           ],
           "highest_severity": "medium",
           "severity_counts": {
-            "low": 2,
-            "medium": 2
+            "low": 3,
+            "medium": 3
           }
         },
         {
           "tactic": "Defense Evasion",
-          "rules": 15,
+          "rules": 17,
           "techniques": [
             "T1070.001",
             "T1127.001",
@@ -1565,13 +1566,14 @@
           "severity_counts": {
             "medium": 5,
             "low": 3,
-            "high": 7
+            "high": 9
           }
         },
         {
           "tactic": "Credential Access",
-          "rules": 6,
+          "rules": 8,
           "techniques": [
+            "T1003",
             "T1003.001",
             "T1003.002",
             "T1003.003",
@@ -1582,12 +1584,12 @@
           "severity_counts": {
             "high": 4,
             "critical": 1,
-            "medium": 1
+            "medium": 3
           }
         },
         {
           "tactic": "Discovery",
-          "rules": 7,
+          "rules": 8,
           "techniques": [
             "T1018",
             "T1057",
@@ -1599,20 +1601,20 @@
           ],
           "highest_severity": "medium",
           "severity_counts": {
-            "low": 5,
+            "low": 6,
             "medium": 2
           }
         },
         {
           "tactic": "Lateral Movement",
-          "rules": 2,
+          "rules": 3,
           "techniques": [
             "T1021.001",
             "T1021.006"
           ],
           "highest_severity": "medium",
           "severity_counts": {
-            "medium": 2
+            "medium": 3
           }
         },
         {
@@ -1662,6 +1664,20 @@
             "high": 1,
             "critical": 1
           }
+        },
+        {
+          "tactic": "Unmapped",
+          "rules": 4,
+          "techniques": [
+            "T1006",
+            "T1007",
+            "T1136.001"
+          ],
+          "highest_severity": "medium",
+          "severity_counts": {
+            "medium": 2,
+            "low": 2
+          }
         }
       ],
       "technique_coverage": [
@@ -1694,10 +1710,17 @@
           "highest_severity": "medium"
         },
         {
+          "technique": "T1003",
+          "name": "OS Credential Dumping",
+          "tactic": "Credential Access",
+          "rules": 1,
+          "highest_severity": "medium"
+        },
+        {
           "technique": "T1003.001",
           "name": "OS Credential Dumping: LSASS Memory",
           "tactic": "Credential Access",
-          "rules": 2,
+          "rules": 3,
           "highest_severity": "high"
         },
         {
@@ -1732,7 +1755,7 @@
           "technique": "T1070.001",
           "name": "Indicator Removal: Clear Windows Event Logs",
           "tactic": "Defense Evasion",
-          "rules": 1,
+          "rules": 3,
           "highest_severity": "high"
         },
         {
@@ -1851,7 +1874,7 @@
           "technique": "T1087.002",
           "name": "Account Discovery: Domain Account",
           "tactic": "Discovery",
-          "rules": 1,
+          "rules": 2,
           "highest_severity": "medium"
         },
         {
@@ -1879,8 +1902,8 @@
           "technique": "T1047",
           "name": "Windows Management Instrumentation",
           "tactic": "Execution",
-          "rules": 1,
-          "highest_severity": "low"
+          "rules": 4,
+          "highest_severity": "medium"
         },
         {
           "technique": "T1059.001",
@@ -1893,7 +1916,7 @@
           "technique": "T1569.002",
           "name": "System Services: Service Execution",
           "tactic": "Execution",
-          "rules": 1,
+          "rules": 2,
           "highest_severity": "high"
         },
         {
@@ -1921,14 +1944,14 @@
           "technique": "T1021.006",
           "name": "Remote Services: Windows Remote Management",
           "tactic": "Lateral Movement",
-          "rules": 1,
+          "rules": 2,
           "highest_severity": "medium"
         },
         {
           "technique": "T1053.005",
           "name": "Scheduled Task/Job: Scheduled Task",
           "tactic": "Persistence",
-          "rules": 1,
+          "rules": 2,
           "highest_severity": "low"
         },
         {
@@ -1942,8 +1965,29 @@
           "technique": "T1547.001",
           "name": "Boot or Logon Autostart Execution: Registry Run Keys/Startup Folder",
           "tactic": "Persistence",
+          "rules": 2,
+          "highest_severity": "medium"
+        },
+        {
+          "technique": "T1006",
+          "name": "Unknown",
+          "tactic": "Unmapped",
           "rules": 1,
+          "highest_severity": "medium"
+        },
+        {
+          "technique": "T1007",
+          "name": "Unknown",
+          "tactic": "Unmapped",
+          "rules": 2,
           "highest_severity": "low"
+        },
+        {
+          "technique": "T1136.001",
+          "name": "Unknown",
+          "tactic": "Unmapped",
+          "rules": 1,
+          "highest_severity": "medium"
         }
       ],
       "covered_core_techniques": [
@@ -1995,7 +2039,7 @@
       "host_include": []
     },
     "time_histogram": {
-      "2026-01-15 09:00": 33,
+      "2026-01-15 09:00": 34,
       "2026-01-15 10:00": 20
     },
     "sample_scenarios": [
@@ -2244,12 +2288,13 @@
           "T1105"
         ],
         "events": 4,
-        "findings": 6,
+        "findings": 7,
         "hosts": [
           "WS-101"
         ],
         "matched_rules": [
           "Encoded PowerShell Command",
+          "EncodedCommand Generic (Safe)",
           "PowerShell Bypass/Hidden Flags",
           "PowerShell DownloadString Execution",
           "PowerShell Invoke-Expression",
@@ -2327,53 +2372,26 @@
       "total_chains": 12,
       "by_type": {
         "download_exec": 1,
-        "session": 11
+        "activity": 11
       },
-      "avg_confidence": 0.7191666666666667,
+      "avg_confidence": 0.9192453159369508,
       "total_events_in_chains": 48
     },
     "scenarios": {
-      "total_scenarios": 1,
+      "total_scenarios": 6,
       "by_stage": {
-        "execution": 1
+        "execution": 2,
+        "lateral_movement": 1,
+        "persistence": 3
       },
-      "avg_confidence": 0.6,
+      "avg_confidence": 0.7866666666666666,
       "unique_techniques": [
-        "T1003.001",
-        "T1003.002",
-        "T1003.003",
-        "T1018",
-        "T1021.006",
         "T1047",
         "T1053.005",
-        "T1057",
         "T1059.001",
-        "T1070.001",
-        "T1087.001",
-        "T1087.002",
         "T1105",
-        "T1113",
-        "T1115",
-        "T1127.001",
-        "T1135",
-        "T1202",
-        "T1218.003",
-        "T1218.004",
-        "T1218.005",
-        "T1218.010",
-        "T1218.011",
-        "T1482",
-        "T1490",
-        "T1518.001",
         "T1543.003",
-        "T1547.001",
-        "T1555.003",
-        "T1560.001",
-        "T1562.001",
-        "T1562.002",
-        "T1562.004",
-        "T1567.002",
-        "T1569.002"
+        "T1547.001"
       ]
     }
   },
@@ -3010,6 +3028,23 @@
     {
       "rule_id": "R-ENC",
       "rule_name": "Encoded PowerShell Command",
+      "severity": "medium",
+      "mitre_technique": "T1059.001",
+      "mitre_name": "Command and Scripting Interpreter: PowerShell",
+      "event": {
+        "timestamp": "2026-01-15T09:02:00+00:00",
+        "host": "WS-101",
+        "source": "ProcessCreate",
+        "event_id": "4688",
+        "user": "CORP\\alice",
+        "command_line": "powershell.exe [REDACTED] [BASE64...REDACTED]"
+      },
+      "matched_value": "[REDACTED]",
+      "matched_context": "powershell.exe [REDACTED] [BASE64...REDACTED]"
+    },
+    {
+      "rule_id": "2d4d3f79-4af2-4bc6-9fe8-6e2317be5511",
+      "rule_name": "EncodedCommand Generic (Safe)",
       "severity": "medium",
       "mitre_technique": "T1059.001",
       "mitre_name": "Command and Scripting Interpreter: PowerShell",

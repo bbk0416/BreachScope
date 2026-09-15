@@ -1,26 +1,26 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T16:24:56Z",
+  "generated_at": "2026-09-15T16:03:06Z",
   "metadata": {
     "name": "breachscope",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T16:24:56Z",
-    "git_sha": "ff6b31b",
+    "generated_at": "2026-09-15T16:03:06Z",
+    "git_sha": "9cb446aca792275e30b63d338094e6a4d238da42",
     "git_tag": null,
     "build_number": null
   },
   "demo_summary": {
     "events": 48,
-    "findings": 53,
+    "findings": 54,
     "risk_score": 100,
     "risk_level": "critical",
     "affected_hosts": 12,
     "finding_techniques": 35,
-    "rule_count": 50,
-    "rule_techniques": 40,
+    "rule_count": 66,
+    "rule_techniques": 44,
     "rule_coverage": 96.9,
     "scenario_count": 10,
     "indicator_totals": {
@@ -75,6 +75,22 @@
         "top_rule": "MSHTA Remote Load"
       },
       {
+        "host": "WS-101",
+        "score": 100,
+        "level": "critical",
+        "findings": 7,
+        "highest_severity": "high",
+        "techniques": [
+          "T1059.001",
+          "T1105"
+        ],
+        "severity_counts": {
+          "medium": 6,
+          "high": 1
+        },
+        "top_rule": "Suspicious Web Download"
+      },
+      {
         "host": "FS-01",
         "score": 100,
         "level": "critical",
@@ -90,22 +106,6 @@
           "critical": 2
         },
         "top_rule": "Recovery Inhibition"
-      },
-      {
-        "host": "WS-101",
-        "score": 100,
-        "level": "critical",
-        "findings": 6,
-        "highest_severity": "high",
-        "techniques": [
-          "T1059.001",
-          "T1105"
-        ],
-        "severity_counts": {
-          "medium": 5,
-          "high": 1
-        },
-        "top_rule": "Suspicious Web Download"
       },
       {
         "host": "SRV-DC01",
@@ -177,7 +177,7 @@
       },
       {
         "tactic": "Execution",
-        "findings": 6,
+        "findings": 7,
         "techniques": [
           "T1047",
           "T1059.001",
@@ -221,12 +221,12 @@
     ]
   },
   "project_readiness": {
-    "status": "pass",
-    "score": 100
+    "status": "fail",
+    "score": 0
   },
   "quality_gate": {
-    "status": "pass",
-    "score": 100
+    "status": "fail",
+    "score": 63
   },
   "scenarios": [
     {
@@ -385,56 +385,56 @@
       "events": 4
     }
   ],
-  "output_dir": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase",
-  "zip_path": "C:\\Users\\bbk0416\\Downloads\\BreachScope-github-ready\\out\\showcase\\breachscope-showcase.zip",
-  "zip_sha256": "d1a6e7d149c35ae8f435febe5c008c565521a6c971dac9997e7040fdf0ea75d2",
+  "output_dir": "/tmp/showcase",
+  "zip_path": "/tmp/showcase/breachscope-showcase.zip",
+  "zip_sha256": "9e62573001c5a6f4129c0846b8e03015821d6934ef4d591f1e6b7d0cee3241fd",
   "artifacts": [
     {
       "path": "index.html",
-      "size_bytes": 5090,
-      "sha256": "ad89aab37740d778d580395c30e4c237887427322f30f09206ca7d0532d9c33b",
+      "size_bytes": 5003,
+      "sha256": "1c30d887ba5053ad9cb9feb0178709ce350833239161255242822c12602ba5bd",
       "purpose": "static showcase landing page"
     },
     {
       "path": "README.md",
-      "size_bytes": 674,
-      "sha256": "0ab1e9f4d3e9d23a880e5a0d9310f5016c61dfbc4568977827460a70d0f68d81",
+      "size_bytes": 649,
+      "sha256": "693f6ed4e3b00214bf5ab74258233d128164d8575f8ef6901067350f91d03918",
       "purpose": "showcase usage notes"
     },
     {
       "path": "data/showcase_summary.json",
-      "size_bytes": 9827,
-      "sha256": "2f7673144fdb9634bd84796cc8ac96b0907eb5f85b90f1ca3783afe605081e79",
+      "size_bytes": 9469,
+      "sha256": "f8f9594259b534dc2ba21efe30dbac7fb6b7856e0d0c0fd9d1d16fe11c241c05",
       "purpose": "machine-readable demo and readiness metrics"
     },
     {
       "path": "assets/showcase.css",
-      "size_bytes": 1988,
-      "sha256": "71ba67ae1272c1ab7168254c61bdda0601c440bafc6384d1ea816a951f809619",
+      "size_bytes": 1987,
+      "sha256": "de3838f06118bf4429bad5a575153865269fc4a5458bbbd491f2e2cd5cf5ef73",
       "purpose": "landing page styles"
     },
     {
       "path": "assets/social-preview.svg",
-      "size_bytes": 2190,
-      "sha256": "febf99c859e54735682ff98919598872e1a4bbdc28806b37dbf7733097e0468c",
+      "size_bytes": 2168,
+      "sha256": "e35aef982f27b1d2abc11e18aaced798550d0ddaf62c6aab83e52d6448870740",
       "purpose": "social preview/README image asset"
     },
     {
       "path": "reports/breachscope_showcase_report.html",
-      "size_bytes": 207471,
-      "sha256": "0149ec8d752f49c5ad2c92717f459555865615c6e2140ba5cdd3175317f4dca1",
+      "size_bytes": 205458,
+      "sha256": "b546b720c0b03ed7c2962aa6c7ea23ba1d95d45d104f288142fdceb76ed01ed5",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.json",
-      "size_bytes": 104632,
-      "sha256": "c2b255e0f3438658f25eb3952f28c6d60e5158e0ebc670225f4971a86b4cf027",
+      "size_bytes": 102649,
+      "sha256": "1d9212b9f81d86216afaebf04f1f7d59e23dc5e5ac5fec03396eb6926719a312",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.csv",
-      "size_bytes": 9416,
-      "sha256": "939df3c8a4922a0f549c4d9468ca5df2e09b0077ab863aedda91cce3b99842be",
+      "size_bytes": 9589,
+      "sha256": "0a84dd14b7392e998b78dcc03a901a93ca4fa09dc591f42ca794979f3e68d405",
       "purpose": "generated demo report artifact"
     },
     {
@@ -445,38 +445,44 @@
     },
     {
       "path": "reports/breachscope_showcase_report.rules.csv",
-      "size_bytes": 12569,
-      "sha256": "64d3d9ca898691280900613914341362c5dcfe087ba3ca4793dc386c6fc06b62",
+      "size_bytes": 16810,
+      "sha256": "66520bb2bdcf38061924a83f830a0eeab5304d633a71c1c79a5dccbe39d919dc",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.manifest.json",
-      "size_bytes": 30381,
-      "sha256": "6b5df9bd58c78c7b9029610209b7ef55a2831711cf3347cfa8e03c364cfd3fd2",
+      "size_bytes": 30771,
+      "sha256": "5c9b499eaf0cd16972f810c4fc992ef5aa88823d2d6fa9fbd83f1e0edeaea5e2",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.zip",
-      "size_bytes": 53885,
-      "sha256": "2fcd02c81c1f74483616f20d6e40570fb4a488b07a543cc18f0b6cc024d8b000",
+      "size_bytes": 171261,
+      "sha256": "6eb1c0b2628cea287c847229a87e14e63be5a0f7012ea6b10b7ebbec649d4964",
+      "purpose": "generated demo report artifact"
+    },
+    {
+      "path": "reports/breachscope_showcase_report.pdf",
+      "size_bytes": 120018,
+      "sha256": "6b9c196bdaba27fa89ab5cab7b98f00e0c0030b0604f834a21ff8dc687f4ca98",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "showcase_manifest.json",
-      "size_bytes": 12598,
-      "sha256": "c87b3e53c96a1bbb329e308efe0010b64fdd539ea4b97d24ba5875ba86316c09",
+      "size_bytes": 12399,
+      "sha256": "32581eba7e30c788812b1ff3b4ff0bebb38e9104ec439856cfed89dc5be0ea72",
       "purpose": "artifact manifest with SHA-256 metadata"
     },
     {
       "path": "SHA256SUMS.txt",
-      "size_bytes": 1291,
-      "sha256": "b9f9d4204d979dd7d788f51bc81c0f2de95e981c2a1ce5a8a589578227eabd3e",
+      "size_bytes": 1384,
+      "sha256": "6b51805f6a6a7f905ab0a80605221eb6dbd8f887994db625f6df965cd3142aac",
       "purpose": "checksum list"
     },
     {
       "path": "breachscope-showcase.zip",
-      "size_bytes": 119459,
-      "sha256": "d1a6e7d149c35ae8f435febe5c008c565521a6c971dac9997e7040fdf0ea75d2",
+      "size_bytes": 354352,
+      "sha256": "9e62573001c5a6f4129c0846b8e03015821d6934ef4d591f1e6b7d0cee3241fd",
       "purpose": "shareable static showcase archive"
     }
   ]

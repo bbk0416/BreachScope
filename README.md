@@ -12,11 +12,11 @@ This folder is a static, GitHub-Pages-ready showcase for BreachScope.
 
 ## Snapshot
 
-- Version: `1.0.0`
+- Version: `2.0.0`
 - Demo events: **48**
-- Findings: **53**
+- Findings: **54**
 - Risk: **100/100 (critical)**
-- Rulepack: **50 rules / 40 techniques / 96.9% coverage**
+- Rulepack: **66 rules / 44 techniques / 96.9% coverage**
 
 ## Regenerate
 

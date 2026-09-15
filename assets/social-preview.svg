@@ -10,7 +10,7 @@
     <rect x="76" y="78" width="1048" height="474" rx="30" fill="#020617" opacity=".78" stroke="#334155"/>
     <text x="120" y="165" fill="#e2e8f0" font-family="Arial, sans-serif" font-size="70" font-weight="700">breachscope</text>
     <text x="124" y="220" fill="#93c5fd" font-family="Arial, sans-serif" font-size="30">DFIR Console · ATT&CK · IOC · Korean PDF</text>
-    <text x="124" y="304" fill="#f8fafc" font-family="Arial, sans-serif" font-size="38" font-weight="700">53 findings · Risk 100/100 · 50 rules</text>
+    <text x="124" y="304" fill="#f8fafc" font-family="Arial, sans-serif" font-size="38" font-weight="700">54 findings · Risk 100/100 · 66 rules</text>
     <text x="124" y="358" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="28">10 safe demo scenarios · 96.9% core Windows ATT&amp;CK coverage</text>
     <g transform="translate(124 420)">
       <rect width="190" height="62" rx="18" fill="#1d4ed8"/><text x="28" y="40" fill="#fff" font-family="Arial, sans-serif" font-size="23" font-weight="700">Web Console</text>
