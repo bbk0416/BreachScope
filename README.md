@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/bbk0416/BreachScope/actions/workflows/ci.yml/badge.svg)](https://github.com/bbk0416/BreachScope/actions/workflows/ci.yml)
 [![Docker Build](https://github.com/bbk0416/BreachScope/actions/workflows/docker.yml/badge.svg)](https://github.com/bbk0416/BreachScope/actions/workflows/docker.yml)
-[![Release](https://github.com/bbk0416/BreachScope/actions/workflows/release.yml/badge.svg)](https://github.com/bbk0416/BreachScope/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/bbk0416/BreachScope)](https://github.com/bbk0416/BreachScope/releases/latest)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
