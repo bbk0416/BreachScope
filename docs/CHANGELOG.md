@@ -1,5 +1,14 @@
 # BreachScope 변경 이력
 
+## 2.0.1 - Release preparation
+
+- Correct runtime/package/API version reporting so project version surfaces follow the package SemVer instead of the stale hard-coded `1.0.0` value.
+- Keep build labels such as `BS_BUILD_VERSION=ci` separate from the package/API version while preserving them in release metadata.
+- Make generated Demo Pack and publish-prep release commands, source ZIP names, rule counts, and scenario counts use current project metadata instead of stale v1-era constants.
+- Refresh current-facing release examples and documentation without changing detector/rule behavior.
+- The published `v2.0.0` tag and assets remain unchanged; this patch is prepared as a new immutable release.
+- The sealed P2-14E final blind evidence and claim boundary remain unchanged; no scoring rerun is performed.
+
 ## 2.0.0 - Released 2026-09-15
 
 - Published Git tag and GitHub Release `v2.0.0` from commit `b041321bd84367ec8dcf09aa4c6c8ddea7894b7d`.
