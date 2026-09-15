@@ -1,13 +1,13 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-09-15T16:03:06Z",
+  "generated_at": "2026-09-15T16:29:07Z",
   "metadata": {
     "name": "breachscope",
     "version": "2.0.0",
     "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-09-15T16:03:06Z",
+    "generated_at": "2026-09-15T16:29:07Z",
     "git_sha": "9cb446aca792275e30b63d338094e6a4d238da42",
     "git_tag": null,
     "build_number": null
@@ -221,12 +221,12 @@
     ]
   },
   "project_readiness": {
-    "status": "fail",
-    "score": 0
+    "status": "pass",
+    "score": 100
   },
   "quality_gate": {
-    "status": "fail",
-    "score": 63
+    "status": "pass",
+    "score": 100
   },
   "scenarios": [
     {

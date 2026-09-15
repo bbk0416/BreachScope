@@ -1498,7 +1498,7 @@
     "max_severity": 19,
     "max_host": 8,
     "max_mitre": 5,
-    "generated_at": "2026-09-15T16:03:05.445686+00:00",
+    "generated_at": "2026-09-15T16:28:39.549622+00:00",
     "rules": {
       "count": 66
     },

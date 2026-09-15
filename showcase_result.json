@@ -1,13 +1,13 @@
 {
   "success": true,
   "kind": "breachscope_static_showcase",
-  "generated_at": "2026-09-15T16:03:06Z",
+  "generated_at": "2026-09-15T16:29:07Z",
   "metadata": {
     "name": "breachscope",
     "version": "2.0.0",
     "description": "Digital forensics and incident response log analysis console",
     "python_requires": ">=3.10",
-    "generated_at": "2026-09-15T16:03:06Z",
+    "generated_at": "2026-09-15T16:29:07Z",
     "git_sha": "9cb446aca792275e30b63d338094e6a4d238da42",
     "git_tag": null,
     "build_number": null
@@ -221,12 +221,12 @@
     ]
   },
   "project_readiness": {
-    "status": "fail",
-    "score": 0
+    "status": "pass",
+    "score": 100
   },
   "quality_gate": {
-    "status": "fail",
-    "score": 63
+    "status": "pass",
+    "score": 100
   },
   "scenarios": [
     {
@@ -387,12 +387,12 @@
   ],
   "output_dir": "/tmp/showcase",
   "zip_path": "/tmp/showcase/breachscope-showcase.zip",
-  "zip_sha256": "9e62573001c5a6f4129c0846b8e03015821d6934ef4d591f1e6b7d0cee3241fd",
+  "zip_sha256": "6ab2bcc25d95730c92d7dbb45d4b0c7d8f68c2873560f7558eb3ea7203b46a5f",
   "artifacts": [
     {
       "path": "index.html",
-      "size_bytes": 5003,
-      "sha256": "1c30d887ba5053ad9cb9feb0178709ce350833239161255242822c12602ba5bd",
+      "size_bytes": 5009,
+      "sha256": "a3756a60bb4f8b948e96187e22801b248150af6b4f5a72bcdf7efe65e632f8f5",
       "purpose": "static showcase landing page"
     },
     {
@@ -403,8 +403,8 @@
     },
     {
       "path": "data/showcase_summary.json",
-      "size_bytes": 9469,
-      "sha256": "f8f9594259b534dc2ba21efe30dbac7fb6b7856e0d0c0fd9d1d16fe11c241c05",
+      "size_bytes": 9472,
+      "sha256": "e870642644467c6cfc62572a2e463905ad3a990bd044edf031cd7b507b64d142",
       "purpose": "machine-readable demo and readiness metrics"
     },
     {
@@ -422,13 +422,13 @@
     {
       "path": "reports/breachscope_showcase_report.html",
       "size_bytes": 205458,
-      "sha256": "b546b720c0b03ed7c2962aa6c7ea23ba1d95d45d104f288142fdceb76ed01ed5",
+      "sha256": "fa9f086f8b9f5e8be2fa64de46ea6ae78f74df8ed24f9ada3417dee7127a4dd3",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.json",
       "size_bytes": 102649,
-      "sha256": "1d9212b9f81d86216afaebf04f1f7d59e23dc5e5ac5fec03396eb6926719a312",
+      "sha256": "0eb25812ac4d31ec02abfe9cb66c452040aa6125b8744845cdaa117da5e78eb3",
       "purpose": "generated demo report artifact"
     },
     {
@@ -452,37 +452,37 @@
     {
       "path": "reports/breachscope_showcase_report.manifest.json",
       "size_bytes": 30771,
-      "sha256": "5c9b499eaf0cd16972f810c4fc992ef5aa88823d2d6fa9fbd83f1e0edeaea5e2",
+      "sha256": "b6ccd468eaf46b71a088eab1c82a894ac77728b9f34a98137108a17cf244d434",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.zip",
-      "size_bytes": 171261,
-      "sha256": "6eb1c0b2628cea287c847229a87e14e63be5a0f7012ea6b10b7ebbec649d4964",
+      "size_bytes": 171268,
+      "sha256": "2dc63d08756db3a462ce8e8cc0b1007764db357f1431c5f24e5688efe8645ee8",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "reports/breachscope_showcase_report.pdf",
-      "size_bytes": 120018,
-      "sha256": "6b9c196bdaba27fa89ab5cab7b98f00e0c0030b0604f834a21ff8dc687f4ca98",
+      "size_bytes": 120016,
+      "sha256": "089825bf6395c38eb49f91fbd10ad630826c5d574731ee688c3e34d82417eb78",
       "purpose": "generated demo report artifact"
     },
     {
       "path": "showcase_manifest.json",
-      "size_bytes": 12399,
-      "sha256": "32581eba7e30c788812b1ff3b4ff0bebb38e9104ec439856cfed89dc5be0ea72",
+      "size_bytes": 12402,
+      "sha256": "21b5326e6403d22d1741986e36155a95cc4d71ac47591dc935bdf107a726547c",
       "purpose": "artifact manifest with SHA-256 metadata"
     },
     {
       "path": "SHA256SUMS.txt",
       "size_bytes": 1384,
-      "sha256": "6b51805f6a6a7f905ab0a80605221eb6dbd8f887994db625f6df965cd3142aac",
+      "sha256": "4868ca2f9eb155254b2de083230479c62ab2a7b80fd207f4d82ced38f7f51685",
       "purpose": "checksum list"
     },
     {
       "path": "breachscope-showcase.zip",
-      "size_bytes": 354352,
-      "sha256": "9e62573001c5a6f4129c0846b8e03015821d6934ef4d591f1e6b7d0cee3241fd",
+      "size_bytes": 354353,
+      "sha256": "6ab2bcc25d95730c92d7dbb45d4b0c7d8f68c2873560f7558eb3ea7203b46a5f",
       "purpose": "shareable static showcase archive"
     }
   ]
