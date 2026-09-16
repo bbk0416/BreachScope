@@ -93,3 +93,45 @@ def test_confidence_time_span_uses_actual_last_matched_event():
 
     assert chain.end_time == ts + timedelta(seconds=10)
     assert chain.confidence == pytest.approx(0.5)
+
+
+def test_event_b_pattern_is_prefiltered_once_per_rule(monkeypatch):
+    import breachscope.correlator as correlator_module
+
+    ts = datetime(2026, 9, 4, tzinfo=timezone.utc)
+    anchors = [
+        _event(ts=ts + timedelta(seconds=i), source="Anchor", record_id=100 + i)
+        for i in range(10)
+    ]
+    noise = [
+        _event(ts=ts + timedelta(seconds=20 + i), source="Other", record_id=200 + i)
+        for i in range(100)
+    ]
+    follow = _event(ts=ts + timedelta(seconds=150), source="Follow", record_id=999)
+    events = anchors + noise + [follow]
+
+    rule = CorrelationRule(
+        rule_id="prefilter",
+        name="prefilter",
+        description="B-pattern prefilter regression",
+        event_a_patterns=["source:Anchor"],
+        event_b_patterns=["source:Follow"],
+        time_window_seconds=300,
+        required_fields=["host"],
+        chain_type="prefilter",
+    )
+    original_match = correlator_module._match_event_pattern
+    calls = {"event_b": 0}
+
+    def counted_match(event, patterns):
+        if patterns == rule.event_b_patterns:
+            calls["event_b"] += 1
+        return original_match(event, patterns)
+
+    monkeypatch.setattr(correlator_module, "_match_event_pattern", counted_match)
+    chains = correlate_events(events, [], [rule])
+
+    prefiltered = [chain for chain in chains if chain.chain_type == "prefilter"]
+    assert len(prefiltered) == len(anchors)
+    assert all(chain.events[-1] is follow for chain in prefiltered)
+    assert calls["event_b"] == len(events)

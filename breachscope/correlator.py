@@ -154,9 +154,19 @@ def correlate_events(
 
         chains: List[EventChain] = []
 
-        # 3. 각 상관 규칙에 대해 체인 생성 (이진 검색으로 최적화)
+        # 3. 각 상관 규칙에 대해 체인 생성.
+        # B 패턴은 event/window마다 다시 평가하지 않고 규칙당 한 번만
+        # 사전 계산합니다. 시간순 index와 B 후보 timestamp가 같은 순서를
+        # 유지하므로 이후에는 bisect로 실제 B 후보만 조회할 수 있습니다.
         for rule in correlation_rules:
             logger.debug(f"규칙 적용 중: {rule.rule_id}")
+
+            candidate_b_indices = [
+                idx
+                for idx, (_, event, _) in enumerate(indexed_events)
+                if _match_event_pattern(event, rule.event_b_patterns)
+            ]
+            candidate_b_timestamps = [timestamps[idx] for idx in candidate_b_indices]
 
             for i, (orig_idx, event_a, ts_a) in enumerate(indexed_events):
 
@@ -167,12 +177,12 @@ def correlate_events(
                 # 시간 윈도우 계산
                 window_end = ts_a + timedelta(seconds=rule.time_window_seconds)
 
-                # 이진 검색으로 윈도우 내 이벤트 찾기 (타임스탬프 리스트 사용)
-                window_start_idx = i + 1
-                window_end_idx = bisect.bisect_right(
-                    timestamps,
+                # i 이후이면서 window_end 이하인 B-pattern 후보만 조회합니다.
+                candidate_start = bisect.bisect_right(candidate_b_indices, i)
+                candidate_end = bisect.bisect_right(
+                    candidate_b_timestamps,
                     window_end,
-                    lo=window_start_idx
+                    lo=candidate_start,
                 )
 
                 chain_events = [event_a]
@@ -182,17 +192,10 @@ def correlate_events(
                 if i in finding_map:
                     chain_findings.extend(finding_map[i])
 
-                # 윈도우 내 이벤트 검색
-                for j in range(window_start_idx, window_end_idx):
-                    if j >= len(indexed_events):
-                        break
-
+                # 윈도우 내에서 B 패턴에 이미 매칭된 이벤트만 검색
+                for candidate_pos in range(candidate_start, candidate_end):
+                    j = candidate_b_indices[candidate_pos]
                     orig_idx_b, event_b, ts_b = indexed_events[j]
-
-
-                    # 이벤트 B가 패턴과 매칭되는지 확인
-                    if not _match_event_pattern(event_b, rule.event_b_patterns):
-                        continue
 
                     # 공통 필드 확인 (필요한 경우)
                     if rule.required_fields:
