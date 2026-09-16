@@ -88,9 +88,11 @@ def _finding_techniques(finding: Any) -> set[str]:
 
 def event_identity_payload(event: Any) -> dict[str, str]:
     """Canonical identity used only for holdout accounting, not evidence integrity."""
-    raw = _get(event, "raw", {})
-    if not isinstance(raw, Mapping):
-        raw = {}
+    event_mapping = event if isinstance(event, Mapping) else {}
+    raw_obj = _get(event, "raw", {})
+    has_nested_raw = isinstance(event_mapping.get("raw"), Mapping) if event_mapping else isinstance(raw_obj, Mapping)
+    flat_mapping = bool(event_mapping) and not has_nested_raw
+    raw = raw_obj if has_nested_raw and isinstance(raw_obj, Mapping) else event_mapping
 
     canonical = raw.get("canonical")
     if not isinstance(canonical, Mapping):
@@ -104,9 +106,17 @@ def event_identity_payload(event: Any) -> dict[str, str]:
         direct = _get(event, name, "")
         if direct not in (None, ""):
             return str(direct)
-        for source in (canonical, raw):
+        for source in (canonical, raw, event_mapping):
             for candidate in (name, *aliases):
                 item = source.get(candidate)
+                if item not in (None, ""):
+                    return str(item)
+        return ""
+
+    def first_alias(*names: str) -> str:
+        for source in (raw, event_mapping, canonical):
+            for name in names:
+                item = source.get(name)
                 if item not in (None, ""):
                     return str(item)
         return ""
@@ -118,19 +128,20 @@ def event_identity_payload(event: Any) -> dict[str, str]:
                 return str(item)
         return ""
 
+    endpoint_host = first_alias("Hostname", "Computer") if flat_mapping else ""
     payload = {
-        "timestamp": first("timestamp", "time_created", "TimeCreated"),
-        "host": first("host", "computer", "Computer"),
-        "source": first("source", "provider", "ProviderName"),
+        "timestamp": first("timestamp", "@timestamp", "UtcTime", "EventTime", "time_created", "TimeCreated"),
+        "host": endpoint_host or first("host", "Hostname", "computer", "Computer"),
+        "source": first("source", "SourceName", "provider", "ProviderName"),
         "event_id": first("event_id", "EventID", "eventid"),
-        "user": first("user", "User", "SubjectUserName"),
+        "user": first("user", "User", "SubjectUserName", "TargetUserName", "AccountName", "UserName"),
         "command_line": first("command_line", "CommandLine", "ProcessCommandLine"),
     }
 
     channel = first("channel", "Channel") or system_first("Channel", "channel")
     event_record_id = (
-        first("event_record_id", "EventRecordID", "record_id")
-        or system_first("EventRecordID", "event_record_id", "record_id")
+        first("event_record_id", "EventRecordID", "record_id", "RecordNumber")
+        or system_first("EventRecordID", "event_record_id", "record_id", "RecordNumber")
     )
 
     # Preserve historical keys for generic JSONL events that do not expose
@@ -467,13 +478,14 @@ def require_complete_labels(
 
 
 def _record_to_event(raw: dict[str, Any]):
+    from breachscope.canonical import enrich_event_dict
     from breachscope.schemas import Event
 
     identity = event_identity_payload(raw)
     params = inspect.signature(Event).parameters
-    event_raw = raw.get("raw")
-    if not isinstance(event_raw, dict):
-        event_raw = raw
+    nested_raw = raw.get("raw")
+    has_nested_raw = isinstance(nested_raw, dict)
+    event_raw = dict(nested_raw) if has_nested_raw else dict(raw)
     candidate = {
         "timestamp": identity["timestamp"],
         "host": identity["host"],
@@ -483,6 +495,11 @@ def _record_to_event(raw: dict[str, Any]):
         "command_line": identity["command_line"],
         "raw": event_raw,
     }
+    flat_windows_record = not has_nested_raw and any(
+        key in raw for key in ("Hostname", "SourceName", "EventID", "Channel", "RecordNumber")
+    )
+    if flat_windows_record and not isinstance(event_raw.get("canonical"), Mapping):
+        candidate = enrich_event_dict(candidate)
     kwargs = {k: v for k, v in candidate.items() if k in params}
     return Event(**kwargs)
 
