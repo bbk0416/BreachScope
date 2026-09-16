@@ -46,50 +46,50 @@ class CorrelationRule:
 _parse_timestamp = parse_timestamp
 
 
+# BREACHSCOPE_P0_07_CANONICAL_SOURCE_BRIDGE_V1
 def _match_event_pattern(event: Event, patterns: List[str]) -> bool:
-    """이벤트가 패턴 목록 중 하나와 매칭되는지 확인"""
+    """Match legacy event patterns, then fall back to canonical source tokens."""
     for pattern in patterns:
-        # source 매칭
         if pattern.startswith("source:"):
             if event.source and pattern[7:].lower() in event.source.lower():
                 return True
-        # event_id 매칭
         elif pattern.startswith("event_id:"):
             if event.event_id and pattern[9:] == event.event_id:
                 return True
-        # command_line 패턴 매칭
         elif pattern.startswith("cmd:"):
             if event.command_line and pattern[4:].lower() in event.command_line.lower():
                 return True
-        # 단순 문자열 매칭 (source에 포함)
         elif event.source and pattern.lower() in event.source.lower():
             return True
-    return False
+    return _bs_p007_match_canonical_source(event, patterns)
 
 
-def _extract_common_key(event_a: Event, event_b: Event, fields: List[str]) -> Optional[str]:
-    """두 이벤트에서 공통 키 추출 (예: 같은 파일 경로, 같은 프로세스 ID 등)"""
+# BREACHSCOPE_P0_03_REQUIRED_FIELDS_AND_V1
+def _extract_common_key(
+    event_a: Event,
+    event_b: Event,
+    fields: List[str],
+) -> Optional[str]:
+    """Return a common key only when every explicitly required field matches."""
+    matched_parts: List[str] = []
     for field in fields:
-        val_a = None
-        val_b = None
-
         if field == "host":
-            val_a = event_a.host
-            val_b = event_b.host
+            val_a, val_b = event_a.host, event_b.host
         elif field == "user":
-            val_a = event_a.user
-            val_b = event_b.user
+            val_a, val_b = event_a.user, event_b.user
         elif field == "command_line":
-            val_a = event_a.command_line
-            val_b = event_b.command_line
+            val_a, val_b = event_a.command_line, event_b.command_line
         else:
             val_a = event_a.raw.get(field)
             val_b = event_b.raw.get(field)
 
-        if val_a and val_b and str(val_a).lower() == str(val_b).lower():
-            return f"{field}:{val_a}"
-    return None
+        if not (val_a and val_b and str(val_a).lower() == str(val_b).lower()):
+            return None
+        matched_parts.append(f"{field}:{val_a}")
 
+    if not matched_parts:
+        return None
+    return " && ".join(matched_parts)
 
 def correlate_events(
     events: List[Event],
@@ -463,62 +463,6 @@ def get_chain_summary(chains: List[EventChain]) -> Dict[str, Any]:
         "avg_confidence": total_confidence / len(chains) if chains else 0.0,
         "total_events_in_chains": total_events,
     }
-# BREACHSCOPE_P0_03_REQUIRED_FIELDS_AND_V1
-# Preserve the existing correlator implementation and tighten only the
-# semantics of multi-field correlation constraints.
-#
-# Historical behavior returned as soon as ANY required field matched.
-# P0-03 requires EVERY requested field to match. A single-field rule keeps
-# exactly the legacy behavior.
-import functools as _bs_functools
-import inspect as _bs_inspect
-
-_extract_common_key_p0_02 = _extract_common_key
-
-
-@_bs_functools.wraps(_extract_common_key_p0_02)
-def _extract_common_key(*args, **kwargs):
-    signature = _bs_inspect.signature(_extract_common_key_p0_02)
-    bound = signature.bind_partial(*args, **kwargs)
-
-    field_param = None
-    for name in signature.parameters:
-        lowered = name.casefold()
-        if lowered in {"fields", "required_fields"} or "field" in lowered:
-            field_param = name
-            break
-
-    # If the implementation ever changes beyond the shape P0-03 understands,
-    # fail open to legacy behavior rather than silently breaking correlation.
-    if field_param is None or field_param not in bound.arguments:
-        return _extract_common_key_p0_02(*args, **kwargs)
-
-    fields = bound.arguments[field_param]
-    if fields is None or isinstance(fields, str):
-        return _extract_common_key_p0_02(*args, **kwargs)
-
-    try:
-        required = list(fields)
-    except TypeError:
-        return _extract_common_key_p0_02(*args, **kwargs)
-
-    if len(required) <= 1:
-        return _extract_common_key_p0_02(*args, **kwargs)
-
-    matched_parts = []
-    for field in required:
-        call_bound = signature.bind_partial(*args, **kwargs)
-        call_bound.arguments[field_param] = [field]
-        result = _extract_common_key_p0_02(
-            *call_bound.args,
-            **call_bound.kwargs,
-        )
-        if not result:
-            return None
-        matched_parts.append(str(result))
-
-    return " && ".join(matched_parts)
-
 # BREACHSCOPE_P0_04_MULTI_MEMBERSHIP_V1
 # Correlation is evidence-centric, not ownership-centric:
 # evidence may participate in multiple valid chains when independent
@@ -528,9 +472,6 @@ def _extract_common_key(*args, **kwargs):
 # Preserve legacy source/event_id/cmd matching first. When legacy source text
 # cannot express the provider-neutral event type (for example a real Sysmon
 # provider versus "ProcessCreate"), fall back to P0-02 canonical taxonomy.
-_match_event_pattern_p0_06 = _match_event_pattern
-
-
 def _bs_p007_norm_source_token(value):
     if value is None:
         return ""
@@ -630,12 +571,6 @@ def _bs_p007_match_canonical_source(event, patterns):
             return True
 
     return False
-
-
-def _match_event_pattern(event, patterns):
-    if _match_event_pattern_p0_06(event, patterns):
-        return True
-    return _bs_p007_match_canonical_source(event, patterns)
 
 
 # BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V2

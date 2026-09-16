@@ -118,7 +118,21 @@ def test_unrelated_source_is_not_broadened_by_canonical_bridge():
     assert not correlator._match_event_pattern(event, ["source:ProcessCreate"])
 
 
-def test_p0_07_marker_and_wrapper_are_present():
-    source = open(correlator.__file__, "r", encoding="utf-8").read()
+def test_p0_07_marker_and_single_core_helper_definitions_are_present():
+    import ast
+    from pathlib import Path
+
+    source = Path(correlator.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    expected = {"_match_event_pattern", "_extract_common_key"}
+    counts = {name: 0 for name in expected}
+    for node in tree.body:
+        name = getattr(node, "name", None)
+        if name in counts:
+            counts[name] += 1
+
     assert "BREACHSCOPE_P0_07_CANONICAL_SOURCE_BRIDGE_V1" in source
-    assert "_match_event_pattern_p0_06 = _match_event_pattern" in source
+    assert "BREACHSCOPE_P0_03_REQUIRED_FIELDS_AND_V1" in source
+    assert counts == {name: 1 for name in expected}
+    assert "_match_event_pattern_p0_06" not in source
+    assert "_extract_common_key_p0_02" not in source
