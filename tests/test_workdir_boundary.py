@@ -158,3 +158,23 @@ def test_report_preview_has_single_top_level_loader_definition():
     assert len(definitions) == 1
     assert "_bs_p011_legacy_load_preview" not in source
     assert "BREACHSCOPE_P0_11_REPORT_PREVIEW_BOUNDARY_V1" in source
+
+def test_work_directory_service_has_no_runtime_method_replacement():
+    import ast
+    import api.services.workdir_service as workdir_module
+
+    source = Path(workdir_module.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    cls = next(
+        node for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "WorkDirectoryService"
+    )
+    definitions = [
+        node for node in cls.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == "create_work_directory"
+    ]
+    assert len(definitions) == 1
+    assert "WorkDirectoryService.create_work_directory =" not in source
+    assert "_bs_p011_legacy_create_work_directory" not in source
+    assert "BREACHSCOPE_P0_11_WORKDIR_BOUNDARY_V1" in source
