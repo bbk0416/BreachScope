@@ -75,8 +75,12 @@ def test_unscoped_finding_is_not_used_as_attack_evidence():
     assert selected == []
 
 
-def test_public_scenario_function_is_wrapped():
+def test_public_scenario_function_uses_static_scope_wiring():
     public = getattr(scenario, PUBLIC_NAME)
-    assert hasattr(public, "__wrapped__")
     source = open(scenario.__file__, "r", encoding="utf-8").read()
+
+    assert not hasattr(public, "__wrapped__")
+    assert hasattr(scenario, "_infer_scenarios_for_scope")
     assert "BREACHSCOPE_P0_05_SCENARIO_SCOPE_V1" in source
+    assert "_bs_p005_partition_chains(chains)" in source
+    assert "_bs_p005_filter_findings(findings, scope)" in source

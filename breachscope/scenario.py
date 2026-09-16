@@ -49,7 +49,7 @@ class ScenarioTemplate:
     confidence_weights: Dict[str, float] = field(default_factory=dict)
 
 
-def _bs_p005_legacy_infer_scenarios(
+def _infer_scenarios_for_scope(
     chains: List[CorrelatorEventChain],
     findings: List[Finding],
     custom_templates_dir: Optional[Path] = None,
@@ -538,11 +538,22 @@ def infer_scenarios(
     findings: List[Finding],
     custom_templates_dir: Optional[Path] = None,
 ) -> List[Scenario]:
+    """
+    이벤트 체인과 탐지 결과로부터 공격 시나리오를 추론합니다.
+
+    Args:
+        chains: 상관분석으로 생성된 이벤트 체인
+        findings: 규칙 기반 탐지 결과
+        custom_templates_dir: 사용자 정의 템플릿 디렉토리 경로 (선택적)
+
+    Returns:
+        추론된 공격 시나리오 목록
+    """
     chains = list(chains or [])
     findings = list(findings or [])
 
     if not chains:
-        return _bs_p005_legacy_infer_scenarios(
+        return _infer_scenarios_for_scope(
             chains, findings, custom_templates_dir
         )
 
@@ -552,7 +563,7 @@ def infer_scenarios(
     for component in components:
         scope = _bs_p005_component_scope(component)
         scoped_findings = _bs_p005_filter_findings(findings, scope)
-        partial = _bs_p005_legacy_infer_scenarios(
+        partial = _infer_scenarios_for_scope(
             component, scoped_findings, custom_templates_dir
         )
         if partial:
@@ -560,8 +571,6 @@ def infer_scenarios(
 
     return results
 
-infer_scenarios.__wrapped__ = _bs_p005_legacy_infer_scenarios
-infer_scenarios.__doc__ = _bs_p005_legacy_infer_scenarios.__doc__
 
 # BREACHSCOPE_P0_06_ATTACK_MATCH_V1
 # ATT&CK requirement semantics:

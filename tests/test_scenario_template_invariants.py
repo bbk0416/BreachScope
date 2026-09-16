@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -52,7 +53,7 @@ def test_empty_chain_patterns_mean_no_chain_type_restriction_within_current_scop
     template = _template(required=["T1047"], patterns=[])
     _isolate_template_engine(monkeypatch, template)
 
-    result = scenario._bs_p005_legacy_infer_scenarios(
+    result = scenario._infer_scenarios_for_scope(
         [_chain("some_other_chain_type")],
         [_finding("T1047")],
     )
@@ -66,7 +67,7 @@ def test_nonempty_chain_patterns_still_require_matching_chain_type(monkeypatch):
     template = _template(required=["T1047"], patterns=["wmi_lateral"])
     _isolate_template_engine(monkeypatch, template)
 
-    result = scenario._bs_p005_legacy_infer_scenarios(
+    result = scenario._infer_scenarios_for_scope(
         [_chain("different_chain")],
         [_finding("T1047")],
     )
@@ -83,7 +84,7 @@ def test_empty_required_techniques_template_is_skipped_during_inference(monkeypa
 
     monkeypatch.setattr(scenario, "_calculate_scenario_confidence", should_not_run)
 
-    result = scenario._bs_p005_legacy_infer_scenarios(
+    result = scenario._infer_scenarios_for_scope(
         [_chain()],
         [_finding("T1047")],
     )
@@ -143,3 +144,11 @@ def test_builtin_empty_chain_templates_are_no_longer_intrinsically_unreachable()
 def test_p0_08_marker_present():
     source = open(scenario.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P0_08_TEMPLATE_INVARIANTS_V1" in source
+
+def test_public_inference_has_no_legacy_wrapper_layer():
+    source = Path(scenario.__file__).read_text(encoding="utf-8")
+
+    assert "_bs_p005_legacy_infer_scenarios" not in source
+    assert "infer_scenarios.__wrapped__" not in source
+    assert hasattr(scenario, "_infer_scenarios_for_scope")
+    assert not hasattr(scenario.infer_scenarios, "__wrapped__")
