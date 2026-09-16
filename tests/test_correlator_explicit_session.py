@@ -382,3 +382,14 @@ def test_session_correlator_has_single_definition_without_runtime_installer():
         "BREACHSCOPE_P2_07Z_DEDUPLICATE_SESSION_LIFECYCLE_EVENTS_V1",
     ):
         assert marker in source
+
+    for retired_prefix in ("_bs_p007_", "_bs_p207i_", "_bs_p207m_"):
+        assert retired_prefix not in source
+    for helper_name in (
+        "_match_canonical_source",
+        "_canonicalize_session_id",
+        "_explicit_session_id",
+        "_session_lifecycle_segments",
+        "_session_lifecycle_token",
+    ):
+        assert f"def {helper_name}(" in source
