@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from breachscope.correlator import _correlate_by_session
-from breachscope.schemas import Event
+from breachscope.schemas import Event, Finding
 
 
 def _event(
@@ -25,6 +25,17 @@ def _event(
     )
 
 
+def _finding(event: Event, rule_id: str) -> Finding:
+    return Finding(
+        rule_id=rule_id,
+        rule_name=rule_id,
+        severity="high",
+        mitre_technique="T0001",
+        event=event,
+        matched_value="x",
+    )
+
+
 def test_same_host_user_without_explicit_session_id_does_not_create_session_chain():
     ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
     first = _event(event_id="4688", ts=ts, raw={})
@@ -33,17 +44,28 @@ def test_same_host_user_without_explicit_session_id_does_not_create_session_chai
     assert _correlate_by_session([first, second], []) == []
 
 
-def test_nearby_same_host_user_is_bounded_activity_not_session():
+def test_nearby_same_host_user_findings_form_bounded_activity_not_session():
     ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
     first = _event(event_id="4688", ts=ts, raw={})
+    middle = _event(event_id="4688", ts=ts + timedelta(minutes=2), raw={})
     second = _event(event_id="4688", ts=ts + timedelta(minutes=5), raw={})
+    findings = [_finding(first, "R1"), _finding(second, "R2")]
 
-    chains = _correlate_by_session([first, second], [])
+    chains = _correlate_by_session([first, middle, second], findings)
 
     assert len(chains) == 1
     assert chains[0].chain_type == "activity"
     assert not chains[0].chain_id.startswith("session_")
     assert chains[0].events == [first, second]
+    assert [finding.rule_id for finding in chains[0].findings] == ["R1", "R2"]
+
+
+def test_nearby_same_host_user_without_findings_does_not_form_activity_chain():
+    ts = datetime(2026, 9, 7, tzinfo=timezone.utc)
+    first = _event(event_id="4688", ts=ts, raw={})
+    second = _event(event_id="4688", ts=ts + timedelta(minutes=5), raw={})
+
+    assert _correlate_by_session([first, second], []) == []
 
 
 def test_success_logon_and_logoff_group_by_target_logon_id_not_subject_logon_id():

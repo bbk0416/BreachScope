@@ -516,7 +516,7 @@ def _match_canonical_source(event, patterns):
 
 # BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V2
 # Explicit Windows logon sessions require a concrete session identifier.
-# Non-authentication events without one may form bounded host/user activity chains.
+# Non-authentication findings without one may form bounded host/user activity chains.
 _BS_P207I_ACTIVITY_WINDOW = timedelta(minutes=30)
 _BS_P207I_AUTH_EVENT_IDS = {"4624", "4634", "4625", "4647"}
 _BS_P207I_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
@@ -608,7 +608,7 @@ def _correlate_unscoped_session_activity(
     events: List[Event],
     findings: List[Finding],
 ) -> List[EventChain]:
-    """Build one-id session chains plus bounded host/user activity chains."""
+    """Build one-id sessions plus finding-anchored host/user activity chains."""
     session_groups: Dict[str, List[Event]] = defaultdict(list)
     activity_groups: Dict[Tuple[str, str], List[Event]] = defaultdict(list)
 
@@ -623,6 +623,8 @@ def _correlate_unscoped_session_activity(
         user = (event.user or "").strip()
         if host and user:
             activity_groups[(host.casefold(), user.casefold())].append(event)
+
+    finding_event_keys = {get_event_identity_key(finding.event) for finding in findings}
 
     chains: List[EventChain] = []
     for session_id, grouped_events in sorted(session_groups.items()):
@@ -648,7 +650,12 @@ def _correlate_unscoped_session_activity(
 
     activity_number = 0
     for _, grouped_events in sorted(activity_groups.items()):
-        for activity_events in _activity_segments(grouped_events):
+        evidence_events = [
+            event
+            for event in grouped_events
+            if get_event_identity_key(event) in finding_event_keys
+        ]
+        for activity_events in _activity_segments(evidence_events):
             activity_number += 1
             start_time = _parse_timestamp(activity_events[0].timestamp)
             end_time = _parse_timestamp(activity_events[-1].timestamp)
@@ -661,7 +668,7 @@ def _correlate_unscoped_session_activity(
                     findings=activity_findings,
                     start_time=start_time,
                     end_time=end_time,
-                    description="동일 호스트/사용자의 30분 이내 활동 묶음",
+                    description="동일 호스트/사용자의 30분 이내 탐지 활동 묶음",
                     confidence=_calculate_chain_confidence(activity_events, activity_findings, time_span),
                     chain_type="activity",
                 )
