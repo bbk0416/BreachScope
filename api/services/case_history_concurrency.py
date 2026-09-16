@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from functools import wraps
 import os
 from pathlib import Path
 import threading
 from typing import Iterator
 
-from .case_history import CaseHistoryService
 
 
 _PROCESS_LOCKS_GUARD = threading.Lock()
@@ -93,34 +93,16 @@ def case_history_mutation_lock(index_path: Path) -> Iterator[None]:
             yield
 
 
-def _install_mutation_lock() -> None:
-    # K's integrity guard can quarantine a corrupt index while servicing a read.
-    # Serialize those public read paths with mutations so quarantine itself cannot
-    # race with another reader or writer.
-    for method_name in (
-        "register_case",
-        "update_case_workflow",
-        "delete_case",
-        "prune_cases",
-        "list_cases",
-        "get_case",
-        "workflow_summary",
-    ):
-        current = getattr(CaseHistoryService, method_name)
-        if getattr(current, "_bs_p208l_locked", False):
-            continue
 
-        def locked(self, *args, _current=current, **kwargs):
-            with case_history_mutation_lock(self.index_path):
-                return _current(self, *args, **kwargs)
+def case_history_locked(method):
+    """Serialize one CaseHistoryService public operation."""
+    @wraps(method)
+    def locked(self, *args, **kwargs):
+        with case_history_mutation_lock(self.index_path):
+            return method(self, *args, **kwargs)
 
-        locked.__name__ = getattr(current, "__name__", method_name)
-        locked.__doc__ = getattr(current, "__doc__", None)
-        locked._bs_p208l_locked = True  # type: ignore[attr-defined]
-        locked._bs_p208l_original = current  # type: ignore[attr-defined]
-        setattr(CaseHistoryService, method_name, locked)
-
-
-_install_mutation_lock()
+    locked._bs_p208l_locked = True
+    locked._bs_p208l_original = method
+    return locked
 
 # BREACHSCOPE_P2_08M_CASE_HISTORY_READ_QUARANTINE_LOCK_V1

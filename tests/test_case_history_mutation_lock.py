@@ -232,3 +232,17 @@ def test_lock_file_failure_aborts_without_modifying_index(
 
     assert index_path.read_bytes() == before
     assert json.loads(index_path.read_text(encoding="utf-8")) == original
+
+def test_case_history_runtime_installers_are_removed() -> None:
+    from pathlib import Path
+    import api.services.case_history as history_module
+
+    history_source = Path(history_module.__file__).read_text(encoding="utf-8")
+    concurrency_source = Path(case_history_concurrency.__file__).read_text(encoding="utf-8")
+    integrity_source = Path(case_history_integrity.__file__).read_text(encoding="utf-8")
+
+    assert "CaseHistoryService.register_case =" not in history_source
+    assert "CaseHistoryService._is_safe_to_remove =" not in history_source
+    assert "CaseHistoryService._read_index =" not in integrity_source
+    assert "_install_mutation_lock" not in concurrency_source
+    assert "def install(" not in integrity_source
