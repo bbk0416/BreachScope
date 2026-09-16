@@ -24,7 +24,7 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Mapping
 
-from .utils import get_event_identity_key, get_event_key
+from .utils import get_event_identity_key, get_event_key, parse_timestamp
 
 
 _BS_P207S_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
@@ -339,7 +339,7 @@ def related(left, right):
     return False
 
 
-def partition_chains(chains):
+def _partition_chains_base(chains):
     chains = list(chains or [])
     if len(chains) <= 1:
         return [chains] if chains else []
@@ -389,6 +389,93 @@ def partition_chains(chains):
 
     return list(groups.values())
 
+
+def _chain_time_bounds(chain):
+    """Return the observed inclusive time range for one chain."""
+    timestamps = []
+    for event in getattr(chain, "events", None) or []:
+        timestamp = parse_timestamp(getattr(event, "timestamp", None))
+        if timestamp is not None:
+            timestamps.append(timestamp)
+
+    if timestamps:
+        return min(timestamps), max(timestamps)
+
+    start = parse_timestamp(getattr(chain, "start_time", None))
+    end = parse_timestamp(getattr(chain, "end_time", None))
+    if start is None and end is None:
+        return None
+    if start is None:
+        start = end
+    if end is None:
+        end = start
+    if end < start:
+        start, end = end, start
+    return start, end
+
+
+def _time_bounds_overlap(left, right):
+    if left is None or right is None:
+        return False
+    left_start, left_end = left
+    right_start, right_end = right
+    return left_start <= right_end and right_start <= left_end
+
+def partition_chains(chains):
+    """Partition evidence with reused-session lifecycle time bounds."""
+    chains = list(chains or [])
+    if len(chains) <= 1:
+        return [chains] if chains else []
+
+    instances = [_chain_session_instance(chain) for chain in chains]
+    if not any(instances):
+        return _partition_chains_base(chains)
+
+    scopes = [scope(chain) for chain in chains]
+    bounds = [_chain_time_bounds(chain) for chain in chains]
+    lifecycle_indices = [
+        index for index, instance in enumerate(instances) if instance
+    ]
+    lifecycle_groups = {}
+    lifecycle_order = []
+    generic_indices = []
+
+    for index, instance in enumerate(instances):
+        if not instance:
+            generic_indices.append(index)
+            continue
+        if instance not in lifecycle_groups:
+            lifecycle_groups[instance] = []
+            lifecycle_order.append(instance)
+        lifecycle_groups[instance].append(chains[index])
+
+    unresolved = []
+    for generic_index in generic_indices:
+        candidates = set()
+        for lifecycle_index in lifecycle_indices:
+            if not related(scopes[generic_index], scopes[lifecycle_index]):
+                continue
+            if not _time_bounds_overlap(
+                bounds[generic_index], bounds[lifecycle_index]
+            ):
+                continue
+            candidates.add(instances[lifecycle_index])
+
+        if len(candidates) == 1:
+            lifecycle_groups[next(iter(candidates))].append(chains[generic_index])
+        else:
+            unresolved.append(chains[generic_index])
+
+    groups = [lifecycle_groups[instance] for instance in lifecycle_order]
+    groups.extend(_partition_chains_base(unresolved))
+
+    positions = {id(chain): index for index, chain in enumerate(chains)}
+    groups.sort(
+        key=lambda group: min(
+            positions.get(id(chain), len(chains)) for chain in group
+        )
+    )
+    return groups
 
 def component_scope(chains):
     merged = {
@@ -488,16 +575,8 @@ def component_namespace(chains):
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-def install(target_module):
-    """Install P2-07J through P2-07W scenario scope functions."""
-    target_module._bs_p005_scope = scope
-    target_module._bs_p005_related = related
-    target_module._bs_p005_partition_chains = partition_chains
-    target_module._bs_p005_component_scope = component_scope
-    target_module._bs_p005_filter_findings = filter_findings
-    target_module._bs_p206b_component_namespace = component_namespace
 
-
+# BREACHSCOPE_P2_07J_SCENARIO_USER_SCOPE_V1
 # BREACHSCOPE_P2_07L_AUTHORITATIVE_SESSION_SCOPE_V1
 # BREACHSCOPE_P2_07R_CANONICAL_SESSION_PROVENANCE_V1
 # BREACHSCOPE_P2_07S_INVALID_SESSION_IDS_V1
@@ -505,3 +584,4 @@ def install(target_module):
 # BREACHSCOPE_P2_07U_TARGET_LOGON_ID_PRECEDENCE_V1
 # BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
 # BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1
+# BREACHSCOPE_P2_07X_SESSION_LIFECYCLE_TIME_BOUNDS_V1

@@ -191,3 +191,24 @@ def test_subject_logon_id_cannot_bridge_distinct_target_sessions():
     groups = scenario._bs_p005_partition_chains([first, second])
 
     assert len(groups) == 2
+
+def test_scenario_scope_helpers_are_static_without_runtime_installers():
+    from pathlib import Path
+    import breachscope
+    from breachscope import scenario, scenario_user_scope
+
+    init_source = Path(breachscope.__file__).read_text(encoding="utf-8")
+    scope_source = Path(scenario_user_scope.__file__).read_text(encoding="utf-8")
+
+    assert "scenario_lifecycle_time_scope" not in init_source
+    assert "_install_scenario_user_scope" not in init_source
+    assert "_install_scenario_lifecycle_time_scope" not in init_source
+    assert not hasattr(scenario_user_scope, "install")
+    assert scenario._bs_p005_scope is scenario_user_scope.scope
+    assert scenario._bs_p005_related is scenario_user_scope.related
+    assert scenario._bs_p005_partition_chains is scenario_user_scope.partition_chains
+    assert scenario._bs_p005_component_scope is scenario_user_scope.component_scope
+    assert scenario._bs_p005_filter_findings is scenario_user_scope.filter_findings
+    assert scenario._bs_p206b_component_namespace is scenario_user_scope.component_namespace
+    assert "BREACHSCOPE_P2_07J_SCENARIO_USER_SCOPE_V1" in scope_source
+    assert "BREACHSCOPE_P2_07X_SESSION_LIFECYCLE_TIME_BOUNDS_V1" in scope_source
