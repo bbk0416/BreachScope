@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -111,3 +113,18 @@ def test_p0_12_marker_present():
     source = open(security.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P0_12_AUTH_FAIL_CLOSED_V1" in source
     assert 'request.query_params.get("api_key"' not in source
+
+
+def test_security_auth_symbols_have_single_top_level_definition():
+    import ast
+    import api.security as security
+
+    tree = ast.parse(Path(security.__file__).read_text(encoding="utf-8"))
+    expected = {"auth_is_enabled", "extract_api_key", "ApiKeyAuthMiddleware"}
+    counts = {name: 0 for name in expected}
+    for node in tree.body:
+        name = getattr(node, "name", None)
+        if name in counts:
+            counts[name] += 1
+
+    assert counts == {name: 1 for name in expected}
