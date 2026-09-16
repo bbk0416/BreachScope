@@ -110,3 +110,25 @@ def test_equals_field_is_not_allowed_as_top_level_operator(tmp_path: Path) -> No
         match=r"unsupported native operator",
     ):
         load_rules(tmp_path)
+
+def test_field_compare_uses_static_wiring_without_runtime_installer(tmp_path: Path) -> None:
+    import breachscope
+    import breachscope.analyzer as analyzer
+    import breachscope.rule_field_compare as field_compare
+    import breachscope.rules as rules
+
+    _write_field_compare_rule(tmp_path / "rule.yml")
+    rule = load_rules(tmp_path)[0]
+    condition = rule.all_of[0]
+    assert condition["operator"] == "equals"
+    assert condition["pattern"] == "__breachscope_fieldref__:Right"
+    assert rules._native_rule_from_mapping.__module__ == "breachscope.rules"
+    assert analyzer._rule_all_of_matches.__module__ == "breachscope.analyzer"
+
+    helper_source = Path(field_compare.__file__).read_text(encoding="utf-8")
+    init_source = Path(breachscope.__file__).read_text(encoding="utf-8")
+    assert "def install(" not in helper_source
+    assert "rules_module._native_rule_from_mapping =" not in helper_source
+    assert "analyzer_module._rule_all_of_matches =" not in helper_source
+    assert "_install_rule_field_compare" not in init_source
+    assert "BREACHSCOPE_P2_11D_EVENT_FIELD_COMPARISON_V1" in helper_source
