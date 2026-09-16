@@ -3,6 +3,7 @@
 이벤트 간 시간적 연관성과 인과관계를 분석하여 이벤트 체인을 생성합니다.
 """
 import logging
+import hashlib
 import bisect
 from dataclasses import dataclass, field
 from typing import List, Dict, Set, Optional, Tuple, Any
@@ -280,69 +281,6 @@ def _get_default_correlation_rules() -> List[CorrelationRule]:
     ]
 
 
-def _correlate_by_session(
-    events: List[Event],
-    findings: List[Finding],
-) -> List[EventChain]:
-    """
-    세션 기반 상관분석
-    Windows 로그온 세션 ID를 기준으로 이벤트를 그룹화합니다.
-    """
-    # 세션 ID로 그룹화
-    session_groups: Dict[str, List[Event]] = defaultdict(list)
-
-    for event in events:
-        # Windows 이벤트에서 세션 ID 추출 시도
-        session_id = None
-
-        # event_id 4624 (로그온) 또는 4634 (로그오프)에서 세션 ID 추출
-        if event.event_id in ("4624", "4634", "4625"):
-            # raw 데이터에서 LogonType, SessionId 등 추출
-            session_id = event.raw.get("SessionId") or event.raw.get("session_id")
-            if not session_id:
-                # SubjectLogonId 또는 TargetLogonId 사용
-                session_id = event.raw.get("SubjectLogonId") or event.raw.get("TargetLogonId")
-
-        # 세션 ID가 없으면 호스트+사용자 조합으로 그룹화
-        if not session_id:
-            session_id = f"{event.host}_{event.user or 'unknown'}"
-
-        session_groups[str(session_id)].append(event)
-
-    chains: List[EventChain] = []
-
-    for session_id, session_events in session_groups.items():
-        if len(session_events) < 2:
-            continue
-
-        # 시간순 정렬
-        session_events.sort(
-            key=lambda e: _parse_timestamp(e.timestamp) or datetime.min.replace(tzinfo=None)
-        )
-
-        # 세션과 연관된 findings 찾기 (고유 키 기반)
-        session_findings: List[Finding] = []
-        session_event_keys = {get_event_identity_key(e) for e in session_events}
-        for finding in findings:
-            if get_event_identity_key(finding.event) in session_event_keys:
-                session_findings.append(finding)
-
-        start_time = _parse_timestamp(session_events[0].timestamp)
-        end_time = _parse_timestamp(session_events[-1].timestamp)
-
-        chain = EventChain(
-            chain_id=f"session_{session_id}",
-            events=session_events,
-            findings=session_findings,
-            start_time=start_time,
-            end_time=end_time,
-            description=f"세션 {session_id}의 활동",
-            confidence=0.7,  # 세션 기반은 중간 신뢰도
-            chain_type="session",
-        )
-        chains.append(chain)
-
-    return chains
 
 
 def _calculate_chain_confidence(
@@ -574,30 +512,50 @@ def _bs_p007_match_canonical_source(event, patterns):
 
 
 # BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V2
-# A real "session" chain requires an explicit successful Windows logon-session
-# identifier. The historical host/user fallback is retained only as a bounded
-# generic activity chain so it cannot be misrepresented as session evidence or
-# grow across an entire case timeline.
+# Explicit Windows logon sessions require a concrete session identifier.
+# Non-authentication events without one may form bounded host/user activity chains.
 _BS_P207I_ACTIVITY_WINDOW = timedelta(minutes=30)
-_BS_P207I_AUTH_EVENT_IDS = {"4624", "4634", "4625"}
+_BS_P207I_AUTH_EVENT_IDS = {"4624", "4634", "4625", "4647"}
 _BS_P207I_INVALID_SESSION_IDS = {"0", "0x0", "-", "none", "null"}
 
 
+def _bs_p207i_canonical_session_id(session_id) -> Optional[str]:
+    """Canonicalize valid hexadecimal Windows session identifiers."""
+    value = str(session_id).strip()
+    if value[:2].casefold() == "0x":
+        digits = value[2:]
+        if not digits or any(ch not in "0123456789abcdefABCDEF" for ch in digits):
+            return None
+        return f"0x{int(digits, 16):x}"
+    return value
+
+
 def _bs_p207i_explicit_session_id(event: Event) -> Optional[str]:
-    if event.event_id not in ("4624", "4634"):
+    """Return the authoritative explicit Windows logon-session identifier."""
+    raw = event.raw if isinstance(event.raw, dict) else {}
+    event_id = getattr(event, "event_id", None)
+
+    # Native lifecycle events use TargetLogonId when the field is present.
+    # A concrete but invalid TargetLogonId must not fall back to compatibility aliases.
+    if event_id in ("4624", "4634", "4647") and "TargetLogonId" in raw:
+        value = raw.get("TargetLogonId")
+        if value is None or not str(value).strip():
+            return None
+        canonical = _bs_p207i_canonical_session_id(value)
+        if not canonical or canonical.casefold() in _BS_P207I_INVALID_SESSION_IDS:
+            return None
+        return canonical
+
+    if event_id not in ("4624", "4634"):
         return None
 
-    raw = event.raw if isinstance(event.raw, dict) else {}
-    for key in ("SessionId", "session_id", "TargetLogonId"):
+    for key in ("SessionId", "session_id"):
         value = raw.get(key)
         if value is None:
             continue
-        session_id = str(value).strip()
-        if (
-            session_id
-            and session_id.casefold() not in _BS_P207I_INVALID_SESSION_IDS
-        ):
-            return session_id
+        canonical = _bs_p207i_canonical_session_id(value)
+        if canonical and canonical.casefold() not in _BS_P207I_INVALID_SESSION_IDS:
+            return canonical
     return None
 
 
@@ -630,14 +588,9 @@ def _bs_p207i_activity_segments(events: List[Event]) -> List[List[Event]]:
             current = [event]
             segment_start = timestamp
             continue
-
-        if (
-            segment_start is not None
-            and timestamp - segment_start <= _BS_P207I_ACTIVITY_WINDOW
-        ):
+        if segment_start is not None and timestamp - segment_start <= _BS_P207I_ACTIVITY_WINDOW:
             current.append(event)
             continue
-
         if len(current) >= 2:
             segments.append(current)
         current = [event]
@@ -645,15 +598,14 @@ def _bs_p207i_activity_segments(events: List[Event]) -> List[List[Event]]:
 
     if len(current) >= 2:
         segments.append(current)
-
     return segments
 
 
-def _correlate_by_session(
+def _bs_p207i_correlate_unscoped(
     events: List[Event],
     findings: List[Finding],
 ) -> List[EventChain]:
-    """Build explicit session chains plus bounded host/user activity chains."""
+    """Build one-id session chains plus bounded host/user activity chains."""
     session_groups: Dict[str, List[Event]] = defaultdict(list)
     activity_groups: Dict[Tuple[str, str], List[Event]] = defaultdict(list)
 
@@ -662,32 +614,22 @@ def _correlate_by_session(
         if session_id:
             session_groups[session_id].append(event)
             continue
-
-        # Authentication events without a valid successful session ID are not
-        # safe inputs for the generic host/user fallback. In particular, a
-        # failed logon (4625) never establishes a session or activity chain.
         if event.event_id in _BS_P207I_AUTH_EVENT_IDS:
             continue
-
         host = (event.host or "").strip()
         user = (event.user or "").strip()
         if host and user:
             activity_groups[(host.casefold(), user.casefold())].append(event)
 
     chains: List[EventChain] = []
-
     for session_id, grouped_events in sorted(session_groups.items()):
-        session_events = [
-            event for event in grouped_events if _parse_timestamp(event.timestamp)
-        ]
+        session_events = [event for event in grouped_events if _parse_timestamp(event.timestamp)]
         session_events.sort(key=lambda event: _parse_timestamp(event.timestamp))
         if len(session_events) < 2:
             continue
-
         session_findings = _bs_p207i_findings_for_events(session_events, findings)
         start_time = _parse_timestamp(session_events[0].timestamp)
         end_time = _parse_timestamp(session_events[-1].timestamp)
-
         chains.append(
             EventChain(
                 chain_id=f"session_{session_id}",
@@ -707,15 +649,8 @@ def _correlate_by_session(
             activity_number += 1
             start_time = _parse_timestamp(activity_events[0].timestamp)
             end_time = _parse_timestamp(activity_events[-1].timestamp)
-            activity_findings = _bs_p207i_findings_for_events(
-                activity_events, findings
-            )
-            time_span = (
-                end_time - start_time
-                if start_time is not None and end_time is not None
-                else None
-            )
-
+            activity_findings = _bs_p207i_findings_for_events(activity_events, findings)
+            time_span = end_time - start_time if start_time is not None and end_time is not None else None
             chains.append(
                 EventChain(
                     chain_id=f"activity_{activity_number}",
@@ -724,11 +659,110 @@ def _correlate_by_session(
                     start_time=start_time,
                     end_time=end_time,
                     description="동일 호스트/사용자의 30분 이내 활동 묶음",
-                    confidence=_calculate_chain_confidence(
-                        activity_events, activity_findings, time_span
-                    ),
+                    confidence=_calculate_chain_confidence(activity_events, activity_findings, time_span),
                     chain_type="activity",
                 )
             )
-
     return chains
+
+
+def _bs_p207m_lifecycle_segments(grouped_events: List[Event]) -> List[List[Event]]:
+    """Split one host/session-id group at authoritative logon boundaries."""
+    timestamped = []
+    seen_event_keys = set()
+    for event in grouped_events:
+        event_key = str(get_event_identity_key(event))
+        if event_key in seen_event_keys:
+            continue
+        seen_event_keys.add(event_key)
+        timestamp = _parse_timestamp(event.timestamp)
+        if timestamp is not None:
+            timestamped.append((timestamp, event))
+
+    event_order = {"4624": 0, "4647": 1, "4634": 2}
+    timestamped.sort(
+        key=lambda item: (
+            item[0],
+            event_order.get(item[1].event_id, 1),
+            str(get_event_identity_key(item[1])),
+        )
+    )
+
+    segments: List[List[Event]] = []
+    current: List[Event] = []
+    for _, event in timestamped:
+        if event.event_id == "4624":
+            if len(current) >= 2:
+                segments.append(current)
+            current = [event]
+            continue
+        if event.event_id == "4647" and current:
+            current.append(event)
+            continue
+        if event.event_id == "4634" and current:
+            current.append(event)
+            segments.append(current)
+            current = []
+    if len(current) >= 2:
+        segments.append(current)
+    return segments
+
+
+def _bs_p207m_lifecycle_token(events: List[Event]) -> str:
+    first_identity = str(get_event_identity_key(events[0])).encode("utf-8")
+    return hashlib.sha256(first_identity).hexdigest()[:10]
+
+
+def _correlate_by_session(
+    events: List[Event],
+    findings: List[Finding],
+) -> List[EventChain]:
+    """Build host-scoped, lifecycle-bounded Windows session chains."""
+    explicit_groups: Dict[Tuple[str, str], List[Event]] = defaultdict(list)
+    fallback_events: List[Event] = []
+
+    for event in events or []:
+        session_id = _bs_p207i_explicit_session_id(event)
+        if not session_id:
+            fallback_events.append(event)
+            continue
+        host = (getattr(event, "host", None) or "").strip()
+        if host:
+            explicit_groups[(host.casefold(), session_id)].append(event)
+
+    chains: List[EventChain] = []
+    for (host_key, session_id), grouped_events in sorted(explicit_groups.items()):
+        lifecycles = _bs_p207m_lifecycle_segments(grouped_events)
+        logon_starts = {
+            str(get_event_identity_key(event))
+            for event in grouped_events
+            if event.event_id == "4624"
+        }
+        reused_id = len(lifecycles) > 1 or len(logon_starts) > 1
+
+        for lifecycle_events in lifecycles:
+            lifecycle_chains = _bs_p207i_correlate_unscoped(lifecycle_events, findings)
+            for chain in lifecycle_chains:
+                if chain.chain_type != "session" or not chain.events:
+                    continue
+                base_id = f"session_{host_key}_{session_id}"
+                if reused_id:
+                    base_id = f"{base_id}_{_bs_p207m_lifecycle_token(chain.events)}"
+                    chain.session_instance_id = base_id
+                chain.chain_id = base_id
+                chain.description = f"호스트 {host_key} 세션 {session_id}의 활동"
+            chains.extend(lifecycle_chains)
+
+    chains.extend(_bs_p207i_correlate_unscoped(fallback_events, findings))
+    return chains
+
+
+# BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
+# BREACHSCOPE_P2_07N_SESSION_LIFECYCLE_BOUNDARIES_V1
+# BREACHSCOPE_P2_07O_CANONICAL_SESSION_IDS_V1
+# BREACHSCOPE_P2_07P_USER_INITIATED_LOGOFF_V1
+# BREACHSCOPE_P2_07Q_TARGET_LOGON_ID_PRECEDENCE_V1
+# BREACHSCOPE_P2_07V_REJECT_MALFORMED_HEX_SESSION_IDS_V1
+# BREACHSCOPE_P2_07W_SESSION_LIFECYCLE_IDENTITY_V1
+# BREACHSCOPE_P2_07Y_INCOMPLETE_REUSE_LIFECYCLE_MARKER_V1
+# BREACHSCOPE_P2_07Z_DEDUPLICATE_SESSION_LIFECYCLE_EVENTS_V1

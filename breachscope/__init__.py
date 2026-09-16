@@ -56,14 +56,6 @@ from .scenario_lifecycle_time_scope import install as _install_scenario_lifecycl
 
 _install_scenario_lifecycle_time_scope(_scenario)
 
-# BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1
-# Windows LogonId/SessionId values are host-local. Partition explicit session
-# correlation by host while preserving P2-07I activity fallback semantics.
-from . import correlator as _correlator
-from .correlator_session_scope import install as _install_correlator_session_scope
-
-_install_correlator_session_scope(_correlator)
-
 # BREACHSCOPE_P2_11D_EVENT_FIELD_COMPARISON_V1
 # Native rules may compare one event field with another only inside all_of.
 # The installer keeps top-level matcher semantics unchanged and desugars

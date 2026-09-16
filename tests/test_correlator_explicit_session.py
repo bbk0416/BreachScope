@@ -355,3 +355,30 @@ def test_invalid_target_logon_id_does_not_fall_back_to_generic_session_id():
     )
 
     assert _correlate_by_session([logon, logoff], []) == []
+
+
+def test_session_correlator_has_single_definition_without_runtime_installer():
+    import ast
+    from pathlib import Path
+    import breachscope
+    from breachscope import correlator
+
+    source = Path(correlator.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    count = sum(
+        1
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == "_correlate_by_session"
+    )
+    init_source = Path(breachscope.__file__).read_text(encoding="utf-8")
+
+    assert count == 1
+    assert "correlator_session_scope" not in init_source
+    assert "_install_correlator_session_scope" not in init_source
+    for marker in (
+        "BREACHSCOPE_P2_07I_EXPLICIT_SESSION_CORRELATION_V2",
+        "BREACHSCOPE_P2_07M_HOST_SCOPED_SESSION_CHAINS_V1",
+        "BREACHSCOPE_P2_07Z_DEDUPLICATE_SESSION_LIFECYCLE_EVENTS_V1",
+    ):
+        assert marker in source
