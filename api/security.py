@@ -43,9 +43,22 @@ def configured_admin_password() -> str:
     return _env("BS_ADMIN_PASSWORD")
 
 
-def auth_is_enabled() -> bool:
-    """Return True when any operator-facing auth mode is configured."""
+# BREACHSCOPE_P0_12_AUTH_FAIL_CLOSED_V1
+def _is_production_mode() -> bool:
+    return _env("BS_DEPLOYMENT_MODE").casefold() in {"production", "prod"}
+
+
+def _credentials_configured() -> bool:
     return bool(configured_api_key() or configured_admin_password())
+
+
+def _production_auth_misconfigured() -> bool:
+    return _is_production_mode() and not _credentials_configured()
+
+
+def auth_is_enabled() -> bool:
+    """Return True when auth is configured or production requires fail-closed auth."""
+    return _credentials_configured() or _is_production_mode()
 
 
 # BREACHSCOPE_P2_06N_SHARED_TRUSTED_PROXY_IP_V1
@@ -186,12 +199,13 @@ def verify_session_token(token: str | None, now: int | None = None) -> dict[str,
 
 
 def extract_api_key(request: Request) -> str:
+    """Extract API credentials from headers only."""
     api_key = request.headers.get("x-api-key", "").strip()
     if api_key:
         return api_key
 
     auth = request.headers.get("authorization", "").strip()
-    if auth.lower().startswith("bearer "):
+    if auth.casefold().startswith("bearer "):
         return auth[7:].strip()
 
     return ""
@@ -210,96 +224,8 @@ def request_is_authenticated(request: Request) -> tuple[bool, str]:
     return False, "none"
 
 
-class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
-    """Protect API endpoints when BS_API_KEY or BS_ADMIN_PASSWORD is configured.
-
-    Authentication is intentionally disabled by default so local demos and tests
-    keep working without setup. In shared or internet-facing deployments, set at
-    least one of the following:
-
-    * ``BS_API_KEY`` for automation/API clients
-    * ``BS_ADMIN_PASSWORD`` for browser login with an HttpOnly session cookie
-
-    API clients must send the key as ``X-API-Key`` or ``Authorization: Bearer``.
-    Browser users can sign in through
-    ``/api/auth/login`` when ``BS_ADMIN_PASSWORD`` is configured.
-    """
-
-    def __init__(self, app, exempt_prefixes: Iterable[str] = SAFE_PATH_PREFIXES):
-        super().__init__(app)
-        self.exempt_prefixes = tuple(exempt_prefixes)
-
-    async def dispatch(self, request: Request, call_next):
-        if not auth_is_enabled() or self._is_exempt(request):
-            return await call_next(request)
-
-        authenticated, _method = request_is_authenticated(request)
-        if authenticated:
-            return await call_next(request)
-
-        try:
-            from api.services.audit_log import AuditLogService
-            AuditLogService().record("auth.denied", request=request, status="failure", details={"reason": "missing_or_invalid_credentials"})
-        except Exception:
-            pass
-
-        return JSONResponse(
-            status_code=401,
-            content={
-                "success": False,
-                "error": "unauthorized",
-                "message": "Authentication is required. Use X-API-Key, Authorization: Bearer, or sign in to the web console.",
-            },
-            headers={"WWW-Authenticate": "ApiKey"},
-        )
-
-    def _is_exempt(self, request: Request) -> bool:
-        if request.method.upper() == "OPTIONS":
-            return True
-        path = request.url.path
-        if path == "/":
-            return True
-        return any(path == prefix or path.startswith(prefix + "/") for prefix in self.exempt_prefixes if prefix != "/")
-
-    @staticmethod
-    def _extract_key(request: Request) -> str:
-        # Backward-compatible hook used by older tests/imports.
-        return extract_api_key(request)
-
-# BREACHSCOPE_P0_12_AUTH_FAIL_CLOSED_V1
-_bs_p012_legacy_auth_is_enabled = auth_is_enabled
-_bs_p012_legacy_middleware = ApiKeyAuthMiddleware
-
-
-def _bs_p012_is_production() -> bool:
-    return _env("BS_DEPLOYMENT_MODE").strip().casefold() in {"production", "prod"}
-
-
-def _bs_p012_credentials_configured() -> bool:
-    return bool(configured_api_key() or configured_admin_password())
-
-
-def _bs_p012_production_misconfigured() -> bool:
-    return _bs_p012_is_production() and not _bs_p012_credentials_configured()
-
-
-def auth_is_enabled() -> bool:
-    return _bs_p012_legacy_auth_is_enabled() or _bs_p012_is_production()
-
-
-def extract_api_key(request: Request) -> str:
-    """Extract API credentials from headers only."""
-    api_key = request.headers.get("x-api-key", "").strip()
-    if api_key:
-        return api_key
-
-    auth = request.headers.get("authorization", "").strip()
-    if auth.casefold().startswith("bearer "):
-        return auth[7:].strip()
-    return ""
-
-
-def _bs_p012_public_when_auth_misconfigured(path: str) -> bool:
+def _public_when_auth_misconfigured(path: str) -> bool:
+    """Keep only probes, static assets, and auth recovery routes public."""
     exact = {
         "/",
         "/api/auth/status",
@@ -310,17 +236,20 @@ def _bs_p012_public_when_auth_misconfigured(path: str) -> bool:
         "/api/health/ready",
         "/favicon.ico",
     }
-    if path in exact:
-        return True
-    return path.startswith("/static/")
+    return path in exact or path.startswith("/static/")
 
 
-class ApiKeyAuthMiddleware(_bs_p012_legacy_middleware):
+class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
+    """Protect operator endpoints and fail closed on production auth misconfiguration."""
+
+    def __init__(self, app, exempt_prefixes: Iterable[str] = SAFE_PATH_PREFIXES):
+        super().__init__(app)
+        self.exempt_prefixes = tuple(exempt_prefixes)
+
     async def dispatch(self, request: Request, call_next):
-        if _bs_p012_production_misconfigured():
-            if _bs_p012_public_when_auth_misconfigured(request.url.path):
+        if _production_auth_misconfigured():
+            if _public_when_auth_misconfigured(request.url.path):
                 return await call_next(request)
-
             return JSONResponse(
                 status_code=503,
                 content={
@@ -329,4 +258,51 @@ class ApiKeyAuthMiddleware(_bs_p012_legacy_middleware):
                 },
             )
 
-        return await super().dispatch(request, call_next)
+        if not auth_is_enabled() or self._is_exempt(request):
+            return await call_next(request)
+
+        authenticated, _method = request_is_authenticated(request)
+        if authenticated:
+            return await call_next(request)
+
+        try:
+            from api.services.audit_log import AuditLogService
+
+            AuditLogService().record(
+                "auth.denied",
+                request=request,
+                status="failure",
+                details={"reason": "missing_or_invalid_credentials"},
+            )
+        except Exception:
+            pass
+
+        return JSONResponse(
+            status_code=401,
+            content={
+                "success": False,
+                "error": "unauthorized",
+                "message": (
+                    "Authentication is required. Use X-API-Key, "
+                    "Authorization: Bearer, or sign in to the web console."
+                ),
+            },
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
+    def _is_exempt(self, request: Request) -> bool:
+        if request.method.upper() == "OPTIONS":
+            return True
+        path = request.url.path
+        if path == "/":
+            return True
+        return any(
+            path == prefix or path.startswith(prefix + "/")
+            for prefix in self.exempt_prefixes
+            if prefix != "/"
+        )
+
+    @staticmethod
+    def _extract_key(request: Request) -> str:
+        # Backward-compatible hook used by older tests/imports.
+        return extract_api_key(request)
