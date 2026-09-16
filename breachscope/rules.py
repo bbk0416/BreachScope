@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 from .schemas import Rule
+from .rule_field_compare import rewrite_field_compare_conditions
 
 
 def parse_attack_tag(tags: Any) -> Optional[str]:
@@ -62,6 +63,7 @@ _NATIVE_OPERATORS = {"regex", "contains", "startswith", "endswith", "equals"}
 
 
 def _native_rule_from_mapping(r: Dict[str, Any], path: Path, index: int) -> Rule:
+    r = rewrite_field_compare_conditions(r)
     location = f"{path.name}[{index}]"
 
     missing = [key for key in ("id", "name", "pattern") if key not in r]

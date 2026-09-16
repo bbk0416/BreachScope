@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -628,6 +629,93 @@ def _verify_live_rule(
         _require(str(condition.get("pattern")), str(pattern), f"live {label} {field} value")
 
 
+def _verify_live_p2_10h_analyzer(analyzer_path: Path, recorded_blob: str) -> None:
+    historical_blob = "f7e395ba66d3461ffed0a4c9b5b37f86ae585ff7"
+    _require(recorded_blob, historical_blob, "recorded P2-10H historical analyzer blob")
+    try:
+        source = analyzer_path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(analyzer_path))
+    except (OSError, SyntaxError) as exc:
+        raise CurrentEvidenceError(f"live P2-10H analyzer could not be parsed: {exc}") from exc
+
+    assignments = {}
+    functions = {}
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            functions[node.name] = node
+        elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast.Name) and isinstance(node.value, ast.Constant):
+                assignments[target.id] = node.value.value
+    _require(
+        assignments.get("_WINDOWS_4688_PARENT_WINDOW_SECONDS"),
+        300.0,
+        "live P2-10H parent window",
+    )
+    _require(
+        assignments.get("_DERIVED_PARENT_NAME"),
+        "resolved_security_4688_parent_process_name",
+        "live P2-10H derived parent field",
+    )
+    for name in (
+        "_security_4688_raw",
+        "_iter_events_with_resolved_windows_4688_parents",
+        "apply_rules",
+        "apply_rules_parallel",
+    ):
+        _require(name in functions, True, f"live P2-10H function {name}")
+
+    security_constants = {
+        child.value for child in ast.walk(functions["_security_4688_raw"])
+        if isinstance(child, ast.Constant)
+    }
+    _require("4688" in security_constants, True, "live P2-10H Security 4688 filter")
+    _require(
+        "microsoft-windows-security-auditing" in security_constants,
+        True,
+        "live P2-10H Security source filter",
+    )
+    resolver = functions["_iter_events_with_resolved_windows_4688_parents"]
+    resolver_constants = {
+        child.value for child in ast.walk(resolver)
+        if isinstance(child, ast.Constant)
+    }
+    for field in ("ProcessId", "NewProcessId", "NewProcessName"):
+        _require(field in resolver_constants, True, f"live P2-10H resolver field {field}")
+    resolver_names = {
+        child.id for child in ast.walk(resolver)
+        if isinstance(child, ast.Name)
+    }
+    _require(
+        "_WINDOWS_4688_PARENT_WINDOW_SECONDS" in resolver_names,
+        True,
+        "live P2-10H resolver window use",
+    )
+    _require(
+        "_DERIVED_PARENT_NAME" in resolver_names,
+        True,
+        "live P2-10H derived parent write",
+    )
+
+    def calls_resolver(function_name: str) -> bool:
+        return any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id == "_iter_events_with_resolved_windows_4688_parents"
+            for child in ast.walk(functions[function_name])
+        )
+    _require(
+        calls_resolver("apply_rules"),
+        True,
+        "live P2-10H serial pre-enrichment",
+    )
+    _require(
+        calls_resolver("apply_rules_parallel"),
+        True,
+        "live P2-10H parallel pre-enrichment",
+    )
+
+
 def _verify_record(
     repo: Path,
     record_path: Path,
@@ -667,7 +755,7 @@ def _verify_record(
             f"{label} recorded analyzer blob",
         )
         analyzer_path = _relative_file(repo, analyzer_file, f"{label} analyzer file")
-        _require(_git_blob_sha1(analyzer_path), analyzer_blob, f"live {label} analyzer blob")
+        _verify_live_p2_10h_analyzer(analyzer_path, analyzer_blob)
 
     base_attack, base_corpus, base_benign, benign_source = _base_context(base)
     attack = _mapping(record.get("attack_external_baseline"), f"{label} attack baseline")

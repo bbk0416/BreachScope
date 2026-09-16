@@ -134,52 +134,104 @@ def _verify_live_p2_11d_rule(repo: Path, change: Mapping[str, Any]) -> None:
     )
 
 
-def _verify_live_p2_11d_initializer(init_path: Path, recorded_blob: Any) -> None:
-    historical_blob = "d4ffc87021e1a3e5f0aeda11ee3b897257df0090"
+def _verify_current_p2_11d_static_wiring(repo: Path, engine: Mapping[str, Any]) -> None:
+    historical_module_blob = "6e4ed6b1c3ddbd5d23f773bbc83f73b8ae41e350"
+    historical_initializer_blob = "d4ffc87021e1a3e5f0aeda11ee3b897257df0090"
     _require(
-        str(recorded_blob or ""),
-        historical_blob,
+        str(engine.get("module_git_blob_sha1") or ""),
+        historical_module_blob,
+        "recorded P2-11D historical engine module blob",
+    )
+    _require(
+        str(engine.get("initializer_git_blob_sha1") or ""),
+        historical_initializer_blob,
         "recorded P2-11D historical initializer blob",
     )
-    try:
-        tree = ast.parse(init_path.read_text(encoding="utf-8"), filename=str(init_path))
-    except (OSError, SyntaxError) as exc:
-        raise CurrentEvidenceError(f"live P2-11D initializer could not be parsed: {exc}") from exc
+    _require(
+        engine.get("module_file"),
+        "breachscope/rule_field_compare.py",
+        "P2-11D engine module file",
+    )
+    _require(
+        engine.get("initializer_file"),
+        "breachscope/__init__.py",
+        "P2-11D initializer file",
+    )
 
-    analyzer_import = False
-    rules_import = False
-    installer_import = False
-    installer_call = False
+    module_path = legacy._relative_file(repo, engine.get("module_file"), "P2-11D engine module")
+    init_path = legacy._relative_file(repo, engine.get("initializer_file"), "P2-11D initializer")
+    rules_path = repo / "breachscope" / "rules.py"
+    analyzer_path = repo / "breachscope" / "analyzer.py"
 
-    for node in tree.body:
-        if isinstance(node, ast.ImportFrom) and node.level == 1 and node.module is None:
-            for alias in node.names:
-                if alias.name == "analyzer" and alias.asname == "_analyzer":
-                    analyzer_import = True
-                if alias.name == "rules" and alias.asname == "_rules":
-                    rules_import = True
-        elif isinstance(node, ast.ImportFrom) and node.level == 1 and node.module == "rule_field_compare":
-            installer_import = any(
-                alias.name == "install" and alias.asname == "_install_rule_field_compare"
-                for alias in node.names
+    sources = {}
+    trees = {}
+    for label, path in (
+        ("module", module_path),
+        ("initializer", init_path),
+        ("rules", rules_path),
+        ("analyzer", analyzer_path),
+    ):
+        try:
+            source = path.read_text(encoding="utf-8")
+            sources[label] = source
+            trees[label] = ast.parse(source, filename=str(path))
+        except (OSError, SyntaxError) as exc:
+            raise CurrentEvidenceError(f"live P2-11D {label} could not be parsed: {exc}") from exc
+
+    def has_import(tree, module_name: str, imported_name: str) -> bool:
+        for node in tree.body:
+            if not isinstance(node, ast.ImportFrom):
+                continue
+            if node.level != 1 or node.module != module_name:
+                continue
+            if any(alias.name == imported_name for alias in node.names):
+                return True
+        return False
+
+    def function_calls(tree, function_name: str, callee_name: str) -> bool:
+        for node in tree.body:
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            if node.name != function_name:
+                continue
+            return any(
+                isinstance(child, ast.Call)
+                and isinstance(child.func, ast.Name)
+                and child.func.id == callee_name
+                for child in ast.walk(node)
             )
-        elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
-            call = node.value
-            if (
-                isinstance(call.func, ast.Name)
-                and call.func.id == "_install_rule_field_compare"
-                and not call.keywords
-                and len(call.args) == 2
-                and all(isinstance(arg, ast.Name) for arg in call.args)
-                and [arg.id for arg in call.args] == ["_rules", "_analyzer"]
-            ):
-                installer_call = True
+        return False
 
-    _require(analyzer_import, True, "live P2-11D analyzer import wiring")
-    _require(rules_import, True, "live P2-11D rules import wiring")
-    _require(installer_import, True, "live P2-11D installer import wiring")
-    _require(installer_call, True, "live P2-11D installer call wiring")
-
+    module_functions = {
+        node.name for node in trees["module"].body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    _require("rewrite_field_compare_conditions" in module_functions, True, "live P2-11D rewrite helper")
+    _require("match_field_reference_condition" in module_functions, True, "live P2-11D match helper")
+    _require("install" in module_functions, False, "live P2-11D runtime installer removed")
+    _require("_install_rule_field_compare" in sources["initializer"], False, "live P2-11D initializer installer removed")
+    _require(
+        has_import(trees["rules"], "rule_field_compare", "rewrite_field_compare_conditions"),
+        True,
+        "live P2-11D rules static import",
+    )
+    _require(
+        function_calls(trees["rules"], "_native_rule_from_mapping", "rewrite_field_compare_conditions"),
+        True,
+        "live P2-11D rules static call",
+    )
+    _require(
+        has_import(trees["analyzer"], "rule_field_compare", "match_field_reference_condition"),
+        True,
+        "live P2-11D analyzer static import",
+    )
+    _require(
+        function_calls(trees["analyzer"], "_rule_all_of_matches", "match_field_reference_condition"),
+        True,
+        "live P2-11D analyzer static call",
+    )
+    _require("rules_module._native_rule_from_mapping =" in sources["module"], False, "live P2-11D loader reassignment removed")
+    _require("analyzer_module._rule_all_of_matches =" in sources["module"], False, "live P2-11D analyzer reassignment removed")
 
 def _verify_p2_11d_calibration(
     repo: Path,
@@ -201,15 +253,7 @@ def _verify_p2_11d_calibration(
     _require(engine.get("scope"), "all_of_only", f"{label} engine scope")
     _require(engine.get("missing_fields_fail_closed"), True, f"{label} missing fields")
     _require(engine.get("host_short_name_alias"), True, f"{label} host alias")
-    module_path = legacy._relative_file(repo, engine.get("module_file"), f"{label} engine module")
-    _require(
-        legacy._git_blob_sha1(module_path),
-        engine.get("module_git_blob_sha1"),
-        f"live {label} engine module blob",
-    )
-    _require(engine.get("initializer_file"), "breachscope/__init__.py", f"{label} initializer file")
-    init_path = legacy._relative_file(repo, engine.get("initializer_file"), f"{label} initializer")
-    _verify_live_p2_11d_initializer(init_path, engine.get("initializer_git_blob_sha1"))
+    _verify_current_p2_11d_static_wiring(repo, engine)
 
     benign = _mapping(record.get("benign_incremental_match_proof"), f"{label} benign proof")
     _require(benign.get("baseline_id"), "p2-09d-nextron-win10-v1", f"{label} benign baseline")

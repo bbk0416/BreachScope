@@ -3,6 +3,7 @@ import logging
 from typing import Iterable, Iterator, List, Set, Tuple, Callable, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .schemas import Event, Rule, Finding
+from .rule_field_compare import match_field_reference_condition
 from . import decoder
 from .utils import get_event_key, parse_timestamp
 
@@ -40,6 +41,14 @@ def _rule_all_of_matches(event, rule):
         return True
 
     for index, condition in enumerate(conditions):
+        field_compare = match_field_reference_condition(
+            event, condition, _event_field_text
+        )
+        if field_compare is not None:
+            if not field_compare:
+                return False
+            continue
+
         if not isinstance(condition, dict):
             return False
 
