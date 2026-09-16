@@ -140,3 +140,21 @@ def test_p0_11_markers_present():
     history_source = open(history_module.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P0_11_WORKDIR_BOUNDARY_V1" in workdir_source
     assert "BREACHSCOPE_P0_11_DELETE_BOUNDARY_V1" in history_source
+
+def test_report_preview_has_single_top_level_loader_definition():
+    import ast
+    from pathlib import Path
+    from api.services import report_preview
+
+    source = Path(report_preview.__file__).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    definitions = [
+        node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name == "load_preview"
+    ]
+
+    assert len(definitions) == 1
+    assert "_bs_p011_legacy_load_preview" not in source
+    assert "BREACHSCOPE_P0_11_REPORT_PREVIEW_BOUNDARY_V1" in source

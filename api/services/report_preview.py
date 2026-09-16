@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 import json
 
+from .path_boundary import WorkDirBoundaryError, validate_managed_work_dir
+
 
 def _safe_list(value: Any) -> List[Any]:
     return value if isinstance(value, list) else []
@@ -111,27 +113,19 @@ def build_preview(report_data: Dict[str, Any], max_findings: int = 8, max_timeli
     }
 
 
+# BREACHSCOPE_P0_11_REPORT_PREVIEW_BOUNDARY_V1
 def load_preview(work_dir: str | Path) -> Dict[str, Any]:
-    work_path = Path(work_dir)
+    try:
+        work_path = validate_managed_work_dir(
+            work_dir, allow_temp=True, must_exist=True
+        )
+    except WorkDirBoundaryError as exc:
+        raise FileNotFoundError(
+            "report work_dir is outside managed roots"
+        ) from exc
+
     report_json = work_path / "out" / "report.json"
     if not report_json.exists():
         raise FileNotFoundError(f"report.json not found: {report_json}")
     data = json.loads(report_json.read_text(encoding="utf-8"))
     return build_preview(data)
-
-# BREACHSCOPE_P0_11_REPORT_PREVIEW_BOUNDARY_V1
-from .path_boundary import (
-    WorkDirBoundaryError as _bs_p011_WorkDirBoundaryError,
-    validate_managed_work_dir as _bs_p011_validate_managed_work_dir,
-)
-
-_bs_p011_legacy_load_preview = load_preview
-
-def load_preview(work_dir):
-    try:
-        managed = _bs_p011_validate_managed_work_dir(
-            work_dir, allow_temp=True, must_exist=True
-        )
-    except _bs_p011_WorkDirBoundaryError as exc:
-        raise FileNotFoundError("report work_dir is outside managed roots") from exc
-    return _bs_p011_legacy_load_preview(managed)
