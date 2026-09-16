@@ -1,0 +1,310 @@
+{
+  "schema": "breachscope.p2_15a_external_reconstruction_observation.v1",
+  "analysis_class": "post_hoc_external_reconstruction_diagnostic",
+  "repo_commit": "5ca21b199f391dbf914f90b4f3bda53f9ba71a67",
+  "archive_sha256": "98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5",
+  "events": 196081,
+  "parse_errors": 0,
+  "hosts": {
+    "NASHUA": 29056,
+    "NEWYORK": 23935,
+    "SCRANTON": 131119,
+    "UTICA": 11971
+  },
+  "rules": 66,
+  "rule_file_count": 4,
+  "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "findings": 38,
+  "flagged_events": 35,
+  "finding_hosts": {
+    "NASHUA": 10,
+    "NEWYORK": 5,
+    "SCRANTON": 23
+  },
+  "chains": 267,
+  "chain_types": {
+    "activity": 54,
+    "download_exec": 4,
+    "session": 209
+  },
+  "cross_host_chains": 0,
+  "scranton_nashua_chains": 0,
+  "largest_chains": [
+    {
+      "chain_id": "activity_43",
+      "chain_type": "activity",
+      "event_count": 96348,
+      "finding_count": 0,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:55:30.545000+00:00",
+      "end_time": "2020-05-02T03:25:24.685000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_10",
+      "chain_type": "activity",
+      "event_count": 23934,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T02:55:26.494000+00:00",
+      "end_time": "2020-05-02T03:25:23.680000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_40",
+      "chain_type": "activity",
+      "event_count": 14495,
+      "finding_count": 11,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:55:57.748000+00:00",
+      "end_time": "2020-05-02T03:25:50.019000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_27",
+      "chain_type": "activity",
+      "event_count": 11721,
+      "finding_count": 0,
+      "hosts": [
+        "NEWYORK"
+      ],
+      "start_time": "2020-05-02T02:55:34.574000+00:00",
+      "end_time": "2020-05-02T03:25:33.860000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_51",
+      "chain_type": "activity",
+      "event_count": 9027,
+      "finding_count": 0,
+      "hosts": [
+        "UTICA"
+      ],
+      "start_time": "2020-05-02T02:55:26.493000+00:00",
+      "end_time": "2020-05-02T03:25:25.698000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_17",
+      "chain_type": "activity",
+      "event_count": 7708,
+      "finding_count": 1,
+      "hosts": [
+        "NEWYORK"
+      ],
+      "start_time": "2020-05-02T02:55:55.721000+00:00",
+      "end_time": "2020-05-02T03:25:06.618000+00:00",
+      "confidence": 0.5700000000000001
+    },
+    {
+      "chain_id": "activity_41",
+      "chain_type": "activity",
+      "event_count": 5681,
+      "finding_count": 3,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:55:30.545000+00:00",
+      "end_time": "2020-05-02T03:24:59.585000+00:00",
+      "confidence": 0.9600000000000002
+    },
+    {
+      "chain_id": "activity_35",
+      "chain_type": "activity",
+      "event_count": 3964,
+      "finding_count": 0,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:56:39.559000+00:00",
+      "end_time": "2020-05-02T03:23:18.806000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_37",
+      "chain_type": "activity",
+      "event_count": 2643,
+      "finding_count": 0,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:02:47.402000+00:00",
+      "end_time": "2020-05-02T03:22:03.813000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_9",
+      "chain_type": "activity",
+      "event_count": 1520,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T02:59:35.461000+00:00",
+      "end_time": "2020-05-02T03:25:36.910000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_52",
+      "chain_type": "activity",
+      "event_count": 1348,
+      "finding_count": 0,
+      "hosts": [
+        "UTICA"
+      ],
+      "start_time": "2020-05-02T03:25:27.709000+00:00",
+      "end_time": "2020-05-02T03:28:20.170000+00:00",
+      "confidence": 0.6000000000000001
+    },
+    {
+      "chain_id": "activity_4",
+      "chain_type": "activity",
+      "event_count": 786,
+      "finding_count": 5,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T02:59:35.458000+00:00",
+      "end_time": "2020-05-02T03:26:41.515000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_21",
+      "chain_type": "activity",
+      "event_count": 595,
+      "finding_count": 0,
+      "hosts": [
+        "NEWYORK"
+      ],
+      "start_time": "2020-05-02T02:55:28.511000+00:00",
+      "end_time": "2020-05-02T03:25:20.677000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_3",
+      "chain_type": "activity",
+      "event_count": 560,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T02:56:33.523000+00:00",
+      "end_time": "2020-05-02T03:26:10.273000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_46",
+      "chain_type": "activity",
+      "event_count": 543,
+      "finding_count": 0,
+      "hosts": [
+        "UTICA"
+      ],
+      "start_time": "2020-05-02T02:57:21.234000+00:00",
+      "end_time": "2020-05-02T03:27:09.774000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_14",
+      "chain_type": "activity",
+      "event_count": 514,
+      "finding_count": 0,
+      "hosts": [
+        "NEWYORK"
+      ],
+      "start_time": "2020-05-02T02:58:44.877000+00:00",
+      "end_time": "2020-05-02T03:22:48.995000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_39",
+      "chain_type": "activity",
+      "event_count": 484,
+      "finding_count": 1,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:56:42.592000+00:00",
+      "end_time": "2020-05-02T03:24:16.261000+00:00",
+      "confidence": 0.72
+    },
+    {
+      "chain_id": "activity_2",
+      "chain_type": "activity",
+      "event_count": 440,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T02:59:34.349000+00:00",
+      "end_time": "2020-05-02T03:24:19.291000+00:00",
+      "confidence": 0.5
+    },
+    {
+      "chain_id": "activity_44",
+      "chain_type": "activity",
+      "event_count": 363,
+      "finding_count": 0,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:25:39.934000+00:00",
+      "end_time": "2020-05-02T03:28:13.119000+00:00",
+      "confidence": 0.6000000000000001
+    },
+    {
+      "chain_id": "activity_32",
+      "chain_type": "activity",
+      "event_count": 350,
+      "finding_count": 9,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:55:57.730000+00:00",
+      "end_time": "2020-05-02T03:25:50.013000+00:00",
+      "confidence": 1.0
+    }
+  ],
+  "scenarios": 1,
+  "cross_host_scenarios": 0,
+  "scranton_nashua_scenarios": 0,
+  "scenario_rows": [
+    {
+      "scenario_id": "scope_5ec221164a339830_scenario_chain_download_0",
+      "name": "웹 다운로드 및 실행",
+      "attack_stage": "execution",
+      "confidence": 0.6,
+      "mitre_techniques": [
+        "T1003.001",
+        "T1059.001",
+        "T1087.002",
+        "T1127.001",
+        "T1140",
+        "T1569.002"
+      ],
+      "chain_count": 4,
+      "hosts": [
+        "SCRANTON"
+      ]
+    }
+  ],
+  "timing_seconds": {
+    "load": 205.610364,
+    "detection": 181.80511,
+    "correlation": 93.599329,
+    "scenario": 207.095317
+  },
+  "claim_boundary": {
+    "event_level_chain_ground_truth": "NOT_AVAILABLE",
+    "chain_precision": "NOT_CLAIMED",
+    "chain_recall": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED",
+    "production_quality": "NOT_CLAIMED"
+  }
+}
