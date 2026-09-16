@@ -16,6 +16,10 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .case_history_concurrency import case_history_locked
+from .case_history_integrity import read_index_fail_closed
+from .path_boundary import is_safe_managed_delete, validate_managed_work_dir
+
 
 CASE_INDEX_ENV = "BS_CASE_HISTORY_PATH"
 CASE_ROOT_ENV = "BS_CASES_ROOT"
@@ -76,23 +80,7 @@ class CaseHistoryService:
         return f"case-{stamp}-{digest}"
 
     def _read_index(self) -> Dict[str, Any]:
-        if not self.index_path.exists():
-            return {"version": 1, "cases": []}
-        try:
-            data = json.loads(self.index_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            # 깨진 인덱스는 보존하고 새 인덱스를 시작합니다.
-            broken = self.index_path.with_suffix(self.index_path.suffix + ".broken")
-            try:
-                self.index_path.replace(broken)
-            except OSError:
-                pass
-            return {"version": 1, "cases": []}
-        if not isinstance(data, dict):
-            return {"version": 1, "cases": []}
-        data.setdefault("version", 1)
-        data.setdefault("cases", [])
-        return data
+        return read_index_fail_closed(self)
 
     def _write_index(self, data: Dict[str, Any]) -> None:
         self.index_path.parent.mkdir(parents=True, exist_ok=True)
@@ -149,7 +137,11 @@ class CaseHistoryService:
                 techniques.update(str(t) for t in row.get("techniques") or [])
         return sorted(techniques)
 
+    @case_history_locked
     def register_case(self, work_dir: Path, report_data: Dict[str, Any]) -> CaseRecord:
+        work_dir = validate_managed_work_dir(
+            work_dir, allow_temp=True, must_exist=True
+        )
         summary = report_data.get("summary") or {}
         risk = summary.get("risk") or {}
         created_at = self._now()
@@ -193,6 +185,7 @@ class CaseHistoryService:
             host_label = "no host"
         return f"{level.upper()} · {count} findings · {host_label}"
 
+    @case_history_locked
     def list_cases(self, limit: int = 50) -> List[Dict[str, Any]]:
         data = self._read_index()
         rows = data.get("cases") or []
@@ -206,6 +199,7 @@ class CaseHistoryService:
             enriched.append(item)
         return enriched
 
+    @case_history_locked
     def get_case(self, case_id: str) -> Dict[str, Any]:
         for row in self._read_index().get("cases") or []:
             if row.get("case_id") == case_id:
@@ -278,6 +272,7 @@ class CaseHistoryService:
         item.setdefault("updated_by", "system")
         return item
 
+    @case_history_locked
     def update_case_workflow(
         self,
         case_id: str,
@@ -331,6 +326,7 @@ class CaseHistoryService:
         self._write_index(data)
         return updated
 
+    @case_history_locked
     def workflow_summary(self) -> Dict[str, Any]:
         """Return a compact board-style summary for the case queue."""
         rows = [self._with_workflow_defaults(row) for row in self._read_index().get("cases") or []]
@@ -366,6 +362,7 @@ class CaseHistoryService:
             return False, False
         return True, True
 
+    @case_history_locked
     def delete_case(self, case_id: str, remove_files: bool = True) -> Dict[str, Any]:
         data = self._read_index()
         cases = data.get("cases") or []
@@ -406,6 +403,7 @@ class CaseHistoryService:
         except ValueError:
             return None
 
+    @case_history_locked
     def prune_cases(
         self,
         *,
@@ -484,39 +482,8 @@ class CaseHistoryService:
 
     @classmethod
     def _is_safe_to_remove(cls, path: Path) -> bool:
-        try:
-            resolved = path.resolve()
-        except OSError:
-            return False
-        if not resolved.exists() or not resolved.is_dir():
-            return False
-        root = cls.default_root()
-        if resolved.name.startswith("bs_web_"):
-            return True
-        try:
-            resolved.relative_to(root)
-            return True
-        except ValueError:
-            return False
+        return is_safe_managed_delete(path)
 
 # BREACHSCOPE_P0_11_DELETE_BOUNDARY_V1
-from .path_boundary import (
-    is_safe_managed_delete as _bs_p011_is_safe_managed_delete,
-    validate_managed_work_dir as _bs_p011_validate_managed_work_dir,
-)
-
-_bs_p011_legacy_register_case = CaseHistoryService.register_case
-
-def _bs_p011_register_case(self, work_dir, report_data):
-    managed = _bs_p011_validate_managed_work_dir(
-        work_dir, allow_temp=True, must_exist=True
-    )
-    return _bs_p011_legacy_register_case(self, managed, report_data)
-
-def _bs_p011_safe_remove(cls, path):
-    return _bs_p011_is_safe_managed_delete(path)
-
-CaseHistoryService.register_case = _bs_p011_register_case
-CaseHistoryService._is_safe_to_remove = classmethod(_bs_p011_safe_remove)
 
 # BREACHSCOPE_P2_08J_CASE_DELETE_OUTCOME_CONSISTENCY_V1

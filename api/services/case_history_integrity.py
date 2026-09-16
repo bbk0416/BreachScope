@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from .case_history import CaseHistoryService
 
 
 class CaseHistoryIndexCorruptionError(RuntimeError):
@@ -51,7 +50,7 @@ def _is_valid_index_shape(data: Any) -> bool:
     return all(isinstance(row, dict) for row in cases)
 
 
-def _read_index_fail_closed(self: CaseHistoryService) -> Dict[str, Any]:
+def read_index_fail_closed(self) -> Dict[str, Any]:
     if not self.index_path.exists():
         return _empty_index()
 
@@ -70,12 +69,6 @@ def _read_index_fail_closed(self: CaseHistoryService) -> Dict[str, Any]:
     data.setdefault("cases", [])
     return data
 
-
-def install() -> None:
-    CaseHistoryService._read_index = _read_index_fail_closed
-
-
-install()
 
 # BREACHSCOPE_P2_08K_CORRUPT_CASE_INDEX_FAIL_CLOSED_V1
 # BREACHSCOPE_P2_08N_INVALID_UTF8_CASE_INDEX_QUARANTINE_V1
