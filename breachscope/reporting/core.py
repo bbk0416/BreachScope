@@ -9,11 +9,11 @@ import json
 import zipfile
 from datetime import datetime, timezone
 
-from .schemas import Report, Finding, Event
-from .utils import parse_timestamp as _parse_ts
-from .attack import get_mitre_name, get_mitre_tactic
-from .reporting.nlg import NLGTemplate
-from .reporting.integrity import (
+from ..schemas import Report, Finding, Event
+from ..utils import parse_timestamp as _parse_ts
+from ..attack import get_mitre_name, get_mitre_tactic
+from .nlg import NLGTemplate
+from .integrity import (
     generate_evidence_hash_list,
     generate_report_hash,
     calculate_file_hash,
@@ -455,7 +455,7 @@ def render_html(
         out_html.write_text(html, encoding="utf-8")
         return
 
-    tmpl_dir = Path(__file__).parent.parent / "templates"
+    tmpl_dir = Path(__file__).parent.parent.parent / "templates"
     env = Environment(
         loader=FileSystemLoader(str(tmpl_dir)),
         autoescape=select_autoescape(["html", "xml"]),
@@ -495,7 +495,7 @@ def maybe_render_pdf(html_path: Path, pdf_path: Path, report: Report | None = No
     """
     if report is not None:
         try:
-            from breachscope.reporting.pdf_report import export_korean_pdf
+            from .pdf_report import export_korean_pdf
 
             if export_korean_pdf(report, pdf_path):
                 return True

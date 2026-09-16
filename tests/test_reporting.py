@@ -161,3 +161,10 @@ def test_rule_pack_summary_and_catalog_export(tmp_path: Path):
     text = out.read_text(encoding="utf-8")
     assert "id,name,severity,mitre_technique" in text
     assert "R-NTDSUTIL-Dump" in text
+
+def test_reporting_package_uses_static_core_import():
+    import sys
+    import breachscope.reporting as reporting
+
+    assert reporting.build_summary.__module__ == "breachscope.reporting.core"
+    assert "breachscope._reporting_py" not in sys.modules
