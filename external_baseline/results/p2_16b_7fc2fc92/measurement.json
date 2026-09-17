@@ -1,0 +1,335 @@
+{
+  "schema": "breachscope.p2_16b_external_reconstruction_holdout.v1",
+  "analysis_class": "independent_external_reconstruction_holdout_one_pass",
+  "measurement_repo_commit": "7fc2fc92d6be94da6384eee09f042807366617ab",
+  "frozen_product_commit": "4514279c0b223483016acf35009ed2985f6a016e",
+  "archive_sha256": "ab4d1ec4e44102c87946a974f93aa248e49e5001e01fac3f137ec7e61bbc18ed",
+  "archive_member": "empire_apt3_2019-05-14223117.json",
+  "events": 121659,
+  "parse_errors": 0,
+  "hosts": {
+    "{'NAME': 'WECSERVER'}": 121659
+  },
+  "canonical_coverage": {
+    "events": 121659,
+    "host_nonempty": 121659,
+    "source_nonempty": 0,
+    "raw_computer_name_present": 121659,
+    "raw_source_name_present": 121659,
+    "raw_record_number_present": 121659
+  },
+  "product_tree_matches_frozen_commit": true,
+  "rules": 66,
+  "rule_file_count": 4,
+  "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "findings": 63683,
+  "flagged_events": 20394,
+  "finding_hosts": {
+    "{'NAME': 'WECSERVER'}": 63683
+  },
+  "chains": 32,
+  "chain_types": {
+    "activity": 32
+  },
+  "cross_host_chains": 0,
+  "documented_hr001_hfdc01_chains": 0,
+  "documented_hr001_hfdc01_chain_rows": [],
+  "largest_chains": [
+    {
+      "chain_id": "activity_13",
+      "chain_type": "activity",
+      "event_count": 2296,
+      "finding_count": 7078,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:02:34.054000+00:00",
+      "end_time": "2019-05-14T23:32:32.102000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_12",
+      "chain_type": "activity",
+      "event_count": 1959,
+      "finding_count": 6006,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:32:32.735000+00:00",
+      "end_time": "2019-05-14T23:02:31.895000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_14",
+      "chain_type": "activity",
+      "event_count": 1235,
+      "finding_count": 3782,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:32:35.462000+00:00",
+      "end_time": "2019-05-14T23:47:44.002000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_5",
+      "chain_type": "activity",
+      "event_count": 1013,
+      "finding_count": 3181,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:02:36.677000+00:00",
+      "end_time": "2019-05-14T23:32:35.752000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_18",
+      "chain_type": "activity",
+      "event_count": 1010,
+      "finding_count": 3176,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:02:39.159000+00:00",
+      "end_time": "2019-05-14T23:32:35.448000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_29",
+      "chain_type": "activity",
+      "event_count": 991,
+      "finding_count": 3092,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:02:36.678000+00:00",
+      "end_time": "2019-05-14T23:32:35.766000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_17",
+      "chain_type": "activity",
+      "event_count": 899,
+      "finding_count": 2783,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:32:36.018000+00:00",
+      "end_time": "2019-05-14T23:02:34.069000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_28",
+      "chain_type": "activity",
+      "event_count": 874,
+      "finding_count": 2718,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:32:36.078000+00:00",
+      "end_time": "2019-05-14T23:02:34.054000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_4",
+      "chain_type": "activity",
+      "event_count": 839,
+      "finding_count": 2643,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:32:36.043000+00:00",
+      "end_time": "2019-05-14T23:02:34.065000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_15",
+      "chain_type": "activity",
+      "event_count": 819,
+      "finding_count": 2521,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:59:50.423000+00:00",
+      "end_time": "2019-05-14T23:29:47.149000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_6",
+      "chain_type": "activity",
+      "event_count": 539,
+      "finding_count": 1695,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:32:37.182000+00:00",
+      "end_time": "2019-05-14T23:47:40.112000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_19",
+      "chain_type": "activity",
+      "event_count": 496,
+      "finding_count": 1580,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:32:40.553000+00:00",
+      "end_time": "2019-05-14T23:47:43.999000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_30",
+      "chain_type": "activity",
+      "event_count": 466,
+      "finding_count": 1461,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:32:37.196000+00:00",
+      "end_time": "2019-05-14T23:47:44.002000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_16",
+      "chain_type": "activity",
+      "event_count": 461,
+      "finding_count": 1418,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:29:52.213000+00:00",
+      "end_time": "2019-05-14T23:47:44.206000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_9",
+      "chain_type": "activity",
+      "event_count": 431,
+      "finding_count": 362,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:31:23.055000+00:00",
+      "end_time": "2019-05-14T23:00:23.279000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_20",
+      "chain_type": "activity",
+      "event_count": 357,
+      "finding_count": 1123,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:59:52.156000+00:00",
+      "end_time": "2019-05-14T23:29:26.807000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_31",
+      "chain_type": "activity",
+      "event_count": 352,
+      "finding_count": 1101,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:59:51.799000+00:00",
+      "end_time": "2019-05-14T23:29:47.147000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_7",
+      "chain_type": "activity",
+      "event_count": 329,
+      "finding_count": 1045,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:59:51.020000+00:00",
+      "end_time": "2019-05-14T23:29:47.148000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_1",
+      "chain_type": "activity",
+      "event_count": 211,
+      "finding_count": 212,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T22:31:26.910000+00:00",
+      "end_time": "2019-05-14T22:59:49.217000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    },
+    {
+      "chain_id": "activity_32",
+      "chain_type": "activity",
+      "event_count": 203,
+      "finding_count": 634,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ],
+      "start_time": "2019-05-14T23:29:52.225000+00:00",
+      "end_time": "2019-05-14T23:47:39.114000+00:00",
+      "confidence": 1.0,
+      "metadata": {}
+    }
+  ],
+  "scenarios": 1,
+  "cross_host_scenarios": 0,
+  "documented_hr001_hfdc01_scenarios": 0,
+  "documented_hr001_hfdc01_scenario_rows": [],
+  "scenario_rows": [
+    {
+      "scenario_id": "scope_040f7fa512dab186_scenario_1_rdp_lateral",
+      "name": "RDP를 통한 측면 이동",
+      "attack_stage": "lateral_movement",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1021.001"
+      ],
+      "chain_count": 12,
+      "hosts": [
+        "{'NAME': 'WECSERVER'}"
+      ]
+    }
+  ],
+  "timing_seconds": {
+    "load": 41.395802,
+    "detection": 151.443191,
+    "correlation": 71.813927,
+    "scenario": 21.597259
+  },
+  "claim_boundary": {
+    "event_level_ground_truth": "NOT_AVAILABLE",
+    "detection_precision": "NOT_CLAIMED",
+    "detection_recall": "NOT_CLAIMED",
+    "chain_precision": "NOT_CLAIMED",
+    "chain_recall": "NOT_CLAIMED",
+    "scenario_precision": "NOT_CLAIMED",
+    "scenario_recall": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED",
+    "production_quality": "NOT_CLAIMED"
+  }
+}
