@@ -37,6 +37,18 @@ def _text(value: Any) -> str | None:
     return text if text else None
 
 
+def _entity_text(value: Any, *preferred_keys: str) -> str | None:
+    value = _first_scalar(value)
+    if isinstance(value, Mapping):
+        for key in preferred_keys:
+            nested = _lookup(value, key)
+            text = _text(nested)
+            if text:
+                return text
+        return None
+    return _text(value)
+
+
 def _intish(value: Any) -> int | str | None:
     text = _text(value)
     if text is None:
@@ -120,17 +132,20 @@ def _taxonomy(provider: str, event_id: int | str | None) -> tuple[str, str]:
 
 
 def _generic_user(event: Mapping[str, Any], fields: Mapping[str, Any]) -> dict[str, Any]:
-    name = _text(
-        _lookup(
-            fields,
-            "TargetUserName",
-            "SubjectUserName",
-            "User",
-            "UserName",
-            "AccountName",
-        )
-    ) or _text(event.get("user"))
+    field_user = _lookup(
+        fields,
+        "TargetUserName",
+        "SubjectUserName",
+        "User",
+        "UserName",
+        "AccountName",
+    )
+    name = _entity_text(field_user, "name", "username", "id") or _entity_text(
+        event.get("user"), "name", "username", "id"
+    )
     sid = _text(_lookup(fields, "TargetUserSid", "SubjectUserSid", "UserSid", "UserID"))
+    if not sid and isinstance(event.get("user"), Mapping):
+        sid = _text(_lookup(event["user"], "id", "identifier"))
     result: dict[str, Any] = {}
     if name:
         result["name"] = name
@@ -233,7 +248,9 @@ def build_canonical_event(event: Mapping[str, Any]) -> dict[str, Any]:
     if provider:
         canonical["event"]["provider"] = provider
 
-    host = _text(event.get("host")) or _text(_lookup(fields, "Computer", "Hostname", "Host"))
+    host = _entity_text(event.get("host"), "name", "hostname") or _text(
+        _lookup(fields, "Computer", "Hostname", "computer_name", "Host")
+    )
     if not host:
         system = raw.get("system")
         if isinstance(system, Mapping):

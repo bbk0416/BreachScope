@@ -3,13 +3,97 @@
 JSONL 파일에서 이벤트를 읽어 Event 객체로 변환합니다.
 """
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator, Mapping
 import json
 import logging
 import time
 from .schemas import Event
+from .canonical import enrich_event_dict
 
 logger = logging.getLogger(__name__)
+
+
+def _lookup_ci(mapping: Mapping[str, Any], *names: str) -> Any:
+    folded = {str(key).casefold(): value for key, value in mapping.items()}
+    for name in names:
+        if name in mapping and mapping[name] not in (None, ""):
+            return mapping[name]
+        value = folded.get(name.casefold())
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _entity_scalar(value: Any, kind: str) -> str:
+    if value in (None, ""):
+        return ""
+    if not isinstance(value, Mapping):
+        return str(value)
+    if kind == "host":
+        value = _lookup_ci(value, "name", "hostname", "computer_name")
+        return str(value) if value not in (None, "") else ""
+    if kind == "user":
+        name = _lookup_ci(value, "name", "username")
+        domain = _lookup_ci(value, "domain")
+        if name not in (None, ""):
+            return f"{domain}\\{name}" if domain not in (None, "") else str(name)
+        identifier = _lookup_ci(value, "id", "identifier")
+        return str(identifier) if identifier not in (None, "") else ""
+    if kind == "source":
+        value = _lookup_ci(value, "name", "provider")
+        return str(value) if value not in (None, "") else ""
+    return ""
+
+
+def _event_from_json_record(obj: Mapping[str, Any]) -> Event:
+    event_data = obj.get("event_data")
+    if not isinstance(event_data, Mapping):
+        event_data = {}
+
+    endpoint = _lookup_ci(obj, "computer_name", "Hostname", "Computer")
+    host = str(endpoint) if endpoint not in (None, "") else _entity_scalar(
+        _lookup_ci(obj, "host", "computer"), "host"
+    )
+    source_value = _lookup_ci(obj, "source_name", "SourceName", "source", "provider", "ProviderName")
+    source = _entity_scalar(source_value, "source") if isinstance(source_value, Mapping) else str(source_value or "")
+    timestamp = _lookup_ci(obj, "timestamp", "@timestamp", "UtcTime", "EventTime", "time_created", "TimeCreated")
+    event_id = _lookup_ci(obj, "event_id", "EventID", "eventid", "eid")
+
+    user_value = _lookup_ci(obj, "user", "User", "account")
+    user = _entity_scalar(user_value, "user")
+    if not user:
+        user = str(_lookup_ci(event_data, "User", "SubjectUserName", "TargetUserName", "AccountName", "UserName") or "")
+
+    command_line = _lookup_ci(obj, "command_line", "CommandLine", "ProcessCommandLine", "cmdline")
+    if command_line in (None, ""):
+        command_line = _lookup_ci(event_data, "CommandLine", "ProcessCommandLine")
+
+    raw = dict(obj)
+    flat_windows = any(
+        _lookup_ci(obj, key) not in (None, "")
+        for key in ("computer_name", "Hostname", "SourceName", "source_name", "EventID", "Channel", "log_name", "RecordNumber", "record_number")
+    )
+    if flat_windows:
+        channel = _lookup_ci(obj, "Channel", "channel", "log_name")
+        record_id = _lookup_ci(obj, "EventRecordID", "event_record_id", "RecordNumber", "record_number")
+        if channel not in (None, ""):
+            raw.setdefault("channel", str(channel))
+        if record_id not in (None, ""):
+            raw.setdefault("event_record_id", str(record_id))
+
+    candidate = {
+        "timestamp": str(timestamp or ""),
+        "host": host or "unknown",
+        "source": source or "unknown",
+        "event_id": str(event_id or ""),
+        "level": str(_lookup_ci(obj, "level", "severity") or ""),
+        "user": user,
+        "command_line": None if command_line in (None, "") else str(command_line),
+        "raw": raw,
+    }
+    if flat_windows:
+        candidate = enrich_event_dict(candidate)
+    return Event(**candidate)
 
 # 다계층 아티팩트 수집 모듈 (선택적)
 try:
@@ -75,16 +159,7 @@ def load_jsonl_events(path: Path, include_artifacts: bool = False) -> Iterator[E
                             logger.debug(f"JSON 파싱 실패 ({p.name}:{line_num}): {e}")
                         continue
                     try:
-                        event = Event(
-                            timestamp=str(obj.get("timestamp", "")),
-                            host=str(obj.get("host", obj.get("computer", "unknown"))),
-                            source=str(obj.get("source", obj.get("provider", "unknown"))),
-                            event_id=str(obj.get("event_id", obj.get("eid", ""))),
-                            level=str(obj.get("level", obj.get("severity", ""))),
-                            user=str(obj.get("user", obj.get("account", ""))),
-                            command_line=obj.get("command_line", obj.get("cmdline")),
-                            raw=obj,
-                        )
+                        event = _event_from_json_record(obj)
                         yield event
                     except Exception as e:
                         logger.warning(f"Event 객체 생성 실패 ({p.name}:{line_num}): {e}")

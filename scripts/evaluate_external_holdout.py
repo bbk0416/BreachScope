@@ -102,23 +102,55 @@ def event_identity_payload(event: Any) -> dict[str, str]:
     if not isinstance(system, Mapping):
         system = {}
 
+    event_data = raw.get("event_data")
+    if not isinstance(event_data, Mapping):
+        event_data = {}
+
+    def render(item: Any, logical_name: str) -> str:
+        if item in (None, ""):
+            return ""
+        if isinstance(item, Mapping):
+            folded = {str(key).casefold(): value for key, value in item.items()}
+            if logical_name == "host":
+                for key in ("name", "hostname", "computer_name"):
+                    value = folded.get(key)
+                    if value not in (None, ""):
+                        return str(value)
+                return ""
+            if logical_name == "user":
+                name = folded.get("name") or folded.get("username")
+                domain = folded.get("domain")
+                if name not in (None, ""):
+                    return f"{domain}\\{name}" if domain not in (None, "") else str(name)
+                identifier = folded.get("id") or folded.get("identifier")
+                return str(identifier) if identifier not in (None, "") else ""
+            if logical_name == "source":
+                for key in ("name", "provider"):
+                    value = folded.get(key)
+                    if value not in (None, ""):
+                        return str(value)
+                return ""
+            return ""
+        return str(item)
+
     def first(name: str, *aliases: str) -> str:
         direct = _get(event, name, "")
-        if direct not in (None, ""):
-            return str(direct)
-        for source in (canonical, raw, event_mapping):
+        rendered = render(direct, name)
+        if rendered:
+            return rendered
+        for source in (canonical, raw, event_mapping, event_data):
             for candidate in (name, *aliases):
-                item = source.get(candidate)
-                if item not in (None, ""):
-                    return str(item)
+                rendered = render(source.get(candidate), name)
+                if rendered:
+                    return rendered
         return ""
 
-    def first_alias(*names: str) -> str:
+    def first_alias(logical_name: str, *names: str) -> str:
         for source in (raw, event_mapping, canonical):
             for name in names:
-                item = source.get(name)
-                if item not in (None, ""):
-                    return str(item)
+                rendered = render(source.get(name), logical_name)
+                if rendered:
+                    return rendered
         return ""
 
     def system_first(*names: str) -> str:
@@ -128,25 +160,22 @@ def event_identity_payload(event: Any) -> dict[str, str]:
                 return str(item)
         return ""
 
-    endpoint_host = first_alias("Hostname", "Computer") if flat_mapping else ""
+    endpoint_host = first_alias("host", "Hostname", "Computer", "computer_name") if flat_mapping else ""
     payload = {
         "timestamp": first("timestamp", "@timestamp", "UtcTime", "EventTime", "time_created", "TimeCreated"),
-        "host": endpoint_host or first("host", "Hostname", "computer", "Computer"),
-        "source": first("source", "SourceName", "provider", "ProviderName"),
+        "host": endpoint_host or first("host", "Hostname", "computer", "Computer", "computer_name"),
+        "source": first("source", "SourceName", "source_name", "provider", "ProviderName"),
         "event_id": first("event_id", "EventID", "eventid"),
         "user": first("user", "User", "SubjectUserName", "TargetUserName", "AccountName", "UserName"),
         "command_line": first("command_line", "CommandLine", "ProcessCommandLine"),
     }
 
-    channel = first("channel", "Channel") or system_first("Channel", "channel")
+    channel = first("channel", "Channel", "log_name") or system_first("Channel", "channel")
     event_record_id = (
-        first("event_record_id", "EventRecordID", "record_id", "RecordNumber")
-        or system_first("EventRecordID", "event_record_id", "record_id", "RecordNumber")
+        first("event_record_id", "EventRecordID", "record_id", "RecordNumber", "record_number")
+        or system_first("EventRecordID", "event_record_id", "record_id", "RecordNumber", "record_number")
     )
 
-    # Preserve historical keys for generic JSONL events that do not expose
-    # Windows record identity, while disambiguating distinct EVTX records when
-    # the source provides per-channel EventRecordID metadata.
     if channel:
         payload["channel"] = channel
     if event_record_id:
@@ -496,8 +525,10 @@ def _record_to_event(raw: dict[str, Any]):
         "raw": event_raw,
     }
     flat_windows_record = not has_nested_raw and any(
-        key in raw for key in ("Hostname", "SourceName", "EventID", "Channel", "RecordNumber")
+        key in raw for key in ("Hostname", "SourceName", "EventID", "Channel", "RecordNumber", "computer_name", "source_name", "log_name", "record_number")
     )
+    if flat_windows_record and identity.get("channel"):
+        event_raw.setdefault("channel", identity["channel"])
     if flat_windows_record and identity.get("event_record_id"):
         event_raw.setdefault("event_record_id", identity["event_record_id"])
     if flat_windows_record and not isinstance(event_raw.get("canonical"), Mapping):
