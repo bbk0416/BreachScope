@@ -85,4 +85,4 @@ reproduction:
     py -3.11 scripts/p2_15a_apt29_reconstruction.py
     --archive <apt29_evals_day1_manual.zip>
     --out external_baseline/results/p2_15b_6e3a297/measurement.json
-measurement_sha256: d7797dc7a598dfd6375878676850e669c94fc433638f61d698b4840a491dbbad
+measurement_sha256: 3c1233e0a115d867cb553923edba246db2e2942f8739f29a1d5a713ac1ebc2f0
