@@ -1,0 +1,88 @@
+schema: breachscope.p2_15b_post_change_reconstruction_diagnostic.v1
+analysis_id: p2-15b-otrf-apt29-day1-remote-execution-post-change-v1
+analysis_class: post_change_external_reconstruction_diagnostic
+measurement_file: external_baseline/results/p2_15b_6e3a297/measurement.json
+measurement_evaluator_schema: breachscope.p2_15a_external_reconstruction_observation.v1
+code_under_observation:
+  repo_commit: 6e3a29797ab27a19a8b2fa891d768cd8cb49745d
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+baseline_reference:
+  evidence: external_baseline/p2_15a_apt29_reconstruction_observation.yaml
+  repo_commit: 5ca21b199f391dbf914f90b4f3bda53f9ba71a67
+  chains: 267
+  cross_host_chains: 0
+  scranton_nashua_chains: 0
+source_binding:
+  inherited_from: external_baseline/p2_12b_apt29_day1_binding.yaml
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  archive_sha256: 98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5
+  archive_events: 196081
+  emulation_plan_sha256: 053e70c6ba95eac481b370f8b1545ec3f1f00306c828634741a8c7399719c228
+  worksheet: day1
+  event_level_labels: NOT_AVAILABLE
+plan_structure:
+  corpus_internal_cross_host_steps:
+    - {step: 8.A, stage: Lateral Movement, source: SCRANTON, target: NASHUA}
+    - {step: 8.B, stage: Lateral Movement, source: SCRANTON, target: NASHUA}
+    - {step: 8.C, stage: Lateral Movement, source: SCRANTON, target: NASHUA}
+observed_output:
+  findings: 38
+  flagged_events: 35
+  chains: 233
+  chain_types:
+    activity: 5
+    download_exec: 4
+    remote_execution: 5
+    session: 219
+  cross_host_chains: 5
+  scranton_nashua_chains: 5
+  scenarios: 1
+  cross_host_scenarios: 0
+  scranton_nashua_scenarios: 0
+remote_execution_diagnostic_alignment:
+  - plan_step: 8.A
+    operation: WinRM Invoke-Command
+    observed_chains: 1
+    source_evidence: explicit ComputerName NASHUA
+    target_evidence: network logon plus wsmprovhost process
+  - plan_step: 8.C
+    operation: PsExec remote execution
+    observed_chains: 4
+    source_evidence: explicit PsExec UNC target NASHUA
+    target_evidence: network logon plus PSEXESVC service or process evidence
+  - plan_step: 8.B
+    operation: remote file staging
+    observed_chains: NOT_ASSERTED
+    reason: this change models remote execution, not generic remote file copy
+claim_boundary:
+  event_level_chain_ground_truth: NOT_AVAILABLE
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_detection_quality: NOT_CLAIMED
+  production_reconstruction_quality: NOT_CLAIMED
+  plan_step_coverage_rate: NOT_CLAIMED
+  interpretation: >-
+    After changes developed with knowledge of the earlier APT29 result, this run
+    emitted five evidence-backed SCRANTON-to-NASHUA remote-execution chains.
+    One is diagnostically consistent with the documented WinRM action in 8.A,
+    and four are repeated PsExec attempts consistent with 8.C. This is a
+    post-change development diagnostic, not event-level precision, recall,
+    scenario accuracy, or an independent external validation result.
+protocol_notes:
+  corpus_was_previously_observed: true
+  development_informed_by_prior_result: true
+  blind_evaluation: false
+  same_corpus_post_change_diagnostic: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+reproduction:
+  required_checkout: 6e3a29797ab27a19a8b2fa891d768cd8cb49745d
+  evaluator: scripts/p2_15a_apt29_reconstruction.py
+  command: >-
+    py -3.11 scripts/p2_15a_apt29_reconstruction.py
+    --archive <apt29_evals_day1_manual.zip>
+    --out external_baseline/results/p2_15b_6e3a297/measurement.json
+measurement_sha256: d7797dc7a598dfd6375878676850e669c94fc433638f61d698b4840a491dbbad
