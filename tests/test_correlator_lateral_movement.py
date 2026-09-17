@@ -60,6 +60,11 @@ def test_psexec_plus_target_network_logon_and_service_forms_cross_host_chain():
     assert chain.events == [source, logon, service]
     assert {event.host for event in chain.events} == {"WS-A.corp.local", "WS-B.corp.local"}
     assert chain.findings == [_finding(source)]
+    assert chain.metadata["remote_execution"] == {
+        "source_host": "WS-A.corp.local",
+        "target_host": "WS-B.corp.local",
+        "method": "psexec",
+    }
 
 
 def test_powershell_scriptblock_computername_links_to_target_network_logon():
@@ -88,6 +93,11 @@ def test_powershell_scriptblock_computername_links_to_target_network_logon():
     chains = _remote(correlate_events([source, logon, winrm], []))
 
     assert len(chains) == 1
+    assert chains[0].metadata["remote_execution"] == {
+        "source_host": "WS-A.corp.local",
+        "target_host": "WS-B.corp.local",
+        "method": "powershell",
+    }
     assert chains[0].events == [source, logon, winrm]
 
 

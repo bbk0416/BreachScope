@@ -4,6 +4,7 @@
 """
 import yaml
 import logging
+import hashlib
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Set, Any
 from collections import defaultdict
@@ -533,6 +534,142 @@ def _bs_p206b_namespace_scenarios(scenarios, component):
     return result
 
 
+
+_REMOTE_SCENARIO_SEVERITIES = {"high", "critical"}
+_REMOTE_SCENARIO_METHOD_TECHNIQUES = {
+    "powershell": {"T1021.006"},
+    "psexec": {"T1569.002"},
+}
+_REMOTE_SCENARIO_EPISODE_GAP_SECONDS = 300
+
+
+def _remote_scenario_host(event) -> str:
+    value = str(getattr(event, "host", "") or "").strip().rstrip(".")
+    return value.casefold()
+
+
+def _qualifying_remote_scenario_evidence(chain):
+    if getattr(chain, "chain_type", "") != "remote_execution":
+        return None
+
+    metadata = getattr(chain, "metadata", None) or {}
+    remote_metadata = metadata.get("remote_execution") or {}
+    source_host = str(remote_metadata.get("source_host") or "").strip().rstrip(".").casefold()
+    target_host = str(remote_metadata.get("target_host") or "").strip().rstrip(".").casefold()
+    method = str(remote_metadata.get("method") or "").strip().casefold()
+    allowed_techniques = _REMOTE_SCENARIO_METHOD_TECHNIQUES.get(method)
+    if not source_host or not target_host or source_host == target_host or not allowed_techniques:
+        return None
+
+    event_hosts = {
+        _remote_scenario_host(event)
+        for event in (getattr(chain, "events", None) or [])
+        if _remote_scenario_host(event)
+    }
+    endpoint_hosts = {source_host, target_host}
+    if event_hosts != endpoint_hosts:
+        return None
+
+    qualifying = []
+    finding_hosts = set()
+    host_techniques = defaultdict(set)
+    for finding in (getattr(chain, "findings", None) or []):
+        severity = str(getattr(finding, "severity", "") or "").casefold()
+        technique = str(getattr(finding, "mitre_technique", "") or "").upper()
+        if severity not in _REMOTE_SCENARIO_SEVERITIES:
+            continue
+        if technique not in allowed_techniques:
+            continue
+        host = _remote_scenario_host(getattr(finding, "event", None))
+        if host in endpoint_hosts:
+            finding_hosts.add(host)
+            host_techniques[host].add(technique)
+            qualifying.append(finding)
+
+    if finding_hosts != endpoint_hosts:
+        return None
+    shared_techniques = set.intersection(*(host_techniques[host] for host in endpoint_hosts))
+    if not shared_techniques:
+        return None
+    qualifying = [
+        finding for finding in qualifying
+        if str(getattr(finding, "mitre_technique", "") or "").upper() in shared_techniques
+    ]
+    return (source_host, target_host), qualifying, tuple(sorted(shared_techniques))
+
+
+
+def _remote_scenario_episodes(remote_chains):
+    by_evidence_key = defaultdict(list)
+    for chain in remote_chains:
+        evidence = _qualifying_remote_scenario_evidence(chain)
+        if evidence is None:
+            continue
+        pair, qualifying, techniques = evidence
+        by_evidence_key[(pair, techniques)].append((chain, qualifying, techniques))
+
+    episodes = []
+    for evidence_key in sorted(by_evidence_key):
+        pair, techniques = evidence_key
+        rows = sorted(
+            by_evidence_key[evidence_key],
+            key=lambda row: (
+                getattr(row[0], "start_time", None) is None,
+                getattr(row[0], "start_time", None),
+                str(getattr(row[0], "chain_id", "")),
+            ),
+        )
+        current = []
+        previous_end = None
+
+        for row in rows:
+            chain = row[0]
+            start = getattr(chain, "start_time", None)
+            split = False
+            if current and previous_end is not None and start is not None:
+                split = (start - previous_end).total_seconds() > _REMOTE_SCENARIO_EPISODE_GAP_SECONDS
+            elif current and (previous_end is None or start is None):
+                split = True
+
+            if split:
+                episodes.append((pair, techniques, current))
+                current = []
+            current.append(row)
+            previous_end = getattr(chain, "end_time", None) or start
+
+        if current:
+            episodes.append((pair, techniques, current))
+    return episodes
+
+
+def _infer_remote_execution_scenarios(remote_chains):
+    scenarios = []
+    for pair, technique_key, episode in _remote_scenario_episodes(remote_chains):
+        chains = [row[0] for row in episode]
+        techniques = list(technique_key)
+        avg_chain_confidence = (
+            sum(float(getattr(chain, "confidence", 0.0) or 0.0) for chain in chains)
+            / len(chains)
+        )
+        identity = (
+            "|".join(pair) + "|" + "|".join(techniques) + "|"
+            + "|".join(str(getattr(chain, "chain_id", "")) for chain in chains)
+        )
+        namespace = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
+        scenarios.append(Scenario(
+            scenario_id=f"scenario_remote_execution_{namespace}",
+            name="탐지 근거가 있는 호스트 간 원격 실행",
+            description=(
+                "두 호스트 모두에서 high/critical 탐지 근거가 확인된 "
+                f"원격 실행 활동 ({len(chains)}개 체인)"
+            ),
+            mitre_techniques=techniques,
+            chains=_convert_chains(chains),
+            confidence=min(0.9, avg_chain_confidence),
+            attack_stage="lateral_movement",
+        ))
+    return scenarios
+
 def infer_scenarios(
     chains: List[CorrelatorEventChain],
     findings: List[Finding],
@@ -552,32 +689,28 @@ def infer_scenarios(
     chains = list(chains or [])
     findings = list(findings or [])
 
-    # Cross-host remote-execution chains are descriptive correlation evidence.
-    # Keep them out of generic host/user partitioning so they cannot bridge
-    # otherwise isolated scenario components. Dedicated remote scenarios, if any,
-    # must be inferred explicitly rather than through this generic path.
+    remote_chains = [
+        chain for chain in chains if getattr(chain, "chain_type", "") == "remote_execution"
+    ]
     scenario_chains = [
-        chain for chain in chains if chain.chain_type != "remote_execution"
+        chain for chain in chains if getattr(chain, "chain_type", "") != "remote_execution"
     ]
 
-    if not scenario_chains:
-        return _infer_scenarios_for_scope(
-            [], findings, custom_templates_dir
-        )
-
-    chains = scenario_chains
-    components = _bs_p005_partition_chains(chains)
     results: List[Scenario] = []
 
-    for component in components:
-        scope = _bs_p005_component_scope(component)
-        scoped_findings = _bs_p005_filter_findings(findings, scope)
-        partial = _infer_scenarios_for_scope(
-            component, scoped_findings, custom_templates_dir
-        )
-        if partial:
-            results.extend(_bs_p206b_namespace_scenarios(partial, component))
+    if scenario_chains:
+        chains = scenario_chains
+        components = _bs_p005_partition_chains(chains)
+        for component in components:
+            scope = _bs_p005_component_scope(component)
+            scoped_findings = _bs_p005_filter_findings(findings, scope)
+            partial = _infer_scenarios_for_scope(
+                component, scoped_findings, custom_templates_dir
+            )
+            if partial:
+                results.extend(_bs_p206b_namespace_scenarios(partial, component))
 
+    results.extend(_infer_remote_execution_scenarios(remote_chains))
     return results
 
 

@@ -28,6 +28,7 @@ class EventChain:
     description: str = ""
     confidence: float = 0.0  # 0.0 ~ 1.0
     chain_type: str = ""  # "download_exec", "session", "lateral_movement" 등
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -254,6 +255,13 @@ def correlate_events(
                     description=f"명시적 원격 실행 증거: {match.source_host} -> {match.target_host} ({match.method})",
                     confidence=_calculate_chain_confidence(match.events, remote_findings, time_span),
                     chain_type="remote_execution",
+                    metadata={
+                        "remote_execution": {
+                            "source_host": match.source_host,
+                            "target_host": match.target_host,
+                            "method": match.method,
+                        }
+                    },
                 )
             )
 
