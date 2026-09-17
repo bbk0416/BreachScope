@@ -212,3 +212,89 @@ def test_scenario_scope_helpers_are_static_without_runtime_installers():
     assert scenario._bs_p206b_component_namespace is scenario_user_scope.component_namespace
     assert "BREACHSCOPE_P2_07J_SCENARIO_USER_SCOPE_V1" in scope_source
     assert "BREACHSCOPE_P2_07X_SESSION_LIFECYCLE_TIME_BOUNDS_V1" in scope_source
+
+
+def _collector_event(endpoint: str, collector: str = "WECserver", user: str = "SYSTEM"):
+    return SimpleNamespace(
+        host=endpoint,
+        user=user,
+        raw={
+            "host": {"name": collector},
+            "computer_name": endpoint,
+            "user": {"name": user},
+            "canonical": {
+                "host": {"name": endpoint},
+                "user": {"name": user},
+            },
+        },
+    )
+
+
+def _collector_chain(endpoint: str, collector: str = "WECserver"):
+    return SimpleNamespace(
+        chain_type="activity",
+        events=[_collector_event(endpoint, collector)],
+    )
+
+
+def test_normalized_event_host_suppresses_raw_collector_host_identity():
+    event_scope = scenario._bs_p005_scope(_collector_event("HR001"))
+
+    assert event_scope["hosts"] == {"hr001"}
+    assert event_scope["users"] == {"system"}
+
+
+def test_shared_collector_does_not_bridge_distinct_normalized_endpoints():
+    hr = _collector_chain("HR001")
+    dc = _collector_chain("HFDC01")
+
+    groups = scenario._bs_p005_partition_chains([hr, dc])
+
+    assert len(groups) == 2
+
+
+def test_same_normalized_endpoint_still_groups_with_shared_collector():
+    first = _collector_chain("HR001")
+    second = _collector_chain("HR001")
+
+    groups = scenario._bs_p005_partition_chains([first, second])
+
+    assert len(groups) == 1
+    assert len(groups[0]) == 2
+
+
+def test_raw_host_remains_fallback_when_event_host_is_missing():
+    event = SimpleNamespace(
+        host="",
+        user=None,
+        raw={"host": {"name": "RAW-HOST"}},
+    )
+
+    event_scope = scenario._bs_p005_scope(event)
+
+    assert event_scope["hosts"] == {"raw-host"}
+
+
+def test_filter_findings_reuses_scope_cache_across_components(monkeypatch):
+    from breachscope import scenario_user_scope
+
+    first = _finding("HOST-A", "alice")
+    second = _finding("HOST-B", "bob")
+    component_a = scenario._bs_p005_component_scope([_chain("HOST-A", "alice")])
+    component_b = scenario._bs_p005_component_scope([_chain("HOST-B", "bob")])
+
+    original_scope = scenario_user_scope.scope
+    calls = {id(first): 0, id(second): 0}
+
+    def counted_scope(obj, *args, **kwargs):
+        if id(obj) in calls:
+            calls[id(obj)] += 1
+        return original_scope(obj, *args, **kwargs)
+
+    monkeypatch.setattr(scenario_user_scope, "scope", counted_scope)
+    cache = {}
+    scenario_user_scope.filter_findings([first, second], component_a, cache)
+    scenario_user_scope.filter_findings([first, second], component_b, cache)
+
+    assert calls == {id(first): 1, id(second): 1}
+    assert len(cache) == 2
