@@ -12,6 +12,7 @@ from .utils import get_event_identity_key, parse_timestamp
 
 _REMOTE_WINDOW = timedelta(minutes=2)
 _REMOTE_BACKWARD_SKEW = timedelta(seconds=5)
+_REMOTE_SERVICE_DEFINITION_LOOKBACK = timedelta(minutes=30)
 _REMOTE_LOGON_TYPES = {"3"}
 _REMOTE_SOURCE_EVENT_IDS = {"1", "4104", "4688"}
 _SERVICE_EVENT_IDS = {"7045", "4697"}
@@ -25,6 +26,11 @@ _PSEXEC_RE = re.compile(
 _REMOTE_PS_RE = re.compile(
     r"(?i)\b(?:invoke-command|enter-pssession|new-pssession)\b"
 )
+_REMOTE_SC_RE = re.compile(
+    r'(?i)\bsc(?:\.exe)?\b["]?\s+\\\\(?P<target>[A-Za-z0-9_.-]+)'
+    r'\s+(?P<operation>create|start)\s+'
+    r'(?:"(?P<quoted>[^"\r\n]+)"|(?P<bare>[^\s"]+))'
+)
 
 
 @dataclass(frozen=True)
@@ -33,6 +39,16 @@ class RemoteExecutionMatch:
     source_host: str
     target_host: str
     method: str
+    operation: str = ""
+    service_name: str = ""
+
+
+@dataclass(frozen=True)
+class _RemoteSourceTarget:
+    method: str
+    target: str
+    operation: str = ""
+    service_name: str = ""
 
 def _norm_host(value: object) -> str:
     return str(value or "").strip().rstrip(".").casefold()
@@ -100,16 +116,21 @@ def _source_texts(event: Event) -> List[str]:
     return list(dict.fromkeys(value for value in values if value.strip()))
 
 
-def _source_targets(event: Event) -> List[tuple[str, str]]:
+def _source_targets(event: Event) -> List[_RemoteSourceTarget]:
     if str(event.event_id or "") not in _REMOTE_SOURCE_EVENT_IDS:
         return []
-    result: List[tuple[str, str]] = []
+    result: List[_RemoteSourceTarget] = []
     for text in _source_texts(event):
         if _REMOTE_PS_RE.search(text):
             for match in _COMPUTERNAME_RE.finditer(text):
-                result.append(("powershell", match.group(1)))
+                result.append(_RemoteSourceTarget("powershell", match.group(1)))
         for match in _PSEXEC_RE.finditer(text):
-            result.append(("psexec", match.group(1)))
+            result.append(_RemoteSourceTarget("psexec", match.group(1)))
+        for match in _REMOTE_SC_RE.finditer(text):
+            service_name = match.group("quoted") or match.group("bare") or ""
+            result.append(_RemoteSourceTarget(
+                "scm", match.group("target"), match.group("operation").casefold(), service_name
+            ))
     return list(dict.fromkeys(result))
 
 def _event_account(event: Event) -> str:
@@ -165,6 +186,46 @@ def _is_winrm_process(event: Event) -> bool:
     return any("wsmprovhost.exe" in text.casefold() for text in texts)
 
 
+def _norm_service_name(value: object) -> str:
+    return " ".join(str(value or "").strip().strip("\"'").casefold().split())
+
+
+def _service_definition_matches(event: Event, service_name: str) -> bool:
+    if str(event.event_id or "") not in _SERVICE_EVENT_IDS:
+        return False
+    wanted = _norm_service_name(service_name)
+    if not wanted:
+        return False
+    return any(
+        _norm_service_name(value) == wanted
+        for value in _raw_values(event, "ServiceName")
+    )
+
+
+def _service_file(event: Event) -> str:
+    return _first_raw(event, "ServiceFileName", "ImagePath")
+
+def _norm_command_text(value: object) -> str:
+    text = str(value or "").strip().casefold()
+    text = re.sub(r"\s+", " ", text)
+    if len(text) >= 2 and text[0] == text[-1] == '"':
+        text = text[1:-1].strip()
+    return text
+
+
+def _service_process_matches(event: Event, service_file: str) -> bool:
+    if str(event.event_id or "") not in _PROCESS_EVENT_IDS:
+        return False
+    wanted = _norm_command_text(service_file)
+    if not wanted:
+        return False
+    texts: List[str] = []
+    if event.command_line:
+        texts.append(str(event.command_line))
+    texts.extend(_raw_values(event, "CommandLine", "ProcessCommandLine"))
+    return any(_norm_command_text(text) == wanted for text in texts)
+
+
 def _dedupe_events(events: Iterable[Event]) -> List[Event]:
     unique: List[Event] = []
     seen: set[str] = set()
@@ -204,16 +265,21 @@ def find_remote_execution_matches(events: List[Event]) -> List[RemoteExecutionMa
         return next(iter(candidates)) if len(candidates) == 1 else None
 
     matches: List[RemoteExecutionMatch] = []
-    seen: set[tuple[str, str, str]] = set()
-    seen_operations: set[tuple[str, str, str, tuple[str, ...]]] = set()
+    seen: set[tuple] = set()
+    seen_operations: set[tuple] = set()
 
     for source_ts, source in timed:
         source_host = _norm_host(source.host)
-        for method, target_token in _source_targets(source):
+        for candidate in _source_targets(source):
+            method = candidate.method
+            target_token = candidate.target
             target_host = resolve(target_token)
             if not target_host or target_host == source_host:
                 continue
-            marker = (get_event_identity_key(source), target_host, method)
+            marker = (
+                get_event_identity_key(source), target_host, method,
+                candidate.operation, _norm_service_name(candidate.service_name),
+            )
             if marker in seen:
                 continue
             seen.add(marker)
@@ -256,8 +322,44 @@ def find_remote_execution_matches(events: List[Event]) -> List[RemoteExecutionMa
                 if psexec_process is not None:
                     evidence.append(psexec_process)
 
+            if method == "scm":
+                service_name = candidate.service_name
+                if candidate.operation == "create":
+                    service_event = next(
+                        (event for _, event in window if _service_definition_matches(event, service_name)),
+                        None,
+                    )
+                    if service_event is None:
+                        continue
+                    evidence.append(service_event)
+                elif candidate.operation == "start":
+                    definition_start = bisect.bisect_left(
+                        timestamps, source_ts - _REMOTE_SERVICE_DEFINITION_LOOKBACK
+                    )
+                    definition_end = bisect.bisect_right(
+                        timestamps, source_ts + _REMOTE_BACKWARD_SKEW
+                    )
+                    definitions = [
+                        event for _, event in entries[definition_start:definition_end]
+                        if _service_definition_matches(event, service_name) and _service_file(event)
+                    ]
+                    if not definitions:
+                        continue
+                    service_event = definitions[-1]
+                    service_file = _service_file(service_event)
+                    process_event = next(
+                        (event for _, event in window if _service_process_matches(event, service_file)),
+                        None,
+                    )
+                    if process_event is None:
+                        continue
+                    evidence.extend([service_event, process_event])
+                else:
+                    continue
+
             operation = (
-                source_host, target_host, method,
+                source_host, target_host, method, candidate.operation,
+                _norm_service_name(candidate.service_name),
                 tuple(get_event_identity_key(event) for event in evidence),
             )
             if operation in seen_operations:
@@ -274,6 +376,8 @@ def find_remote_execution_matches(events: List[Event]) -> List[RemoteExecutionMa
                     source_host=str(source.host),
                     target_host=display.get(target_host, target_token),
                     method=method,
+                    operation=candidate.operation,
+                    service_name=candidate.service_name,
                 )
             )
 
