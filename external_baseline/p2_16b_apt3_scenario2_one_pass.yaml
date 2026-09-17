@@ -1,0 +1,89 @@
+schema: breachscope.p2_16b_external_reconstruction_holdout_evidence.v1
+analysis_id: p2-16b-otrf-apt3-scenario2-one-pass-v1
+analysis_class: independent_external_reconstruction_holdout_one_pass
+binding: external_baseline/p2_16a_apt3_scenario2_binding.yaml
+code_under_observation:
+  frozen_product_commit: 4514279c0b223483016acf35009ed2985f6a016e
+  measurement_repo_commit: 7fc2fc92d6be94da6384eee09f042807366617ab
+  product_tree_matches_frozen_commit: true
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+source:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  dataset: APT3 ATT&CK Evaluation Round 1 - Scenario 2
+  archive_sha256: ab4d1ec4e44102c87946a974f93aa248e49e5001e01fac3f137ec7e61bbc18ed
+  archive_member: empire_apt3_2019-05-14223117.json
+  playbook_sha256: 903d4c576bbb47f75ec8ddc13b4e34e8a63ab2d8edbb5160e24a654ab64fd2b7
+  documented_cross_host_pair:
+    source: HR001
+    target: HFDC01
+measurement:
+  path: external_baseline/results/p2_16b_7fc2fc92/measurement.json
+  sha256: 2bbdc34c6c62e16e5716ea88c434ddbe9005690356299ed2fe445286dcf105a4
+  events: 121659
+  parse_errors: 0
+  findings: 63683
+  flagged_events: 20394
+  chains: 32
+  chain_types:
+    activity: 32
+  cross_host_chains: 0
+  documented_hr001_hfdc01_chains: 0
+  scenarios: 1
+  cross_host_scenarios: 0
+  documented_hr001_hfdc01_scenarios: 0
+  timings_seconds:
+    load: 41.395802
+    detection: 151.443191
+    correlation: 71.813927
+    scenario: 21.597259
+normalization_observation:
+  raw_computer_name_present: 121659
+  raw_source_name_present: 121659
+  raw_record_number_present: 121659
+  canonical_source_nonempty: 0
+  normalized_host_values:
+    "{'NAME': 'WECSERVER'}": 121659
+  endpoint_identity_preserved: false
+  interpretation: >-
+    The frozen adapter did not promote the dataset's lowercase computer_name/source_name/
+    record_number fields into the canonical Windows endpoint/source/record identity. The raw
+    host object representing the WEC collector was stringified as the event host, collapsing
+    endpoint-local telemetry onto WECserver for reconstruction.
+reconstruction_observation:
+  documented_hr001_to_hfdc01_transition_expressed_as_cross_host_chain: false
+  documented_hr001_to_hfdc01_transition_expressed_as_cross_host_scenario: false
+  emitted_scenario:
+    attack_stage: lateral_movement
+    technique: T1021.001
+    chain_count: 12
+    normalized_hosts:
+      - "{'NAME': 'WECSERVER'}"
+  interpretation: >-
+    The one-pass output did not represent the playbook-documented HR001 to HFDC01 endpoint
+    transition. The single lateral-movement scenario is scoped to the collapsed WEC collector
+    identity and is not evidence that the documented endpoint transition was reconstructed.
+protocol:
+  binding_merged_before_raw_or_playbook_inspection: true
+  archive_structure_and_playbook_inspected_after_binding: true
+  product_or_rules_tuned_after_binding_before_measurement: false
+  evaluator_added_after_binding: true
+  evaluator_changed_product_semantics: false
+  one_pass_measurement_completed: true
+  same_corpus_rerun_after_result: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+next_step_boundary: >-
+  APT3 Scenario 2 is now observed and must not be reused as an independent holdout after any
+  parser or reconstruction change informed by this result. Any follow-up on this corpus is
+  post-hoc development diagnostic only.
