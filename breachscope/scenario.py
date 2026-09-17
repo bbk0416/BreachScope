@@ -701,9 +701,12 @@ def infer_scenarios(
     if scenario_chains:
         chains = scenario_chains
         components = _bs_p005_partition_chains(chains)
+        finding_scope_cache = {}
         for component in components:
             scope = _bs_p005_component_scope(component)
-            scoped_findings = _bs_p005_filter_findings(findings, scope)
+            scoped_findings = _bs_p005_filter_findings(
+                findings, scope, finding_scope_cache
+            )
             partial = _infer_scenarios_for_scope(
                 component, scoped_findings, custom_templates_dir
             )

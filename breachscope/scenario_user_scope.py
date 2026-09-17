@@ -183,7 +183,14 @@ def _event_identity(event):
         return None
 
 
-def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
+def scope(
+    obj,
+    _depth=0,
+    _seen=None,
+    _suppress_sessions=False,
+    _suppress_hosts=False,
+    _suppress_users=False,
+):
     """Return normalized host/user/authoritative-session evidence."""
     empty = {"hosts": set(), "users": set(), "sessions": set()}
     if obj is None or _depth > 4:
@@ -202,11 +209,14 @@ def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
     sessions = set()
 
     def add_host(value):
+        if _suppress_hosts:
+            return
         value = _norm(value)
         if value:
             hosts.add(value)
-
     def add_user(value):
+        if _suppress_users:
+            return
         value = _norm(value)
         if value:
             users.add(value)
@@ -230,6 +240,29 @@ def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
             items = list(vars(obj).items())
         except (TypeError, AttributeError):
             items = []
+
+    def meaningful_entity(value, keys):
+        invalid = {None, "unknown", "-", "none", "null"}
+        if isinstance(value, Mapping):
+            return any(_norm(value.get(key)) not in invalid for key in keys)
+        return _norm(value) not in invalid
+
+    object_has_host = (
+        not is_mapping
+        and any(
+            str(key).casefold() in {"host", "hostname", "computer", "computername"}
+            and meaningful_entity(value, ("name", "hostname", "computer"))
+            for key, value in items
+        )
+    )
+    object_has_user = (
+        not is_mapping
+        and any(
+            str(key).casefold() in {"user", "username"}
+            and meaningful_entity(value, ("name", "username", "user"))
+            for key, value in items
+        )
+    )
 
     for key, value in items:
         lname = str(key).casefold()
@@ -296,11 +329,19 @@ def scope(obj, _depth=0, _seen=None, _suppress_sessions=False):
                 suppress_child_sessions = _suppress_sessions or (
                     is_mapping and lname == "event_data"
                 )
+                suppress_child_hosts = _suppress_hosts or (
+                    not is_mapping and lname == "raw" and object_has_host
+                )
+                suppress_child_users = _suppress_users or (
+                    not is_mapping and lname == "raw" and object_has_user
+                )
                 nested = scope(
                     child,
                     _depth + 1,
                     _seen,
                     _suppress_sessions=suppress_child_sessions,
+                    _suppress_hosts=suppress_child_hosts,
+                    _suppress_users=suppress_child_users,
                 )
                 hosts.update(nested["hosts"])
                 users.update(nested["users"])
@@ -502,13 +543,19 @@ def component_scope(chains):
     return merged
 
 
-def filter_findings(findings, component):
+def filter_findings(findings, component, scope_cache=None):
     selected = []
     lifecycle_instances = component.get("session_instances", set())
     component_event_keys = component.get("event_identity_keys", set())
 
     for finding in findings or []:
-        finding_scope = scope(finding)
+        if scope_cache is None:
+            finding_scope = scope(finding)
+        else:
+            cache_key = id(finding)
+            if cache_key not in scope_cache:
+                scope_cache[cache_key] = scope(finding)
+            finding_scope = scope_cache[cache_key]
 
         if lifecycle_instances:
             # Raw Windows LogonId can be reused on the same host. Once this
