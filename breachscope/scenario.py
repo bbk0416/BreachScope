@@ -552,11 +552,20 @@ def infer_scenarios(
     chains = list(chains or [])
     findings = list(findings or [])
 
-    if not chains:
+    # Cross-host remote-execution chains are descriptive correlation evidence.
+    # Keep them out of generic host/user partitioning so they cannot bridge
+    # otherwise isolated scenario components. Dedicated remote scenarios, if any,
+    # must be inferred explicitly rather than through this generic path.
+    scenario_chains = [
+        chain for chain in chains if chain.chain_type != "remote_execution"
+    ]
+
+    if not scenario_chains:
         return _infer_scenarios_for_scope(
-            chains, findings, custom_templates_dir
+            [], findings, custom_templates_dir
         )
 
+    chains = scenario_chains
     components = _bs_p005_partition_chains(chains)
     results: List[Scenario] = []
 

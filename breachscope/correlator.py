@@ -12,6 +12,7 @@ from collections import defaultdict
 
 from .schemas import Event, Finding
 from .utils import parse_timestamp, get_event_identity_key
+from .remote_execution import find_remote_execution_matches
 
 logger = logging.getLogger(__name__)
 
@@ -234,8 +235,30 @@ def correlate_events(
         # 세션 기반 상관 (로그온 세션별 그룹화)
         session_chains = _correlate_by_session(sorted_events, findings)
 
+        # 명시적 원격 대상 + 대상 호스트 증거가 함께 있는 cross-host 실행 상관.
+        remote_chains: List[EventChain] = []
+        for ordinal, match in enumerate(
+            find_remote_execution_matches(sorted_events), start=1
+        ):
+            start_time = _parse_timestamp(match.events[0].timestamp)
+            end_time = _parse_timestamp(match.events[-1].timestamp)
+            remote_findings = _findings_for_events(match.events, findings)
+            time_span = end_time - start_time if start_time and end_time else None
+            remote_chains.append(
+                EventChain(
+                    chain_id=f"remote_execution_{ordinal}",
+                    events=match.events,
+                    findings=remote_findings,
+                    start_time=start_time,
+                    end_time=end_time,
+                    description=f"명시적 원격 실행 증거: {match.source_host} -> {match.target_host} ({match.method})",
+                    confidence=_calculate_chain_confidence(match.events, remote_findings, time_span),
+                    chain_type="remote_execution",
+                )
+            )
+
         # 체인 중복 제거
-        chains = _deduplicate_chains(chains + session_chains)
+        chains = _deduplicate_chains(chains + session_chains + remote_chains)
 
         logger.info(f"상관분석 완료: {len(chains)}개 체인 생성")
         return chains
