@@ -1,4 +1,5 @@
 from scripts.evaluate_external_holdout import _record_to_event
+from breachscope.utils import get_event_identity_key, get_windows_event_record_identity
 
 
 def test_record_to_event_uses_converted_nested_raw_payload() -> None:
@@ -69,6 +70,8 @@ def test_record_to_event_reconstructs_flat_windows_jsonl_endpoint_and_canonical(
     assert event.raw["canonical"]["host"]["name"] == "SCRANTON.dmevals.local"
     assert event.raw["canonical"]["event"]["category"] == "process"
     assert event.raw["canonical"]["event"]["action"] == "process_start"
+    assert event.raw["event_record_id"] == "70089"
+    assert get_windows_event_record_identity(event) == ("Security", "70089")
 
 
 def test_flat_windows_identity_uses_endpoint_and_record_number():
@@ -93,3 +96,21 @@ def test_flat_windows_identity_uses_endpoint_and_record_number():
     assert identity["event_id"] == "1"
     assert identity["channel"] == "Microsoft-Windows-Sysmon/Operational"
     assert identity["event_record_id"] == "12345"
+
+
+def test_flat_windows_record_numbers_disambiguate_event_identity():
+    base = {
+        "@timestamp": "2020-05-02T03:22:33.681Z",
+        "host": "wec.internal.cloudapp.net",
+        "Hostname": "NEWYORK.dmevals.local",
+        "SourceName": "Microsoft-Windows-Security-Auditing",
+        "Channel": "Security",
+        "EventID": 4661,
+        "SubjectUserName": "UTICA$",
+    }
+    first = _record_to_event({**base, "RecordNumber": 156402})
+    second = _record_to_event({**base, "RecordNumber": 156403})
+
+    assert get_windows_event_record_identity(first) == ("Security", "156402")
+    assert get_windows_event_record_identity(second) == ("Security", "156403")
+    assert get_event_identity_key(first) != get_event_identity_key(second)
