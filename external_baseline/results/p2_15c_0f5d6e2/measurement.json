@@ -1,0 +1,330 @@
+{
+  "schema": "breachscope.p2_15a_external_reconstruction_observation.v1",
+  "analysis_class": "post_hoc_external_reconstruction_diagnostic",
+  "repo_commit": "0f5d6e2f46094f8959ceebb26382b77fc10a69df",
+  "archive_sha256": "98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5",
+  "events": 196081,
+  "parse_errors": 0,
+  "hosts": {
+    "NASHUA": 29056,
+    "NEWYORK": 23935,
+    "SCRANTON": 131119,
+    "UTICA": 11971
+  },
+  "rules": 66,
+  "rule_file_count": 4,
+  "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "findings": 38,
+  "flagged_events": 35,
+  "finding_hosts": {
+    "NASHUA": 10,
+    "NEWYORK": 5,
+    "SCRANTON": 23
+  },
+  "chains": 233,
+  "chain_types": {
+    "activity": 5,
+    "download_exec": 4,
+    "remote_execution": 5,
+    "session": 219
+  },
+  "cross_host_chains": 5,
+  "scranton_nashua_chains": 5,
+  "largest_chains": [
+    {
+      "chain_id": "chain_1_download_exec",
+      "chain_type": "download_exec",
+      "event_count": 104,
+      "finding_count": 6,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:58:44.904000+00:00",
+      "end_time": "2020-05-02T03:08:26.679000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "chain_2_download_exec",
+      "chain_type": "download_exec",
+      "event_count": 99,
+      "finding_count": 6,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T02:58:46.047000+00:00",
+      "end_time": "2020-05-02T03:08:26.679000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "chain_3_download_exec",
+      "chain_type": "download_exec",
+      "event_count": 69,
+      "finding_count": 10,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:03:35.383000+00:00",
+      "end_time": "2020-05-02T03:13:30.152000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "chain_4_download_exec",
+      "chain_type": "download_exec",
+      "event_count": 68,
+      "finding_count": 10,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:03:35.383000+00:00",
+      "end_time": "2020-05-02T03:13:30.152000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_3",
+      "chain_type": "activity",
+      "event_count": 8,
+      "finding_count": 9,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:05:57.465000+00:00",
+      "end_time": "2020-05-02T03:22:09.772000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_4",
+      "chain_type": "activity",
+      "event_count": 8,
+      "finding_count": 9,
+      "hosts": [
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:05:58.512000+00:00",
+      "end_time": "2020-05-02T03:21:32.214000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_1",
+      "chain_type": "activity",
+      "event_count": 5,
+      "finding_count": 5,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:10:40.663000+00:00",
+      "end_time": "2020-05-02T03:15:05.593000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "activity_2",
+      "chain_type": "activity",
+      "event_count": 4,
+      "finding_count": 4,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:11:40.178000+00:00",
+      "end_time": "2020-05-02T03:15:04.525000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "remote_execution_2",
+      "chain_type": "remote_execution",
+      "event_count": 4,
+      "finding_count": 2,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:11:19.057000+00:00",
+      "end_time": "2020-05-02T03:11:41.241000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "remote_execution_3",
+      "chain_type": "remote_execution",
+      "event_count": 4,
+      "finding_count": 2,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:12:25.645000+00:00",
+      "end_time": "2020-05-02T03:12:47.910000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "remote_execution_4",
+      "chain_type": "remote_execution",
+      "event_count": 4,
+      "finding_count": 2,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:13:29.132000+00:00",
+      "end_time": "2020-05-02T03:13:51.435000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "remote_execution_5",
+      "chain_type": "remote_execution",
+      "event_count": 4,
+      "finding_count": 2,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:14:43.372000+00:00",
+      "end_time": "2020-05-02T03:15:05.588000+00:00",
+      "confidence": 1.0
+    },
+    {
+      "chain_id": "remote_execution_1",
+      "chain_type": "remote_execution",
+      "event_count": 3,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ],
+      "start_time": "2020-05-02T03:09:24.801000+00:00",
+      "end_time": "2020-05-02T03:09:24.808000+00:00",
+      "confidence": 0.5693147180559945
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x85c6af",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:09:28.857000+00:00",
+      "end_time": "2020-05-02T03:09:31.094000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x85d540",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:09:29.950000+00:00",
+      "end_time": "2020-05-02T03:09:31.097000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x85f5db",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:09:31.085000+00:00",
+      "end_time": "2020-05-02T03:09:31.092000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x85f67f",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:09:31.095000+00:00",
+      "end_time": "2020-05-02T03:09:31.098000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x861a79",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:10:24.472000+00:00",
+      "end_time": "2020-05-02T03:10:36.599000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x861ac7",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:10:24.480000+00:00",
+      "end_time": "2020-05-02T03:10:25.490000+00:00",
+      "confidence": 0.7
+    },
+    {
+      "chain_id": "session_nashua.dmevals.local_0x861ad9",
+      "chain_type": "session",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "NASHUA"
+      ],
+      "start_time": "2020-05-02T03:10:24.481000+00:00",
+      "end_time": "2020-05-02T03:10:25.490000+00:00",
+      "confidence": 0.7
+    }
+  ],
+  "scenarios": 2,
+  "cross_host_scenarios": 1,
+  "scranton_nashua_scenarios": 1,
+  "scenario_rows": [
+    {
+      "scenario_id": "scope_cbb1f2ec6efffe2e_scenario_chain_download_0",
+      "name": "웹 다운로드 및 실행",
+      "attack_stage": "execution",
+      "confidence": 0.6,
+      "mitre_techniques": [
+        "T1003.001",
+        "T1059.001",
+        "T1087.002",
+        "T1127.001",
+        "T1140",
+        "T1569.002"
+      ],
+      "chain_count": 4,
+      "hosts": [
+        "SCRANTON"
+      ]
+    },
+    {
+      "scenario_id": "scenario_remote_execution_cf5471ed3f1c60d1",
+      "name": "탐지 근거가 있는 호스트 간 원격 실행",
+      "attack_stage": "lateral_movement",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1569.002"
+      ],
+      "chain_count": 4,
+      "hosts": [
+        "NASHUA",
+        "SCRANTON"
+      ]
+    }
+  ],
+  "timing_seconds": {
+    "load": 83.352419,
+    "detection": 84.785421,
+    "correlation": 42.753954,
+    "scenario": 0.88396
+  },
+  "claim_boundary": {
+    "event_level_chain_ground_truth": "NOT_AVAILABLE",
+    "chain_precision": "NOT_CLAIMED",
+    "chain_recall": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED",
+    "production_quality": "NOT_CLAIMED"
+  }
+}
