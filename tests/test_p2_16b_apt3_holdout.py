@@ -42,8 +42,9 @@ def test_tar_loader_accepts_one_bound_member_and_counts_parse_errors(tmp_path: P
     events, parse_errors, hosts = p2._load_events(archive)
     assert len(events) == 1
     assert parse_errors == 1
-    # Frozen parser does not alias lowercase computer_name into canonical host.
-    assert hosts == Counter({"": 1})
+    # Current adapter preserves the endpoint identity; the stored P2-16B measurement
+    # separately records the historical frozen-parser collapse.
+    assert hosts == Counter({"HR001": 1})
 
 
 def test_tar_loader_rejects_unexpected_member(tmp_path: Path) -> None:
@@ -76,13 +77,14 @@ def test_evaluate_keeps_claim_boundary_without_accuracy_claims(tmp_path: Path, m
     assert set(result["claim_boundary"].values()) >= {"NOT_CLAIMED", "NOT_AVAILABLE"}
 
 
-def test_canonical_coverage_exposes_lowercase_windows_alias_gap(tmp_path: Path) -> None:
+def test_canonical_coverage_preserves_lowercase_windows_aliases(tmp_path: Path) -> None:
     archive = tmp_path / "sample.tar.gz"
     _write_tar(archive, [(json.dumps(_record()) + "\n").encode()])
     events, _, _ = p2._load_events(archive)
     coverage = p2._canonical_coverage(events)
     assert coverage["events"] == 1
-    assert coverage["host_nonempty"] == 0
+    assert coverage["host_nonempty"] == 1
+    assert coverage["source_nonempty"] == 1
     assert coverage["raw_computer_name_present"] == 1
     assert coverage["raw_source_name_present"] == 1
     assert coverage["raw_record_number_present"] == 1
