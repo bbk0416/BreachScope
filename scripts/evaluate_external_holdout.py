@@ -498,6 +498,8 @@ def _record_to_event(raw: dict[str, Any]):
     flat_windows_record = not has_nested_raw and any(
         key in raw for key in ("Hostname", "SourceName", "EventID", "Channel", "RecordNumber")
     )
+    if flat_windows_record and identity.get("event_record_id"):
+        event_raw.setdefault("event_record_id", identity["event_record_id"])
     if flat_windows_record and not isinstance(event_raw.get("canonical"), Mapping):
         candidate = enrich_event_dict(candidate)
     kwargs = {k: v for k, v in candidate.items() if k in params}
