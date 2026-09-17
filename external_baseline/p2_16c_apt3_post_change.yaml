@@ -1,0 +1,78 @@
+schema: breachscope.p2_16c_apt3_post_change_evidence.v1
+analysis_id: p2-16c-otrf-apt3-scenario2-post-change-v1
+analysis_class: posthoc_development_diagnostic
+source_holdout: external_baseline/p2_16b_apt3_scenario2_one_pass.yaml
+code_under_observation:
+  measurement_repo_commit: 7588b8064912cc562c2ec673d32881ecace457c5
+  normalization_merge_commit: 4bb92b84238ba197cd0ce11ffe0023b83ec6c05b
+  scenario_scope_merge_commit: 7588b8064912cc562c2ec673d32881ecace457c5
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+source:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  dataset: APT3 ATT&CK Evaluation Round 1 - Scenario 2
+  archive_sha256: ab4d1ec4e44102c87946a974f93aa248e49e5001e01fac3f137ec7e61bbc18ed
+  documented_cross_host_pair:
+    source: HR001
+    target: HFDC01
+measurement:
+  path: external_baseline/results/p2_16c_7588b806/measurement.json
+  sha256: 4ef1ac1f4b0bdae5d6b8d2b304bad7be26bcd2d0e827021c1f659792084891d7
+  events: 121659
+  parse_errors: 0
+  findings: 114446
+  flagged_events: 37909
+  hosts:
+    ACCT001: 1542
+    HFDC01: 28148
+    HR001: 85957
+    IT001: 6012
+  canonical_coverage:
+    host_nonempty: 121659
+    source_nonempty: 121659
+    raw_computer_name_present: 121659
+    raw_source_name_present: 121659
+    raw_record_number_present: 121659
+  chains: 48
+  chain_types:
+    activity: 34
+    download_exec: 2
+    encoded_exec: 12
+  cross_host_chains: 0
+  documented_hr001_hfdc01_chains: 0
+  scenarios: 13
+  cross_host_scenarios: 0
+  documented_hr001_hfdc01_scenarios: 0
+  timings_seconds:
+    load: 77.800463
+    detection: 125.202159
+    correlation: 70.110692
+    scenario: 33.746871
+post_change_observation:
+  endpoint_identity_preserved: true
+  collector_identity_used_as_endpoint: false
+  emitted_cross_host_chain: false
+  emitted_cross_host_scenario: false
+  documented_hr001_to_hfdc01_transition_reconstructed: false
+  interpretation: >-
+    Lowercase Winlogbeat endpoint/source/record identity is preserved after the parser change,
+    and host-local scenario scope no longer bridges endpoints through the WEC collector identity.
+    The documented HR001 to HFDC01 transition is still not emitted as a cross-host chain or scenario.
+protocol:
+  source_corpus_previously_observed: true
+  development_informed_by_prior_result: true
+  blind_evaluation: false
+  independent_holdout: false
+  same_corpus_posthoc_rerun: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
