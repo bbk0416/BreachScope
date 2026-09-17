@@ -318,3 +318,117 @@ def test_remote_chain_cannot_bridge_generic_scenario_components(monkeypatch):
 
     assert result == []
     assert [chain.chain_type for chain in captured] == ["activity"]
+
+
+def test_remote_sc_create_matches_same_service_on_target():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    source = _event(
+        ts=ts, host="WS-A", event_id=4688, user="alice",
+        command_line=r'sc.exe \\WS-B create AuditSvc binPath= "cmd.exe /c C:\Temp\run.cmd"',
+    )
+    service = _event(
+        ts=ts + timedelta(milliseconds=80), host="WS-B", event_id=4697, user="alice",
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    chains = _remote(correlate_events([source, service], []))
+    assert len(chains) == 1
+    assert chains[0].events == [source, service]
+    assert chains[0].metadata["remote_execution"] == {
+        "source_host": "WS-A", "target_host": "WS-B", "method": "scm",
+        "operation": "create", "service_name": "AuditSvc",
+    }
+
+
+def test_remote_sc_create_rejects_different_target_service():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    source = _event(
+        ts=ts, host="WS-A", event_id=1,
+        command_line=r'sc.exe \\WS-B create AuditSvc binPath= "cmd.exe /c C:\Temp\run.cmd"',
+    )
+    unrelated = _event(
+        ts=ts + timedelta(seconds=1), host="WS-B", event_id=4697,
+        raw={"ServiceName": "OtherSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    assert _remote(correlate_events([source, unrelated], [])) == []
+
+
+def test_remote_sc_query_is_not_execution_evidence():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    source = _event(
+        ts=ts, host="WS-A", event_id=1,
+        command_line=r"sc.exe \\WS-B query AuditSvc",
+    )
+    service = _event(
+        ts=ts + timedelta(seconds=1), host="WS-B", event_id=4697,
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    assert _remote(correlate_events([source, service], [])) == []
+
+
+def test_remote_sc_start_requires_prior_definition_and_matching_process():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    definition = _event(
+        ts=ts - timedelta(minutes=5), host="WS-B", event_id=4697,
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    source = _event(
+        ts=ts, host="WS-A", event_id=4688, user="alice",
+        command_line=r"sc.exe \\WS-B start AuditSvc",
+    )
+    process = _event(
+        ts=ts + timedelta(milliseconds=120), host="WS-B", event_id=1, user="SYSTEM",
+        command_line=r"cmd.exe /c C:\Temp\run.cmd",
+    )
+    chains = _remote(correlate_events([definition, source, process], []))
+    assert len(chains) == 1
+    assert chains[0].events == [definition, source, process]
+    assert chains[0].metadata["remote_execution"] == {
+        "source_host": "WS-A", "target_host": "WS-B", "method": "scm",
+        "operation": "start", "service_name": "AuditSvc",
+    }
+
+
+def test_remote_sc_start_rejects_unrelated_target_process():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    definition = _event(
+        ts=ts - timedelta(minutes=5), host="WS-B", event_id=4697,
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    source = _event(
+        ts=ts, host="WS-A", event_id=1,
+        command_line=r"sc.exe \\WS-B start AuditSvc",
+    )
+    unrelated = _event(
+        ts=ts + timedelta(seconds=1), host="WS-B", event_id=1,
+        command_line="notepad.exe",
+    )
+    assert _remote(correlate_events([definition, source, unrelated], [])) == []
+
+def test_remote_sc_start_rejects_stale_service_definition():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    definition = _event(
+        ts=ts - timedelta(minutes=31), host="WS-B", event_id=4697,
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    source = _event(
+        ts=ts, host="WS-A", event_id=1,
+        command_line=r"sc.exe \\WS-B start AuditSvc",
+    )
+    process = _event(
+        ts=ts + timedelta(seconds=1), host="WS-B", event_id=1,
+        command_line=r"cmd.exe /c C:\Temp\run.cmd",
+    )
+    assert _remote(correlate_events([definition, source, process], [])) == []
+
+
+def test_admin_share_connection_alone_is_not_remote_execution():
+    ts = datetime(2026, 9, 18, tzinfo=timezone.utc)
+    source = _event(
+        ts=ts, host="WS-A", event_id=1, user="alice",
+        command_line=r"net.exe use \\WS-B\ADMIN$ /user:CORP\alice example-password",
+    )
+    service = _event(
+        ts=ts + timedelta(seconds=1), host="WS-B", event_id=4697,
+        raw={"ServiceName": "AuditSvc", "ServiceFileName": r"cmd.exe /c C:\Temp\run.cmd"},
+    )
+    assert _remote(correlate_events([source, service], [])) == []

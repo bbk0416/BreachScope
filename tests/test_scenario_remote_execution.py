@@ -179,3 +179,13 @@ def test_different_remote_techniques_same_direction_do_not_merge():
         ("T1021.006",),
         ("T1569.002",),
     ]
+
+
+def test_scm_remote_service_chain_is_descriptive_only_for_now():
+    chain = _chain(
+        "remote_1",
+        BASE,
+        _bilateral(technique="T1569.002"),
+        method="scm",
+    )
+    assert scenario.infer_scenarios([chain], []) == []

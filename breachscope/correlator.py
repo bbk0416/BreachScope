@@ -245,6 +245,15 @@ def correlate_events(
             end_time = _parse_timestamp(match.events[-1].timestamp)
             remote_findings = _findings_for_events(match.events, findings)
             time_span = end_time - start_time if start_time and end_time else None
+            remote_metadata = {
+                "source_host": match.source_host,
+                "target_host": match.target_host,
+                "method": match.method,
+            }
+            if match.operation:
+                remote_metadata["operation"] = match.operation
+            if match.service_name:
+                remote_metadata["service_name"] = match.service_name
             remote_chains.append(
                 EventChain(
                     chain_id=f"remote_execution_{ordinal}",
@@ -255,13 +264,7 @@ def correlate_events(
                     description=f"명시적 원격 실행 증거: {match.source_host} -> {match.target_host} ({match.method})",
                     confidence=_calculate_chain_confidence(match.events, remote_findings, time_span),
                     chain_type="remote_execution",
-                    metadata={
-                        "remote_execution": {
-                            "source_host": match.source_host,
-                            "target_host": match.target_host,
-                            "method": match.method,
-                        }
-                    },
+                    metadata={"remote_execution": remote_metadata},
                 )
             )
 
