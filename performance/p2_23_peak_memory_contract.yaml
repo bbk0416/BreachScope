@@ -22,7 +22,8 @@ product:
 
 runner:
   path: scripts/p2_23_peak_memory_benchmark.py
-  sha256: aa3598e40f178ab39604c3d54822af0f96ba7fbc35d77c12cdfa17583a3b9689
+  sha256: 224dc29707c43782e5cc9c45a3e4627decb820ce205e63b8b9829553a61a8faa
+  storage_normalization: CRLF_TO_LF_ONLY
   python_major_minor: "3.11"
   operating_system: Windows
   permanent_exclusive_lock: true

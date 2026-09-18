@@ -14,8 +14,9 @@ def _load() -> dict:
     return yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
 
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _stored_text_sha256(path: Path) -> str:
+    data = path.read_bytes().replace(bytes([13, 10]), bytes([10]))
+    return hashlib.sha256(data).hexdigest()
 
 
 def test_p2_23_contract_binds_merged_product_and_runner() -> None:
@@ -25,7 +26,8 @@ def test_p2_23_contract_binds_merged_product_and_runner() -> None:
     assert row["product"]["optimization_commit"] == "13b21e077b351dcbcb8900a5053f28b8a0e1ed31"
     assert row["product"]["rules_tree_sha256"] == "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
     assert row["product"]["rule_count"] == 68
-    assert row["runner"]["sha256"] == _sha256(RUNNER)
+    assert row["runner"]["sha256"] == _stored_text_sha256(RUNNER)
+    assert row["runner"]["storage_normalization"] == "CRLF_TO_LF_ONLY"
 
 
 def test_p2_23_reuses_exact_p2_19_synthetic_input_contract() -> None:
