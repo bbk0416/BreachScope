@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, List
+from typing import Iterator, Optional, List
 import tempfile
 import json
 import sys
@@ -613,3 +613,40 @@ def _extract_from_xml(xml_text: str):
     if isinstance(result, dict):
         return _bs_enrich_canonical_event(result)
     return result
+
+
+def iter_event_xml_records(
+    path: Path,
+    *,
+    max_record_chars: int = 16 * 1024 * 1024,
+) -> Iterator[str]:
+    """Yield complete Windows Event XML records from a text export.
+
+    Literal newlines may occur inside EventData values, so physical-line
+    parsing can split one event into invalid XML fragments. This iterator
+    frames records by the Event element boundary instead.
+    """
+    buffer = ""
+    with Path(path).open("r", encoding="utf-8") as handle:
+        for line in handle:
+            buffer += line
+            while True:
+                start = buffer.find("<Event")
+                if start < 0:
+                    buffer = ""
+                    break
+                if start:
+                    buffer = buffer[start:]
+                end = buffer.find("</Event>")
+                if end < 0:
+                    if len(buffer) > max_record_chars:
+                        raise ValueError(
+                            "Windows Event XML record exceeds "
+                            f"{max_record_chars} characters"
+                        )
+                    break
+                stop = end + len("</Event>")
+                yield buffer[:stop]
+                buffer = buffer[stop:]
+    if buffer.strip():
+        raise ValueError("unterminated Windows Event XML record")
