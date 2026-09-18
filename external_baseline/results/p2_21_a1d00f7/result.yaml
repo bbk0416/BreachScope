@@ -1,0 +1,111 @@
+schema: breachscope.p2_21_independent_result.v1
+analysis_id: p2-21-mdecrevoisier-evtx-technique-bundle-v1
+analysis_class: independent_one_pass_external_holdout
+status: COMPLETED
+binding: external_baseline/p2_21_independent_attack_binding.yaml
+runner: scripts/p2_21_independent_one_pass.py
+frozen_product:
+  repo_commit: a1d00f749ec8e644b2ffee716595c6000c22ceea
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+artifacts:
+  measurement:
+    path: external_baseline/results/p2_21_a1d00f7/measurement.json
+    original_sha256: 451a67ddd223c11c179abe9b97e27cc32a5a93fd54af4e63f0925d7ba1200f9b
+    stored_sha256: 16accdcd1730194b7d93765126f20bc66e4eefd09313f4439a98c09f76c6d070
+    storage_normalization: CRLF_TO_LF_ONLY
+  download_verification:
+    path: external_baseline/results/p2_21_a1d00f7/download-verification.json
+    original_sha256: 82f01164171053c21d6a90e8a5eb83d5b712af59c150e461a0315143c4089a3b
+    stored_sha256: f3fea91a3c48c15ab6732df09b1f979fbce2ef78a67e1d94deb57e9be6e14edf
+    storage_normalization: CRLF_TO_LF_ONLY
+  permanent_lock_sha256: 263f3a7716c68874f73e159bfcbced6ef52ad67c205f7ef4bb443ce2facb9eb2
+  binding_sha256: 5166d18d8669e3e9a1d37dca5ab5d08cf0839ec7ecd62ead245995a996e41bdd
+  runner_sha256: f825b99c95f4baa70d4518e3f5d8f5a538f5886091d4c3e2dd3723c44a6996f4
+execution:
+  one_pass: true
+  permanent_lock_acquired: true
+  rerun_allowed: false
+  source_hashes_and_sizes_verified: true
+  frozen_product_verified: true
+  frozen_rules_verified: true
+  frozen_runner_verified: true
+summary:
+  dataset_count: 8
+  hits: 4
+  misses_or_errors: 4
+  path_label_dataset_hit_rate: 0.5
+  total_parsed_events: 112
+  total_parse_errors: 29
+  total_findings: 94
+  total_flagged_events: 94
+  wall_seconds: 5.988554399998975
+datasets:
+  - technique_id: T1047
+    dataset_status: MISS
+    events: 1
+    parse_errors: 0
+    findings: 0
+    expected_technique_present: false
+  - technique_id: T1053.005
+    dataset_status: HIT
+    events: 4
+    parse_errors: 0
+    findings: 1
+    expected_technique_present: true
+  - technique_id: T1543.003
+    dataset_status: MISS
+    events: 2
+    parse_errors: 0
+    findings: 0
+    expected_technique_present: false
+  - technique_id: T1070.001
+    dataset_status: HIT
+    events: 91
+    parse_errors: 0
+    findings: 91
+    expected_technique_present: true
+  - technique_id: T1003
+    dataset_status: HIT
+    events: 3
+    parse_errors: 0
+    findings: 1
+    observed_techniques: [T1003.001]
+    expected_technique_present: true
+  - technique_id: T1482
+    dataset_status: MISS
+    events: 8
+    parse_errors: 0
+    findings: 0
+    expected_technique_present: false
+  - technique_id: T1021.006
+    dataset_status: MISS
+    events: 0
+    parse_errors: 29
+    findings: 0
+    expected_technique_present: false
+    miss_reason: parser_errors_nonzero_and_expected_technique_absent
+  - technique_id: T1490
+    dataset_status: HIT
+    events: 3
+    parse_errors: 0
+    findings: 1
+    expected_technique_present: true
+evidence_boundary:
+  p2_21_result_is_independent_one_pass: true
+  p2_21_result_must_not_be_replaced_by_posthoc_reruns: true
+  p2_17c_independent_result_remains_1_of_5: true
+  p2_20_five_of_five_remains_posthoc_only: true
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  path_label_dataset_hit_rate_is_event_level_recall: false
+interpretation: >-
+  The preregistered P2-21 independent one-pass result is 4/8 path-labeled dataset hits.
+  T1053.005, T1070.001, T1003, and T1490 were HIT. T1047, T1543.003,
+  T1482, and T1021.006 were MISS. T1021.006 also produced 29 parse errors
+  and remains a contract-defined MISS. This result does not establish event-level
+  precision, recall, false-positive rate, scenario accuracy, or production quality.

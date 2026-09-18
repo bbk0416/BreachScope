@@ -1,0 +1,77 @@
+{
+  "commit": "474856008f037ccd42753f02a631b42690195829",
+  "datasets": [
+    {
+      "local_filename": "T1047.evtx",
+      "source_path": "TA0002-Execution/T1047-Windows Management Instrumentation/ID1-WMI spwaning PowerShell process - WMImplant.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "bb41d7027058558ab1068affe1553e8b756feac7",
+      "sha256": "675dceaca12515dba1763378739f3dc40984d68f3f5892a2aa1dfbe3f1c31685",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1053_005.evtx",
+      "source_path": "TA0002-Execution/T1053.005-Scheduled Task/ID4688-4698 Persistent scheduled task with SYSTEM privileges creation.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "e489d51fe07eaae1a455b4538ec6f4e58ee3c304",
+      "sha256": "6f00c7423da4ce91c6d3aa44dd81234cef24340c74e3209f78b5ce9395f0d90a",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1543_003.evtx",
+      "source_path": "TA0003-Persistence/T1543.003-Create or Modify System Process-Windows Service/ID13-New service for Mimikatz.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "ddbd94c884c614d105bd6d56d2634f04c013974f",
+      "sha256": "d37c9de58408beef8a729900b4209ecbd92ed48c1e9b5b0e6c678720e8ef2d13",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1070_001.evtx",
+      "source_path": "TA0005-Defense Evasion/T1070.001-Clear Windows event logs/ID104-1102-Event log cleared.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "952fb7868020438fcdb68041b0309c371f2105b3",
+      "sha256": "2e815c6303c57914d54fa4d6ff7d13122693638852b39a4d212e21c5b2ae7ed2",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1003.evtx",
+      "source_path": "TA0006-Credential Access/T1003-Credential dumping/ID1-12-13-Wdigest authentication activation.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "8d4e01ba04ddf20837e9783073f0ff1c4aeb140f",
+      "sha256": "e17329f6855dbe570eaa008b213617620b74c3ce704367ccac2b7a33a9916abc",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1482.evtx",
+      "source_path": "TA0007-Discovery/T1482-Domain Trust Discovery/ID800,4103,4104-Active Directory Forest PowerShell class.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "32f18c82013f5d2692ff6434836c26fc8bad4bad",
+      "sha256": "589f2a839f441986a736736859317fa959445f0a68796cdcea7d0c02e3065a9f",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1021_006.evtx",
+      "source_path": "TA0008-Lateral Movement/T1021.006-Windows Remote Management/ID4656-WS Management listener enumeration.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "9f4670c2c949ba9dce9f212f2a7e8462328a00ae",
+      "sha256": "c5ad3edfbc596a82a2478c60105da2cc4e6d6d853cdbe8d7135d18a4cdd23d57",
+      "size_match": true,
+      "git_blob_match": true
+    },
+    {
+      "local_filename": "T1490.evtx",
+      "source_path": "TA0040-Impact/T1490-Inhibit System Recovery/ID4688-Delete VSS backup (WMI).evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "bc34fffe1826021cbbfe1cc2909d48b67e5a3e2c",
+      "sha256": "92d50c04091efb1259c7dfc113266616bb36efea878290db486d98dddba7b005",
+      "size_match": true,
+      "git_blob_match": true
+    }
+  ]
+}
