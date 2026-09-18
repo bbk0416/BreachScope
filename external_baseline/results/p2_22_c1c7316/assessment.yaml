@@ -1,0 +1,103 @@
+schema: breachscope.p2_22_benign_source_assessment.v1
+analysis_id: p2-22-cerberus-trace-benign-binding-v1
+analysis_class: pre_detection_benign_source_assessment
+status: ABORT_UNSUPPORTED
+binding: external_baseline/p2_22_cerberus_benign_source_binding.yaml
+frozen_detector:
+  repo_commit: a1d00f749ec8e644b2ffee716595c6000c22ceea
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: bazz-066/cerberus-trace
+  pinned_commit: 69933c61491fa966068c44c11172889898fbe789
+  repository_files_at_pin:
+    - LICENSE
+    - NLME EVTX.zip
+    - NLME.csv
+  readme_present: false
+verified_bytes:
+  archive:
+    path: NLME EVTX.zip
+    size_bytes: 11659683
+    git_blob_sha1: 731b33a5b46bfc3090e9d78b7247e36593d5c71b
+    sha256: 4d510dcfe661ea25bc7517fbca0f346f286162f17215f7fb1c8361ffcc13be24
+    identity_match: true
+  label_table:
+    path: NLME.csv
+    size_bytes: 25345514
+    git_blob_sha1: 9f86c4a70f1545546cdc5208f1fe9de8832318cc
+    sha256: f63d2725db0d3b2fd6d7bb78b73542c4fe1a8eacd08537471bf33bca6d0463d3
+    identity_match: true
+phase_b_inventory:
+  csv_rows: 71017
+  csv_label_values:
+    "0": 53802
+    "1": 17215
+  csv_has_explicit_evtx_source_path_column: false
+  csv_has_explicit_evtx_file_id_column: false
+  zip_file_count: 3
+  zip_files:
+    - NLME-0.evtx
+    - NLME-1.evtx
+    - NLME-2.evtx
+source_documentation_assessment:
+  associated_paper:
+    title: "Enhancing Enterprise Network Security: Comparing Machine-Level and Process-Level Analysis for Dynamic Malware Detection"
+    arxiv_id: "2310.18165"
+    supported_facts:
+      - LME data are Windows Events stored in EVTX and were converted to newline JSON for research preprocessing.
+      - ProcessGuid was used to correlate events into process activity sequences.
+      - The dataset contains benign and malicious process events and each experiment set contains both classes.
+    missing_for_p2_22:
+      - explicit numeric encoding for the public CSV label values 0 and 1
+      - source-supported reproducible mapping from each raw EVTX event to a labeled public CSV row
+  bound_repository:
+    documentation_files_beyond_license: false
+    explicit_label_dictionary_present: false
+    explicit_evtx_to_csv_mapping_manifest_present: false
+abort_reason:
+  code: SOURCE_LABEL_MAPPING_NOT_REPRODUCIBLE
+  explanation: >-
+    The bound source does not provide enough documented information to assign a source-supported
+    benign label to raw EVTX records without inference. Numeric CSV labels are present, but their
+    0/1 semantics are not explicitly documented in the bound repository or associated paper, and
+    the public CSV schema contains no explicit EVTX source-file identifier or source path.
+  prohibited_inferences:
+    - assume label 0 means benign and label 1 means malicious
+    - infer label meaning from suspicious-looking filenames, paths, RuleName values, or feature distributions
+    - invent an EVTX-to-CSV join based on timestamps, GUIDs, hosts, or event fields without a source-defined mapping contract
+execution:
+  detector_run: false
+  breachscope_output_inspected: false
+  scoring_contract_created: false
+  false_positive_measurement_performed: false
+artifacts:
+  download_verification:
+    path: external_baseline/results/p2_22_c1c7316/download-verification.json
+    sha256: a45f27fd2c415401c561216b73368490a5251556074fa82914cd2d559ff81385
+  phase_b_allowed_inventory:
+    path: external_baseline/results/p2_22_c1c7316/phase_b_allowed_inventory.json
+    sha256: 30c8eff768445fd51a76c476c45050685864e6237c7a596ef465818936bcdb70
+  local_overinspection_audit_sha256: 166f082f3e58107c5834854f53f5b2d355d7c0d7859d42aec9c119cf625ebf83
+phase_b_protocol_deviation:
+  occurred: true
+  description: >-
+    During local schema assessment, the inspection script also collected value frequencies for
+    several non-label CSV fields and retained three sample rows. This exceeded the strict Phase B
+    allowance of schema, label semantics, and archive inventory.
+  raw_evtx_contents_parsed: false
+  breachscope_detector_run: false
+  breachscope_output_inspected: false
+  product_or_rules_tuned_from_source: false
+  consequence: >-
+    This source is retired from any future fresh benign FPR claim. The over-inspection cannot be
+    undone and is recorded instead of being silently discarded.
+claim_boundary:
+  fresh_benign_evaluation: ABORT_UNSUPPORTED
+  benign_false_positive_rate: NOT_MEASURED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+next_step: >-
+  Select and pre-bind a different previously unused benign Windows telemetry source whose
+  benign ground truth and raw-event/file mapping are explicitly documented before any detector run.

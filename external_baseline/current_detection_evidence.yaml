@@ -89,6 +89,14 @@ benign_operational_evidence:
     indeterminate_sensitive_action: 4
     event_level_benign_ground_truth: NOT_AVAILABLE
     confirmed_false_positives: NOT_CLAIMED
+- evidence_id: p2-22-cerberus-trace-abort-unsupported
+  source_binding_record: external_baseline/p2_22_cerberus_benign_source_binding.yaml
+  assessment_record: external_baseline/results/p2_22_c1c7316/assessment.yaml
+  class: pre_detection_benign_source_assessment
+  status: ABORT_UNSUPPORTED
+  benign_false_positive_rate: NOT_MEASURED
+  detector_run: false
+  reason: SOURCE_LABEL_MAPPING_NOT_REPRODUCIBLE
 claim_boundary:
   production_accuracy: NOT_CLAIMED
   production_detection_rate: NOT_CLAIMED
@@ -112,4 +120,7 @@ claim_boundary:
     rate, representative production population, or final blind holdout is claimed.
     P2-21 adds a new independent one-pass evaluation under the 68-rule detector: 4/8
     path-labeled datasets met the preregistered HIT condition. This 50% dataset hit
-    rate is not event-level recall and must not be replaced by post-hoc reruns.'
+    rate is not event-level recall and must not be replaced by post-hoc reruns. P2-22
+    attempted to bind a new benign source but was aborted before detector execution
+    because the public source did not provide a reproducible source-supported mapping
+    from raw EVTX records to benign labels; no fresh benign FPR was measured.'
