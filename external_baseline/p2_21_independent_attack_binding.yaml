@@ -1,0 +1,109 @@
+schema: breachscope.p2_21_external_holdout_binding.v1
+analysis_id: p2-21-mdecrevoisier-evtx-technique-bundle-v1
+analysis_class: pre_observation_external_holdout_binding
+purpose: fresh independent Windows EVTX attack evaluation after P2-20
+code_under_observation:
+  repo_commit: a1d00f749ec8e644b2ffee716595c6000c22ceea
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+runner:
+  path: scripts/p2_21_independent_one_pass.py
+  sha256: f825b99c95f4baa70d4518e3f5d8f5a538f5886091d4c3e2dd3723c44a6996f4
+  permanent_exclusive_lock: true
+  atomic_stage_persistence: true
+source:
+  repository: mdecrevoisier/EVTX-to-MITRE-Attack
+  pinned_commit: 474856008f037ccd42753f02a631b42690195829
+  pinned_tree: a17d86479318a4231cd0def4a4250abf31e8b512
+  source_commit_date_utc: '2026-05-20T23:07:30Z'
+  license: CC0-1.0
+  source_description: Windows EVTX samples mapped by the upstream project to MITRE ATT&CK technique folders.
+selection_policy:
+  detector_results_consulted_before_selection: false
+  selected_evtx_bytes_downloaded_before_binding: false
+  selected_evtx_contents_inspected_before_binding: false
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  fixed_technique_ids:
+    - T1047
+    - T1053.005
+    - T1543.003
+    - T1070.001
+    - T1003
+    - T1482
+    - T1021.006
+    - T1490
+  rule: For each fixed ATT&CK technique folder at the pinned source commit, bind the lexicographically first .evtx blob by path without reading its bytes.
+datasets:
+  - technique_id: T1047
+    source_path: TA0002-Execution/T1047-Windows Management Instrumentation/ID1-WMI spwaning PowerShell process - WMImplant.evtx
+    git_blob_sha1: bb41d7027058558ab1068affe1553e8b756feac7
+    size_bytes: 69632
+    local_filename: T1047.evtx
+  - technique_id: T1053.005
+    source_path: TA0002-Execution/T1053.005-Scheduled Task/ID4688-4698 Persistent scheduled task with SYSTEM privileges creation.evtx
+    git_blob_sha1: e489d51fe07eaae1a455b4538ec6f4e58ee3c304
+    size_bytes: 69632
+    local_filename: T1053_005.evtx
+  - technique_id: T1543.003
+    source_path: TA0003-Persistence/T1543.003-Create or Modify System Process-Windows Service/ID13-New service for Mimikatz.evtx
+    git_blob_sha1: ddbd94c884c614d105bd6d56d2634f04c013974f
+    size_bytes: 69632
+    local_filename: T1543_003.evtx
+  - technique_id: T1070.001
+    source_path: TA0005-Defense Evasion/T1070.001-Clear Windows event logs/ID104-1102-Event log cleared.evtx
+    git_blob_sha1: 952fb7868020438fcdb68041b0309c371f2105b3
+    size_bytes: 69632
+    local_filename: T1070_001.evtx
+  - technique_id: T1003
+    source_path: TA0006-Credential Access/T1003-Credential dumping/ID1-12-13-Wdigest authentication activation.evtx
+    git_blob_sha1: 8d4e01ba04ddf20837e9783073f0ff1c4aeb140f
+    size_bytes: 69632
+    local_filename: T1003.evtx
+  - technique_id: T1482
+    source_path: TA0007-Discovery/T1482-Domain Trust Discovery/ID800,4103,4104-Active Directory Forest PowerShell class.evtx
+    git_blob_sha1: 32f18c82013f5d2692ff6434836c26fc8bad4bad
+    size_bytes: 69632
+    local_filename: T1482.evtx
+  - technique_id: T1021.006
+    source_path: TA0008-Lateral Movement/T1021.006-Windows Remote Management/ID4656-WS Management listener enumeration.evtx
+    git_blob_sha1: 9f4670c2c949ba9dce9f212f2a7e8462328a00ae
+    size_bytes: 69632
+    local_filename: T1021_006.evtx
+  - technique_id: T1490
+    source_path: TA0040-Impact/T1490-Inhibit System Recovery/ID4688-Delete VSS backup (WMI).evtx
+    git_blob_sha1: bc34fffe1826021cbbfe1cc2909d48b67e5a3e2c
+    size_bytes: 69632
+    local_filename: T1490.evtx
+protocol:
+  corpus_previously_used_for_breachscope_development: false
+  corpus_previously_measured_by_breachscope: false
+  implementation_frozen_before_raw_observation: true
+  rules_frozen_before_raw_observation: true
+  runner_frozen_before_raw_observation: true
+  one_pass_measurement_planned: true
+  tuning_after_raw_observation_before_measurement_allowed: false
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+measurement_contract:
+  unit: dataset
+  expected_technique_source: pinned upstream ATT&CK technique folder path
+  expected_dataset_count: 8
+  dataset_hit: parser completes with zero parse errors and at least one finding satisfies the path-bound ATT&CK technique
+  source_identity_check: Git blob SHA-1 and byte size must match the pre-observation binding
+  parser_failure_counts_as_dataset_failure: true
+  no_result_driven_remeasurement: true
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  path_label_dataset_hit_rate: MEASURABLE_AFTER_ONE_PASS
+  path_label_dataset_hit_rate_is_event_level_recall: false
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+notes: >-
+  Source selection used repository paths, Git tree/blob metadata, file sizes, repository metadata,
+  and the current BreachScope rule-pack technique list only. The selected EVTX bytes have not been
+  downloaded or parsed before this binding. The P2-17C 1/5 result remains sealed and unchanged.
