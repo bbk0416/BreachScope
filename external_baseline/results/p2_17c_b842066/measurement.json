@@ -1,0 +1,198 @@
+{
+  "schema": "breachscope.p2_17c_locked_one_pass_measurement.v1",
+  "analysis_id": "p2-17c-splunk-attack-data-locked-technique-bundle-v1",
+  "status": "completed",
+  "binding_sha256": "6d45b8d53745b6739d637f817df23a6ed7e5db222365e9475d15124e544be478",
+  "runner_sha256": "0e2ada36f8874b0e50f68cb47287018d7d4bead1063301e87af0aa8dfe8b0701",
+  "datasets": [
+    {
+      "technique_id": "T1003.001",
+      "local_filename": "T1003_001.log",
+      "stage": "completed",
+      "source_verification": {
+        "sha256": "a1905850598f1e943708c3329190e29c6cb046389c1575cb2afd6369b5f269f1",
+        "size_bytes": 14235927,
+        "sha_match": true,
+        "size_match": true
+      },
+      "events": 7956,
+      "parse_errors": 18,
+      "load_parse_seconds": 29.829667600002722,
+      "peak_python_memory_mb": 88.75122261047363,
+      "findings": 172,
+      "flagged_events": 67,
+      "observed_techniques": [
+        "T1003.001",
+        "T1027.010",
+        "T1057",
+        "T1059.001"
+      ],
+      "detection_seconds": 31.96046350000688,
+      "chain_count": 57,
+      "chain_types": {
+        "activity": 3,
+        "encoded_exec": 54
+      },
+      "correlation_seconds": 8.205920999993396,
+      "scenario_count": 3,
+      "scenario_techniques": [
+        "T1003.001",
+        "T1057",
+        "T1059.001"
+      ],
+      "scenario_seconds": 118.14965259999735,
+      "expected_technique_present": true,
+      "dataset_status": "MISS"
+    },
+    {
+      "technique_id": "T1021.006",
+      "local_filename": "T1021_006.log",
+      "stage": "completed",
+      "source_verification": {
+        "sha256": "6370f139b06c5de9e6b76ba81d9247c7c869879e74dfee1603f4d8b3682ab1c4",
+        "size_bytes": 5835542,
+        "sha_match": true,
+        "size_match": true
+      },
+      "events": 3723,
+      "parse_errors": 0,
+      "load_parse_seconds": 13.369943500001682,
+      "peak_python_memory_mb": 44.197282791137695,
+      "findings": 0,
+      "flagged_events": 0,
+      "observed_techniques": [],
+      "detection_seconds": 18.052637199994933,
+      "chain_count": 0,
+      "chain_types": {},
+      "correlation_seconds": 3.36478480000369,
+      "scenario_count": 0,
+      "scenario_techniques": [],
+      "scenario_seconds": 0.012836900001275353,
+      "expected_technique_present": false,
+      "dataset_status": "MISS"
+    },
+    {
+      "technique_id": "T1087.002",
+      "local_filename": "T1087_002.log",
+      "stage": "completed",
+      "source_verification": {
+        "sha256": "1b78f515120a7e5ac532444fd7fd322c8dc1abf8efebe0295abad3939972db0d",
+        "size_bytes": 10902926,
+        "sha_match": true,
+        "size_match": true
+      },
+      "events": 7070,
+      "parse_errors": 0,
+      "load_parse_seconds": 26.82462189999933,
+      "peak_python_memory_mb": 78.55370712280273,
+      "findings": 2,
+      "flagged_events": 2,
+      "observed_techniques": [
+        "T1047"
+      ],
+      "detection_seconds": 27.33748029999697,
+      "chain_count": 5,
+      "chain_types": {
+        "activity": 1,
+        "download_exec": 4
+      },
+      "correlation_seconds": 5.24953419999656,
+      "scenario_count": 2,
+      "scenario_techniques": [
+        "T1047"
+      ],
+      "scenario_seconds": 6.888873299998522,
+      "expected_technique_present": false,
+      "dataset_status": "MISS"
+    },
+    {
+      "technique_id": "T1105",
+      "local_filename": "T1105.log",
+      "stage": "completed",
+      "source_verification": {
+        "sha256": "bd6bbf7884f44274988d159bcb3249505dc53623e551892b54a3fc87db06e18c",
+        "size_bytes": 3625178,
+        "sha_match": true,
+        "size_match": true
+      },
+      "events": 2288,
+      "parse_errors": 10,
+      "load_parse_seconds": 3.022318399998767,
+      "peak_python_memory_mb": 25.101972579956055,
+      "findings": 3,
+      "flagged_events": 3,
+      "observed_techniques": [
+        "T1105"
+      ],
+      "detection_seconds": 4.139684699999634,
+      "chain_count": 10,
+      "chain_types": {
+        "activity": 1,
+        "download_exec": 3,
+        "network_data": 6
+      },
+      "correlation_seconds": 0.8601684999957797,
+      "scenario_count": 1,
+      "scenario_techniques": [
+        "T1105"
+      ],
+      "scenario_seconds": 2.167075700002897,
+      "expected_technique_present": true,
+      "dataset_status": "MISS"
+    },
+    {
+      "technique_id": "T1490",
+      "local_filename": "T1490.log",
+      "stage": "completed",
+      "source_verification": {
+        "sha256": "b2d2d3e6a15185fa73e7ace39dd57a3d499f65a462f7101b215161e1ccbb8e96",
+        "size_bytes": 510708,
+        "sha_match": true,
+        "size_match": true
+      },
+      "events": 285,
+      "parse_errors": 0,
+      "load_parse_seconds": 0.548948300005577,
+      "peak_python_memory_mb": 3.2625837326049805,
+      "findings": 7,
+      "flagged_events": 6,
+      "observed_techniques": [
+        "T1490"
+      ],
+      "detection_seconds": 0.8600791999997455,
+      "chain_count": 1,
+      "chain_types": {
+        "activity": 1
+      },
+      "correlation_seconds": 0.1913593999997829,
+      "scenario_count": 0,
+      "scenario_techniques": [],
+      "scenario_seconds": 0.1415809000027366,
+      "expected_technique_present": true,
+      "dataset_status": "HIT"
+    }
+  ],
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "frozen_state": {
+    "repo_commit": "b842066e7815bff0186a46c897692ad4bd196c1e",
+    "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+    "rule_file_count": 4
+  },
+  "rule_count": 66,
+  "summary": {
+    "dataset_count": 5,
+    "hits": 1,
+    "misses_or_errors": 4,
+    "path_label_dataset_hit_rate": 0.2,
+    "wall_seconds": 301.8401859000005
+  },
+  "claim_boundary": {
+    "event_level_ground_truth": "NOT_AVAILABLE",
+    "detection_precision": "NOT_CLAIMED",
+    "detection_recall": "NOT_CLAIMED",
+    "false_positive_rate": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED",
+    "production_quality": "NOT_CLAIMED",
+    "path_label_dataset_hit_rate_is_event_level_recall": false
+  }
+}

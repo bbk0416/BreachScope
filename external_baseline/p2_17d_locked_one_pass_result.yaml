@@ -1,0 +1,107 @@
+schema: breachscope.p2_17d_locked_one_pass_result.v1
+analysis_id: p2-17d-p2-17c-locked-one-pass-result-v1
+status: COMPLETED
+binding: external_baseline/p2_17c_locked_attack_data_bundle_binding.yaml
+runner: scripts/p2_17c_locked_one_pass.py
+analysis_class: independent_external_path_labeled_holdout_one_pass
+frozen_product:
+  repo_commit: b842066e7815bff0186a46c897692ad4bd196c1e
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+measurement:
+  path: external_baseline/results/p2_17c_b842066/measurement.json
+  original_sha256: b3eb5243e6eb4b09b4887d7395f16328006fc264e77031f027e2c1816225f26e
+  stored_sha256: 758594d27aee99d7dd5824809da0a40ada357f3e4c0dc606b1dc455cde375faf
+  storage_normalization: CRLF_TO_LF_ONLY
+  binding_sha256: 6d45b8d53745b6739d637f817df23a6ed7e5db222365e9475d15124e544be478
+  runner_sha256: 0e2ada36f8874b0e50f68cb47287018d7d4bead1063301e87af0aa8dfe8b0701
+  permanent_lock_sha256: 140e7eaebcaa05a3f21d962e5c24a81ed7a36ffc989a171a26d32b5064444b65
+  python: 3.11.9
+summary:
+  dataset_count: 5
+  hits: 1
+  misses_or_errors: 4
+  path_label_dataset_hit_rate: 0.2
+  parsed_events: 21322
+  parse_errors: 28
+  findings: 184
+  flagged_events: 78
+  chains: 73
+  scenarios: 6
+  wall_seconds: 301.8401859000005
+datasets:
+  - technique_id: T1003.001
+    events: 7956
+    parse_errors: 18
+    findings: 172
+    flagged_events: 67
+    expected_technique_present: true
+    dataset_status: MISS
+    miss_reason: parse_errors_nonzero
+  - technique_id: T1021.006
+    events: 3723
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+    expected_technique_present: false
+    dataset_status: MISS
+    miss_reason: expected_technique_absent
+  - technique_id: T1087.002
+    events: 7070
+    parse_errors: 0
+    findings: 2
+    flagged_events: 2
+    observed_techniques: [T1047]
+    expected_technique_present: false
+    dataset_status: MISS
+    miss_reason: expected_technique_absent
+  - technique_id: T1105
+    events: 2288
+    parse_errors: 10
+    findings: 3
+    flagged_events: 3
+    expected_technique_present: true
+    dataset_status: MISS
+    miss_reason: parse_errors_nonzero
+  - technique_id: T1490
+    events: 285
+    parse_errors: 0
+    findings: 7
+    flagged_events: 6
+    expected_technique_present: true
+    dataset_status: HIT
+protocol:
+  permanent_exclusive_lock_used: true
+  source_hashes_and_sizes_verified: true
+  frozen_product_verified: true
+  frozen_rules_verified: true
+  frozen_runner_verified: true
+  result_driven_remeasurement_performed: false
+  detector_tuning_performed_after_observation: false
+  parser_failure_counts_as_dataset_failure: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+interpretation:
+  supported: >-
+    Under the preregistered P2-17C contract, one of five fresh path-labeled datasets
+    met the HIT condition. T1490 was the only HIT.
+  parser_failures: >-
+    T1003.001 and T1105 both emitted findings carrying the expected ATT&CK technique,
+    but they remain MISS because the frozen contract required zero parse errors.
+  detector_misses: >-
+    T1021.006 produced no findings, and T1087.002 produced findings mapped to T1047
+    rather than the expected T1087.002.
+  conclusion: >-
+    This independent result does not support a claim of broad attack-technique coverage.
+    It demonstrates one successful dataset-level hit and four contract-defined misses.
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  path_label_dataset_hit_rate: 0.2
+  path_label_dataset_hit_rate_is_event_level_recall: false
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
