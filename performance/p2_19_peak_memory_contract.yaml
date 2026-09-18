@@ -1,0 +1,93 @@
+schema: breachscope.p2_19_peak_memory_benchmark_contract.v1
+benchmark_id: p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1
+status: PREREGISTERED_BEFORE_MEASUREMENT
+purpose: fill the P2-18 peak-memory evidence gap without replacing or rerunning P2-18 under the same benchmark id
+relation_to_p2_18:
+  prior_benchmark_id: p2-18-windows-core-pipeline-10k-100k-1m-v1
+  prior_result_status: COMPLETED_WITH_MISSING_PEAK_MEMORY_METRIC
+  prior_timing_result_is_replaced: false
+  new_benchmark_id_required: true
+product:
+  repo_commit: 6b63cdead6e524d1ee60e9193b5353a2151767cd
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_file_count: 4
+runner:
+  path: scripts/p2_19_peak_memory_benchmark.py
+  sha256: 6a46bc159ae592cc4bb4d175bd3213bce29c3713af8e37e0cd40c2df962f6287
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  memory_api: GetProcessMemoryInfo
+  memory_metric: PeakWorkingSetSize
+  windows_64bit_handle_restype_explicit: true
+  psapi_argtypes_and_restype_explicit: true
+input:
+  deterministic_generator_same_as_p2_18: true
+  expected_events: 1000000
+  expected_size_bytes: 454835896
+  expected_sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_interval: 1000
+  synthetic_suspicious_fraction: 0.001
+measurement:
+  sizes_events: [10000, 100000, 1000000]
+  order: ascending
+  fresh_python_process_per_size: true
+  parallel_detection: true
+  max_workers: 8
+  hayabusa_enabled: false
+  redaction_enabled: true
+  stages:
+    - load_rules
+    - collect
+    - detection
+    - correlation
+    - scenario
+    - report_build
+    - report_export
+  primary_metric: peak_working_set_bytes
+  secondary_metrics:
+    - peak_working_set_mb
+    - stage_seconds
+    - total_seconds
+    - throughput_events_per_second
+    - events
+    - findings
+    - flagged_events
+    - chains
+    - scenarios
+    - html_bytes
+    - package_zip_bytes
+  peak_memory_scope: entire worker process lifetime through report export
+  repetitions_per_size: 1
+  statistical_summary: false
+instrumentation_preflight:
+  corpus_measurement_started: false
+  result: PASS
+  observed_peak_working_set_bytes: 30658560
+  purpose: verify corrected Windows memory API binding before freezing the runner
+protocol:
+  contract_committed_before_measurement: true
+  permanent_lock_acquired_before_source_generation: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_before_canonical_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  source_hash_or_size_mismatch_fails_closed: true
+  missing_or_zero_peak_memory_fails_worker: true
+  failed_scale_stops_later_scales: true
+  p2_18_canonical_result_modified: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED
+  note: >-
+    P2-19 is a new benchmark that preserves P2-18 as recorded. It measures peak process
+    working set for the same fixed synthetic full-pipeline workload and does not retroactively
+    fill or rewrite the missing P2-18 memory fields.
