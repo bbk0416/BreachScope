@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Iterable
 from collections import Counter, defaultdict
 from dataclasses import asdict, is_dataclass
-from copy import deepcopy
+from copy import copy
 import os
 import re
 import json
@@ -23,6 +23,9 @@ from .integrity import (
 
 SEVERITY_ORDER = {"low": 1, "medium": 2, "high": 3, "critical": 4}
 SEVERITY_WEIGHTS = {"low": 5, "medium": 15, "high": 35, "critical": 60}
+
+HTML_TIMELINE_EVENT_LIMIT = 10_000
+HTML_RAW_EVENT_SAMPLE_LIMIT = 100
 
 
 def _risk_level(score: int) -> str:
@@ -417,24 +420,72 @@ def _redact_string(s: str) -> str:
     return text
 
 
-def _redacted_report_copy(report: Report) -> Report:
-    """HTML 렌더링용 사본만 마스킹합니다.
+def _sample_events_for_html(events: List[Event], limit: int = HTML_TIMELINE_EVENT_LIMIT) -> List[Event]:
+    """Return a deterministic whole-range sample for the interactive HTML timeline."""
+    total = len(events)
+    if total <= limit:
+        return list(events)
+    if limit <= 1:
+        return [events[0]]
+    return [events[(index * (total - 1)) // (limit - 1)] for index in range(limit)]
 
-    원본 Report 객체를 직접 바꾸면 이후 JSON/CSV/manifest 해시가 원본 증거가 아니라
-    마스킹된 값 기준으로 생성될 수 있으므로, 출력용 사본을 사용합니다.
-    """
-    copied = deepcopy(report)
-    for e in copied.events:
-        if e.command_line:
-            e.command_line = _redact_string(e.command_line)
-    for f in copied.findings:
-        if f.event and f.event.command_line:
-            f.event.command_line = _redact_string(f.event.command_line)
-        if f.matched_value:
-            f.matched_value = _redact_string(f.matched_value)
-        if f.matched_context:
-            f.matched_context = _redact_string(f.matched_context)
+
+def _html_event_copy(event: Event, *, redact: bool) -> Event:
+    copied = copy(event)
+    if redact and copied.command_line:
+        copied.command_line = _redact_string(copied.command_line)
+    copied.raw = {}
     return copied
+
+
+def _html_render_view(report: Report, *, redact: bool) -> tuple[Report, List[Event], int]:
+    """Build a bounded HTML-only view without deepcopying the full analysis report."""
+    event_cache: Dict[int, Event] = {}
+
+    def event_view(event: Event) -> Event:
+        key = id(event)
+        cached = event_cache.get(key)
+        if cached is None:
+            cached = _html_event_copy(event, redact=redact)
+            event_cache[key] = cached
+        return cached
+
+    def finding_view(finding: Finding) -> Finding:
+        copied = copy(finding)
+        copied.event = event_view(finding.event)
+        if redact and copied.matched_value:
+            copied.matched_value = _redact_string(copied.matched_value)
+        if redact and copied.matched_context:
+            copied.matched_context = _redact_string(copied.matched_context)
+        return copied
+
+    chain_cache: Dict[int, Any] = {}
+
+    def chain_view(chain: Any) -> Any:
+        key = id(chain)
+        cached = chain_cache.get(key)
+        if cached is not None:
+            return cached
+        copied = copy(chain)
+        copied.events = [event_view(event) for event in (getattr(chain, "events", None) or [])]
+        copied.findings = [finding_view(finding) for finding in (getattr(chain, "findings", None) or [])]
+        chain_cache[key] = copied
+        return copied
+
+    render_report = copy(report)
+    render_report.events = [event_view(event) for event in report.events[:HTML_RAW_EVENT_SAMPLE_LIMIT]]
+    render_report.findings = [finding_view(finding) for finding in report.findings]
+    render_report.chains = [chain_view(chain) for chain in report.chains]
+
+    rendered_scenarios = []
+    for scenario in report.scenarios:
+        copied = copy(scenario)
+        copied.chains = [chain_view(chain) for chain in (getattr(scenario, "chains", None) or [])]
+        rendered_scenarios.append(copied)
+    render_report.scenarios = rendered_scenarios
+
+    timeline_events = [event_view(event) for event in _sample_events_for_html(report.events)]
+    return render_report, timeline_events, len(report.events)
 
 
 def render_html(
@@ -442,15 +493,15 @@ def render_html(
     out_html: Path,
     redact: bool | None = None,
 ) -> None:
-    # Explicit request-local state wins. None preserves CLI/direct-call
-    # compatibility with the historical environment fallback.
     if redact is None:
         redact = os.getenv("BS_REDACT", "1") != "0"
-    render_report = _redacted_report_copy(report) if redact else report
+    render_report, timeline_events, timeline_total_events = _html_render_view(
+        report,
+        redact=bool(redact),
+    )
     try:
         from jinja2 import Environment, FileSystemLoader, select_autoescape
     except Exception:
-        # Very basic fallback
         html = _fallback_html(render_report)
         out_html.write_text(html, encoding="utf-8")
         return
@@ -463,7 +514,12 @@ def render_html(
         lstrip_blocks=True,
     )
     tmpl = env.get_template("report.html.j2")
-    html = tmpl.render(report=render_report)
+    html = tmpl.render(
+        report=render_report,
+        timeline_events=timeline_events,
+        timeline_total_events=timeline_total_events,
+        timeline_event_limit=HTML_TIMELINE_EVENT_LIMIT,
+    )
     out_html.parent.mkdir(parents=True, exist_ok=True)
     out_html.write_text(html, encoding="utf-8")
 

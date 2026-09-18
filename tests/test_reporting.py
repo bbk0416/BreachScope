@@ -168,3 +168,42 @@ def test_reporting_package_uses_static_core_import():
 
     assert reporting.build_summary.__module__ == "breachscope.reporting.core"
     assert "breachscope._reporting_py" not in sys.modules
+
+
+def test_render_html_large_timeline_is_bounded_and_does_not_embed_raw_payload(tmp_path: Path):
+    events = [
+        Event(
+            timestamp=f"2026-01-01T00:{index % 60:02d}:00Z",
+            host=f"WS-{index % 16:02d}",
+            source="ProcessCreate",
+            event_id="4688",
+            level="info",
+            command_line=f"notepad.exe doc-{index}.txt",
+            raw={"large_secret_payload": f"RAW-SECRET-{index}-" + ("X" * 128)},
+        )
+        for index in range(10_050)
+    ]
+    report = Report(summary=build_summary([]), findings=[], events=events)
+    out = tmp_path / "large.html"
+
+    render_html(report, out, redact=True)
+
+    html = out.read_text(encoding="utf-8")
+    assert 'data-timeline-events="10000"' in html
+    assert 'data-total-events="10050"' in html
+    assert "RAW-SECRET-" not in html
+    assert "notepad.exe doc-0.txt" in html
+    assert "notepad.exe doc-10049.txt" in html
+    assert events[0].raw["large_secret_payload"].startswith("RAW-SECRET-0-")
+
+
+def test_html_timeline_sampling_is_deterministic_and_spans_full_range():
+    from breachscope.reporting.core import _sample_events_for_html
+
+    events = [
+        Event(timestamp=str(index), host="H", source="S", event_id="1")
+        for index in range(25)
+    ]
+    sample = _sample_events_for_html(events, limit=5)
+
+    assert [event.timestamp for event in sample] == ["0", "6", "12", "18", "24"]
