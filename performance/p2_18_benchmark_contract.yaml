@@ -1,0 +1,91 @@
+schema: breachscope.p2_18_performance_benchmark_contract.v1
+benchmark_id: p2-18-windows-core-pipeline-10k-100k-1m-v1
+status: PREREGISTERED_BEFORE_MEASUREMENT
+purpose: measure current BreachScope core-pipeline runtime and peak process working set on fixed synthetic JSONL sizes
+product:
+  repo_commit: 6b63cdead6e524d1ee60e9193b5353a2151767cd
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_file_count: 4
+runner:
+  path: scripts/p2_18_performance_benchmark.py
+  sha256: 72deadae63ed2c48908627ccbb0ec5a9a04babf66fade1a85bbfe144fbbcbec9
+  python_major_minor: "3.11"
+  operating_system: Windows
+input_generator:
+  deterministic: true
+  total_events: 1000000
+  source_format: JSONL
+  source_name: Microsoft-Windows-Sysmon
+  event_id: "1"
+  host_count: 16
+  user_count: 32
+  timestamp_start_utc: "2026-01-01T00:00:00Z"
+  timestamp_step_seconds: 1
+  ordinary_command: 'notepad.exe C:\Bench\doc-NNNN.txt'
+  synthetic_suspicious_interval: 1000
+  synthetic_suspicious_command: 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Write-Output BENCHMARK"'
+  synthetic_suspicious_fraction: 0.001
+  generation_time_included_in_benchmark: false
+measurement:
+  sizes_events: [10000, 100000, 1000000]
+  order: ascending
+  fresh_python_process_per_size: true
+  parallel_detection: true
+  max_workers: 8
+  hayabusa_enabled: false
+  redaction_enabled: true
+  stages:
+    - load_rules
+    - collect
+    - detection
+    - correlation
+    - scenario
+    - report_build
+    - report_export
+  report_export:
+    html: true
+    json: false
+    csv: false
+    pdf: false
+    ioc_csv: true
+    rule_catalog_csv: true
+    manifest: true
+    case_package_zip: true
+  metrics:
+    - stage_seconds
+    - total_seconds
+    - throughput_events_per_second
+    - peak_working_set_bytes
+    - peak_working_set_mb
+    - events
+    - findings
+    - flagged_events
+    - chains
+    - scenarios
+    - html_bytes
+    - package_zip_bytes
+  peak_memory_definition: operating-system process PeakWorkingSetSize on Windows
+  repetitions_per_size: 1
+  cache_flush_between_sizes: false
+  statistical_summary: false
+protocol:
+  contract_committed_before_measurement: true
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_before_canonical_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  failed_scale_stops_later_scales: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED
+  note: >-
+    This benchmark measures one fixed Windows machine and one deterministic synthetic
+    JSONL workload. It is intended to expose scaling behavior and peak process memory,
+    not to certify production throughput or compare BreachScope with other tools.
