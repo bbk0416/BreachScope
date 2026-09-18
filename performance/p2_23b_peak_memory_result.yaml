@@ -1,0 +1,106 @@
+schema: breachscope.p2_23b_peak_memory_benchmark_result.v1
+benchmark_id: p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1
+status: COMPLETED
+contract: performance/p2_23b_peak_memory_contract.yaml
+relation_to_p2_23:
+  p2_23_status: FAILED_PRECONDITION
+  p2_23_result: performance/p2_23_peak_memory_result.yaml
+  same_benchmark_id_reused: false
+frozen_product:
+  repo_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_file_count: 5
+runner:
+  merge_commit: af5fdbf49b627b811757bc76a635326eb16ff175
+  sha256: 3f8f52cb9010585824ba67cf378e3e45563ec15a6736edc9f45848fca4f9cfce
+  launcher: py -3.11
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  logical_cpu_count: 22
+source:
+  events: 1000000
+  size_bytes: 454835896
+  sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_events: 1000
+canonical_artifacts:
+  summary:
+    path: performance/results/p2_23b_af5fdbf/summary.json
+    sha256: fc40edff142e60f813bd1ea8c7fe585870da39ddf30f43c3d6584c868553a32a
+  result_10000:
+    path: performance/results/p2_23b_af5fdbf/result_10000.json
+    sha256: 829da3e40cb7b9f9b5fbb3e9881d249ebd3fcd532c4b22b495f93bf6dfc3b9fb
+  result_100000:
+    path: performance/results/p2_23b_af5fdbf/result_100000.json
+    sha256: 6bb543bdd877b9b202a798d0bdff916424bc3a1efd464936659cde8a541d8551
+  result_1000000:
+    path: performance/results/p2_23b_af5fdbf/result_1000000.json
+    sha256: 9838448d3a886d6cb0cb3764c8c5def38812ba1e0e71fee2447dc1a0cdbcf02a
+results:
+- scale_events: 10000
+  total_seconds: 13.299853
+  throughput_events_per_second: 751.888
+  peak_working_set_bytes: 112603136
+  peak_working_set_mb: 107.387
+  findings: 10
+  flagged_events: 10
+  html_bytes: 2704532
+  package_zip_bytes: 629643
+- scale_events: 100000
+  total_seconds: 169.310159
+  throughput_events_per_second: 590.632
+  peak_working_set_bytes: 605650944
+  peak_working_set_mb: 577.594
+  findings: 100
+  flagged_events: 100
+  html_bytes: 2807720
+  package_zip_bytes: 5075241
+- scale_events: 1000000
+  total_seconds: 1046.566331
+  throughput_events_per_second: 955.506
+  peak_working_set_bytes: 5501534208
+  peak_working_set_mb: 5246.672
+  findings: 1000
+  flagged_events: 1000
+  html_bytes: 3762485
+  package_zip_bytes: 49703380
+protocol:
+  permanent_exclusive_lock_used: true
+  permanent_lock_sha256: b44b3429e3a0e4896ce9b30799b96574484b6fa4c28d5bb019ece8f4a641c212
+  first_completed_or_failed_execution_retained_as_canonical: true
+  result_replaced_for_better_numbers: false
+  product_or_rules_tuned_from_result: false
+  p2_23_failed_precondition_preserved: true
+  p2_19_canonical_result_modified: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+historical_context:
+  p2_19_benchmark_id: p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1
+  same_synthetic_input_hash: true
+  exact_product_version_match: false
+  p2_19_rule_count: 66
+  p2_23b_rule_count: 68
+  p2_19_one_million_peak_working_set_mb: 10684.5
+  p2_23b_one_million_peak_working_set_mb: 5246.672
+  p2_19_one_million_total_seconds: 1911.779782
+  p2_23b_one_million_total_seconds: 1046.566331
+  comparison_note: These are descriptive historical values only. P2-19 and P2-23B use different product/rule
+    versions, so the difference is not claimed as an exact apples-to-apples causal effect of the HTML
+    optimization.
+interpretation:
+  one_million: The canonical one-million-event synthetic run completed in 1046.566331 seconds at 955.506
+    events per second and reached 5246.672 MiB peak working set.
+  output: The one-million-event HTML artifact was 3762485 bytes. The interactive timeline is bounded and
+    no longer embeds every full raw event dictionary.
+  operational_conclusion: P2-23B shows materially lower observed memory than the historical P2-19 run
+    on the same synthetic input hash, but the pipeline still retains large event collections in memory.
+    This does not support an enterprise-scale bounded-memory production claim.
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  exact_p2_19_apples_to_apples_comparison: NOT_CLAIMED
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED
