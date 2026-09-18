@@ -12,8 +12,9 @@ ASSESSMENT = RESULT_DIR / "assessment.yaml"
 DOWNLOAD = RESULT_DIR / "download-verification.json"
 INVENTORY = RESULT_DIR / "phase_b_allowed_inventory.json"
 
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def _stored_text_sha256(path: Path) -> str:
+    data = path.read_bytes().replace(bytes([13, 10]), bytes([10]))
+    return hashlib.sha256(data).hexdigest()
 
 def _load() -> dict:
     return yaml.safe_load(ASSESSMENT.read_text(encoding="utf-8"))
@@ -40,8 +41,10 @@ def test_p2_22b_bound_archive_identity_and_inventory_are_exact() -> None:
     assert nested["extensions"] == {".csv": 6, ".evtx": 0}
     assert nested["raw_evtx_member_count"] == 0
     assert nested["normal_named_member_count"] == 1
-    assert row["artifacts"]["download_verification"]["sha256"] == _sha256(DOWNLOAD)
-    assert row["artifacts"]["phase_b_allowed_inventory"]["sha256"] == _sha256(INVENTORY)
+    assert row["artifacts"]["download_verification"]["sha256"] == _stored_text_sha256(DOWNLOAD)
+    assert row["artifacts"]["download_verification"]["storage_normalization"] == "CRLF_TO_LF_ONLY"
+    assert row["artifacts"]["phase_b_allowed_inventory"]["sha256"] == _stored_text_sha256(INVENTORY)
+    assert row["artifacts"]["phase_b_allowed_inventory"]["storage_normalization"] == "CRLF_TO_LF_ONLY"
 
 def test_p2_22b_does_not_run_detector_or_measure_fpr() -> None:
     row = _load()

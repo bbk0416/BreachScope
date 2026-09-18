@@ -60,10 +60,12 @@ phase_b_protocol_deviation:
 artifacts:
   download_verification:
     path: external_baseline/results/p2_22b_ce5da6c/download-verification.json
-    sha256: 1b615c5b87bc222fa3c4cc60791171c1e1a8b91309c8f97b12cb1815f9758e25
+    sha256: 6900cb4f81cd2f33e8979e536f5067cb75404d7fa62a6ccb71b3aedc9fc4f29e
+    storage_normalization: CRLF_TO_LF_ONLY
   phase_b_allowed_inventory:
     path: external_baseline/results/p2_22b_ce5da6c/phase_b_allowed_inventory.json
-    sha256: aaa372f66718194c528588f2b9561c28f560e3f1470019715a5fa76846ab2410
+    sha256: 9a521ffe9f1311a261e062ee98338bfd0a69bfa268c408b2a173e2abec90e2ac
+    storage_normalization: CRLF_TO_LF_ONLY
 claim_boundary:
   fresh_benign_evaluation: ABORT_UNSUPPORTED
   benign_false_positive_rate: NOT_MEASURED
