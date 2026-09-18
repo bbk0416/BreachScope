@@ -1,0 +1,120 @@
+schema: breachscope.p2_18_performance_benchmark_result.v1
+benchmark_id: p2-18-windows-core-pipeline-10k-100k-1m-v1
+status: COMPLETED_WITH_MISSING_PEAK_MEMORY_METRIC
+contract: performance/p2_18_benchmark_contract.yaml
+frozen_product:
+  repo_commit: 6b63cdead6e524d1ee60e9193b5353a2151767cd
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_file_count: 4
+runner:
+  merge_commit: 5199ff37bb43b884b4b8a86973e48d588ef03b49
+  sha256: 72deadae63ed2c48908627ccbb0ec5a9a04babf66fade1a85bbfe144fbbcbec9
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  logical_cpu_count: 22
+source:
+  events: 1000000
+  size_bytes: 454835896
+  sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_events: 1000
+canonical_artifacts:
+  summary:
+    path: performance/results/p2_18_5199ff3/summary.json
+    sha256: b781c994df9d9f1d6343becdbb10fc2ea7e37b0eef764cffae0798bfdf9e75ef
+  result_10000:
+    path: performance/results/p2_18_5199ff3/result_10000.json
+    sha256: 978ee1b7392e87ed2bdefd53b4c1f2069e59612083c4455832343b273bc72b1d
+  result_100000:
+    path: performance/results/p2_18_5199ff3/result_100000.json
+    sha256: 17c66e9b8292e04fd654d3de48c4ad5a63715b45366c25deaea1905e30c86aa1
+  result_1000000:
+    path: performance/results/p2_18_5199ff3/result_1000000.json
+    sha256: 50473dba3bbb19dd4747bcd69ce4ce5db8f9cb305abf50e58271e123b8042692
+results:
+  - scale_events: 10000
+    findings: 10
+    flagged_events: 10
+    chains: 0
+    scenarios: 0
+    total_seconds: 20.501819
+    throughput_events_per_second: 487.762
+    collect_seconds: 3.402216
+    detection_seconds: 8.630603
+    correlation_seconds: 3.013763
+    report_export_seconds: 4.078106
+    peak_working_set_bytes: null
+    peak_working_set_mb: null
+    html_bytes: 11737124
+    package_zip_bytes: 1053540
+  - scale_events: 100000
+    findings: 100
+    flagged_events: 100
+    chains: 0
+    scenarios: 0
+    total_seconds: 187.255617
+    throughput_events_per_second: 534.029
+    collect_seconds: 26.899627
+    detection_seconds: 91.598402
+    correlation_seconds: 35.748464
+    report_export_seconds: 32.728667
+    peak_working_set_bytes: null
+    peak_working_set_mb: null
+    html_bytes: 117235599
+    package_zip_bytes: 10372058
+  - scale_events: 1000000
+    findings: 1000
+    flagged_events: 1000
+    chains: 0
+    scenarios: 0
+    total_seconds: 1902.064694
+    throughput_events_per_second: 525.744
+    collect_seconds: 329.385642
+    detection_seconds: 872.810484
+    correlation_seconds: 336.706837
+    report_export_seconds: 362.2069
+    peak_working_set_bytes: null
+    peak_working_set_mb: null
+    html_bytes: 1173795863
+    package_zip_bytes: 103543116
+protocol:
+  canonical_execution_started_local: "2026-09-18T14:15:00+09:00"
+  canonical_execution_completed_before_posthoc_duplicate: true
+  canonical_summary_modified_utc: "2026-09-18T05:52:20.0484830Z"
+  first_completed_or_failed_execution_retained_as_canonical: true
+  product_or_rules_tuned_from_result: false
+  canonical_result_replaced_for_better_numbers: false
+  post_completion_duplicate_execution_attempted: true
+  post_completion_duplicate_started_local: "2026-09-18T14:55:16+09:00"
+  post_completion_duplicate_terminated: true
+  post_completion_duplicate_result_accepted: false
+  canonical_result_artifacts_modified_by_duplicate: false
+  canonical_local_source_file_later_truncated_by_duplicate: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+interpretation:
+  timing: >-
+    The fixed synthetic JSONL pipeline completed at all three scales. The one-million-event
+    run took 1902.064694 seconds end-to-end, about 31 minutes 42 seconds, with measured
+    throughput of 525.744 events per second on this machine.
+  report_size: >-
+    The one-million-event HTML artifact was 1,173,795,863 bytes, showing that current
+    report export size scales poorly for large in-memory event sets.
+  memory_limitation: >-
+    PeakWorkingSetSize was required by the preregistered contract but the frozen runner
+    recorded null for all three scales. P2-18 therefore does not satisfy its peak-memory
+    measurement objective and must not be used to claim bounded memory use.
+  duplicate_limitation: >-
+    A later duplicate execution was started after the canonical benchmark had already
+    completed. It was terminated and is excluded. That duplicate truncated the local
+    generated source file during regeneration, but did not modify the already finalized
+    canonical summary or per-scale result JSON files stored here.
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  peak_memory: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED

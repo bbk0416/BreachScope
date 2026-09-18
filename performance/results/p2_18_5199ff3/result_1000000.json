@@ -1,0 +1,47 @@
+{
+  "schema": "breachscope.p2_18_performance_benchmark.v1",
+  "status": "completed",
+  "scale_events": 1000000,
+  "frozen_product": {
+    "repo_commit": "6b63cdead6e524d1ee60e9193b5353a2151767cd",
+    "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+    "rule_file_count": 4
+  },
+  "environment": {
+    "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "logical_cpu_count": 22,
+    "parallel": true,
+    "max_workers": 8,
+    "hayabusa_enabled": false
+  },
+  "input": {
+    "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+    "size_bytes": 454835896
+  },
+  "counts": {
+    "events": 1000000,
+    "findings": 1000,
+    "flagged_events": 1000,
+    "chains": 0,
+    "scenarios": 0
+  },
+  "timings_seconds": {
+    "load_rules": 0.277316,
+    "collect": 329.385642,
+    "detection": 872.810484,
+    "correlation": 336.706837,
+    "scenario": 0.000647,
+    "report_build": 0.674291,
+    "report_export": 362.2069
+  },
+  "total_seconds": 1902.064694,
+  "throughput_events_per_second": 525.744,
+  "peak_working_set_bytes": null,
+  "peak_working_set_mb": null,
+  "artifacts": {
+    "html_bytes": 1173795863,
+    "package_zip_bytes": 103543116
+  }
+}
