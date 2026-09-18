@@ -1,0 +1,83 @@
+schema: breachscope.p2_24a_benign_evtx_binding.v1
+analysis_id: p2-24a-queryfarm-clean-security-benign-v1
+analysis_class: pre_observation_external_benign_evtx_binding
+purpose: fresh independent benign full-rulepack negative-control evaluation after P2-22 and P2-22B were retired
+  unsupported
+code_under_observation:
+  repo_commit: 35e20ad9a668552a87de567fdd491f1602c3930c
+  product_semantics_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: Query-farm/vgi-evtx
+  pinned_commit: add9265cbf1b2ecf225f91d2e883b270f34cd751
+  pinned_tree: 37da793d4af5d8d0a665f9c178c9e30d71cabf8b
+  source_commit_date_utc: '2026-07-22T20:01:10Z'
+  documentation:
+    path: test/sql/data/README.md
+    git_blob_sha1: 82629b5050fc61f16c2b36a97f54e07c88fbfcc3
+  evtx:
+    path: test/sql/data/sample-security.evtx
+    git_blob_sha1: 7c0eab77b0ed388da193827a14286a56634b3a6b
+    size_bytes: 69632
+  upstream_provenance:
+    repository: omerbenamram/evtx
+    path: samples/Security_short_selected.evtx
+    same_git_blob_sha1: 7c0eab77b0ed388da193827a14286a56634b3a6b
+  license: MIT
+source_ground_truth:
+  documentation_supported_facts:
+  - The fixture is explicitly described as a clean Windows Security event log.
+  - The fixture is documented as 68 KB and 7 records.
+  - The fixture is attributed to the evtx crate test corpus and renamed without changing the Git blob identity.
+  - The documented channel is Security and the provider is Microsoft-Windows-Security-Auditing.
+  evaluation_label_basis: benign_by_upstream_explicit_clean_fixture_description
+  event_level_manual_adjudication: false
+  known_attack_execution_in_fixture: NOT_CLAIMED
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  evtx_bytes_downloaded_before_binding: false
+  evtx_binary_opened_before_binding: false
+  evtx_records_parsed_before_binding: false
+  breachscope_detector_executed_before_binding: false
+  metadata_consulted_before_binding:
+  - pinned repository commit/tree/blob metadata
+  - fixture provenance README
+  - repository license metadata
+  excluded_previously_used_sources:
+  - NextronSystems/evtx-baseline
+  - bazz-066/cerberus-trace
+  - ChristosSmiliotopoulos/Lateral-Movement-Dataset--LMD_Collections
+  - EVTX-ATTACK-SAMPLES
+  - OTRF Security-Datasets
+  - atomic-evtx
+  - Splunk attack_data
+protocol:
+  phase_a_binding_only: true
+  phase_b_after_binding_merge:
+  - download only the exact bound EVTX blob from the pinned commit
+  - verify byte size and Git blob SHA-1 before any parser opens the file
+  - compute and record SHA256 without parsing EVTX records
+  - do not execute the BreachScope detector
+  - do not inspect BreachScope output
+  phase_c_required_before_data_content_observation: Freeze and merge the exact EVTX SHA256, scoring contract, and
+    one-pass runner before parsing any EVTX record.
+  detector_execution_before_phase_c_contract: prohibited
+  content_observation_before_phase_c_contract: prohibited
+  tuning_after_source_observation_before_measurement_allowed: false
+  duplicate_measurement_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  fresh_benign_evaluation: NOT_YET_MEASURED
+  benign_false_positive_rate: NOT_YET_MEASURED
+  corpus_representativeness: VERY_LIMITED_7_RECORD_FIXTURE
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+notes: This is intentionally a tiny independent negative-control fixture. Any later FPR applies only to these seven
+  source-designated clean records and must not be generalized to production.
