@@ -58,6 +58,18 @@ external_holdout_evidence:
     source_legacy_technique_total: 41
     exact_overlap_interpretation: corpus_level_source_label_overlap_not_recall
   combined_performance_metric: NOT_COMPUTED
+- evidence_id: p2-21-mdecrevoisier-independent-one-pass
+  binding_record: external_baseline/p2_21_independent_attack_binding.yaml
+  result_record: external_baseline/results/p2_21_a1d00f7/result.yaml
+  measurement_record: external_baseline/results/p2_21_a1d00f7/measurement.json
+  class: independent_one_pass_external_holdout
+  detector_rule_count: 68
+  dataset_count: 8
+  hits: 4
+  misses_or_errors: 4
+  path_label_dataset_hit_rate: 0.5
+  path_label_dataset_hit_rate_is_event_level_recall: false
+  event_level_ground_truth: NOT_AVAILABLE
 benign_operational_evidence:
 - evidence_id: p2-13-win11-client-2023
   selection_record: external_baseline/p2_13a_win11_benign_selection.yaml
@@ -88,4 +100,16 @@ claim_boundary:
   event_level_ground_truth: NOT_AVAILABLE
   confirmed_false_positives: NOT_CLAIMED
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
-  note: 'This file is an evidence index, not a performance summary. P2-12 and P2-13 remain historical evidence obtained under the frozen 66-rule detector. P2-17C later produced an independent locked 1/5 path-label dataset result and was not rerun for a replacement score. P2-20 is post-holdout development based on the already observed P2-17C corpus: it adds multiline Event XML framing plus two narrow command rules, and records a separate exact-predicate probe on the pinned P2-13 Windows 11 benign source. The P2-20 5/5 post-hoc result is not an independent holdout, and the 0-match benign probe is not a fresh full-rulepack FPR. No production accuracy, precision, recall, detection rate, false-positive rate, confirmed false-positive rate, representative production population, or final blind holdout is claimed.'
+  note: 'This file is an evidence index, not a performance summary. P2-12 and P2-13
+    remain historical evidence obtained under the frozen 66-rule detector. P2-17C
+    later produced an independent locked 1/5 path-label dataset result and was not
+    rerun for a replacement score. P2-20 is post-holdout development based on the
+    already observed P2-17C corpus: it adds multiline Event XML framing plus two narrow
+    command rules, and records a separate exact-predicate probe on the pinned P2-13
+    Windows 11 benign source. The P2-20 5/5 post-hoc result is not an independent
+    holdout, and the 0-match benign probe is not a fresh full-rulepack FPR. No production
+    accuracy, precision, recall, detection rate, false-positive rate, confirmed false-positive
+    rate, representative production population, or final blind holdout is claimed.
+    P2-21 adds a new independent one-pass evaluation under the 68-rule detector: 4/8
+    path-labeled datasets met the preregistered HIT condition. This 50% dataset hit
+    rate is not event-level recall and must not be replaced by post-hoc reruns.'
