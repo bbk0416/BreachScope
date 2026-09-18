@@ -82,3 +82,17 @@ def test_p2_22_makes_no_fpr_or_production_claim() -> None:
     }
     assert "first_rows_selected_fields" not in inventory
     assert "candidate_unique_values" not in inventory
+
+
+def test_current_evidence_index_records_p2_22_abort_without_fpr() -> None:
+    current = yaml.safe_load(
+        (ROOT / "external_baseline" / "current_detection_evidence.yaml").read_text(encoding="utf-8")
+    )
+    rows = {row["evidence_id"]: row for row in current["benign_operational_evidence"]}
+    p22 = rows["p2-22-cerberus-trace-abort-unsupported"]
+
+    assert p22["class"] == "pre_detection_benign_source_assessment"
+    assert p22["status"] == "ABORT_UNSUPPORTED"
+    assert p22["benign_false_positive_rate"] == "NOT_MEASURED"
+    assert p22["detector_run"] is False
+    assert p22["reason"] == "SOURCE_LABEL_MAPPING_NOT_REPRODUCIBLE"
