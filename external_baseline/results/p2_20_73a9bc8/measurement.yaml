@@ -1,0 +1,54 @@
+schema: breachscope.p2_20_postholdout_calibration_measurement.v1
+calibration_id: p2-20-postholdout-coverage
+measurement_class: post_holdout_calibration
+change_class: attack_data_record_framing_and_command_rule_addition
+measurement_repo_commit: 73a9bc81c3bea4836d3a7301beeadf236d9f1b8d
+from_rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+to_rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+rule_change:
+  rule_file: rules/p2_20_postholdout_rules.yml
+  rule_file_git_blob_sha1: 1b5d6490a0cb2509550b84c4bb538eda89d3e687
+  added_rules:
+    - rule_id: R-WINRS-REMOTE-TARGET
+      mitre_technique: T1021.006
+    - rule_id: R-DOMAIN-ACCOUNT-DISCOVERY-CMD
+      mitre_technique: T1087.002
+parser_change:
+  file: breachscope/ingest.py
+  git_blob_sha1: 42ce35bff10d0541d26e0a5181cfcd1ef9a459cc
+  helper: iter_event_xml_records
+raw_measurement:
+  path: external_baseline/results/p2_20_73a9bc8/posthoc-measurement.json
+  sha256: b4412e482500c38a72b894f7ddf0bac6f1f3cb8657db132b67e771966e486846
+attack_posthoc:
+  source: P2-17C previously observed holdout corpus
+  independent_holdout: false
+  prior_locked_result_hits: 1
+  prior_locked_result_total: 5
+  posthoc_dataset_hits: 5
+  posthoc_dataset_total: 5
+  total_events: 21328
+  parse_errors: 0
+  t1021_006_findings: 2
+  t1087_002_findings: 26
+  t1087_002_flagged_events: 24
+benign_incremental_match_proof:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win11-client-2023.tgz
+  archive_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+  raw_wevtutil_sysmon_event1_records: 2323
+  parsed_event1_records: 2323
+  parse_errors: 0
+  new_rule_findings: 0
+  historical_p2_13_binding_sysmon_event1: 2302
+  denominator_difference_note: raw wevtutil EventID=1 query returned 2323 records while the historical P2-13 chunked parser inventory recorded 2302
+claim_boundary:
+  attack_independent_holdout: false
+  attack_result_is_posthoc: true
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_new_rulepack: NOT_CLAIMED
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false

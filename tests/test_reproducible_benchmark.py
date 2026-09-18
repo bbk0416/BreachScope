@@ -50,7 +50,7 @@ def test_historical_p2_09e_verifier_fails_closed_after_rule_drift() -> None:
     assert proc.returncode == 1
     assert "current rule tree hash" in proc.stdout
     assert "543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce" in proc.stdout
-    assert "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92" in proc.stdout
+    assert "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075" in proc.stdout
 
 
 def test_current_detection_evidence_chain_verifies_without_network() -> None:
@@ -64,19 +64,20 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v5"
-    assert data["current_evidence_id"] == "p2-11j-current-detection-evidence"
-    assert data["current_rules_tree_sha256"] == "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92"
-    assert data["rule_file_count"] == 4
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v6"
+    assert data["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
+    assert data["current_rules_tree_sha256"] == "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
+    assert data["rule_file_count"] == 5
     assert data["base_attack_scenario_hits"] == 2
     assert data["current_attack_scenario_hits"] == 10
     assert data["attack_scenario_total"] == 10
     assert data["historical_benign"]["events"] == 766623
-    assert len(data["calibrations"]) == 6
-    j = data["calibrations"][-1]
+    assert len(data["calibrations"]) == 7
+
+    j = data["calibrations"][-2]
     assert j["calibration_id"] == "p2-11j-t1003-networkprovider-credential-capture"
     assert j["from_rules_tree_sha256"] == "c8b35af39d19f569c0a54c723dfdda35d61a966f54016cd8568b19cdecb4b2ec"
-    assert j["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert j["to_rules_tree_sha256"] == "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92"
     assert j["scenario_hits_before"] == 8
     assert j["scenario_hits_after"] == 9
     assert j["scenario_total"] == 12
@@ -86,13 +87,33 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert j["flagged_events"] == 88
     assert j["benign_events_scanned"] == 732200
     assert j["benign_exact_predicate_matches"] == 0
-    assert j["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
+
+    p20 = data["calibrations"][-1]
+    assert p20["calibration_id"] == "p2-20-postholdout-coverage"
+    assert p20["from_rules_tree_sha256"] == j["to_rules_tree_sha256"]
+    assert p20["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p20["dataset_hits_before"] == 1
+    assert p20["dataset_hits_after"] == 5
+    assert p20["dataset_total"] == 5
+    assert p20["attack_result_is_posthoc"] is True
+    assert p20["events"] == 21328
+    assert p20["rules"] == 68
+    assert p20["parse_errors"] == 0
+    assert p20["benign_events_scanned"] == 2323
+    assert p20["benign_exact_predicate_matches"] == 0
+    assert p20["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
 
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-11j-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
+    assert data["current_frozen_detector"] == {
+        "repo_commit": "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d",
+        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "rule_count": 68,
+        "rule_file_count": 5,
+    }
     assert [row["calibration_id"] for row in data["calibrations"]] == [
         "p2-11d-local-account-4720",
         "p2-11e-t1007-service-discovery",
@@ -100,6 +121,7 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
         "p2-11g-t1027-encoded-powershell-mapping",
         "p2-11h-t1047-wmic-query",
         "p2-11j-t1003-networkprovider-credential-capture",
+        "p2-20-postholdout-coverage",
     ]
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"
