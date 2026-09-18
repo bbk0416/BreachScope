@@ -1,0 +1,85 @@
+schema: breachscope.p2_22b_benign_archive_binding.v1
+analysis_id: p2-22b-lmd2023-normal-benign-v1
+analysis_class: pre_observation_external_benign_archive_binding
+purpose: replacement fresh benign Windows Sysmon evaluation after P2-22 cerberus-trace was retired as unsupported
+code_under_observation:
+  repo_commit: 7311c8146495f5f8601e2581daefdfc88f6e1c41
+  product_semantics_commit: 73a9bc81c3bea4836d3a7301beeadf236d9f1b8d
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: ChristosSmiliotopoulos/Lateral-Movement-Dataset--LMD_Collections
+  pinned_commit: d5854e1875e2c2b5564f2cd54ac161abc023bae0
+  pinned_tree: 6c7ba8cec56c2fbae938e9bdbc93bd2ec51b0ef8
+  source_commit_date_utc: '2024-03-02T19:44:01Z'
+  source_commit_message: LMD-2023 Final Version checked
+  readme_git_blob_sha1: 3b257f7e6ebe80618bbfe7c1abcb82efe028e691
+  archive:
+    path: LMD-2023/LMD-2023.rar
+    git_lfs_pointer_blob_sha1: ea44e9f4a04c94bcb9ff951aa2ac5d8bec78d09d
+    git_lfs_pointer_size_bytes: 134
+    lfs_object_sha256: e9f16bcd50b2cae782ceeb2d998697098df3349c8ed3e56c983dc6b096240afe
+    lfs_object_size_bytes: 394944383
+source_ground_truth:
+  documentation:
+    readme_path: README.md
+    readme_git_blob_sha1: 3b257f7e6ebe80618bbfe7c1abcb82efe028e691
+    paper_doi: 10.1007/s10207-023-00725-8
+    later_label_definition_doi: 10.1007/s10207-025-01182-1
+  readme_supported_facts:
+    - LMD-2023 is Windows Sysmon telemetry and is offered in raw EVTX and CSV forms.
+    - The published LMD-2023 family contains normal and malicious traffic.
+    - Each LMD-2023 version contains separate Normal, EoRS, and EoHT subsets.
+    - The Normal subset is the upstream-designated normal traffic subset.
+  external_paper_supported_facts:
+    - Normal traffic represents typical user activities such as logins, web browsing, file sharing, email, and social-media interaction.
+    - The published class definition identifies Normal as class 0, EoRS as class 1, and EoHT as class 2.
+  evaluation_label_basis: use only an upstream path/member explicitly designated Normal; do not infer benignness from event contents
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  archive_bytes_downloaded_before_binding: false
+  archive_contents_inspected_before_binding: false
+  source_data_rows_or_events_inspected_before_binding: false
+  metadata_consulted_before_binding:
+    - repository README at pinned commit
+    - Git commit/tree/blob metadata
+    - Git LFS pointer OID and size
+    - published paper dataset description
+  p2_22_cerberus_source_reused: false
+protocol:
+  phase_a_archive_binding_only: true
+  phase_b_after_binding_merge:
+    - download the exact bound Git LFS object
+    - verify SHA256 and byte size before opening the archive
+    - inspect archive member names and sizes only
+    - do not extract or parse EVTX contents
+    - do not execute the BreachScope detector
+    - do not inspect BreachScope output
+  normal_subset_selection_policy: >-
+    Prefer the published LMD-2023 1.75M version because it is the base dataset described by the
+    source paper. Within that version, select only a raw/unmodified Windows EVTX artifact whose
+    archive path explicitly identifies the upstream Normal subset. Do not select by detector behavior,
+    event contents, file contents, or observed alert rate.
+  phase_c_required_before_data_content_observation: >-
+    Freeze and merge an exact Normal-member byte binding plus a scoring contract and runner before
+    extracting or parsing the selected Normal telemetry.
+  ambiguous_inventory_policy: >-
+    If archive member names do not provide a unique source-supported raw Normal EVTX artifact for
+    the 1.75M version, record ABORT_UNSUPPORTED. Do not inspect event contents to resolve ambiguity.
+  detector_execution_before_phase_c_contract: prohibited
+  tuning_after_source_observation_before_measurement_allowed: false
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  fresh_benign_evaluation: NOT_YET_MEASURED
+  benign_false_positive_rate: NOT_YET_MEASURED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+notes: >-
+  P2-22B is a replacement source after the Cerberus Trace source was retired. This phase binds only
+  the exact historical LMD-2023 release archive and upstream benign semantics. No archive payload,
+  member contents, EVTX record, or detector output was observed before this binding.
