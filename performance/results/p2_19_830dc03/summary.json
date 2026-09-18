@@ -1,0 +1,179 @@
+{
+  "schema": "breachscope.p2_19_peak_memory_benchmark_summary.v1",
+  "benchmark_id": "p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1",
+  "status": "completed",
+  "frozen_product": {
+    "repo_commit": "6b63cdead6e524d1ee60e9193b5353a2151767cd",
+    "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+    "rule_file_count": 4
+  },
+  "source": {
+    "path": "C:\\Users\\bbk0416\\Projects\\BreachScope-groundtruth-data\\p2_19_peak_memory\\p2_19_1m.jsonl",
+    "events": 1000000,
+    "size_bytes": 454835896,
+    "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+    "synthetic_suspicious_events": 1000
+  },
+  "measurement_order": [
+    10000,
+    100000,
+    1000000
+  ],
+  "results": [
+    {
+      "benchmark_id": "p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_19_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 10000,
+      "frozen_product": {
+        "repo_commit": "6b63cdead6e524d1ee60e9193b5353a2151767cd",
+        "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+        "rule_file_count": 4
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 10000,
+        "findings": 10,
+        "flagged_events": 10,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 0.74727,
+        "collect": 2.785785,
+        "detection": 10.004134,
+        "correlation": 2.989869,
+        "scenario": 0.000308,
+        "report_build": 0.011271,
+        "report_export": 3.681831
+      },
+      "total_seconds": 20.220515,
+      "throughput_events_per_second": 494.547,
+      "peak_working_set_bytes": 219848704,
+      "peak_working_set_mb": 209.664,
+      "artifacts": {
+        "html_bytes": 11737124,
+        "package_zip_bytes": 1053548
+      },
+      "orchestrator_wall_seconds": 22.899059
+    },
+    {
+      "benchmark_id": "p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_19_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 100000,
+      "frozen_product": {
+        "repo_commit": "6b63cdead6e524d1ee60e9193b5353a2151767cd",
+        "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+        "rule_file_count": 4
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 100000,
+        "findings": 100,
+        "flagged_events": 100,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 0.267956,
+        "collect": 38.340917,
+        "detection": 95.996068,
+        "correlation": 38.849671,
+        "scenario": 0.000254,
+        "report_build": 0.065744,
+        "report_export": 33.437953
+      },
+      "total_seconds": 206.958614,
+      "throughput_events_per_second": 483.188,
+      "peak_working_set_bytes": 1814085632,
+      "peak_working_set_mb": 1730.047,
+      "artifacts": {
+        "html_bytes": 117235599,
+        "package_zip_bytes": 10372098
+      },
+      "orchestrator_wall_seconds": 208.68029
+    },
+    {
+      "benchmark_id": "p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_19_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 1000000,
+      "frozen_product": {
+        "repo_commit": "6b63cdead6e524d1ee60e9193b5353a2151767cd",
+        "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+        "rule_file_count": 4
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 1000000,
+        "findings": 1000,
+        "flagged_events": 1000,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 0.13828,
+        "collect": 369.550997,
+        "detection": 865.735325,
+        "correlation": 319.642772,
+        "scenario": 0.00032,
+        "report_build": 0.698727,
+        "report_export": 356.012824
+      },
+      "total_seconds": 1911.779782,
+      "throughput_events_per_second": 523.073,
+      "peak_working_set_bytes": 11203510272,
+      "peak_working_set_mb": 10684.5,
+      "artifacts": {
+        "html_bytes": 1173795863,
+        "package_zip_bytes": 103543105
+      },
+      "orchestrator_wall_seconds": 1919.708205
+    }
+  ],
+  "claim_boundary": {
+    "single_machine_observation": true,
+    "peak_memory_metric": "PeakWorkingSetSize",
+    "statistical_benchmark": false,
+    "production_capacity": "NOT_CLAIMED",
+    "cross_tool_speed_comparison": "NOT_CLAIMED",
+    "enterprise_scale_readiness": "NOT_CLAIMED"
+  }
+}

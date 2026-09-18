@@ -1,0 +1,90 @@
+schema: breachscope.p2_19_peak_memory_benchmark_result.v1
+benchmark_id: p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1
+status: COMPLETED
+contract: performance/p2_19_peak_memory_contract.yaml
+frozen_product:
+  repo_commit: 6b63cdead6e524d1ee60e9193b5353a2151767cd
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_file_count: 4
+runner:
+  merge_commit: 830dc03198b8ef4f63b497d085e7444d0683b2e8
+  sha256: 6a46bc159ae592cc4bb4d175bd3213bce29c3713af8e37e0cd40c2df962f6287
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  logical_cpu_count: 22
+source:
+  events: 1000000
+  size_bytes: 454835896
+  sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_events: 1000
+canonical_artifacts:
+  summary:
+    path: performance/results/p2_19_830dc03/summary.json
+    sha256: 87ab66f2e20bbd5e0300dec7af741f31d46f0ef6034d3ebe03506a6e388016b2
+  result_10000:
+    path: performance/results/p2_19_830dc03/result_10000.json
+    sha256: 13f8cb2bde3406c90a6523273bdb4cbef7101396f19dd33d804da987190f5861
+  result_100000:
+    path: performance/results/p2_19_830dc03/result_100000.json
+    sha256: cb8dd68a498134c5dd7f43152e61cfaf0e59efb6c39cb123d7f9c7739dd8a9b9
+  result_1000000:
+    path: performance/results/p2_19_830dc03/result_1000000.json
+    sha256: eb7a90f7e4bf680578d94f92e8d1e7dbc391e61a190f583553573456d23709c1
+results:
+  - scale_events: 10000
+    total_seconds: 20.220515
+    throughput_events_per_second: 494.547
+    peak_working_set_bytes: 219848704
+    peak_working_set_mb: 209.664
+    findings: 10
+    flagged_events: 10
+    html_bytes: 11737124
+    package_zip_bytes: 1053548
+  - scale_events: 100000
+    total_seconds: 206.958614
+    throughput_events_per_second: 483.188
+    peak_working_set_bytes: 1814085632
+    peak_working_set_mb: 1730.047
+    findings: 100
+    flagged_events: 100
+    html_bytes: 117235599
+    package_zip_bytes: 10372098
+  - scale_events: 1000000
+    total_seconds: 1911.779782
+    throughput_events_per_second: 523.073
+    peak_working_set_bytes: 11203510272
+    peak_working_set_mb: 10684.5
+    findings: 1000
+    flagged_events: 1000
+    html_bytes: 1173795863
+    package_zip_bytes: 103543105
+protocol:
+  permanent_exclusive_lock_used: true
+  permanent_lock_sha256: e179b4bed0e0b971847f3d066c41880fee60323b2ab8fc16e5c733beabc3fff2
+  first_completed_or_failed_execution_retained_as_canonical: true
+  product_or_rules_tuned_from_result: false
+  result_replaced_for_better_numbers: false
+  p2_18_canonical_result_modified: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+interpretation:
+  scaling: >-
+    The full synthetic pipeline completed at all preregistered scales, but observed
+    peak working set increased from about 210 MiB at 10k events to about 1.69 GiB
+    at 100k and about 10.43 GiB at one million events.
+  one_million: >-
+    The one-million-event run took 1911.779782 seconds, about 31 minutes 52 seconds,
+    at 523.073 events per second and reached a 10,684.5 MiB peak working set.
+  operational_conclusion: >-
+    This result demonstrates that the current list-based full pipeline has a material
+    large-input memory cost. It does not support an enterprise-scale or bounded-memory
+    production claim.
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED
