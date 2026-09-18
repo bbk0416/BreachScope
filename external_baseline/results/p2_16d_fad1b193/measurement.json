@@ -1,0 +1,295 @@
+{
+  "schema": "breachscope.p2_16c_posthoc_normalization_diagnostic.v1",
+  "analysis_class": "posthoc_development_diagnostic",
+  "measurement_repo_commit": "fad1b19328c73866d719ad0c77fb1e86e98505fa",
+  "source_holdout_result_commit": "5e55e08c1483651a88e5c21bfa39a66fc76939db",
+  "archive_sha256": "ab4d1ec4e44102c87946a974f93aa248e49e5001e01fac3f137ec7e61bbc18ed",
+  "events": 121659,
+  "parse_errors": 0,
+  "hosts": {
+    "ACCT001": 1542,
+    "HFDC01": 28148,
+    "HR001": 85957,
+    "IT001": 6012
+  },
+  "canonical_coverage": {
+    "events": 121659,
+    "host_nonempty": 121659,
+    "source_nonempty": 121659,
+    "raw_computer_name_present": 121659,
+    "raw_source_name_present": 121659,
+    "raw_record_number_present": 121659
+  },
+  "rules": 66,
+  "rule_file_count": 4,
+  "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+  "findings": 114446,
+  "flagged_events": 37909,
+  "finding_hosts": {
+    "ACCT001": 9,
+    "HFDC01": 1701,
+    "HR001": 112667,
+    "IT001": 69
+  },
+  "chains": 50,
+  "chain_types": {
+    "activity": 34,
+    "download_exec": 2,
+    "encoded_exec": 12,
+    "remote_execution": 2
+  },
+  "cross_host_chains": 2,
+  "documented_hr001_hfdc01_chains": 2,
+  "documented_hr001_hfdc01_chain_rows": [
+    {
+      "chain_id": "remote_execution_1",
+      "chain_type": "remote_execution",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "HFDC01",
+        "HR001"
+      ],
+      "start_time": "2019-05-14T23:13:31.280000+00:00",
+      "end_time": "2019-05-14T23:13:31.356000+00:00",
+      "confidence": 0.5,
+      "metadata": {
+        "remote_execution": {
+          "source_host": "HR001.shire.com",
+          "target_host": "HFDC01.shire.com",
+          "method": "scm",
+          "operation": "create",
+          "service_name": "AdobeUpdater"
+        }
+      }
+    },
+    {
+      "chain_id": "remote_execution_2",
+      "chain_type": "remote_execution",
+      "event_count": 2,
+      "finding_count": 0,
+      "hosts": [
+        "HFDC01",
+        "HR001"
+      ],
+      "start_time": "2019-05-14T23:16:09.819000+00:00",
+      "end_time": "2019-05-14T23:16:09.942000+00:00",
+      "confidence": 0.5,
+      "metadata": {
+        "remote_execution": {
+          "source_host": "HR001.shire.com",
+          "target_host": "HFDC01.shire.com",
+          "method": "scm",
+          "operation": "start",
+          "service_name": "AdobeUpdater"
+        }
+      }
+    }
+  ],
+  "scenarios": 13,
+  "cross_host_scenarios": 0,
+  "documented_hr001_hfdc01_scenarios": 0,
+  "documented_hr001_hfdc01_scenario_rows": [],
+  "scenario_rows": [
+    {
+      "scenario_id": "scope_52f4fadc29f1c6a8_scenario_1_encoded_cred_dump",
+      "name": "인코딩된 명령을 통한 자격증명 탈취",
+      "attack_stage": "credential_access",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 10,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_52f4fadc29f1c6a8_scenario_2_rdp_lateral",
+      "name": "RDP를 통한 측면 이동",
+      "attack_stage": "lateral_movement",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1021.001"
+      ],
+      "chain_count": 21,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_52f4fadc29f1c6a8_scenario_3_fileless_attack",
+      "name": "파일리스 공격",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 10,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_52f4fadc29f1c6a8_scenario_chain_encoded_1",
+      "name": "인코딩된 명령 실행",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.7,
+      "mitre_techniques": [
+        "T1003.001",
+        "T1007",
+        "T1021.001",
+        "T1059.001",
+        "T1127.001",
+        "T1218.010",
+        "T1555.003",
+        "T1569.002"
+      ],
+      "chain_count": 10,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_52f4fadc29f1c6a8_scenario_chain_download_0",
+      "name": "웹 다운로드 및 실행",
+      "attack_stage": "execution",
+      "confidence": 0.6,
+      "mitre_techniques": [
+        "T1003.001",
+        "T1007",
+        "T1021.001",
+        "T1059.001",
+        "T1127.001",
+        "T1218.010",
+        "T1555.003",
+        "T1569.002"
+      ],
+      "chain_count": 2,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_e6a3db0e52528b6c_scenario_1_encoded_cred_dump",
+      "name": "인코딩된 명령을 통한 자격증명 탈취",
+      "attack_stage": "credential_access",
+      "confidence": 0.76,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_e6a3db0e52528b6c_scenario_2_fileless_attack",
+      "name": "파일리스 공격",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.76,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_e6a3db0e52528b6c_scenario_chain_encoded_0",
+      "name": "인코딩된 명령 실행",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.7,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HR001"
+      ]
+    },
+    {
+      "scenario_id": "scope_1b13dcea8e6b8a55_scenario_2_rdp_lateral",
+      "name": "RDP를 통한 측면 이동",
+      "attack_stage": "lateral_movement",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1021.001"
+      ],
+      "chain_count": 4,
+      "hosts": [
+        "HFDC01"
+      ]
+    },
+    {
+      "scenario_id": "scope_1b13dcea8e6b8a55_scenario_1_encoded_cred_dump",
+      "name": "인코딩된 명령을 통한 자격증명 탈취",
+      "attack_stage": "credential_access",
+      "confidence": 0.7999999999999999,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HFDC01"
+      ]
+    },
+    {
+      "scenario_id": "scope_1b13dcea8e6b8a55_scenario_3_fileless_attack",
+      "name": "파일리스 공격",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.7999999999999999,
+      "mitre_techniques": [
+        "T1059.001"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HFDC01"
+      ]
+    },
+    {
+      "scenario_id": "scope_1b13dcea8e6b8a55_scenario_chain_encoded_0",
+      "name": "인코딩된 명령 실행",
+      "attack_stage": "defense_evasion",
+      "confidence": 0.7,
+      "mitre_techniques": [
+        "T1003.001",
+        "T1021.001",
+        "T1059.001",
+        "T1115",
+        "T1218.010"
+      ],
+      "chain_count": 1,
+      "hosts": [
+        "HFDC01"
+      ]
+    },
+    {
+      "scenario_id": "scope_36809fc00b961210_scenario_1_rdp_lateral",
+      "name": "RDP를 통한 측면 이동",
+      "attack_stage": "lateral_movement",
+      "confidence": 0.9,
+      "mitre_techniques": [
+        "T1021.001"
+      ],
+      "chain_count": 3,
+      "hosts": [
+        "IT001"
+      ]
+    }
+  ],
+  "timing_seconds": {
+    "load": 77.256726,
+    "detection": 120.149858,
+    "correlation": 64.690654,
+    "scenario": 42.913497
+  },
+  "claim_boundary": {
+    "independent_holdout": "NO",
+    "event_level_ground_truth": "NOT_AVAILABLE",
+    "precision": "NOT_CLAIMED",
+    "recall": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED"
+  }
+}
