@@ -1,0 +1,30 @@
+{
+  "schema": "breachscope.p2_23_peak_memory_precondition_failure.v1",
+  "benchmark_id": "p2-23-windows-bounded-html-peak-memory-10k-100k-1m-v1",
+  "contract_merge_commit": "bc9b6ae2f310a47073b5c6ca61ab865f6e5a11da",
+  "runner_commit": "203fca33f0d46a9147dc93035992e658078c6bfe",
+  "frozen_product_commit": "62c5cf38bd566c4ec37ec52f55a68ca63ced8758",
+  "attempt": {
+    "status": "PRECONDITION_FAILED_BEFORE_BENCHMARK_START",
+    "launcher": "python",
+    "required_python_major_minor": "3.11",
+    "observed_python_version": "3.13.15",
+    "exit_code": 1,
+    "exception_type": "RuntimeError",
+    "exception_message": "P2-23 requires Python 3.11, got 3.13.15"
+  },
+  "execution_state": {
+    "orchestrate_entered": false,
+    "permanent_lock_created": false,
+    "source_generated": false,
+    "worker_process_started": false,
+    "measurement_rows": 0,
+    "scales_measured": []
+  },
+  "canonical_interpretation": {
+    "p2_23_status": "FAILED_PRECONDITION",
+    "same_benchmark_id_rerun_allowed": false,
+    "better_number_replacement_allowed": false,
+    "next_measurement_requires_new_benchmark_id": true
+  }
+}
