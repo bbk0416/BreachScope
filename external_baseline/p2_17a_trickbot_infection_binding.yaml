@@ -1,0 +1,57 @@
+schema: breachscope.p2_17a_external_holdout_binding.v1
+analysis_id: p2-17a-splunk-trickbot-infection-binding-v1
+analysis_class: pre_observation_external_holdout_binding
+purpose: independent detection/reconstruction holdout after P2-16 development
+code_under_observation:
+  repo_commit: 05cae988d780200f547325a92c42c053b86f11b9
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source_binding:
+  repository: splunk/attack_data
+  pinned_commit: db9624b71def9902600972593abf0dfaf9f3b399
+  dataset: TrickBot infection
+  dataset_path: datasets/malware/trickbot/infection
+  metadata_path: datasets/malware/trickbot/infection/data.yml
+  metadata_git_blob_sha1: ca60462dd6e045f43dfc140c78725f636c41598a
+  metadata_size_bytes: 407
+  metadata_sha256: ca655e395cc90a6dffde9f067df0be65a76967287b8dbb22df82d7b4df2e5d02
+  telemetry_path: datasets/malware/trickbot/infection/windows-sysmon.log
+  telemetry_git_lfs_oid_sha256: 94438dd32541ebd0150f782ba6dcce8fbd12d7c592013d3426c8bb0bb24ae24d
+  telemetry_size_bytes: 463822959
+selection_basis:
+  repository_tree_path_only: true
+  breachscope_default_branch_search_for_attack_data_or_trickbot: 0
+  metadata_file_contents_inspected_before_binding: false
+  telemetry_contents_inspected_before_binding: false
+  lfs_pointer_metadata_parsed_before_binding: true
+protocol:
+  corpus_previously_used_for_breachscope_development: false
+  corpus_previously_measured_by_breachscope: false
+  implementation_frozen_before_source_observation: true
+  rules_frozen_before_source_observation: true
+  one_pass_measurement_planned: true
+  tuning_after_source_observation_before_measurement_allowed: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+measurement_plan:
+  phase_b: inspect the bound metadata file only after this binding is merged
+  phase_c: download and hash-check the bound telemetry, then run the frozen pipeline once
+  record: parse counts findings flagged events rule hits chains scenarios timings and resource observations
+  comparison: compare emitted ATT&CK techniques only to labels explicitly supplied by the bound source metadata
+claim_boundary:
+  event_level_ground_truth: NOT_ASSESSED_BEFORE_BINDING
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+notes: >-
+  This binding freezes the BreachScope implementation, rules, source repository commit,
+  metadata bytes, and telemetry LFS object before source metadata or telemetry contents are
+  inspected. The dataset was selected from repository tree metadata only. Source labels will
+  be read only after this binding is merged, and the first frozen pipeline measurement will
+  be preserved even if it fails.
