@@ -1,0 +1,15 @@
+{
+  "schema": "breachscope.p2_22b_download_verification.v1",
+  "analysis_id": "p2-22b-lmd2023-normal-benign-v1",
+  "source_repository": "ChristosSmiliotopoulos/Lateral-Movement-Dataset--LMD_Collections",
+  "pinned_commit": "d5854e1875e2c2b5564f2cd54ac161abc023bae0",
+  "archive": {
+    "path": "LMD-2023/LMD-2023.rar",
+    "expected_size_bytes": 394944383,
+    "actual_size_bytes": 394944383,
+    "expected_sha256": "e9f16bcd50b2cae782ceeb2d998697098df3349c8ed3e56c983dc6b096240afe",
+    "actual_sha256": "e9f16bcd50b2cae782ceeb2d998697098df3349c8ed3e56c983dc6b096240afe",
+    "size_match": true,
+    "sha256_match": true
+  }
+}

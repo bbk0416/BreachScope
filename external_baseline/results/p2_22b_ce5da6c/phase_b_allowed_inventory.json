@@ -1,0 +1,72 @@
+{
+  "schema": "breachscope.p2_22b_phase_b_allowed_inventory.v1",
+  "outer_archive": {
+    "file_count": 3,
+    "members": [
+      {
+        "path": "LMD-2023\\LMD-2023 [1.75M Elements] Checked.rar",
+        "size_bytes": 88024872
+      },
+      {
+        "path": "LMD-2023\\LMD-2023 [1.87M Elements]Checked.rar",
+        "size_bytes": 130238808
+      },
+      {
+        "path": "LMD-2023\\LMD-2023 [2.3M Elements]Checked.rar",
+        "size_bytes": 176680057
+      }
+    ]
+  },
+  "selected_version": {
+    "selection_basis": "prebound policy prefers the published 1.75M base version",
+    "member_path": "LMD-2023\\LMD-2023 [1.75M Elements] Checked.rar",
+    "member_size_bytes": 88024872,
+    "nested_archive_container_extracted_for_inventory_only": true
+  },
+  "nested_1_75m_archive": {
+    "file_count": 6,
+    "members": [
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\Labelled LMD-2023\\Labelled Subsets\\LMD-2023 [1.75M Elements - EoHT]checked.csv",
+        "size_bytes": 22683986
+      },
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\Labelled LMD-2023\\Labelled Subsets\\LMD-2023 [1.75M Elements - EoRS]checked.csv",
+        "size_bytes": 107683664
+      },
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\Labelled LMD-2023\\Labelled Subsets\\LMD-2023 [1.75M Elements - Normal]checked.csv",
+        "size_bytes": 960622033
+      },
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\Labelled LMD-2023\\LMD-2023 [1.75M Elements][Labelled]checked.csv",
+        "size_bytes": 1071050101
+      },
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\LMD-2023 [1.75M Elements]Checked.csv",
+        "size_bytes": 1067544423
+      },
+      {
+        "path": "LMD-2023 [1.75M Elements] Checked\\Preprocessed LMD-2023\\LMD-2023 [1.75M Elements][Labelled+Preprocessed].csv",
+        "size_bytes": 507432118
+      }
+    ],
+    "extensions": {
+      ".csv": 6,
+      ".evtx": 0
+    },
+    "normal_named_member_count": 1,
+    "normal_named_members": [
+      "LMD-2023 [1.75M Elements] Checked\\Labelled LMD-2023\\Labelled Subsets\\LMD-2023 [1.75M Elements - Normal]checked.csv"
+    ],
+    "raw_evtx_member_count": 0,
+    "unique_source_supported_raw_normal_evtx_available": false
+  },
+  "content_observation": {
+    "csv_contents_inspected": false,
+    "evtx_contents_extracted": false,
+    "evtx_contents_parsed": false,
+    "breachscope_detector_run": false,
+    "breachscope_output_inspected": false
+  }
+}
