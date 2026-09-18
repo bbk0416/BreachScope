@@ -1,0 +1,108 @@
+schema: breachscope.p2_17c_attack_data_one_pass_evidence.v1
+analysis_id: p2-17c-splunk-attack-data-technique-bundle-result-v1
+status: CANONICAL_EARLIEST_SUBSTANTIVE_EXECUTION_COMPLETED_WITH_PROTOCOL_OVERLAP
+binding: external_baseline/p2_17b_attack_data_technique_bundle_binding.yaml
+analysis_class: independent_external_path_labeled_holdout_with_execution_overlap
+code_under_observation:
+  repo_commit: 34e4d4440f57d4c8a83f77da60807458a71816c8
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_file_count: 4
+source:
+  repository: splunk/attack_data
+  pinned_commit: db9624b71def9902600972593abf0dfaf9f3b399
+canonical_measurement:
+  path: external_baseline/results/p2_17b_34e4d444/measurement.json
+  sha256: 6785f7226485cc27a1f1214f42b41fad471b93ec5dc09caefa316c7031fbde89
+  runner_path: external_baseline/results/p2_17b_34e4d444/runner_used.py
+  runner_sha256: 84eb5adedc9ae8ac9164489d76724da02f8d583d18d10876127d1ce8711834d0
+  python: 3.12.10
+  platform: Windows-11-10.0.26200-SP0
+  process_started_local: "2026-09-18T13:32:31+09:00"
+  result_completed_local: "2026-09-18T13:50:37+09:00"
+  exit_code: 0
+summary:
+  dataset_count: 5
+  expected_technique_hits: 5
+  expected_technique_misses: 0
+  path_label_dataset_hit_rate: 1.0
+  parsed_events: 54334
+  parse_errors: 73
+  findings: 806
+  flagged_events: 327
+datasets:
+  - technique_id: T1059.001
+    events: 21908
+    parse_errors: 62
+    findings: 142
+    flagged_events: 79
+    chains: 43
+    scenarios: 5
+    expected_technique_hit: true
+  - technique_id: T1543.003
+    events: 6216
+    parse_errors: 5
+    findings: 166
+    flagged_events: 62
+    chains: 56
+    scenarios: 5
+    expected_technique_hit: true
+  - technique_id: T1053.005
+    events: 6276
+    parse_errors: 6
+    findings: 166
+    flagged_events: 62
+    chains: 56
+    scenarios: 5
+    expected_technique_hit: true
+  - technique_id: T1047
+    events: 6571
+    parse_errors: 0
+    findings: 167
+    flagged_events: 63
+    chains: 56
+    scenarios: 5
+    expected_technique_hit: true
+  - technique_id: T1218.011
+    events: 13363
+    parse_errors: 0
+    findings: 165
+    flagged_events: 61
+    chains: 56
+    scenarios: 4
+    expected_technique_hit: true
+protocol:
+  source_bytes_matched_preregistered_sha256: true
+  frozen_product_and_rules_used_for_canonical_measurement: true
+  initial_environment_preflight_failure_before_detection: true
+  initial_environment_preflight_failure_reason: missing_pySigma_dependency
+  canonical_execution_is_earliest_substantive_execution: true
+  later_overlapping_substantive_execution_observed: true
+  later_duplicate_excluded_from_canonical_result: true
+  assistant_started_later_duplicate_then_terminated_on_overlap_discovery: true
+  strict_one_pass_execution_exclusivity: false
+  product_or_rules_tuned_from_holdout_result: false
+  canonical_result_replaced_for_improvement: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+interpretation:
+  supported: >-
+    All five preregistered path-labeled datasets emitted at least one finding carrying
+    the expected ATT&CK technique ID under the frozen product and rules.
+  parser_limitation: >-
+    The canonical run recorded 73 parse errors across the five source files. The 5/5
+    path-label result does not erase or excuse those parser failures.
+  protocol_limitation: >-
+    A later substantive duplicate execution overlapped the canonical run, so strict
+    single-execution exclusivity was not preserved. The earliest substantive run is
+    retained as canonical and later duplicate outputs are not used for scoring.
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  path_label_dataset_hit_rate: 1.0
+  path_label_dataset_hit_rate_is_event_level_recall: false
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
