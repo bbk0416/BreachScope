@@ -1,0 +1,213 @@
+{
+  "schema": "breachscope.p2_17b_attack_data_one_pass.v1",
+  "analysis_class": "independent_external_path_labeled_holdout_one_pass",
+  "status": "completed",
+  "environment": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "frozen": {
+    "repo_commit": "34e4d4440f57d4c8a83f77da60807458a71816c8",
+    "rules_tree_sha256": "9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92",
+    "rule_file_count": 4,
+    "sources": [
+      {
+        "technique_id": "T1059.001",
+        "file": "T1059.001.log",
+        "size_bytes": 38928903,
+        "sha256": "8f71b2a0ef81892551cd6a9ad115b8ec5c42d9f2071547b064c496511898c4e9"
+      },
+      {
+        "technique_id": "T1543.003",
+        "file": "T1543.003.log",
+        "size_bytes": 11281916,
+        "sha256": "2e6ea9e053a84f4d32b37f462a40a39f1a90c2049adaf684b0660ee6e9f32d7a"
+      },
+      {
+        "technique_id": "T1053.005",
+        "file": "T1053.005.log",
+        "size_bytes": 11410982,
+        "sha256": "d346ab6c75b3151217dfc2c4c166c951fc16d68c31b7d5a8f3e577d9545ff9f0"
+      },
+      {
+        "technique_id": "T1047",
+        "file": "T1047.log",
+        "size_bytes": 11815541,
+        "sha256": "64651720e10813aa57d0f25ce149005ab06039b1974dbc09818b1fb45fbbc196"
+      },
+      {
+        "technique_id": "T1218.011",
+        "file": "T1218.011.log",
+        "size_bytes": 23784139,
+        "sha256": "0805f7d8a89371dee4f75c001ef11574c2d759d91626c1625bca7c9174cfe29f"
+      }
+    ]
+  },
+  "datasets": [
+    {
+      "expected_technique": "T1059.001",
+      "status": "completed",
+      "events": 21908,
+      "parse_errors": 62,
+      "findings": 142,
+      "flagged_events": 79,
+      "observed_finding_technique_ids": [
+        "T1003.001",
+        "T1027.010",
+        "T1059.001",
+        "T1105"
+      ],
+      "expected_technique_hit": true,
+      "chains": 43,
+      "chain_types": {
+        "activity": 4,
+        "download_exec": 12,
+        "encoded_exec": 27
+      },
+      "scenarios": 5,
+      "timing_seconds": {
+        "load": 117.419294,
+        "detection": 115.759322,
+        "correlation": 22.438338,
+        "scenario": 46.434524
+      },
+      "peak_python_bytes": 244840723
+    },
+    {
+      "expected_technique": "T1543.003",
+      "status": "completed",
+      "events": 6216,
+      "parse_errors": 5,
+      "findings": 166,
+      "flagged_events": 62,
+      "observed_finding_technique_ids": [
+        "T1003.001",
+        "T1027.010",
+        "T1047",
+        "T1059.001",
+        "T1543.003"
+      ],
+      "expected_technique_hit": true,
+      "chains": 56,
+      "chain_types": {
+        "activity": 2,
+        "encoded_exec": 54
+      },
+      "scenarios": 5,
+      "timing_seconds": {
+        "load": 20.723311,
+        "detection": 20.011743,
+        "correlation": 6.126788,
+        "scenario": 107.258636
+      },
+      "peak_python_bytes": 69719119
+    },
+    {
+      "expected_technique": "T1053.005",
+      "status": "completed",
+      "events": 6276,
+      "parse_errors": 6,
+      "findings": 166,
+      "flagged_events": 62,
+      "observed_finding_technique_ids": [
+        "T1003.001",
+        "T1027.010",
+        "T1047",
+        "T1053.005",
+        "T1059.001"
+      ],
+      "expected_technique_hit": true,
+      "chains": 56,
+      "chain_types": {
+        "activity": 2,
+        "encoded_exec": 54
+      },
+      "scenarios": 5,
+      "timing_seconds": {
+        "load": 26.42303,
+        "detection": 28.659053,
+        "correlation": 7.171252,
+        "scenario": 145.349542
+      },
+      "peak_python_bytes": 70469928
+    },
+    {
+      "expected_technique": "T1047",
+      "status": "completed",
+      "events": 6571,
+      "parse_errors": 0,
+      "findings": 167,
+      "flagged_events": 63,
+      "observed_finding_technique_ids": [
+        "T1003.001",
+        "T1027.010",
+        "T1047",
+        "T1059.001"
+      ],
+      "expected_technique_hit": true,
+      "chains": 56,
+      "chain_types": {
+        "activity": 2,
+        "encoded_exec": 54
+      },
+      "scenarios": 5,
+      "timing_seconds": {
+        "load": 35.058775,
+        "detection": 36.805405,
+        "correlation": 8.988016,
+        "scenario": 119.538044
+      },
+      "peak_python_bytes": 73316687
+    },
+    {
+      "expected_technique": "T1218.011",
+      "status": "completed",
+      "events": 13363,
+      "parse_errors": 0,
+      "findings": 165,
+      "flagged_events": 61,
+      "observed_finding_technique_ids": [
+        "T1003.001",
+        "T1027.010",
+        "T1047",
+        "T1059.001",
+        "T1218.011"
+      ],
+      "expected_technique_hit": true,
+      "chains": 56,
+      "chain_types": {
+        "activity": 2,
+        "encoded_exec": 54
+      },
+      "scenarios": 4,
+      "timing_seconds": {
+        "load": 69.745641,
+        "detection": 44.684426,
+        "correlation": 15.307901,
+        "scenario": 87.674248
+      },
+      "peak_python_bytes": 148182580
+    }
+  ],
+  "claim_boundary": {
+    "event_level_ground_truth": "NOT_AVAILABLE",
+    "detection_precision": "NOT_CLAIMED",
+    "detection_recall": "NOT_CLAIMED",
+    "false_positive_rate": "NOT_CLAIMED",
+    "path_label_dataset_hit_rate": "MEASURABLE",
+    "chain_precision": "NOT_CLAIMED",
+    "chain_recall": "NOT_CLAIMED",
+    "scenario_accuracy": "NOT_CLAIMED",
+    "production_quality": "NOT_CLAIMED"
+  },
+  "summary": {
+    "dataset_count": 5,
+    "hits": 5,
+    "misses": 0,
+    "path_label_dataset_hit_rate": 1.0,
+    "total_events": 54334,
+    "total_parse_errors": 73,
+    "total_findings": 806,
+    "total_flagged_events": 327
+  }
+}
