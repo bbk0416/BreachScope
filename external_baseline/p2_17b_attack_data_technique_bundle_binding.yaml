@@ -1,0 +1,118 @@
+schema: breachscope.p2_17b_external_technique_bundle_binding.v1
+analysis_id: p2-17b-splunk-attack-data-technique-bundle-v1
+analysis_class: pre_observation_external_holdout_binding
+purpose: independent path-labeled ATT&CK technique holdout after P2-16/P2-17A
+code_under_observation:
+  repo_commit: 34e4d4440f57d4c8a83f77da60807458a71816c8
+  product_semantics_base: 05cae988d780200f547325a92c42c053b86f11b9
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+source:
+  repository: splunk/attack_data
+  pinned_commit: db9624b71def9902600972593abf0dfaf9f3b399
+selection_policy:
+  technique_ids:
+    - T1059.001
+    - T1543.003
+    - T1053.005
+    - T1047
+    - T1218.011
+  basis: each technique is already declared by the frozen BreachScope rule pack
+  directory_rule: >-
+    For each technique ID, choose the lexicographically first immediate child
+    directory under datasets/attack_techniques/<ID>/ that contains both a YAML
+    metadata file and a file named exactly windows-sysmon.log.
+  selected_directory_for_all: atomic_red_team
+  source_path_is_dataset_level_expected_technique: true
+  breachscope_search_for_selected_attack_data_paths_before_binding: 0
+  metadata_yaml_contents_inspected_before_binding: false
+  telemetry_contents_inspected_before_binding: false
+datasets:
+  - technique_id: T1059.001
+    directory: datasets/attack_techniques/T1059.001/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1059.001/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: c3413c5f96bd88089cd905223b8789801edfd9a2
+    metadata_size_bytes: 2064
+    metadata_sha256: c09aea5766db95d5122d2e7fa9533259aefc03322eac05a13cb88fec9e8b48a5
+    telemetry_path: datasets/attack_techniques/T1059.001/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: f09f63cfbc6c3e0007b9993c728294d970a34385
+    telemetry_sha256: 8f71b2a0ef81892551cd6a9ad115b8ec5c42d9f2071547b064c496511898c4e9
+    telemetry_size_bytes: 38928903
+  - technique_id: T1543.003
+    directory: datasets/attack_techniques/T1543.003/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1543.003/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: 4fb0fbac7726b180daa784d293712dbffca86f1f
+    metadata_size_bytes: 1486
+    metadata_sha256: 5203ec58be1e85d84c4d9328de2df98aab17839ffc81fda32e835a8e99344fcd
+    telemetry_path: datasets/attack_techniques/T1543.003/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 392fc55f0ee521ae6213791c5d929d925add3437
+    telemetry_sha256: 2e6ea9e053a84f4d32b37f462a40a39f1a90c2049adaf684b0660ee6e9f32d7a
+    telemetry_size_bytes: 11281916
+  - technique_id: T1053.005
+    directory: datasets/attack_techniques/T1053.005/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1053.005/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: 6f178602d3b25c444b27e552e672c5e4e1fd762f
+    metadata_size_bytes: 1076
+    metadata_sha256: 4956b383fd9a942c9e5e6904dba56989f66c7ae0a4098033dc51323b07fa1788
+    telemetry_path: datasets/attack_techniques/T1053.005/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 05cf8f14e4d20d071bd3a12a7d2d35bc6bf0f4f1
+    telemetry_sha256: d346ab6c75b3151217dfc2c4c166c951fc16d68c31b7d5a8f3e577d9545ff9f0
+    telemetry_size_bytes: 11410982
+  - technique_id: T1047
+    directory: datasets/attack_techniques/T1047/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1047/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: 5fdc07a45b8782454985dcb7e97c8f521cf6dc13
+    metadata_size_bytes: 1277
+    metadata_sha256: c578045d885fe2b2ba2c3ff7bdd7cdf95be0cf811497d644358dd18ab1681076
+    telemetry_path: datasets/attack_techniques/T1047/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: af31d9055080bcb0758cba36a23bcf6cd83278e0
+    telemetry_sha256: 64651720e10813aa57d0f25ce149005ab06039b1974dbc09818b1fb45fbbc196
+    telemetry_size_bytes: 11815541
+  - technique_id: T1218.011
+    directory: datasets/attack_techniques/T1218.011/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1218.011/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: bafbad22ced633c9d64573b6cddbed914d6026bd
+    metadata_size_bytes: 1099
+    metadata_sha256: 24faac03d18106e3ba6c0da095edda30ec36f5b552051ed1681bffabc4c211c1
+    telemetry_path: datasets/attack_techniques/T1218.011/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 9336e0382c33b70769a10d20c0769651caa14cbd
+    telemetry_sha256: 0805f7d8a89371dee4f75c001ef11574c2d759d91626c1625bca7c9174cfe29f
+    telemetry_size_bytes: 23784139
+protocol:
+  corpus_previously_used_for_breachscope_development: false
+  corpus_previously_measured_by_breachscope: false
+  implementation_frozen_before_telemetry_observation: true
+  rules_frozen_before_telemetry_observation: true
+  one_pass_measurement_planned: true
+  tuning_after_telemetry_observation_before_measurement_allowed: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+measurement_contract:
+  unit: dataset
+  expected_technique_source: attack_data directory path
+  expected_dataset_count: 5
+  score: >-
+    For each bound dataset, record HIT when at least one BreachScope finding
+    carries that dataset's path-bound ATT&CK technique ID; otherwise record MISS.
+  path_label_hit_rate_is_event_level_recall: false
+  parser_failure_counts_as_dataset_failure: true
+  record: >-
+    source SHA verification, event count, parse errors, findings, flagged events,
+    observed finding technique IDs, expected-technique HIT/MISS, chain counts,
+    scenario counts, stage timings, and peak Python memory
+  no_result_driven_remeasurement: true
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  path_label_dataset_hit_rate: MEASURABLE_AFTER_ONE_PASS
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+notes: >-
+  Only repository tree paths, Git blob metadata, YAML byte hashes, and Git LFS
+  pointer OID/size metadata were inspected before this binding. YAML semantic
+  contents and telemetry contents remain unopened. The path label supports only
+  a dataset-level expected-technique HIT/MISS, not event-level recall.
