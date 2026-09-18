@@ -1,0 +1,117 @@
+schema: breachscope.p2_23_peak_memory_benchmark_contract.v1
+benchmark_id: p2-23-windows-bounded-html-peak-memory-10k-100k-1m-v1
+status: PREREGISTERED_BEFORE_CANONICAL_1M_MEASUREMENT
+purpose: measure peak working set after the bounded HTML report memory change without rewriting P2-19
+
+relation_to_p2_19:
+  prior_benchmark_id: p2-19-windows-full-pipeline-peak-memory-10k-100k-1m-v1
+  prior_result_status: COMPLETED
+  prior_result_modified: false
+  same_synthetic_workload: true
+  exact_detector_version_match: false
+  note: >-
+    P2-19 used the older 66-rule product. P2-23 uses the merged 68-rule product.
+    P2-19 remains historical evidence and is not treated as an exact A/B control.
+
+product:
+  repo_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  optimization_commit: 13b21e077b351dcbcb8900a5053f28b8a0e1ed31
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_file_count: 5
+  rule_count: 68
+
+runner:
+  path: scripts/p2_23_peak_memory_benchmark.py
+  sha256: aa3598e40f178ab39604c3d54822af0f96ba7fbc35d77c12cdfa17583a3b9689
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  memory_api: GetProcessMemoryInfo
+  memory_metric: PeakWorkingSetSize
+  windows_64bit_handle_restype_explicit: true
+  psapi_argtypes_and_restype_explicit: true
+
+input:
+  deterministic_generator_same_as_p2_19: true
+  expected_events: 1000000
+  expected_size_bytes: 454835896
+  expected_sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_interval: 1000
+  synthetic_suspicious_fraction: 0.001
+
+measurement:
+  sizes_events: [10000, 100000, 1000000]
+  order: ascending
+  fresh_python_process_per_size: true
+  parallel_detection: true
+  max_workers: 8
+  hayabusa_enabled: false
+  redaction_enabled: true
+  stages:
+    - load_rules
+    - collect
+    - detection
+    - correlation
+    - scenario
+    - report_build
+    - report_export
+  primary_metric: peak_working_set_bytes
+  secondary_metrics:
+    - peak_working_set_mb
+    - stage_seconds
+    - total_seconds
+    - throughput_events_per_second
+    - events
+    - findings
+    - flagged_events
+    - chains
+    - scenarios
+    - html_bytes
+    - package_zip_bytes
+  peak_memory_scope: entire worker process lifetime through report export
+  repetitions_per_size: 1
+  statistical_summary: false
+
+pre_registration_disclosure:
+  exploratory_100k_probe_observed_before_this_contract: true
+  exploratory_probe_was_canonical: false
+  exploratory_probe_product_commit: 13b21e077b351dcbcb8900a5053f28b8a0e1ed31
+  exploratory_control_commit: 3c2232195dd09a6383a85c66655a712be90fbde9
+  exploratory_100k_counts:
+    events: 100000
+    findings: 100
+    chains: 0
+    scenarios: 0
+  exploratory_100k_peak_mib:
+    control: 1606.504
+    candidate: 494.051
+  consequence: >-
+    The formal P2-23 100k row is confirmatory, not fresh. The first formal 1m execution
+    after this contract is merged is the primary new large-input observation.
+
+protocol:
+  contract_committed_before_canonical_1m_measurement: true
+  permanent_lock_acquired_before_source_generation: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_canonical_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  source_hash_or_size_mismatch_fails_closed: true
+  missing_or_zero_peak_memory_fails_worker: true
+  failed_scale_stops_later_scales: true
+  p2_19_canonical_result_modified: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+
+claim_boundary:
+  synthetic_workload: true
+  formal_100k_result_is_fresh: false
+  formal_1m_result_is_first_post_contract_1m_observation: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  exact_p2_19_apples_to_apples_comparison: NOT_CLAIMED
+  cross_tool_speed_comparison: NOT_CLAIMED
+  guaranteed_parallel_speedup: NOT_CLAIMED
