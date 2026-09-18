@@ -24,7 +24,9 @@ def _sha(path):
 
 def test_canonical_artifact_hashes_are_bound():
     row = _evidence()["canonical_measurement"]
-    assert _sha(MEASUREMENT) == row["sha256"]
+    assert row["original_measurement_sha256"] == "6785f7226485cc27a1f1214f42b41fad471b93ec5dc09caefa316c7031fbde89"
+    assert row["storage_normalization"] == "CRLF_TO_LF_ONLY"
+    assert _sha(MEASUREMENT) == row["stored_measurement_sha256"]
     assert _sha(RUNNER) == row["runner_sha256"]
 
 

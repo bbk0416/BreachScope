@@ -12,7 +12,9 @@ source:
   pinned_commit: db9624b71def9902600972593abf0dfaf9f3b399
 canonical_measurement:
   path: external_baseline/results/p2_17b_34e4d444/measurement.json
-  sha256: 6785f7226485cc27a1f1214f42b41fad471b93ec5dc09caefa316c7031fbde89
+  original_measurement_sha256: 6785f7226485cc27a1f1214f42b41fad471b93ec5dc09caefa316c7031fbde89
+  stored_measurement_sha256: 6942b35c68e8286d30bb690deebb52ab4df9e8f9dd90f813e7fe6d071202b665
+  storage_normalization: CRLF_TO_LF_ONLY
   runner_path: external_baseline/results/p2_17b_34e4d444/runner_used.py
   runner_sha256: 84eb5adedc9ae8ac9164489d76724da02f8d583d18d10876127d1ce8711834d0
   python: 3.12.10
