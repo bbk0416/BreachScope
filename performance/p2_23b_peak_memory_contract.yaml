@@ -1,0 +1,98 @@
+schema: breachscope.p2_23b_peak_memory_benchmark_contract.v1
+benchmark_id: p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1
+status: PREREGISTERED_AFTER_P2_23_PRECONDITION_FAILURE
+purpose: obtain the first valid canonical 1m peak-memory measurement after P2-23 failed before benchmark start
+
+relation_to_p2_23:
+  prior_benchmark_id: p2-23-windows-bounded-html-peak-memory-10k-100k-1m-v1
+  prior_status: FAILED_PRECONDITION
+  prior_result: performance/p2_23_peak_memory_result.yaml
+  prior_measurement_rows: 0
+  same_benchmark_id_reused: false
+  product_or_rules_changed_after_prior_failure: false
+
+product:
+  repo_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  optimization_commit: 13b21e077b351dcbcb8900a5053f28b8a0e1ed31
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_file_count: 5
+  rule_count: 68
+
+runner:
+  path: scripts/p2_23b_peak_memory_benchmark.py
+  sha256: 3f8f52cb9010585824ba67cf378e3e45563ec15a6736edc9f45848fca4f9cfce
+  storage_normalization: CRLF_TO_LF_ONLY
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  memory_api: GetProcessMemoryInfo
+  memory_metric: PeakWorkingSetSize
+
+canonical_invocation:
+  launcher: py -3.11
+  observed_launcher_version_before_registration: 3.11.9
+  dependency_preflight:
+    yaml_import: PASS
+    jinja2_import: PASS
+  command_template: >-
+    py -3.11 scripts/p2_23b_peak_memory_benchmark.py
+    --product-repo <frozen-product-worktree>
+    --out-dir <fresh-canonical-output-directory>
+  default_python_launcher_prohibited: true
+
+input:
+  deterministic_generator_same_as_p2_19: true
+  expected_events: 1000000
+  expected_size_bytes: 454835896
+  expected_sha256: e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f
+  synthetic_suspicious_interval: 1000
+  synthetic_suspicious_fraction: 0.001
+
+measurement:
+  sizes_events: [10000, 100000, 1000000]
+  order: ascending
+  fresh_python_process_per_size: true
+  parallel_detection: true
+  max_workers: 8
+  hayabusa_enabled: false
+  redaction_enabled: true
+  primary_metric: peak_working_set_bytes
+  secondary_metrics:
+    - peak_working_set_mb
+    - stage_seconds
+    - total_seconds
+    - throughput_events_per_second
+    - events
+    - findings
+    - flagged_events
+    - chains
+    - scenarios
+    - html_bytes
+    - package_zip_bytes
+  repetitions_per_size: 1
+  statistical_summary: false
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  exact_launcher_must_match_canonical_invocation: true
+  permanent_lock_acquired_before_source_generation: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_canonical_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  source_hash_or_size_mismatch_fails_closed: true
+  missing_or_zero_peak_memory_fails_worker: true
+  failed_scale_stops_later_scales: true
+  p2_19_canonical_result_modified: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+
+claim_boundary:
+  synthetic_workload: true
+  real_evtx_ingest_performance: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  exact_p2_19_apples_to_apples_comparison: NOT_CLAIMED
+  cross_tool_speed_comparison: NOT_CLAIMED

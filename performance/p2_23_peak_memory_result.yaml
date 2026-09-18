@@ -1,0 +1,42 @@
+schema: breachscope.p2_23_peak_memory_result.v1
+benchmark_id: p2-23-windows-bounded-html-peak-memory-10k-100k-1m-v1
+status: FAILED_PRECONDITION
+contract: performance/p2_23_peak_memory_contract.yaml
+contract_merge_commit: bc9b6ae2f310a47073b5c6ca61ab865f6e5a11da
+runner_commit: 203fca33f0d46a9147dc93035992e658078c6bfe
+frozen_product_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+failure:
+  stage: launcher_precondition
+  required_python_major_minor: "3.11"
+  observed_python_version: "3.13.15"
+  launcher: python
+  exit_code: 1
+  exception_type: RuntimeError
+  exception_message: P2-23 requires Python 3.11, got 3.13.15
+benchmark_execution:
+  orchestrate_entered: false
+  permanent_lock_created: false
+  source_generated: false
+  worker_process_started: false
+  measurement_rows: 0
+  scales_measured: []
+artifact:
+  path: performance/results/p2_23_203fca3/precondition_failure.json
+  sha256: 6bedff91ab2bad86bed6c4c4c783eb7abe4bbde2357311a863a12f94ef62249b
+protocol_interpretation:
+  first_attempt_retained: true
+  same_benchmark_id_rerun_allowed: false
+  replacement_result_for_better_numbers_allowed: false
+  new_benchmark_id_required_for_next_measurement: true
+claim_boundary:
+  peak_working_set_mb: NOT_MEASURED
+  formal_1m_result: NOT_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  exact_p2_19_apples_to_apples_comparison: NOT_CLAIMED
+note: >-
+  The first post-contract P2-23 invocation used the default python launcher, which resolved
+  to Python 3.13.15. The preregistered runner requires Python 3.11 and terminated before
+  orchestrate(), lock creation, source generation, worker launch, or any memory measurement.
+  This failed attempt is retained and P2-23 is not rerun under the same benchmark ID.
+
