@@ -1,0 +1,179 @@
+{
+  "schema": "breachscope.p2_23b_peak_memory_benchmark_summary.v1",
+  "benchmark_id": "p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1",
+  "status": "completed",
+  "frozen_product": {
+    "repo_commit": "62c5cf38bd566c4ec37ec52f55a68ca63ced8758",
+    "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+    "rule_file_count": 5
+  },
+  "source": {
+    "path": "C:\\Users\\bbk0416\\Projects\\BreachScope-groundtruth-data\\p2_23b_peak_memory\\p2_23b_1m.jsonl",
+    "events": 1000000,
+    "size_bytes": 454835896,
+    "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+    "synthetic_suspicious_events": 1000
+  },
+  "measurement_order": [
+    10000,
+    100000,
+    1000000
+  ],
+  "results": [
+    {
+      "benchmark_id": "p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_23b_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 10000,
+      "frozen_product": {
+        "repo_commit": "62c5cf38bd566c4ec37ec52f55a68ca63ced8758",
+        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "rule_file_count": 5
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 10000,
+        "findings": 10,
+        "flagged_events": 10,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 1.116212,
+        "collect": 2.231934,
+        "detection": 7.053186,
+        "correlation": 1.651083,
+        "scenario": 0.000169,
+        "report_build": 0.004551,
+        "report_export": 1.242683
+      },
+      "total_seconds": 13.299853,
+      "throughput_events_per_second": 751.888,
+      "peak_working_set_bytes": 112603136,
+      "peak_working_set_mb": 107.387,
+      "artifacts": {
+        "html_bytes": 2704532,
+        "package_zip_bytes": 629643
+      },
+      "orchestrator_wall_seconds": 15.983476
+    },
+    {
+      "benchmark_id": "p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_23b_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 100000,
+      "frozen_product": {
+        "repo_commit": "62c5cf38bd566c4ec37ec52f55a68ca63ced8758",
+        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "rule_file_count": 5
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 100000,
+        "findings": 100,
+        "flagged_events": 100,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 0.304349,
+        "collect": 28.924828,
+        "detection": 108.216601,
+        "correlation": 26.529782,
+        "scenario": 0.00031,
+        "report_build": 0.063479,
+        "report_export": 5.270761
+      },
+      "total_seconds": 169.310159,
+      "throughput_events_per_second": 590.632,
+      "peak_working_set_bytes": 605650944,
+      "peak_working_set_mb": 577.594,
+      "artifacts": {
+        "html_bytes": 2807720,
+        "package_zip_bytes": 5075241
+      },
+      "orchestrator_wall_seconds": 171.495872
+    },
+    {
+      "benchmark_id": "p2-23b-windows-bounded-html-peak-memory-10k-100k-1m-v1",
+      "schema": "breachscope.p2_23b_peak_memory_benchmark.v1",
+      "status": "completed",
+      "scale_events": 1000000,
+      "frozen_product": {
+        "repo_commit": "62c5cf38bd566c4ec37ec52f55a68ca63ced8758",
+        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "rule_file_count": 5
+      },
+      "environment": {
+        "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26200-SP0",
+        "machine": "AMD64",
+        "logical_cpu_count": 22,
+        "parallel": true,
+        "max_workers": 8,
+        "hayabusa_enabled": false
+      },
+      "input": {
+        "sha256": "e4e85502d926376c9d75745a7f1e81fec6eba38faaa7c5201f03fd2b6e18cc9f",
+        "size_bytes": 454835896
+      },
+      "counts": {
+        "events": 1000000,
+        "findings": 1000,
+        "flagged_events": 1000,
+        "chains": 0,
+        "scenarios": 0
+      },
+      "timings_seconds": {
+        "load_rules": 0.339649,
+        "collect": 225.006597,
+        "detection": 582.575325,
+        "correlation": 205.404691,
+        "scenario": 0.000171,
+        "report_build": 0.344133,
+        "report_export": 32.895698
+      },
+      "total_seconds": 1046.566331,
+      "throughput_events_per_second": 955.506,
+      "peak_working_set_bytes": 5501534208,
+      "peak_working_set_mb": 5246.672,
+      "artifacts": {
+        "html_bytes": 3762485,
+        "package_zip_bytes": 49703380
+      },
+      "orchestrator_wall_seconds": 1050.813015
+    }
+  ],
+  "claim_boundary": {
+    "single_machine_observation": true,
+    "peak_memory_metric": "PeakWorkingSetSize",
+    "statistical_benchmark": false,
+    "production_capacity": "NOT_CLAIMED",
+    "cross_tool_speed_comparison": "NOT_CLAIMED",
+    "enterprise_scale_readiness": "NOT_CLAIMED"
+  }
+}
