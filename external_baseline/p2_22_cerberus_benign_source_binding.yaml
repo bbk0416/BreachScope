@@ -1,0 +1,64 @@
+schema: breachscope.p2_22_benign_source_binding.v1
+analysis_id: p2-22-cerberus-trace-benign-binding-v1
+analysis_class: pre_observation_external_benign_source_binding
+purpose: fresh external benign evaluation under the frozen 68-rule detector
+code_under_observation:
+  repo_commit: a1d00f749ec8e644b2ffee716595c6000c22ceea
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: bazz-066/cerberus-trace
+  pinned_commit: 69933c61491fa966068c44c11172889898fbe789
+  pinned_tree: 5578761159d5e01c82a65bd2dd19c7118b946205
+  source_commit_date_utc: '2023-07-06T11:19:07Z'
+  license: Apache-2.0
+  repository_description: A dataset of Sysmon events generated during the execution of malicious and benign software
+  archive:
+    path: NLME EVTX.zip
+    git_blob_sha1: 731b33a5b46bfc3090e9d78b7247e36593d5c71b
+    size_bytes: 11659683
+  label_table:
+    path: NLME.csv
+    git_blob_sha1: 9f86c4a70f1545546cdc5208f1fe9de8832318cc
+    size_bytes: 25345514
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  repository_description_consulted_before_binding: true
+  archive_bytes_downloaded_before_binding: false
+  archive_contents_inspected_before_binding: false
+  label_table_bytes_downloaded_before_binding: false
+  label_table_contents_inspected_before_binding: false
+protocol:
+  phase_a_source_binding_only: true
+  phase_b_after_binding_merge:
+    - download the exact pinned archive and label table
+    - verify Git blob SHA-1 and byte size before inspection
+    - inspect only label-table schema, label semantics, and archive inventory
+    - do not execute the BreachScope detector
+    - do not inspect BreachScope output
+  benign_mapping_requirement: >-
+    A source-supported, unambiguous mapping must identify which EVTX records or files are benign.
+    Do not infer or manually relabel ambiguous samples.
+  unsupported_policy: >-
+    If the source material does not provide an unambiguous benign mapping usable for evaluation,
+    record ABORT_UNSUPPORTED and do not run a detector-based FPR measurement on this source.
+  phase_c_required_before_detection: >-
+    Freeze and merge a separate P2-22 scoring contract and runner that define the benign unit,
+    denominator, parser-failure treatment, finding counting, and FPR calculation.
+  detector_execution_before_phase_c_contract: prohibited
+  tuning_after_source_observation_before_measurement_allowed: false
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  fresh_benign_evaluation: NOT_YET_MEASURED
+  benign_false_positive_rate: NOT_YET_MEASURED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+notes: >-
+  This phase binds an unseen external source before downloading or reading either the EVTX archive
+  or CSV label table. The repository description is used only to establish that the source claims
+  to contain both malicious and benign software executions. No assumption is made yet about how its
+  labels map to EVTX files or events.
