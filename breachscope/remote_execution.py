@@ -353,7 +353,7 @@ def find_remote_execution_matches(events: List[Event]) -> List[RemoteExecutionMa
                     )
                     if process_event is None:
                         continue
-                    evidence.extend([service_event, process_event])
+                    evidence.append(process_event)
                 else:
                     continue
 

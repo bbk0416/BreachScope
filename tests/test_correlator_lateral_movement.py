@@ -381,7 +381,9 @@ def test_remote_sc_start_requires_prior_definition_and_matching_process():
     )
     chains = _remote(correlate_events([definition, source, process], []))
     assert len(chains) == 1
-    assert chains[0].events == [definition, source, process]
+    assert chains[0].events == [source, process]
+    assert chains[0].start_time == ts
+    assert chains[0].end_time == ts + timedelta(milliseconds=120)
     assert chains[0].metadata["remote_execution"] == {
         "source_host": "WS-A", "target_host": "WS-B", "method": "scm",
         "operation": "start", "service_name": "AuditSvc",
