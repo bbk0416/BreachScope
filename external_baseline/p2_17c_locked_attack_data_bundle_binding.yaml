@@ -1,0 +1,117 @@
+schema: breachscope.p2_17c_locked_external_technique_bundle_binding.v1
+analysis_id: p2-17c-splunk-attack-data-locked-technique-bundle-v1
+analysis_class: pre_observation_external_holdout_binding
+purpose: independent path-labeled ATT&CK technique holdout after P2-17B operational failure
+code_under_observation:
+  repo_commit: b842066e7815bff0186a46c897692ad4bd196c1e
+  product_semantics_base: 05cae988d780200f547325a92c42c053b86f11b9
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+runner:
+  path: scripts/p2_17c_locked_one_pass.py
+  sha256: 0e2ada36f8874b0e50f68cb47287018d7d4bead1063301e87af0aa8dfe8b0701
+  permanent_exclusive_lock: true
+  atomic_stage_persistence: true
+  preflight_does_not_acquire_one_pass_lock: true
+source:
+  repository: splunk/attack_data
+  pinned_commit: db9624b71def9902600972593abf0dfaf9f3b399
+selection_policy:
+  technique_ids: [T1003.001, T1021.006, T1087.002, T1105, T1490]
+  basis: each technique is already declared by the frozen BreachScope rule pack
+  directory_rule: lexicographically first immediate child containing YAML plus exact windows-sysmon.log
+  breachscope_search_for_selected_paths_before_binding: 0
+  metadata_yaml_semantics_inspected_before_binding: false
+  telemetry_contents_inspected_before_binding: false
+datasets:
+  - technique_id: T1003.001
+    directory: datasets/attack_techniques/T1003.001/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1003.001/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: 035258bfecd064fe8ba6b842728ff5580686caa5
+    metadata_size_bytes: 1709
+    metadata_sha256: fcb48abd1ac0cc2576092167cf1ec122fa120e3a2abfd29150801c9e3e4123d6
+    telemetry_path: datasets/attack_techniques/T1003.001/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 2c2504549e9524f3d936f52f28680b67941f6d9a
+    telemetry_sha256: a1905850598f1e943708c3329190e29c6cb046389c1575cb2afd6369b5f269f1
+    telemetry_size_bytes: 14235927
+    local_filename: T1003_001.log
+  - technique_id: T1021.006
+    directory: datasets/attack_techniques/T1021.006/lateral_movement
+    metadata_path: datasets/attack_techniques/T1021.006/lateral_movement/lateral_movement.yml
+    metadata_git_blob_sha1: 93628486e16b793f913c1638843d24da28da070b
+    metadata_size_bytes: 543
+    metadata_sha256: ba6c47019366a066fa2c9412054f2be4a44852c8b11f02a09aadbdaaec16b946
+    telemetry_path: datasets/attack_techniques/T1021.006/lateral_movement/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 92822d6bf55082fe08e1605a19a9e445e2a278b2
+    telemetry_sha256: 6370f139b06c5de9e6b76ba81d9247c7c869879e74dfee1603f4d8b3682ab1c4
+    telemetry_size_bytes: 5835542
+    local_filename: T1021_006.log
+  - technique_id: T1087.002
+    directory: datasets/attack_techniques/T1087.002/AD_discovery
+    metadata_path: datasets/attack_techniques/T1087.002/AD_discovery/AD_discovery.yml
+    metadata_git_blob_sha1: c888bd0bbe67da689691382c1d6b507818257ade
+    metadata_size_bytes: 1614
+    metadata_sha256: 67cecc9e12ac024d3c31161b51ec53ef0614e40b25c682220f0752387cab50ea
+    telemetry_path: datasets/attack_techniques/T1087.002/AD_discovery/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: e12587c4bc1178a70125de7d8a31b12db05a7c49
+    telemetry_sha256: 1b78f515120a7e5ac532444fd7fd322c8dc1abf8efebe0295abad3939972db0d
+    telemetry_size_bytes: 10902926
+    local_filename: T1087_002.log
+  - technique_id: T1105
+    directory: datasets/attack_techniques/T1105/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1105/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: b33f98809b254d3c52662f0d80fb0dbb702f4590
+    metadata_size_bytes: 1131
+    metadata_sha256: 85be85a74bd3b105821c70613a415821db68dad9f14115e2b659e4798b0d4128
+    telemetry_path: datasets/attack_techniques/T1105/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 21b1002205bad6fc849aaf1a4377a352ca7a4891
+    telemetry_sha256: bd6bbf7884f44274988d159bcb3249505dc53623e551892b54a3fc87db06e18c
+    telemetry_size_bytes: 3625178
+    local_filename: T1105.log
+  - technique_id: T1490
+    directory: datasets/attack_techniques/T1490/atomic_red_team
+    metadata_path: datasets/attack_techniques/T1490/atomic_red_team/atomic_red_team.yml
+    metadata_git_blob_sha1: 75bc7dbfef862d29d9974893b78b3c3f23941441
+    metadata_size_bytes: 1115
+    metadata_sha256: cab0f892cafddee90cf7aa9348adde8b24ab00c0e17165574d3d55cde2c9ad8d
+    telemetry_path: datasets/attack_techniques/T1490/atomic_red_team/windows-sysmon.log
+    telemetry_lfs_pointer_git_blob_sha1: 49ef048a293ad09aa5cded9cd4d72caeea6348d0
+    telemetry_sha256: b2d2d3e6a15185fa73e7ace39dd57a3d499f65a462f7101b215161e1ccbb8e96
+    telemetry_size_bytes: 510708
+    local_filename: T1490.log
+protocol:
+  corpus_previously_used_for_breachscope_development: false
+  corpus_previously_measured_by_breachscope: false
+  implementation_frozen_before_telemetry_observation: true
+  rules_frozen_before_telemetry_observation: true
+  runner_frozen_before_telemetry_observation: true
+  one_pass_measurement_planned: true
+  duplicate_execution_prevented_by_permanent_lock: true
+  tuning_after_telemetry_observation_before_measurement_allowed: false
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+measurement_contract:
+  unit: dataset
+  expected_technique_source: attack_data directory path
+  expected_dataset_count: 5
+  dataset_hit: parser completes with zero parse errors and at least one finding carries the path-bound technique
+  parser_failure_counts_as_dataset_failure: true
+  stage_persistence: source_verified parsed detected correlated completed
+  process_failure_keeps_last_atomic_stage: true
+  no_result_driven_remeasurement: true
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  path_label_dataset_hit_rate: MEASURABLE_AFTER_ONE_PASS
+  path_label_dataset_hit_rate_is_event_level_recall: false
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+notes: >-
+  P2-17C is a fresh holdout after P2-17B ended in an operational first-run failure.
+  Only repository paths, Git blob metadata, byte hashes, and Git LFS pointer metadata
+  were inspected before this binding. The locked runner is part of the frozen protocol.

@@ -1,0 +1,68 @@
+schema: breachscope.p2_17b_one_pass_failure_record.v1
+analysis_id: p2-17b-splunk-attack-data-technique-bundle-first-run
+analysis_class: independent_external_holdout_operational_failure
+binding: external_baseline/p2_17b_attack_data_technique_bundle_binding.yaml
+frozen_product:
+  repo_commit: 34e4d4440f57d4c8a83f77da60807458a71816c8
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+  rule_count: 66
+environment:
+  os: Windows
+  python: 3.11.9
+  python_312_preflight:
+    status: FAILED_BEFORE_CORPUS_MEASUREMENT
+    reason: pySigma dependency unavailable
+first_actual_run:
+  started_local: "2026-09-18T13:40:40+09:00"
+  status: OPERATIONAL_FAILURE
+  completed_dataset_results: 0
+  aggregate_path_label_hit_rate: NOT_AVAILABLE
+  first_dataset:
+    expected_technique: T1059.001
+    parsed_events_observed_in_log: 21908
+    findings_observed_in_log: 142
+    correlation:
+      started_local: "2026-09-18T13:45:24.101+09:00"
+      completed_local: "2026-09-18T13:45:51.365+09:00"
+      chains: 43
+    scenario_stage_completed: false
+    dataset_hit_or_miss: NOT_AVAILABLE
+  failure:
+    point: after_first_dataset_correlation_before_result_row_persisted
+    python_traceback_observed: false
+    windows_application_error_or_wer_observed: false
+    windows_resource_exhaustion_event_2004_observed: false
+    defender_detection_or_quarantine_observed: false
+    cause: UNDETERMINED
+  partial_measurement_status_at_failure: running
+  partial_measurement_dataset_rows: 0
+local_artifact_hashes:
+  runner_sha256: 8455559370bb9dad8cdbc82eaac8668f50785863772da92ee197127bccd1b6b7
+  first_run_stderr_sha256: 4116b33fec7f710b23861d6434c58383c554fb5e1f376c7a5c4a1f1c2ec92994
+  first_run_stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+concurrent_duplicate_run:
+  started_local: "2026-09-18T13:46:27+09:00"
+  began_after_first_run_failure: true
+  canonical_result_eligible: false
+  action: terminated_without_using_output
+  reason: violated_one_pass_and_shared_measurement_state
+protocol:
+  successful_one_pass_measurement_completed: false
+  same_corpus_rerun_for_canonical_score_allowed: false
+  duplicate_run_output_accepted: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  path_label_dataset_hit_rate: NOT_AVAILABLE
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  false_positive_rate: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+next_step_boundary: >-
+  P2-17B is consumed by its failed first actual run. A new untouched corpus,
+  frozen runner, and exclusive execution lock are required for any subsequent
+  independent one-pass measurement.
