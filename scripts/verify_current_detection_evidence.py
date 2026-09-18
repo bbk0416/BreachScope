@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the current detection-evidence chain through P2-11J."""
+"""Verify the current detection-evidence chain through P2-20."""
 from __future__ import annotations
 
 import argparse
@@ -26,6 +26,13 @@ J_RULE_BLOB = "aa6e24f5117dbbcacf11a844aae4cc66dec9613c"
 J_AGG_SHA = "82cd205ac90b17d72a947448418d17382926967c1cf801a0882745900c03a0f7"
 J_FREEZE_SHA = "9975bdbc0efcf31d7a7a92c7cb28f4e9186704f0660282abc603c61d10cee5fc"
 J_BENIGN_SHA = "4942c9782ade6c2dc1148a214efc54db4579ba219d3196dfa52bf1a6b08f8b65"
+
+P20_ID = "p2-20-postholdout-coverage"
+P20_HASH = "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
+P20_RULE_BLOB = "1b5d6490a0cb2509550b84c4bb538eda89d3e687"
+P20_INGEST_BLOB = "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc"
+P20_RAW_SHA = "b4412e482500c38a72b894f7ddf0bac6f1f3cb8657db132b67e771966e486846"
+P20_COMMIT = "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d"
 
 
 def _require(actual: Any, expected: Any, label: str) -> None:
@@ -222,10 +229,142 @@ def _verify_j(repo: Path, record: Mapping[str, Any], previous_hash: str) -> tupl
     }
 
 
+def _verify_p2_20(
+    repo: Path,
+    record: Mapping[str, Any],
+    previous_hash: str,
+) -> tuple[str, dict[str, Any]]:
+    label = "P2-20"
+    _require(
+        record.get("schema"),
+        "breachscope.p2_20_postholdout_calibration_measurement.v1",
+        f"{label} schema",
+    )
+    _require(record.get("calibration_id"), P20_ID, f"{label} id")
+    _require(record.get("measurement_class"), "post_holdout_calibration", f"{label} class")
+    _require(
+        record.get("change_class"),
+        "attack_data_record_framing_and_command_rule_addition",
+        f"{label} change class",
+    )
+    _require(record.get("measurement_repo_commit"), P20_COMMIT, f"{label} commit")
+    _require(record.get("from_rules_tree_sha256"), previous_hash, f"{label} from hash")
+    _require(record.get("to_rules_tree_sha256"), P20_HASH, f"{label} to hash")
+
+    change = _mapping(record.get("rule_change"), f"{label} rule change")
+    _require(change.get("rule_file"), "rules/p2_20_postholdout_rules.yml", f"{label} rule file")
+    _require(change.get("rule_file_git_blob_sha1"), P20_RULE_BLOB, f"{label} rule blob")
+    _require(
+        legacy._git_blob_sha1(repo / "rules/p2_20_postholdout_rules.yml"),
+        P20_RULE_BLOB,
+        f"{label} live rule blob",
+    )
+    expected_rules = {
+        "R-WINRS-REMOTE-TARGET": ("T1021.006", "medium"),
+        "R-DOMAIN-ACCOUNT-DISCOVERY-CMD": ("T1087.002", "low"),
+    }
+    rows = change.get("added_rules")
+    if not isinstance(rows, list) or len(rows) != 2:
+        raise CurrentEvidenceError(f"{label} must record exactly two added rules")
+    _require(
+        {row.get("rule_id"): row.get("mitre_technique") for row in rows},
+        {key: value[0] for key, value in expected_rules.items()},
+        f"{label} recorded rules",
+    )
+    for rule_id, (technique, severity) in expected_rules.items():
+        live = legacy._load_rule(repo, "rules/p2_20_postholdout_rules.yml", rule_id)
+        _require(live.get("field"), "command_line", f"{label} {rule_id} field")
+        _require(live.get("operator"), "regex", f"{label} {rule_id} operator")
+        _require(live.get("mitre_technique"), technique, f"{label} {rule_id} technique")
+        _require(live.get("severity"), severity, f"{label} {rule_id} severity")
+        predicates = {
+            (item.get("field"), str(item.get("pattern")))
+            for item in (live.get("all_of") or [])
+            if isinstance(item, Mapping)
+        }
+        _require(("event_id", "1") in predicates, True, f"{label} {rule_id} event predicate")
+        _require(
+            ("source", "Microsoft-Windows-Sysmon") in predicates,
+            True,
+            f"{label} {rule_id} source predicate",
+        )
+
+    parser = _mapping(record.get("parser_change"), f"{label} parser change")
+    _require(parser.get("file"), "breachscope/ingest.py", f"{label} parser file")
+    _require(parser.get("git_blob_sha1"), P20_INGEST_BLOB, f"{label} parser blob")
+    _require(
+        legacy._git_blob_sha1(repo / "breachscope/ingest.py"),
+        P20_INGEST_BLOB,
+        f"{label} live parser blob",
+    )
+    _require(parser.get("helper"), "iter_event_xml_records", f"{label} parser helper")
+    source = (repo / "breachscope/ingest.py").read_text(encoding="utf-8")
+    _require("def iter_event_xml_records(" in source, True, f"{label} parser helper source")
+
+    raw_spec = _mapping(record.get("raw_measurement"), f"{label} raw measurement")
+    _require(raw_spec.get("sha256"), P20_RAW_SHA, f"{label} raw SHA record")
+    raw = _locked_json(repo, raw_spec.get("path"), P20_RAW_SHA, f"{label} raw")
+    _require(raw.get("product_commit"), P20_COMMIT, f"{label} raw product")
+    _require(raw.get("rules_tree_sha256"), P20_HASH, f"{label} raw rules")
+    _require(raw.get("rule_count"), 68, f"{label} raw rule count")
+    attack = _mapping(raw.get("attack_summary"), f"{label} attack summary")
+    for key, expected in {
+        "dataset_hits": 5,
+        "dataset_total": 5,
+        "total_events": 21328,
+        "total_parse_errors": 0,
+    }.items():
+        _require(attack.get(key), expected, f"{label} attack {key}")
+
+    benign = _mapping(raw.get("benign_probe"), f"{label} benign")
+    for key, expected in {
+        "raw_wevtutil_event1_records": 2323,
+        "parsed_events": 2323,
+        "parse_errors": 0,
+        "new_rule_findings": 0,
+        "historical_p2_13_binding_sysmon_event1": 2302,
+    }.items():
+        _require(benign.get(key), expected, f"{label} benign {key}")
+
+    claims = _mapping(record.get("claim_boundary"), f"{label} claims")
+    _require(claims.get("attack_independent_holdout"), False, f"{label} independent")
+    _require(claims.get("attack_result_is_posthoc"), True, f"{label} posthoc")
+    for key in (
+        "production_precision",
+        "production_recall",
+        "production_false_positive_rate",
+        "fresh_full_benign_fpr_for_new_rulepack",
+    ):
+        _require(claims.get(key), "NOT_CLAIMED", f"{label} {key}")
+    _require(claims.get("p2_14e_final_blind_holdout_rerun"), False, f"{label} P2-14E rerun")
+    _require(claims.get("p2_14e_artifacts_modified"), False, f"{label} P2-14E modified")
+
+    return P20_HASH, {
+        "calibration_id": P20_ID,
+        "measurement_repo_commit": P20_COMMIT,
+        "from_rules_tree_sha256": previous_hash,
+        "to_rules_tree_sha256": P20_HASH,
+        "dataset_hits_before": 1,
+        "dataset_hits_after": 5,
+        "dataset_total": 5,
+        "attack_result_is_posthoc": True,
+        "events": 21328,
+        "rules": 68,
+        "parse_errors": 0,
+        "benign_events_scanned": 2323,
+        "benign_exact_predicate_matches": 0,
+        "fresh_full_benign_fpr_for_new_rulepack": "NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
-    _require(chain.get("current_evidence_id"), "p2-11j-current-detection-evidence", "current evidence id")
+    _require(
+        chain.get("current_evidence_id"),
+        "p2-20-postholdout-current-detection-evidence",
+        "current evidence id",
+    )
     calibrations = chain.get("calibrations")
     if not isinstance(calibrations, list):
         raise CurrentEvidenceError("calibrations must be a list")
@@ -236,16 +375,30 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         previous.G_ID,
         previous.H_ID,
         J_ID,
+        P20_ID,
     ]
     _require([row.get("calibration_id") for row in calibrations], expected_ids, "calibration chain order/content")
 
     history = _verify_history_through_h(repo, chain)
     j_path = legacy._relative_file(repo, calibrations[5].get("measurement_record"), "P2-11J measurement")
     j_record = legacy._load_yaml(j_path)
-    final_hash, j = _verify_j(repo, j_record, H_HASH)
+    j_hash, j = _verify_j(repo, j_record, H_HASH)
+
+    p20_path = legacy._relative_file(
+        repo,
+        calibrations[6].get("measurement_record"),
+        "P2-20 measurement",
+    )
+    p20_record = legacy._load_yaml(p20_path)
+    final_hash, p20 = _verify_p2_20(repo, p20_record, j_hash)
 
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
+    detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
+    _require(detector.get("repo_commit"), P20_COMMIT, "current detector commit")
+    _require(detector.get("rules_tree_sha256"), P20_HASH, "current detector rule hash")
+    _require(detector.get("rule_count"), 68, "current detector rule count")
+    _require(detector.get("rule_file_count"), 5, "current detector rule file count")
 
     claims = _mapping(chain.get("claim_boundary"), "current evidence claims")
     _require(claims.get("production_accuracy"), "NOT_CLAIMED", "production accuracy")
@@ -254,7 +407,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v5",
+        "schema": "breachscope.current_detection_evidence_verification.v6",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -265,7 +418,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "attack_scenario_total": history["attack_scenario_total"],
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
-        "calibrations": [*history["calibrations"], j],
+        "calibrations": [*history["calibrations"], j, p20],
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",
@@ -292,7 +445,18 @@ def main() -> int:
         print("Current detection evidence verification: PASS")
         print(f"Current rules SHA-256: {result['current_rules_tree_sha256']}")
         for calibration in result["calibrations"]:
-            print(f"{calibration['calibration_id']}: {calibration['scenario_hits_before']}/{calibration['scenario_total']} -> {calibration['scenario_hits_after']}/{calibration['scenario_total']}")
+            if "scenario_hits_before" in calibration:
+                print(
+                    f"{calibration['calibration_id']}: "
+                    f"{calibration['scenario_hits_before']}/{calibration['scenario_total']} -> "
+                    f"{calibration['scenario_hits_after']}/{calibration['scenario_total']}"
+                )
+            else:
+                print(
+                    f"{calibration['calibration_id']}: "
+                    f"{calibration['dataset_hits_before']}/{calibration['dataset_total']} -> "
+                    f"{calibration['dataset_hits_after']}/{calibration['dataset_total']} post-hoc"
+                )
         print("Fresh full benign FPR for current rulepack: NOT CLAIMED")
         print("Production accuracy/FPR: NOT CLAIMED")
     return 0

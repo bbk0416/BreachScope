@@ -1,0 +1,108 @@
+{
+  "schema": "breachscope.p2_20_postholdout_measurement.v1",
+  "measurement_class": "post_holdout_development_diagnostic",
+  "product_commit": "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d",
+  "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+  "rule_count": 68,
+  "attack": [
+    {
+      "technique_id": "T1003.001",
+      "file": "T1003_001.log",
+      "source_sha256": "a1905850598f1e943708c3329190e29c6cb046389c1575cb2afd6369b5f269f1",
+      "events": 7960,
+      "parse_errors": 0,
+      "findings": 176,
+      "flagged_events": 71,
+      "expected_technique_present": true,
+      "observed_techniques": [
+        "T1003.001",
+        "T1057",
+        "T1059.001",
+        "T1105"
+      ],
+      "seconds": 9.760673899996618
+    },
+    {
+      "technique_id": "T1021.006",
+      "file": "T1021_006.log",
+      "source_sha256": "6370f139b06c5de9e6b76ba81d9247c7c869879e74dfee1603f4d8b3682ab1c4",
+      "events": 3723,
+      "parse_errors": 0,
+      "findings": 2,
+      "flagged_events": 2,
+      "expected_technique_present": true,
+      "observed_techniques": [
+        "T1021.006"
+      ],
+      "seconds": 4.328263600000355
+    },
+    {
+      "technique_id": "T1087.002",
+      "file": "T1087_002.log",
+      "source_sha256": "1b78f515120a7e5ac532444fd7fd322c8dc1abf8efebe0295abad3939972db0d",
+      "events": 7070,
+      "parse_errors": 0,
+      "findings": 26,
+      "flagged_events": 24,
+      "expected_technique_present": true,
+      "observed_techniques": [
+        "T1047",
+        "T1087.002"
+      ],
+      "seconds": 8.877125300001353
+    },
+    {
+      "technique_id": "T1105",
+      "file": "T1105.log",
+      "source_sha256": "bd6bbf7884f44274988d159bcb3249505dc53623e551892b54a3fc87db06e18c",
+      "events": 2290,
+      "parse_errors": 0,
+      "findings": 3,
+      "flagged_events": 3,
+      "expected_technique_present": true,
+      "observed_techniques": [
+        "T1105"
+      ],
+      "seconds": 2.575936700006423
+    },
+    {
+      "technique_id": "T1490",
+      "file": "T1490.log",
+      "source_sha256": "b2d2d3e6a15185fa73e7ace39dd57a3d499f65a462f7101b215161e1ccbb8e96",
+      "events": 285,
+      "parse_errors": 0,
+      "findings": 7,
+      "flagged_events": 6,
+      "expected_technique_present": true,
+      "observed_techniques": [
+        "T1490"
+      ],
+      "seconds": 0.32200169999850914
+    }
+  ],
+  "attack_summary": {
+    "dataset_hits": 5,
+    "dataset_total": 5,
+    "total_events": 21328,
+    "total_parse_errors": 0
+  },
+  "benign_probe": {
+    "archive_sha256": "739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117",
+    "source_intent": "goodware software installation and ordinary user interaction",
+    "raw_wevtutil_event1_records": 2323,
+    "parsed_events": 2323,
+    "parse_errors": 0,
+    "new_rule_findings": 0,
+    "new_rule_matches_by_rule": {},
+    "historical_p2_13_binding_sysmon_event1": 2302,
+    "denominator_difference_note": "raw wevtutil EventID=1 query returned 2323 records; historical P2-13 binding recorded 2302 under its chunked parser inventory"
+  },
+  "claim_boundary": {
+    "attack_independent_holdout": false,
+    "attack_result_is_posthoc": true,
+    "production_precision": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "fresh_full_benign_fpr_for_new_rulepack": "NOT_CLAIMED"
+  }
+}
