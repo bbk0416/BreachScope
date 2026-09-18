@@ -1,0 +1,81 @@
+schema: breachscope.p2_16d_remote_service_post_change_evidence.v1
+analysis_id: p2-16d-otrf-apt3-remote-service-post-change-v1
+analysis_class: posthoc_development_diagnostic
+binding: external_baseline/p2_16a_apt3_scenario2_binding.yaml
+prior_independent_result: external_baseline/p2_16b_apt3_scenario2_one_pass.yaml
+code_under_observation:
+  measurement_repo_commit: fad1b19328c73866d719ad0c77fb1e86e98505fa
+  merged_repo_commit: f8538ead12121980638ca62e5497efe7190d7012
+  measurement_tree_sha: 5f9b638f28baa08f63b6c04f863f0a2ae6b50713
+  merged_tree_sha: 5f9b638f28baa08f63b6c04f863f0a2ae6b50713
+  exact_tree_match: true
+  rules_tree_sha256: 9f823a189530528a47b11c5519b02dc9b97473b8c0f6a8e0c13e1ed8d04b5e92
+source:
+  repository: OTRF/Security-Datasets
+  pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+  dataset: APT3 ATT&CK Evaluation Round 1 - Scenario 2
+  archive_sha256: ab4d1ec4e44102c87946a974f93aa248e49e5001e01fac3f137ec7e61bbc18ed
+  documented_cross_host_pair:
+    source: HR001
+    target: HFDC01
+  documented_remote_service_steps:
+    create: 16.I.1
+    start: 16.L.1
+measurement:
+  path: external_baseline/results/p2_16d_fad1b193/measurement.json
+  sha256: ee7168118ba3fb772c6491f1948b08bc199ec63fc6302632df7f5e9847a3a3d1
+  events: 121659
+  parse_errors: 0
+  findings: 114446
+  flagged_events: 37909
+  chains: 50
+  chain_types:
+    activity: 34
+    download_exec: 2
+    encoded_exec: 12
+    remote_execution: 2
+  cross_host_chains: 2
+  documented_hr001_hfdc01_chains: 2
+  scenarios: 13
+  cross_host_scenarios: 0
+  documented_hr001_hfdc01_scenarios: 0
+remote_service_observation:
+  create:
+    operation: create
+    service_name: AdobeUpdater
+    event_count: 2
+    finding_count: 0
+    start_time: "2019-05-14T23:13:31.280000+00:00"
+    end_time: "2019-05-14T23:13:31.356000+00:00"
+  start:
+    operation: start
+    service_name: AdobeUpdater
+    event_count: 2
+    finding_count: 0
+    start_time: "2019-05-14T23:16:09.819000+00:00"
+    end_time: "2019-05-14T23:16:09.942000+00:00"
+  interpretation: >-
+    The post-hoc build emits two descriptive cross-host remote_execution chains
+    for the playbook-documented HR001 to HFDC01 SCM service create and start
+    activity. Neither chain carries a detector finding, so neither is promoted
+    into a cross-host attack scenario.
+protocol:
+  independent_holdout: false
+  development_informed_by_prior_result: true
+  same_corpus_reused_for_posthoc_diagnostic: true
+  p2_16b_independent_result_replaced: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  event_level_ground_truth: NOT_AVAILABLE
+  detection_precision: NOT_CLAIMED
+  detection_recall: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  scenario_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+next_step_boundary: >-
+  APT3 Scenario 2 is development data after P2-16B. Any independent claim about
+  reconstruction improvement requires a different untouched external corpus.
