@@ -1,0 +1,71 @@
+schema: breachscope.p2_24b_clean_security_contract.v1
+analysis_id: p2-24b-queryfarm-clean-security-one-pass-v1
+status: PREREGISTERED_BEFORE_EVTX_CONTENT_OBSERVATION
+purpose: measure fresh full-rulepack false-positive events on the independently source-designated clean 7-record
+  Windows Security fixture
+binding: external_baseline/p2_24a_queryfarm_clean_security_benign_binding.yaml
+frozen_product:
+  repo_commit: 4a5b16d33781638570f7cee1b6fea56bbd01731c
+  product_semantics_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: Query-farm/vgi-evtx
+  pinned_commit: add9265cbf1b2ecf225f91d2e883b270f34cd751
+  path: test/sql/data/sample-security.evtx
+  size_bytes: 69632
+  git_blob_sha1: 7c0eab77b0ed388da193827a14286a56634b3a6b
+  sha256: 50c87926d2dfed9776906ffbcc77e61577940910a71fb1c1871860a4e2213456
+  label_basis: benign_by_upstream_explicit_clean_fixture_description
+  source_documented_record_count: 7
+phase_b_identity_observation:
+  performed_after_binding_merge: true
+  binding_merge_commit: 4a5b16d33781638570f7cee1b6fea56bbd01731c
+  binary_parsed: false
+  records_observed: false
+  detector_executed: false
+  verified_size_bytes: 69632
+  verified_git_blob_sha1: 7c0eab77b0ed388da193827a14286a56634b3a6b
+  computed_sha256: 50c87926d2dfed9776906ffbcc77e61577940910a71fb1c1871860a4e2213456
+runner:
+  path: scripts/p2_24b_clean_security_one_pass.py
+  sha256: bafec03a6a65139d9de279091925899b0c26c80373cd8acdd3ae3bf0d49e7510
+  storage_normalization: CRLF_TO_LF_ONLY
+  permanent_exclusive_lock: true
+scoring:
+  expected_parsed_events: 7
+  required_parse_errors: 0
+  denominator: all successfully parsed records from the exact source-designated clean EVTX
+  false_positive_event_definition: a parsed source-designated clean event producing one or more findings from the
+    frozen 68-rule pack
+  flagged_event_deduplication: event_object_identity_within_single_parse
+  false_positive_rate_formula: flagged_benign_events / parsed_benign_events
+  finding_count_reported_separately: true
+  all_68_rules_evaluated: true
+  source_wide_clean_label_only: true
+  event_level_manual_adjudication: false
+  parse_contract_mismatch_result: NOT_MEASURED
+protocol:
+  contract_must_merge_before_any_evtx_record_parse: true
+  contract_must_merge_before_detector_execution: true
+  source_identity_reverified_before_parse: true
+  permanent_lock_acquired_before_source_verification_and_parse: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_result: false
+  source_hash_or_size_mismatch_fails_closed: true
+  parsed_event_count_mismatch_fails_closed: true
+  any_parse_error_fails_closed: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+  p2_23b_performance_result_modified: false
+claim_boundary:
+  fresh_full_rulepack_negative_control: NOT_YET_MEASURED
+  benign_false_positive_rate: NOT_YET_MEASURED
+  corpus_representativeness: VERY_LIMITED_7_RECORD_FIXTURE
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  statistical_confidence_interval: NOT_CLAIMED
