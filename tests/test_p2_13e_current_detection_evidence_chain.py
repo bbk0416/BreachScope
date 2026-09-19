@@ -10,13 +10,25 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
-        "repo_commit": "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d",
-        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
+        "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
         "rule_count": 68,
         "rule_file_count": 5,
     }
+
+    assert data["posthoc_remediations"] == [
+        {
+            "remediation_id": "p2-24d-rule-noise-remediation",
+            "diagnosis_record": "external_baseline/p2_24d_posthoc_rule_noise_diagnosis.yaml",
+            "change_class": "posthoc_benign_noise_narrowing",
+            "from_rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+            "to_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "fresh_attack_revalidation": "NOT_RUN",
+            "fresh_benign_revalidation": "NOT_RUN",
+        }
+    ]
 
     holdout = data["external_holdout_evidence"][0]
     assert holdout["closure_record"] == "external_baseline/p2_12_external_evidence_closure.yaml"
