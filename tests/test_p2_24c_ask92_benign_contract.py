@@ -92,4 +92,3 @@ def test_p2_24c_claims_remain_narrow_before_measurement() -> None:
     assert claim["production_false_positive_rate"] == "NOT_CLAIMED"
     assert claim["representative_production_population"] == "NOT_CLAIMED"
     assert claim["statistical_confidence_interval"] == "NOT_CLAIMED"
-
