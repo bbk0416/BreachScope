@@ -1,0 +1,69 @@
+{
+  "schema": "breachscope.p2_24c_ask92_benign_one_pass.v1",
+  "analysis_id": "p2-24c-ask92-sysmon-20251113-benign-one-pass-v1",
+  "status": "completed",
+  "contract_sha256": "d865b523e08771655f3372c7cca1aca92e0ee389ce6f2794ceb0d91ef624482b",
+  "runner_sha256": "9c4613bca5306928a7b80a6c172c5494b12a9f27b102f4ebe30f60373cf30437",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "frozen_product": {
+    "repo_commit": "dcd7f5bef9ae4e7be8e4d1a55d3a1fc3f3102766",
+    "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+    "rule_file_count": 5,
+    "rule_count": 68
+  },
+  "source_verification": {
+    "size_bytes": 66129920,
+    "git_blob_sha1": "5b25c2dab0c87219fbce6d9ce3d2730257c650ec",
+    "sha256": "7a0ff89ae20b0d1a3a5e904ab73f3cbe7fdc7d8eb0fc74dec8f8c906b7014104",
+    "size_match": true,
+    "git_blob_match": true,
+    "sha256_match": true
+  },
+  "label_eligibility": {
+    "raw_record_count": 34534,
+    "parsed_events": 34534,
+    "product_parse_errors": 0,
+    "missing_timestamps": 0,
+    "timestamp_parse_errors": 0,
+    "events_after_strict_cutoff": 0,
+    "min_timestamp_naive": "2025-11-08T14:29:00.706320",
+    "max_timestamp_naive": "2025-11-13T18:56:23.416739",
+    "strict_cutoff_naive": "2025-11-15T23:59:59",
+    "upstream_timestamp_interpretation": "datetime.fromisoformat(SystemTime.replace('Z','+00:00')).replace(tzinfo=None)",
+    "eligible": true,
+    "seconds": 983.4730879000126
+  },
+  "measurement": {
+    "status": "MEASURED",
+    "source_label": "benign_by_upstream_collection_intent_and_strict_timestamp_gate",
+    "parsed_benign_events": 34534,
+    "flagged_benign_events": 2404,
+    "findings": 2404,
+    "false_positive_rate": 0.06961255574216714,
+    "false_positive_percent": 6.961255574216714,
+    "rules_evaluated": 68,
+    "findings_by_rule": {
+      "R-DISCOVERY-Account-System": 56,
+      "R-LSASS-Dump": 1,
+      "R-PROCESS-Discovery": 498,
+      "R-PS-Bypass": 1838,
+      "R-SCREENSHOT-Capture": 11
+    },
+    "findings_by_primary_technique": {
+      "T1003.001": 1,
+      "T1057": 498,
+      "T1059.001": 1838,
+      "T1087.001": 56,
+      "T1113": 11
+    },
+    "detection_seconds": 37.19818160000432
+  },
+  "claim_boundary": {
+    "source_intent_label_not_event_level_manual_adjudication": true,
+    "single_public_sysmon_export": true,
+    "representative_production_population": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_accuracy": "NOT_CLAIMED",
+    "statistical_confidence_interval": "NOT_CLAIMED"
+  }
+}
