@@ -39,6 +39,11 @@ P24D_HASH = "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
 P24D_RULE_BLOB = "ef1e026256eb1e66f992459166ede963424606df"
 P24D_COMMIT = "66f5d2e0061ea34113038a712597113a6df7bd63"
 
+P25_ID = "p2-25-deepbluecli-fresh-attack"
+P25_RESULT_SHA = "be56514a196551904f32cd2bd829912cd13ae3bd4a2ce4cc28f268dceca9f664"
+P25_RULE_HASH = P24D_HASH
+
+
 
 def _require(actual: Any, expected: Any, label: str) -> None:
     previous._require(actual, expected, label)
@@ -474,12 +479,83 @@ def _verify_p2_24d(
     }
 
 
+
+def _verify_p2_25(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
+    label = "P2-25"
+    _require(row.get("revalidation_id"), P25_ID, f"{label} chain id")
+    _require(row.get("class"), "fresh_external_attack_fixture_revalidation", f"{label} class")
+    _require(row.get("detector_rules_tree_sha256"), P25_RULE_HASH, f"{label} detector hash")
+    for key, expected in {"fixture_count": 8, "hits": 6, "misses": 2, "errors": 0}.items():
+        _require(row.get(key), expected, f"{label} chain {key}")
+    _require(row.get("fixture_hit_rate"), 0.75, f"{label} chain hit rate")
+    _require(row.get("event_level_ground_truth"), "NOT_AVAILABLE", f"{label} event ground truth")
+    _require(row.get("fixture_hit_rate_is_event_level_recall"), False, f"{label} recall boundary")
+    _require(row.get("fresh_attack_revalidation"), "COMPLETED", f"{label} completion")
+
+    result_path = legacy._relative_file(repo, row.get("result_record"), f"{label} result")
+    record = legacy._load_yaml(result_path)
+    _require(record.get("schema"), "breachscope.p2_25_deepblue_attack_result.v1", f"{label} result schema")
+    _require(record.get("analysis_class"), "fresh_external_attack_fixture_revalidation", f"{label} result class")
+    _require(record.get("status"), "COMPLETED", f"{label} result status")
+
+    artifacts = _mapping(record.get("artifacts"), f"{label} artifacts")
+    measurement = _mapping(artifacts.get("measurement"), f"{label} measurement artifact")
+    _require(measurement.get("stored_sha256"), P25_RESULT_SHA, f"{label} stored result SHA")
+    raw = _locked_json(repo, measurement.get("path"), P25_RESULT_SHA, f"{label} raw result")
+    _require(raw.get("status"), "completed", f"{label} raw status")
+    frozen = _mapping(raw.get("frozen_product"), f"{label} frozen product")
+    _require(frozen.get("rules_tree_sha256"), P25_RULE_HASH, f"{label} raw rule hash")
+    _require(frozen.get("rule_count"), 68, f"{label} raw rule count")
+
+    summary = _mapping(raw.get("summary"), f"{label} summary")
+    for key, expected in {"fixture_count": 8, "hits": 6, "misses": 2, "errors": 0}.items():
+        _require(summary.get(key), expected, f"{label} summary {key}")
+    _require(summary.get("fixture_hit_rate"), 0.75, f"{label} summary rate")
+
+    datasets = raw.get("datasets")
+    if not isinstance(datasets, list) or len(datasets) != 8:
+        raise CurrentEvidenceError(f"{label} must contain exactly eight fixture results")
+    statuses = {item.get("dataset_id"): item.get("fixture_status") for item in datasets}
+    _require(statuses, {
+        "obfuscation-encoding": "MISS",
+        "metasploit-psexec-powershell-security": "HIT",
+        "mimikatz-lsadump-sam": "HIT",
+        "password-spray": "HIT",
+        "powersploit-security": "HIT",
+        "psattack-security": "HIT",
+        "new-user-security": "MISS",
+        "eventlog-manipulation": "HIT",
+    }, f"{label} fixture statuses")
+    _require(sum(int(item.get("parsed_events", 0)) for item in datasets), 450, f"{label} parsed events")
+    _require(sum(int(item.get("parse_errors", 0)) for item in datasets), 0, f"{label} parse errors")
+
+    boundary = _mapping(record.get("evidence_boundary"), f"{label} boundary")
+    _require(boundary.get("fresh_attack_revalidation_completed"), True, f"{label} completed")
+    _require(boundary.get("fixture_hit_rate_is_event_level_recall"), False, f"{label} event recall")
+    _require(boundary.get("event_level_recall"), "NOT_CLAIMED", f"{label} event recall claim")
+    _require(boundary.get("technique_recall"), "NOT_CLAIMED", f"{label} technique recall")
+    _require(boundary.get("production_recall"), "NOT_CLAIMED", f"{label} production recall")
+
+    return {
+        "revalidation_id": P25_ID,
+        "detector_rules_tree_sha256": P25_RULE_HASH,
+        "fixture_count": 8,
+        "hits": 6,
+        "misses": 2,
+        "errors": 0,
+        "fixture_hit_rate": 0.75,
+        "fixture_hit_rate_is_event_level_recall": False,
+        "event_level_recall": "NOT_CLAIMED",
+        "production_recall": "NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
     _require(
         chain.get("current_evidence_id"),
-        "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence",
+        "p2-25-fresh-attack-revalidation-current-detection-evidence",
         "current evidence id",
     )
     calibrations = chain.get("calibrations")
@@ -535,6 +611,12 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     p24d_record = legacy._load_yaml(p24d_path)
     final_hash, p24d = _verify_p2_24d(repo, p24d_record, p20_hash)
 
+    revalidation_rows = chain.get("post_remediation_revalidations")
+    if not isinstance(revalidation_rows, list) or len(revalidation_rows) != 1:
+        raise CurrentEvidenceError("post_remediation_revalidations must contain exactly P2-25")
+    p25_row = _mapping(revalidation_rows[0], "P2-25 chain row")
+    p25 = _verify_p2_25(repo, p25_row)
+
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
     detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
@@ -550,7 +632,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v7",
+        "schema": "breachscope.current_detection_evidence_verification.v8",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -560,12 +642,16 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "current_attack_scenario_hits": history["current_attack_scenario_hits"],
         "current_attack_scenario_hits_applies_to_current_rulepack": False,
         "attack_scenario_total": history["attack_scenario_total"],
-        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_attack_fixture_hits": p25["hits"],
+        "fresh_attack_fixture_total": p25["fixture_count"],
+        "fresh_attack_fixture_hit_rate": p25["fixture_hit_rate"],
         "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
         "posthoc_remediations": [p24d],
+        "post_remediation_revalidations": [p25],
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",
@@ -604,6 +690,7 @@ def main() -> int:
                     f"{calibration['dataset_hits_before']}/{calibration['dataset_total']} -> "
                     f"{calibration['dataset_hits_after']}/{calibration['dataset_total']} post-hoc"
                 )
+        print(f"Fresh attack revalidation after current rule change: {result['fresh_attack_fixture_hits']}/{result['fresh_attack_fixture_total']} fixtures")
         print("Fresh full benign FPR for current rulepack: NOT CLAIMED")
         print("Production accuracy/FPR: NOT CLAIMED")
     return 0

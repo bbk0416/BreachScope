@@ -64,15 +64,18 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v7"
-    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v8"
+    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
     assert data["rule_file_count"] == 5
     assert data["base_attack_scenario_hits"] == 2
     assert data["current_attack_scenario_hits"] == 10
     assert data["current_attack_scenario_hits_applies_to_current_rulepack"] is False
     assert data["attack_scenario_total"] == 10
-    assert data["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert data["fresh_attack_fixture_hits"] == 6
+    assert data["fresh_attack_fixture_total"] == 8
+    assert data["fresh_attack_fixture_hit_rate"] == 0.75
     assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     assert data["historical_benign"]["events"] == 766623
     assert len(data["calibrations"]) == 7
@@ -119,10 +122,24 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p24d["production_false_positive_rate"] == "NOT_CLAIMED"
 
 
+    assert len(data["post_remediation_revalidations"]) == 1
+    p25 = data["post_remediation_revalidations"][0]
+    assert p25["revalidation_id"] == "p2-25-deepbluecli-fresh-attack"
+    assert p25["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p25["fixture_count"] == 8
+    assert p25["hits"] == 6
+    assert p25["misses"] == 2
+    assert p25["errors"] == 0
+    assert p25["fixture_hit_rate"] == 0.75
+    assert p25["fixture_hit_rate_is_event_level_recall"] is False
+    assert p25["event_level_recall"] == "NOT_CLAIMED"
+    assert p25["production_recall"] == "NOT_CLAIMED"
+
+
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
         "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
@@ -147,6 +164,25 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
             "to_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
             "fresh_attack_revalidation": "NOT_RUN",
             "fresh_benign_revalidation": "NOT_RUN",
+        }
+    ]
+    assert data["post_remediation_revalidations"] == [
+        {
+            "revalidation_id": "p2-25-deepbluecli-fresh-attack",
+            "class": "fresh_external_attack_fixture_revalidation",
+            "binding_record": "external_baseline/p2_25_deepblue_attack_binding.yaml",
+            "contract_record": "external_baseline/p2_25_deepblue_attack_one_pass_contract.yaml",
+            "result_record": "external_baseline/results/p2_25_e712fc7/result.yaml",
+            "measurement_record": "external_baseline/results/p2_25_e712fc7/result.json",
+            "detector_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "fixture_count": 8,
+            "hits": 6,
+            "misses": 2,
+            "errors": 0,
+            "fixture_hit_rate": 0.75,
+            "event_level_ground_truth": "NOT_AVAILABLE",
+            "fixture_hit_rate_is_event_level_recall": False,
+            "fresh_attack_revalidation": "COMPLETED",
         }
     ]
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"

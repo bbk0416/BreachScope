@@ -10,7 +10,7 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
         "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
@@ -48,6 +48,27 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     assert benign["adjudication"]["benign_consistent"] == 50
     assert benign["adjudication"]["indeterminate_sensitive_action"] == 4
     assert benign["adjudication"]["confirmed_false_positives"] == "NOT_CLAIMED"
+
+    revalidation = data["post_remediation_revalidations"]
+    assert revalidation == [
+        {
+            "revalidation_id": "p2-25-deepbluecli-fresh-attack",
+            "class": "fresh_external_attack_fixture_revalidation",
+            "binding_record": "external_baseline/p2_25_deepblue_attack_binding.yaml",
+            "contract_record": "external_baseline/p2_25_deepblue_attack_one_pass_contract.yaml",
+            "result_record": "external_baseline/results/p2_25_e712fc7/result.yaml",
+            "measurement_record": "external_baseline/results/p2_25_e712fc7/result.json",
+            "detector_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "fixture_count": 8,
+            "hits": 6,
+            "misses": 2,
+            "errors": 0,
+            "fixture_hit_rate": 0.75,
+            "event_level_ground_truth": "NOT_AVAILABLE",
+            "fixture_hit_rate_is_event_level_recall": False,
+            "fresh_attack_revalidation": "COMPLETED",
+        }
+    ]
 
     boundary = data["claim_boundary"]
     for key in (

@@ -1,0 +1,267 @@
+{
+  "schema": "breachscope.p2_25_deepblue_attack_one_pass.v1",
+  "analysis_id": "p2-25-deepbluecli-fresh-attack-revalidation-one-pass-v1",
+  "status": "completed",
+  "contract_sha256": "bf96d71d33173a1224134e56023aaab223592c4cc280ac7b7b1703dc2714249c",
+  "runner_sha256": "1b5a5e60c47bcb36a0a07f063d4e558dea9f0c4e4de44d306ee73f977c61b024",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "datasets": [
+    {
+      "dataset_id": "obfuscation-encoding",
+      "scenario_label": "Obfuscation (encoding)",
+      "filename": "Powershell-Invoke-Obfuscation-encoding-menu.evtx",
+      "stage": "completed",
+      "parsed_events": 66,
+      "parse_errors": 0,
+      "parse_seconds": 1.084766199986916,
+      "findings": 0,
+      "flagged_events": 0,
+      "findings_by_rule": {},
+      "findings_by_technique": {},
+      "detection_seconds": 0.02659170000697486,
+      "fixture_status": "MISS"
+    },
+    {
+      "dataset_id": "metasploit-psexec-powershell-security",
+      "scenario_label": "Metasploit PowerShell target (security)",
+      "filename": "metasploit-psexec-powershell-target-security.evtx",
+      "stage": "completed",
+      "parsed_events": 8,
+      "parse_errors": 0,
+      "parse_seconds": 0.09065920001012273,
+      "findings": 10,
+      "flagged_events": 4,
+      "findings_by_rule": {
+        "R-EVENTLOG-Clear-Audit-1102": 1,
+        "R-PS-DownloadString": 3,
+        "R-PS-FromBase64String": 3,
+        "R-PS-InvokeExpression": 3
+      },
+      "findings_by_technique": {
+        "T1059.001": 6,
+        "T1070.001": 1,
+        "T1140": 3
+      },
+      "detection_seconds": 0.04229710000799969,
+      "fixture_status": "HIT"
+    },
+    {
+      "dataset_id": "mimikatz-lsadump-sam",
+      "scenario_label": "Mimikatz lsadump::sam",
+      "filename": "mimikatz-privesc-hashdump.evtx",
+      "stage": "completed",
+      "parsed_events": 13,
+      "parse_errors": 0,
+      "parse_seconds": 0.10027480000280775,
+      "findings": 1,
+      "flagged_events": 1,
+      "findings_by_rule": {
+        "R-EVENTLOG-Clear-Audit-1102": 1
+      },
+      "findings_by_technique": {
+        "T1070.001": 1
+      },
+      "detection_seconds": 0.006809899990912527,
+      "fixture_status": "HIT"
+    },
+    {
+      "dataset_id": "password-spray",
+      "scenario_label": "Password spraying",
+      "filename": "password-spray.evtx",
+      "stage": "completed",
+      "parsed_events": 295,
+      "parse_errors": 0,
+      "parse_seconds": 3.235342900006799,
+      "findings": 1,
+      "flagged_events": 1,
+      "findings_by_rule": {
+        "R-EVENTLOG-Clear-Audit-1102": 1
+      },
+      "findings_by_technique": {
+        "T1070.001": 1
+      },
+      "detection_seconds": 0.11513030002242886,
+      "fixture_status": "HIT"
+    },
+    {
+      "dataset_id": "powersploit-security",
+      "scenario_label": "PowerSploit (security)",
+      "filename": "powersploit-security.evtx",
+      "stage": "completed",
+      "parsed_events": 27,
+      "parse_errors": 0,
+      "parse_seconds": 0.23160299999290146,
+      "findings": 5,
+      "flagged_events": 3,
+      "findings_by_rule": {
+        "2d4d3f79-4af2-4bc6-9fe8-6e2317be5511": 2,
+        "R-ENC": 2,
+        "R-EVENTLOG-Clear-Audit-1102": 1
+      },
+      "findings_by_technique": {
+        "T1027.010": 2,
+        "T1059.001": 4,
+        "T1070.001": 1
+      },
+      "detection_seconds": 0.023497899994254112,
+      "fixture_status": "HIT"
+    },
+    {
+      "dataset_id": "psattack-security",
+      "scenario_label": "PSAttack",
+      "filename": "psattack-security.evtx",
+      "stage": "completed",
+      "parsed_events": 24,
+      "parse_errors": 0,
+      "parse_seconds": 0.20208699998329394,
+      "findings": 1,
+      "flagged_events": 1,
+      "findings_by_rule": {
+        "R-EVENTLOG-Clear-Audit-1102": 1
+      },
+      "findings_by_technique": {
+        "T1070.001": 1
+      },
+      "detection_seconds": 0.019297099992400035,
+      "fixture_status": "HIT"
+    },
+    {
+      "dataset_id": "new-user-security",
+      "scenario_label": "New user creation",
+      "filename": "new-user-security.evtx",
+      "stage": "completed",
+      "parsed_events": 4,
+      "parse_errors": 0,
+      "parse_seconds": 0.04417850001482293,
+      "findings": 0,
+      "flagged_events": 0,
+      "findings_by_rule": {},
+      "findings_by_technique": {},
+      "detection_seconds": 0.002297500002896413,
+      "fixture_status": "MISS"
+    },
+    {
+      "dataset_id": "eventlog-manipulation",
+      "scenario_label": "Event log manipulation",
+      "filename": "disablestop-eventlog.evtx",
+      "stage": "completed",
+      "parsed_events": 13,
+      "parse_errors": 0,
+      "parse_seconds": 0.08012649999000132,
+      "findings": 1,
+      "flagged_events": 1,
+      "findings_by_rule": {
+        "R-EVENTLOG-Clear-Audit-104": 1
+      },
+      "findings_by_technique": {
+        "T1070.001": 1
+      },
+      "detection_seconds": 0.006577599997399375,
+      "fixture_status": "HIT"
+    }
+  ],
+  "frozen_product": {
+    "repo_commit": "b70ab6bbc519ac137dae324ad860391371f470db",
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5,
+    "rule_count": 68
+  },
+  "source_verification": [
+    {
+      "dataset_id": "obfuscation-encoding",
+      "filename": "Powershell-Invoke-Obfuscation-encoding-menu.evtx",
+      "size_bytes": 1118208,
+      "git_blob_sha1": "015795a0164f24be5eb91ea539cf154b1bcc3e65",
+      "sha256": "b1d7c3411053a4190c93657265679958228b4bdb97652984c1564a67fcfab167",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "metasploit-psexec-powershell-security",
+      "filename": "metasploit-psexec-powershell-target-security.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "033aebcc0bdda1d498f7443dfece4b849891cb73",
+      "sha256": "84a086d6d4afc2a0de2040518757ee99eb83550156b95719c936a16130c7e9fb",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "mimikatz-lsadump-sam",
+      "filename": "mimikatz-privesc-hashdump.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "f82f01d16bc8cae33d20f96d0ea31519c08e2989",
+      "sha256": "ee2278c513a42eb58b896e3696fabb5b2ee84c7a12cfc323993b1dbd74c75f3b",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "password-spray",
+      "filename": "password-spray.evtx",
+      "size_bytes": 1118208,
+      "git_blob_sha1": "ca8929494da8bbaf12ef2f643c69d5cc4b141bf7",
+      "sha256": "de910e6c86476db2898d8b5f22201c7505a52c90d6a3b03f9362eebe8f242029",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "powersploit-security",
+      "filename": "powersploit-security.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "b32df5b1f6c7a792acfef52e50a33b64c683eee2",
+      "sha256": "b9d805537ca768fcbed1ed765e61bee56e16d3c1baec65b12567e73d865fb8ae",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "psattack-security",
+      "filename": "psattack-security.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "6e7a711936305919c2a021700280d1d41065b47a",
+      "sha256": "2207cef54b911475c03ee268125b6290beedddae86bbd59ebca700cbb293f7c7",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "new-user-security",
+      "filename": "new-user-security.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "ae8553affd793e7b266972bf2b992daf0947cb13",
+      "sha256": "6f9fe51d0a5dec63dc68f819e23bc14da5db0b75db4a68dfdf6b39f02868a379",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    },
+    {
+      "dataset_id": "eventlog-manipulation",
+      "filename": "disablestop-eventlog.evtx",
+      "size_bytes": 69632,
+      "git_blob_sha1": "5e7ce922ee681277c8c8d82413bb9ba944caef54",
+      "sha256": "7645e96c6d778f96d60ce2a6f209cc4202385c9d87cc077139921270a8e9bb23",
+      "size_match": true,
+      "git_blob_match": true,
+      "sha256_match": true
+    }
+  ],
+  "summary": {
+    "fixture_count": 8,
+    "hits": 6,
+    "misses": 2,
+    "errors": 0,
+    "fixture_hit_rate": 0.75,
+    "wall_seconds": 5.400483100005658
+  },
+  "claim_boundary": {
+    "event_level_labels": "NOT_AVAILABLE",
+    "event_level_recall": "NOT_CLAIMED",
+    "technique_recall": "NOT_CLAIMED",
+    "production_detection_rate": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "fixture_hit_rate_is_event_level_recall": false
+  }
+}

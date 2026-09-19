@@ -1,0 +1,133 @@
+schema: breachscope.p2_25_deepblue_attack_result.v1
+analysis_id: p2-25-deepbluecli-fresh-attack-revalidation-one-pass-v1
+analysis_class: fresh_external_attack_fixture_revalidation
+status: COMPLETED
+binding: external_baseline/p2_25_deepblue_attack_binding.yaml
+contract: external_baseline/p2_25_deepblue_attack_one_pass_contract.yaml
+runner: scripts/p2_25_deepblue_attack_one_pass.py
+frozen_product:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+artifacts:
+  measurement:
+    path: external_baseline/results/p2_25_e712fc7/result.json
+    original_sha256: 9ef5da2a55552a735c80d1f4b00c583b2de5fe9f55db687e45ac5532a503f62e
+    stored_sha256: be56514a196551904f32cd2bd829912cd13ae3bd4a2ce4cc28f268dceca9f664
+    storage_normalization: CRLF_TO_LF_ONLY
+  permanent_lock:
+    path: external_baseline/results/p2_25_e712fc7/P2_25_ONE_PASS.lock
+    original_sha256: a8754be1828436b6525215afa52baa9888ef0ee7784ce4eb0f7bf01509b575d6
+    stored_sha256: a8754be1828436b6525215afa52baa9888ef0ee7784ce4eb0f7bf01509b575d6
+  contract_sha256: bf96d71d33173a1224134e56023aaab223592c4cc280ac7b7b1703dc2714249c
+  runner_sha256: 1b5a5e60c47bcb36a0a07f063d4e558dea9f0c4e4de44d306ee73f977c61b024
+execution:
+  one_pass: true
+  permanent_lock_acquired: true
+  rerun_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  contract_merged_before_record_parse: true
+  contract_merge_commit: e712fc7efb2fba3b961a9c2303beaeb828f7edc9
+  all_source_identities_verified_before_parse: true
+  result_replaced_for_better_numbers: false
+  product_or_rules_tuned_from_result: false
+measurement:
+  fixture_count: 8
+  hits: 6
+  misses: 2
+  errors: 0
+  fixture_hit_rate: 0.75
+  total_parsed_events: 450
+  total_parse_errors: 0
+  datasets:
+  - dataset_id: obfuscation-encoding
+    scenario_label: Obfuscation (encoding)
+    parsed_events: 66
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+    fixture_status: MISS
+    findings_by_rule: {}
+  - dataset_id: metasploit-psexec-powershell-security
+    scenario_label: Metasploit PowerShell target (security)
+    parsed_events: 8
+    parse_errors: 0
+    findings: 10
+    flagged_events: 4
+    fixture_status: HIT
+    findings_by_rule:
+      R-EVENTLOG-Clear-Audit-1102: 1
+      R-PS-DownloadString: 3
+      R-PS-FromBase64String: 3
+      R-PS-InvokeExpression: 3
+  - dataset_id: mimikatz-lsadump-sam
+    scenario_label: Mimikatz lsadump::sam
+    parsed_events: 13
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+    fixture_status: HIT
+    findings_by_rule:
+      R-EVENTLOG-Clear-Audit-1102: 1
+  - dataset_id: password-spray
+    scenario_label: Password spraying
+    parsed_events: 295
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+    fixture_status: HIT
+    findings_by_rule:
+      R-EVENTLOG-Clear-Audit-1102: 1
+  - dataset_id: powersploit-security
+    scenario_label: PowerSploit (security)
+    parsed_events: 27
+    parse_errors: 0
+    findings: 5
+    flagged_events: 3
+    fixture_status: HIT
+    findings_by_rule:
+      2d4d3f79-4af2-4bc6-9fe8-6e2317be5511: 2
+      R-ENC: 2
+      R-EVENTLOG-Clear-Audit-1102: 1
+  - dataset_id: psattack-security
+    scenario_label: PSAttack
+    parsed_events: 24
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+    fixture_status: HIT
+    findings_by_rule:
+      R-EVENTLOG-Clear-Audit-1102: 1
+  - dataset_id: new-user-security
+    scenario_label: New user creation
+    parsed_events: 4
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+    fixture_status: MISS
+    findings_by_rule: {}
+  - dataset_id: eventlog-manipulation
+    scenario_label: Event log manipulation
+    parsed_events: 13
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+    fixture_status: HIT
+    findings_by_rule:
+      R-EVENTLOG-Clear-Audit-104: 1
+evidence_boundary:
+  fresh_attack_revalidation_completed: true
+  fixture_hit_rate_is_event_level_recall: false
+  event_level_ground_truth: NOT_AVAILABLE
+  event_level_recall: NOT_CLAIMED
+  technique_recall: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+interpretation: The first and only P2-25 one-pass run produced findings on 6 of 8 README-labeled DeepBlueCLI attack
+  fixtures, with 2 misses and 0 execution errors. All 450 parsed events had zero parse errors. This 75% fixture hit
+  rate is not event-level recall or technique recall. Several HIT fixtures were triggered by evidence such as Event
+  Log Clear records rather than necessarily by the scenario named in the fixture label, so fixture HIT must not be
+  interpreted as detection of the named attack action itself.
