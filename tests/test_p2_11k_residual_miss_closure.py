@@ -45,11 +45,14 @@ def test_p2_11k_does_not_rewrite_current_detection_chain() -> None:
     current = yaml.safe_load(CURRENT.read_text(encoding="utf-8"))
     measurement = yaml.safe_load(P2_11J.read_text(encoding="utf-8"))
 
-    assert current["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
+    assert current["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
     calibration_ids = [row["calibration_id"] for row in current["calibrations"]]
     assert "p2-11j-t1003-networkprovider-credential-capture" in calibration_ids
     assert calibration_ids[-1] == "p2-20-postholdout-coverage"
     assert not any(value.startswith("p2-11k") for value in calibration_ids)
+    assert [row["remediation_id"] for row in current["posthoc_remediations"]] == [
+        "p2-24d-rule-noise-remediation"
+    ]
 
     external = measurement["external_calibration"]
     assert external["after_scenario_hits"] == 9
