@@ -1,0 +1,82 @@
+schema: breachscope.p2_24d_posthoc_rule_noise_diagnosis.v1
+analysis_id: p2-24d-posthoc-rule-noise-diagnosis
+analysis_class: POST_HOC_DIAGNOSTIC_NOT_FRESH_EVALUATION
+parent_result: external_baseline/results/p2_24c_136f9f3/result.yaml
+source:
+  repository: ASK92/lolbin-detection-system
+  pinned_commit: ea164dee2ae71c9e9213a4167785095630723c38
+  evtx_path: data/Sysmon_logs/SysmonLogs_20251113.evtx
+  sha256: 7a0ff89ae20b0d1a3a5e904ab73f3cbe7fdc7d8eb0fc74dec8f8c906b7014104
+canonical_p2_24c:
+  parsed_events: 34534
+  flagged_events: 2404
+  findings: 2404
+  observed_source_intent_benign_flagged_event_fraction: 0.06961255574216714
+diagnostic_method:
+  detector_rerun: false
+  canonical_result_modified: false
+  source_reclassified: false
+  method: Windows wevtutil XML export plus raw CommandLine predicate census
+  raw_events_seen: 34534
+  events_with_command_line: 26175
+  canonical_rule_counts_reproduced_by_raw_predicates: true
+rule_diagnosis:
+  R-PS-Bypass:
+    canonical_findings: 1838
+    raw_predicate_findings: 1838
+    first_match_noprofile: 1824
+    first_match_executionpolicy_bypass: 14
+    any_executionpolicy_bypass: 16
+    nop_is_substring_of_noprofile_under_contains_matcher: true
+    repeated_chrome_version_check_cmd_wrapper: 910
+    repeated_chrome_version_check_powershell: 910
+    historical_p2_13_benign_consistent_alerts: 8
+    action: remove -noprofile and -nop; retain -windowstyle hidden and -executionpolicy bypass
+  R-PROCESS-Discovery:
+    canonical_findings: 498
+    raw_predicate_findings: 498
+    get_process: 498
+    browser_stop_automation: 455
+    action: unchanged; command is genuinely process-discovery capable
+  R-DISCOVERY-Account-System:
+    canonical_findings: 56
+    raw_predicate_findings: 56
+    systeminfo: 24
+    ipconfig_all: 32
+    action: unchanged; commands match intended discovery semantics
+  R-SCREENSHOT-Capture:
+    canonical_findings: 11
+    raw_predicate_findings: 11
+    generic_screenshot_token: 11
+    observed_image: msedgewebview2.exe
+    cause: Edge WebView feature names such as msEdgeScreenshotUI contain the generic substring
+    action: remove generic screenshot token; retain copyfromscreen, graphics.copyfromscreen, and bitblt
+  R-LSASS-Dump:
+    canonical_findings: 1
+    raw_predicate_findings: 1
+    observed_command_line: C:\WINDOWS\system32\lsass.exe
+    observed_parent: wininit.exe
+    cause: bare lsass.exe process startup matched a dump-attempt rule
+    action: remove bare lsass.exe; retain explicit comsvcs MiniDump, sekurlsa, and procdump dump patterns
+posthoc_counterfactual_after_three_narrow_changes:
+  R-PS-Bypass: 16
+  R-PROCESS-Discovery: 498
+  R-DISCOVERY-Account-System: 56
+  R-SCREENSHOT-Capture: 0
+  R-LSASS-Dump: 0
+  estimated_flagged_events: 570
+  estimated_flagged_event_fraction: 0.016505472867319165
+  estimated_flagged_event_percent: 1.6505472867319164
+  estimated_reduction_from_p2_24c_flagged_events: 1834
+  estimated_reduction_percent: 76.28951747088186
+claim_boundary:
+  p2_24c_is_now_development_data: true
+  counterfactual_is_fresh_measurement: false
+  counterfactual_is_independent_validation: false
+  flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positives: NOT_CLAIMED
+  general_fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  next_required_step: validate the changed detector on regression tests and then on a new previously unseen benign source
