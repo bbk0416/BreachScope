@@ -50,7 +50,7 @@
   description: PowerShell의 숨김/바이패스 플래그 사용 흔적
   field: command_line
   operator: contains
-  pattern: "-noprofile|-nop|-windowstyle hidden|-executionpolicy bypass"
+  pattern: "-windowstyle hidden|-executionpolicy bypass"
   severity: medium
   mitre_technique: T1059.001
 
@@ -95,7 +95,7 @@
   description: LSASS 메모리 덤프 또는 자격증명 탈취 도구 실행 의심 행위
   field: command_line
   operator: contains
-  pattern: "lsass.exe|comsvcs.dll, MiniDump|sekurlsa::logonpasswords|procdump -ma lsass"
+  pattern: "comsvcs.dll, MiniDump|sekurlsa::logonpasswords|procdump -ma lsass"
   severity: high
   mitre_technique: T1003.001
 
@@ -428,7 +428,7 @@
   description: 스크린샷/화면 캡처 관련 스크립트 실행 정황
   field: command_line
   operator: contains
-  pattern: "copyfromscreen|graphics.copyfromscreen|screenshot|bitblt"
+  pattern: "copyfromscreen|graphics.copyfromscreen|bitblt"
   severity: medium
   mitre_technique: T1113
 

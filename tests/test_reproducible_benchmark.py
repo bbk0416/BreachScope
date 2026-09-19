@@ -50,7 +50,7 @@ def test_historical_p2_09e_verifier_fails_closed_after_rule_drift() -> None:
     assert proc.returncode == 1
     assert "current rule tree hash" in proc.stdout
     assert "543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce" in proc.stdout
-    assert "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075" in proc.stdout
+    assert "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326" in proc.stdout
 
 
 def test_current_detection_evidence_chain_verifies_without_network() -> None:
@@ -64,13 +64,16 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v6"
-    assert data["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
-    assert data["current_rules_tree_sha256"] == "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v7"
+    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
+    assert data["current_rules_tree_sha256"] == "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
     assert data["rule_file_count"] == 5
     assert data["base_attack_scenario_hits"] == 2
     assert data["current_attack_scenario_hits"] == 10
+    assert data["current_attack_scenario_hits_applies_to_current_rulepack"] is False
     assert data["attack_scenario_total"] == 10
+    assert data["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     assert data["historical_benign"]["events"] == 766623
     assert len(data["calibrations"]) == 7
 
@@ -91,7 +94,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     p20 = data["calibrations"][-1]
     assert p20["calibration_id"] == "p2-20-postholdout-coverage"
     assert p20["from_rules_tree_sha256"] == j["to_rules_tree_sha256"]
-    assert p20["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p20["to_rules_tree_sha256"] == "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
     assert p20["dataset_hits_before"] == 1
     assert p20["dataset_hits_after"] == 5
     assert p20["dataset_total"] == 5
@@ -103,14 +106,26 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p20["benign_exact_predicate_matches"] == 0
     assert p20["fresh_full_benign_fpr_for_new_rulepack"] == "NOT_CLAIMED"
 
+    assert len(data["posthoc_remediations"]) == 1
+    p24d = data["posthoc_remediations"][0]
+    assert p24d["remediation_id"] == "p2-24d-rule-noise-remediation"
+    assert p24d["from_rules_tree_sha256"] == p20["to_rules_tree_sha256"]
+    assert p24d["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p24d["change_class"] == "posthoc_benign_noise_narrowing"
+    assert p24d["p2_24c_development_data"] is True
+    assert p24d["estimated_flagged_events_on_p2_24c_development_data"] == 570
+    assert p24d["fresh_attack_revalidation"] == "NOT_RUN"
+    assert p24d["fresh_benign_revalidation"] == "NOT_RUN"
+    assert p24d["production_false_positive_rate"] == "NOT_CLAIMED"
+
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-20-postholdout-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
-        "repo_commit": "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d",
-        "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+        "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
+        "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
         "rule_count": 68,
         "rule_file_count": 5,
     }
@@ -122,6 +137,17 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
         "p2-11h-t1047-wmic-query",
         "p2-11j-t1003-networkprovider-credential-capture",
         "p2-20-postholdout-coverage",
+    ]
+    assert data["posthoc_remediations"] == [
+        {
+            "remediation_id": "p2-24d-rule-noise-remediation",
+            "diagnosis_record": "external_baseline/p2_24d_posthoc_rule_noise_diagnosis.yaml",
+            "change_class": "posthoc_benign_noise_narrowing",
+            "from_rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+            "to_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "fresh_attack_revalidation": "NOT_RUN",
+            "fresh_benign_revalidation": "NOT_RUN",
+        }
     ]
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"

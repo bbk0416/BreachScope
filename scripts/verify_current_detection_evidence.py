@@ -34,6 +34,11 @@ P20_INGEST_BLOB = "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc"
 P20_RAW_SHA = "b4412e482500c38a72b894f7ddf0bac6f1f3cb8657db132b67e771966e486846"
 P20_COMMIT = "73a9bc81c3bea4836d3a7301beeadf236d9f1b8d"
 
+P24D_ID = "p2-24d-rule-noise-remediation"
+P24D_HASH = "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
+P24D_RULE_BLOB = "ef1e026256eb1e66f992459166ede963424606df"
+P24D_COMMIT = "66f5d2e0061ea34113038a712597113a6df7bd63"
+
 
 def _require(actual: Any, expected: Any, label: str) -> None:
     previous._require(actual, expected, label)
@@ -357,12 +362,124 @@ def _verify_p2_20(
     }
 
 
+def _verify_p2_24d(
+    repo: Path,
+    record: Mapping[str, Any],
+    previous_hash: str,
+) -> tuple[str, dict[str, Any]]:
+    label = "P2-24D"
+    _require(
+        record.get("schema"),
+        "breachscope.p2_24d_posthoc_rule_noise_diagnosis.v1",
+        f"{label} schema",
+    )
+    _require(record.get("analysis_id"), "p2-24d-posthoc-rule-noise-diagnosis", f"{label} id")
+    _require(
+        record.get("analysis_class"),
+        "POST_HOC_DIAGNOSTIC_NOT_FRESH_EVALUATION",
+        f"{label} class",
+    )
+
+    remediation = _mapping(record.get("remediation"), f"{label} remediation")
+    _require(remediation.get("remediation_id"), P24D_ID, f"{label} remediation id")
+    _require(
+        remediation.get("change_class"),
+        "posthoc_benign_noise_narrowing",
+        f"{label} change class",
+    )
+    _require(remediation.get("detector_repo_commit"), P24D_COMMIT, f"{label} detector commit")
+    _require(remediation.get("from_rules_tree_sha256"), previous_hash, f"{label} from hash")
+    _require(remediation.get("to_rules_tree_sha256"), P24D_HASH, f"{label} to hash")
+    _require(remediation.get("rule_file"), "rules/example_safe.yml", f"{label} rule file")
+    _require(remediation.get("rule_file_git_blob_sha1"), P24D_RULE_BLOB, f"{label} rule blob")
+    _require(
+        legacy._git_blob_sha1(repo / "rules/example_safe.yml"),
+        P24D_RULE_BLOB,
+        f"{label} live rule blob",
+    )
+    _require(
+        remediation.get("changed_rules"),
+        ["R-PS-Bypass", "R-SCREENSHOT-Capture", "R-LSASS-Dump"],
+        f"{label} changed rules",
+    )
+    _require(remediation.get("fresh_attack_revalidation"), "NOT_RUN", f"{label} fresh attack")
+    _require(remediation.get("fresh_benign_revalidation"), "NOT_RUN", f"{label} fresh benign")
+
+    expected_patterns = {
+        "R-PS-Bypass": "-windowstyle hidden|-executionpolicy bypass",
+        "R-SCREENSHOT-Capture": "copyfromscreen|graphics.copyfromscreen|bitblt",
+        "R-LSASS-Dump": "comsvcs.dll, MiniDump|sekurlsa::logonpasswords|procdump -ma lsass",
+    }
+    for rule_id, pattern in expected_patterns.items():
+        live = legacy._load_rule(repo, "rules/example_safe.yml", rule_id)
+        _require(live.get("field"), "command_line", f"{label} {rule_id} field")
+        _require(live.get("operator"), "contains", f"{label} {rule_id} operator")
+        _require(live.get("pattern"), pattern, f"{label} {rule_id} pattern")
+
+    parent = _mapping(record.get("canonical_p2_24c"), f"{label} parent")
+    _require(parent.get("parsed_events"), 34534, f"{label} parent parsed events")
+    _require(parent.get("flagged_events"), 2404, f"{label} parent flagged events")
+    _require(parent.get("findings"), 2404, f"{label} parent findings")
+
+    diagnostic = _mapping(record.get("diagnostic_method"), f"{label} diagnostic")
+    _require(diagnostic.get("detector_rerun"), False, f"{label} detector rerun")
+    _require(diagnostic.get("canonical_result_modified"), False, f"{label} canonical modified")
+    _require(diagnostic.get("raw_events_seen"), 34534, f"{label} raw events")
+    _require(
+        diagnostic.get("canonical_rule_counts_reproduced_by_raw_predicates"),
+        True,
+        f"{label} predicate reproduction",
+    )
+
+    posthoc = _mapping(
+        record.get("posthoc_counterfactual_after_three_narrow_changes"),
+        f"{label} counterfactual",
+    )
+    _require(posthoc.get("estimated_flagged_events"), 570, f"{label} estimated flagged")
+    _require(
+        posthoc.get("estimated_flagged_event_percent"),
+        1.6505472867319164,
+        f"{label} estimated percent",
+    )
+    _require(
+        posthoc.get("estimated_reduction_from_p2_24c_flagged_events"),
+        1834,
+        f"{label} estimated reduction",
+    )
+
+    claims = _mapping(record.get("claim_boundary"), f"{label} claims")
+    _require(claims.get("p2_24c_is_now_development_data"), True, f"{label} dev data")
+    _require(claims.get("counterfactual_is_fresh_measurement"), False, f"{label} fresh")
+    _require(claims.get("counterfactual_is_independent_validation"), False, f"{label} independent")
+    _require(claims.get("confirmed_false_positives"), "NOT_CLAIMED", f"{label} confirmed FP")
+    _require(
+        claims.get("general_fresh_full_benign_fpr_for_current_rulepack"),
+        "NOT_CLAIMED",
+        f"{label} benign FPR",
+    )
+    _require(claims.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} production FPR")
+
+    return P24D_HASH, {
+        "remediation_id": P24D_ID,
+        "detector_repo_commit": P24D_COMMIT,
+        "from_rules_tree_sha256": previous_hash,
+        "to_rules_tree_sha256": P24D_HASH,
+        "change_class": "posthoc_benign_noise_narrowing",
+        "p2_24c_development_data": True,
+        "estimated_flagged_events_on_p2_24c_development_data": 570,
+        "estimated_flagged_event_percent_on_p2_24c_development_data": 1.6505472867319164,
+        "fresh_attack_revalidation": "NOT_RUN",
+        "fresh_benign_revalidation": "NOT_RUN",
+        "production_false_positive_rate": "NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
     _require(
         chain.get("current_evidence_id"),
-        "p2-20-postholdout-current-detection-evidence",
+        "p2-24d-posthoc-rule-noise-remediation-current-detection-evidence",
         "current evidence id",
     )
     calibrations = chain.get("calibrations")
@@ -390,13 +507,39 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "P2-20 measurement",
     )
     p20_record = legacy._load_yaml(p20_path)
-    final_hash, p20 = _verify_p2_20(repo, p20_record, j_hash)
+    p20_hash, p20 = _verify_p2_20(repo, p20_record, j_hash)
+
+    posthoc_rows = chain.get("posthoc_remediations")
+    if not isinstance(posthoc_rows, list) or len(posthoc_rows) != 1:
+        raise CurrentEvidenceError("posthoc_remediations must contain exactly P2-24D")
+    posthoc_row = _mapping(posthoc_rows[0], "P2-24D chain row")
+    _require(posthoc_row.get("remediation_id"), P24D_ID, "P2-24D chain id")
+    _require(
+        posthoc_row.get("from_rules_tree_sha256"),
+        p20_hash,
+        "P2-24D chain from hash",
+    )
+    _require(
+        posthoc_row.get("to_rules_tree_sha256"),
+        P24D_HASH,
+        "P2-24D chain to hash",
+    )
+    _require(posthoc_row.get("fresh_attack_revalidation"), "NOT_RUN", "P2-24D chain attack")
+    _require(posthoc_row.get("fresh_benign_revalidation"), "NOT_RUN", "P2-24D chain benign")
+
+    p24d_path = legacy._relative_file(
+        repo,
+        posthoc_row.get("diagnosis_record"),
+        "P2-24D diagnosis",
+    )
+    p24d_record = legacy._load_yaml(p24d_path)
+    final_hash, p24d = _verify_p2_24d(repo, p24d_record, p20_hash)
 
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
     detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
-    _require(detector.get("repo_commit"), P20_COMMIT, "current detector commit")
-    _require(detector.get("rules_tree_sha256"), P20_HASH, "current detector rule hash")
+    _require(detector.get("repo_commit"), P24D_COMMIT, "current detector commit")
+    _require(detector.get("rules_tree_sha256"), P24D_HASH, "current detector rule hash")
     _require(detector.get("rule_count"), 68, "current detector rule count")
     _require(detector.get("rule_file_count"), 5, "current detector rule file count")
 
@@ -407,7 +550,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v6",
+        "schema": "breachscope.current_detection_evidence_verification.v7",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -415,10 +558,14 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "rule_file_count": rule_file_count,
         "base_attack_scenario_hits": history["base_attack_scenario_hits"],
         "current_attack_scenario_hits": history["current_attack_scenario_hits"],
+        "current_attack_scenario_hits_applies_to_current_rulepack": False,
         "attack_scenario_total": history["attack_scenario_total"],
+        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
+        "posthoc_remediations": [p24d],
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",
