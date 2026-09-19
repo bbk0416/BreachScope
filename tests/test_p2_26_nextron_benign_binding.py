@@ -16,7 +16,8 @@ def _load() -> dict:
 
 def test_p2_26_binds_new_goodware_source_before_observation() -> None:
     row = _load()
-    assert row["analysis_class"] == "pre_observation_external_benign_archive_binding"
+    assert row["status"] == "ABORTED_DUPLICATE_SOURCE"
+    assert row["analysis_class"] == "aborted_duplicate_external_benign_source_binding"
     assert row["frozen_detector"]["repo_commit"] == "b70ab6bbc519ac137dae324ad860391371f470db"
     assert row["frozen_detector"]["rules_tree_sha256"] == RULE_HASH
     assert row["frozen_detector"]["rule_count"] == 68
@@ -41,7 +42,10 @@ def test_p2_26_pins_release_asset_without_opening_archive() -> None:
     assert release["asset_uploaded_at_utc"] == "2026-09-14T13:27:31Z"
 
     basis = row["selection_basis"]
-    assert basis["source_repository_previously_used_by_breachscope"] is False
+    assert basis["source_repository_previously_used_by_breachscope"] is True
+    assert basis["selected_asset_previously_used_by_breachscope"] is True
+    assert basis["prior_benign_corpus_seen_asset"] == "win10-client.tgz"
+    assert basis["prior_benign_corpus_seen_sha256"] == ASSET_SHA
     assert basis["breachscope_default_branch_search_hits_for_source_names"] == 0
     assert basis["release_metadata_observed_before_binding"] is True
     assert basis["asset_downloaded_before_binding"] is False
@@ -83,8 +87,33 @@ def test_p2_26_scoring_is_flagged_fraction_not_confirmed_fpr() -> None:
     assert scoring["production_false_positive_rate"] == "NOT_CLAIMED"
 
     claim = _load()["claim_boundary"]
-    assert claim["fresh_benign_revalidation"] == "NOT_YET_MEASURED"
-    assert claim["source_intent_benign_flagged_event_fraction"] == "NOT_YET_MEASURED"
+    assert claim["fresh_benign_revalidation"] == "ABORTED_DUPLICATE_SOURCE"
+    assert claim["source_intent_benign_flagged_event_fraction"] == "NOT_MEASURED_DUPLICATE_SOURCE"
     assert claim["confirmed_false_positive_rate"] == "NOT_CLAIMED"
     assert claim["production_false_positive_rate"] == "NOT_CLAIMED"
     assert claim["production_accuracy"] == "NOT_CLAIMED"
+
+def test_p2_26_abort_is_grounded_in_p2_13_prior_corpus_record() -> None:
+    row = _load()
+    abort = row["abort"]
+    assert abort["evidence_record"] == "external_baseline/p2_13a_win11_benign_selection.yaml"
+    assert abort["evidence_field"] == "freshness_boundary.prior_benign_corpus_seen"
+    assert abort["prior_asset_name"] == "win10-client.tgz"
+    assert abort["prior_asset_sha256"] == ASSET_SHA
+    assert abort["exact_asset_match"] is True
+    assert abort["eligible_for_fresh_benign_revalidation"] is False
+    assert abort["measurement_prohibited_after_abort"] is True
+    assert abort["detector_execution_after_binding"] is False
+    assert abort["evtx_content_observation_after_binding"] is False
+
+    observed = row["post_binding_observation"]
+    assert observed["binding_merge_commit"] == "c739f40b2f1f148fde9bd57076ea21104c904b19"
+    assert observed["asset_downloaded_after_binding_merge"] is True
+    assert observed["downloaded_size_bytes"] == 70844052
+    assert observed["downloaded_sha256"] == ASSET_SHA
+    assert observed["release_sha256_match"] is True
+    assert observed["archive_opened"] is False
+    assert observed["archive_member_names_observed"] is False
+    assert observed["evtx_members_extracted"] is False
+    assert observed["evtx_records_parsed"] is False
+    assert observed["breachscope_detector_executed"] is False
