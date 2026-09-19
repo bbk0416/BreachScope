@@ -1,0 +1,101 @@
+schema: breachscope.p2_24c_benign_evtx_binding.v1
+analysis_id: p2-24c-ask92-sysmon-20251113-benign-v1
+analysis_class: pre_observation_external_benign_evtx_binding
+purpose: larger fresh independent benign Windows Sysmon full-rulepack evaluation after P2-24B's seven-record negative
+  control
+code_under_observation:
+  repo_commit: dcd7f5bef9ae4e7be8e4d1a55d3a1fc3f3102766
+  product_semantics_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: ASK92/lolbin-detection-system
+  pinned_commit: ea164dee2ae71c9e9213a4167785095630723c38
+  pinned_tree: a8aada5259bb694c5b63ec88215017db417a176e
+  source_commit_date_utc: '2026-03-22T14:46:52Z'
+  source_commit_message: Update README
+  evtx:
+    path: data/Sysmon_logs/SysmonLogs_20251113.evtx
+    git_blob_sha1: 5b25c2dab0c87219fbce6d9ce3d2730257c650ec
+    size_bytes: 66129920
+  documentation:
+    verification_report:
+      path: DATA_VERIFICATION_REPORT.md
+      git_blob_sha1: 779933f96148f92a7bebcca402dcce383632e33b
+    inventory:
+      path: DATA_COLLECTION_INVENTORY.md
+      git_blob_sha1: 81841251c3a8961a3a672d58d3d1c8989482e1f9
+    date_label_runner:
+      path: scripts/process_evtx_files_by_date.py
+      git_blob_sha1: 8ee2b9a7331216d17afe4a18dc8fa8357c539d7d
+    readme:
+      path: README.md
+      git_blob_sha1: b31f8c9af7f95b6060465b53f736adf56d270b6d
+  license: NOT_VERIFIED_AT_BINDING
+source_ground_truth:
+  readme_supported_facts:
+  - The project describes a benign baseline collection phase based on normal Windows VM activity.
+  - The documented expected benign volume is tens of thousands of Sysmon events.
+  label_policy_supported_facts:
+  - DATA_VERIFICATION_REPORT defines Label 0 (Benign) as data at or before 2025-11-15 23:59:59.
+  - DATA_COLLECTION_INVENTORY and process_evtx_files_by_date.py use a later benign cutoff of 2025-11-16 22:00:00.
+  - The selected raw EVTX path is named SysmonLogs_20251113.evtx, earlier than both documented benign cutoffs.
+  boundary_resolution: use the stricter 2025-11-15 23:59:59 cutoff; do not rely on the later conflicting cutoff
+  evaluation_label_basis: provisional benign-by-upstream time-label policy; final measurement eligibility requires
+    every parsed event timestamp to be at or before the strict cutoff
+  strict_benign_cutoff_local: '2025-11-15T23:59:59'
+  event_level_manual_adjudication: false
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  evtx_bytes_downloaded_before_binding: false
+  evtx_binary_opened_before_binding: false
+  evtx_records_parsed_before_binding: false
+  breachscope_detector_executed_before_binding: false
+  single_earliest_raw_export_selected: true
+  later_overlapping_exports_excluded_to_reduce_snapshot_duplication_risk: true
+  metadata_consulted_before_binding:
+  - pinned Git commit/tree/blob metadata
+  - README benign-baseline description
+  - DATA_VERIFICATION_REPORT label policy
+  - DATA_COLLECTION_INVENTORY label policy
+  - process_evtx_files_by_date.py label policy
+  excluded_previously_used_or_unsupported_sources:
+  - NextronSystems/evtx-baseline
+  - arniki/atomic-evtx
+  - bazz-066/cerberus-trace
+  - ChristosSmiliotopoulos/Lateral-Movement-Dataset--LMD_Collections
+  - EVTX-ATTACK-SAMPLES
+  - OTRF Security-Datasets
+  - Splunk attack_data
+protocol:
+  phase_a_binding_only: true
+  phase_b_after_binding_merge:
+  - download only the exact bound EVTX blob from the pinned commit
+  - verify byte size and Git blob SHA-1 before any parser opens the file
+  - compute and record SHA256 without parsing EVTX records
+  - do not execute the BreachScope detector
+  - do not inspect BreachScope detector output
+  phase_c_required_before_data_content_observation: Freeze and merge the exact EVTX SHA256, strict timestamp eligibility
+    rule, scoring contract, and one-pass runner before parsing any EVTX record.
+  phase_c_timestamp_fail_closed_rule: if any successfully parsed event timestamp is missing/unparseable or later than
+    2025-11-15T23:59:59 under the runner's declared timestamp interpretation, the benign FPR measurement is NOT_MEASURED
+  detector_execution_before_phase_c_contract: prohibited
+  content_observation_before_phase_c_contract: prohibited
+  tuning_after_source_observation_before_measurement_allowed: false
+  duplicate_measurement_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+claim_boundary:
+  fresh_benign_evaluation: NOT_YET_MEASURED
+  benign_false_positive_rate: NOT_YET_MEASURED
+  source_label_eligibility: PROVISIONAL_UNTIL_TIMESTAMP_CONTRACT_PASSES
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+notes: The source documentation contains two nearby benign/malicious date boundaries. P2-24C deliberately adopts the
+  earlier, stricter benign cutoff and will fail closed if the exact raw EVTX does not satisfy it. No EVTX payload
+  byte or event record was observed before this binding.
