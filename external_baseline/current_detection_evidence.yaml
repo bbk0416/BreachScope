@@ -123,6 +123,27 @@ benign_operational_evidence:
   event_level_manual_adjudication: false
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
+- evidence_id: p2-24c-ask92-sysmon-benign-one-pass
+  source_binding_record: external_baseline/p2_24c_ask92_sysmon_benign_binding.yaml
+  contract_record: external_baseline/p2_24c_ask92_benign_one_pass_contract.yaml
+  result_record: external_baseline/results/p2_24c_136f9f3/result.yaml
+  measurement_record: external_baseline/results/p2_24c_136f9f3/result.json
+  class: independent_source_intent_benign_sysmon_one_pass
+  status: COMPLETED
+  detector_rule_count: 68
+  raw_records: 34534
+  parsed_records: 34534
+  parse_errors: 0
+  missing_timestamps: 0
+  events_after_strict_cutoff: 0
+  findings: 2404
+  flagged_events: 2404
+  observed_source_intent_benign_flagged_event_fraction: 0.06961255574216714
+  observed_source_intent_benign_flagged_event_percent: 6.961255574216714
+  event_level_manual_adjudication: false
+  confirmed_false_positives: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
 claim_boundary:
   production_accuracy: NOT_CLAIMED
   production_detection_rate: NOT_CLAIMED
@@ -154,6 +175,11 @@ claim_boundary:
     and no raw Normal EVTX member, so it was also aborted before detector execution.
     P2-24B later ran a preregistered one-pass negative control on a previously unused,
     source-designated clean Windows Security EVTX fixture: all 7 records parsed with
-    zero errors, all 68 rules were evaluated, and 0/7 events were flagged. This is only
-    a seven-record parser fixture, so it does not establish a general fresh full benign
-    FPR for the current rulepack or any production false-positive rate.'
+    zero errors, all 68 rules were evaluated, and 0/7 events were flagged. P2-24C then
+    measured one larger, previously unused ASK92 Sysmon export under a stricter
+    preregistered benign time boundary: all 34,534 records parsed, no timestamps crossed
+    the strict cutoff, and 2,404/34,534 records produced findings (6.961255574216714%).
+    The ASK92 label is source collection intent plus a timestamp gate, not event-level
+    manual adjudication, so those 2,404 events are not claimed as confirmed false
+    positives. Neither P2-24B nor P2-24C establishes a general fresh full benign FPR for
+    the current rulepack or any production false-positive rate.'

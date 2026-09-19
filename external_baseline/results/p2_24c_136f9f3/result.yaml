@@ -1,0 +1,94 @@
+schema: breachscope.p2_24c_ask92_benign_result.v1
+analysis_id: p2-24c-ask92-sysmon-20251113-benign-one-pass-v1
+analysis_class: independent_source_intent_benign_sysmon_one_pass
+status: COMPLETED
+binding: external_baseline/p2_24c_ask92_sysmon_benign_binding.yaml
+contract: external_baseline/p2_24c_ask92_benign_one_pass_contract.yaml
+runner: scripts/p2_24c_ask92_benign_one_pass.py
+frozen_product:
+  repo_commit: dcd7f5bef9ae4e7be8e4d1a55d3a1fc3f3102766
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+artifacts:
+  measurement:
+    path: external_baseline/results/p2_24c_136f9f3/result.json
+    original_sha256: cc3435fddb70eb14634f181fb8810a84afd1b429248e774b71f44341db3115f1
+    stored_sha256: c99708cb5b3d684f221840fc728dd80cfe58ed2f7ed616f459e6998ca3f72431
+    storage_normalization: CRLF_TO_LF_ONLY
+  permanent_lock:
+    path: external_baseline/results/p2_24c_136f9f3/P2_24C_ONE_PASS.lock
+    original_sha256: dab9b8dcedd4be98bb6e4788d38ea755dbd1e469ef7ce95461f93595371dccb6
+    stored_sha256: dab9b8dcedd4be98bb6e4788d38ea755dbd1e469ef7ce95461f93595371dccb6
+  contract_sha256: d865b523e08771655f3372c7cca1aca92e0ee389ce6f2794ceb0d91ef624482b
+  runner_sha256: 9c4613bca5306928a7b80a6c172c5494b12a9f27b102f4ebe30f60373cf30437
+  source_sha256: 7a0ff89ae20b0d1a3a5e904ab73f3cbe7fdc7d8eb0fc74dec8f8c906b7014104
+  source_git_blob_sha1: 5b25c2dab0c87219fbce6d9ce3d2730257c650ec
+  source_size_bytes: 66129920
+execution:
+  one_pass: true
+  permanent_lock_acquired: true
+  rerun_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  source_identity_verified: true
+  frozen_product_verified: true
+  frozen_rules_verified: true
+  frozen_runner_verified: true
+  contract_merged_before_record_parse: true
+  contract_merge_commit: 136f9f38d5f52f6a32a32e41788a7f3cca1ae738
+  result_replaced_for_better_numbers: false
+  product_or_rules_tuned_from_result: false
+label_eligibility:
+  status: PASS
+  raw_record_count: 34534
+  parsed_events: 34534
+  product_parse_errors: 0
+  missing_timestamps: 0
+  timestamp_parse_errors: 0
+  events_after_strict_cutoff: 0
+  min_timestamp_naive: '2025-11-08T14:29:00.706320'
+  max_timestamp_naive: '2025-11-13T18:56:23.416739'
+  strict_cutoff_naive: '2025-11-15T23:59:59'
+  parse_and_eligibility_seconds: 983.4730879000126
+measurement:
+  source_label: benign_by_upstream_collection_intent_and_strict_timestamp_gate
+  parsed_benign_events: 34534
+  flagged_benign_events: 2404
+  findings: 2404
+  contract_false_positive_rate: 0.06961255574216714
+  contract_false_positive_percent: 6.961255574216714
+  source_intent_benign_flagged_event_fraction: 0.06961255574216714
+  source_intent_benign_flagged_event_percent: 6.961255574216714
+  rules_evaluated: 68
+  findings_by_rule:
+    R-DISCOVERY-Account-System: 56
+    R-LSASS-Dump: 1
+    R-PROCESS-Discovery: 498
+    R-PS-Bypass: 1838
+    R-SCREENSHOT-Capture: 11
+  findings_by_primary_technique:
+    T1003.001: 1
+    T1057: 498
+    T1059.001: 1838
+    T1087.001: 56
+    T1113: 11
+  detection_seconds: 37.19818160000432
+evidence_boundary:
+  fresh_single_source_full_rulepack_measurement: true
+  source_intent_benign_label: true
+  event_level_manual_adjudication: false
+  flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positives: NOT_CLAIMED
+  general_fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  statistical_confidence_interval: NOT_CLAIMED
+interpretation: The canonical P2-24C one-pass run parsed all 34,534 records from the exact bound ASK92 Sysmon export
+  with zero product parse errors, zero missing or unparseable timestamps, and zero records after the preregistered
+  strict benign cutoff. The frozen 68-rule detector produced 2,404 findings on 2,404 distinct events, an observed
+  source-intent benign flagged-event fraction of 2,404/34,534 = 6.961255574216714%. The largest contributors were
+  R-PS-Bypass (1,838) and R-PROCESS-Discovery (498). Because the source label is based on upstream collection intent
+  plus the timestamp gate rather than event-level manual adjudication, these 2,404 flagged events are not claimed
+  as 2,404 confirmed false positives. This result does not establish a general current-rulepack benign FPR or a production
+  FPR.
