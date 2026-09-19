@@ -1,0 +1,89 @@
+schema: breachscope.p2_25a_deepblue_attack_binding.v1
+analysis_id: p2-25a-deepblue-fresh-attack-revalidation-v1
+analysis_class: pre_observation_fresh_external_attack_binding
+purpose: fresh attack revalidation of the P2-24D narrowed 68-rule detector before any DeepBlueCLI EVTX payload is observed
+frozen_detector:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rule_change_commit: 66f5d2e0061ea34113038a712597113a6df7bd63
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+  current_evidence_id: p2-24d-posthoc-rule-noise-remediation-current-detection-evidence
+  fresh_attack_revalidation_before_binding: NOT_RUN
+  fresh_benign_revalidation_before_binding: NOT_RUN
+source:
+  repository: sans-blue-team/DeepBlueCLI
+  pinned_commit: 2eecc65698e8666408ece67525577c895676d579
+  pinned_tree: 024cae360078dbd3c70230e7c9245b9f661dba27
+  source_commit_date: 2023-06-28T16:33:55-04:00
+  source_commit_subject: New Sliver and Metasploit EVTX files including cmd.exe writing to ADMIN$, and suspicious remote threads
+  documentation:
+    path: README.md
+    git_blob_sha1: 937616cd0cbcf5e6c5f249d9ba9f03468f65962d
+    supported_facts:
+    - Sample EVTX files are provided in the repository's evtx directory.
+    - The README warns that included EVTX files contain command-line logs of malicious attacks among other artifacts.
+    - The README maps mimikatz-privesc-hashdump.evtx to Mimikatz lsadump::sam.
+    - The README maps Powershell-Invoke-Obfuscation-encoding-menu.evtx to Obfuscation (encoding).
+    - The README maps metasploit-psexec-powershell-target-security.evtx to Metasploit PowerShell target (security).
+    - The README maps new-user-security.evtx to New user creation.
+datasets:
+- dataset_id: deepblue-mimikatz-lsadump-sam
+  path: evtx/mimikatz-privesc-hashdump.evtx
+  git_blob_sha1: f82f01d16bc8cae33d20f96d0ea31519c08e2989
+  size_bytes: 69632
+  source_label: Mimikatz lsadump::sam
+- dataset_id: deepblue-powershell-obfuscation-encoding
+  path: evtx/Powershell-Invoke-Obfuscation-encoding-menu.evtx
+  git_blob_sha1: 015795a0164f24be5eb91ea539cf154b1bcc3e65
+  size_bytes: 1118208
+  source_label: Obfuscation (encoding)
+- dataset_id: deepblue-metasploit-psexec-powershell-security
+  path: evtx/metasploit-psexec-powershell-target-security.evtx
+  git_blob_sha1: 033aebcc0bdda1d498f7443dfece4b849891cb73
+  size_bytes: 69632
+  source_label: Metasploit PowerShell target (security)
+- dataset_id: deepblue-new-user-security
+  path: evtx/new-user-security.evtx
+  git_blob_sha1: ae8553affd793e7b266972bf2b992daf0947cb13
+  size_bytes: 69632
+  source_label: New user creation
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_default_branch_search_hits_for_source_names: 0
+  same_source_as_p2_21: false
+  same_source_as_p2_17c: false
+  same_source_as_p2_12: false
+  evtx_payload_bytes_downloaded_before_binding: false
+  evtx_binary_opened_before_binding: false
+  evtx_records_parsed_before_binding: false
+  breachscope_detector_executed_before_binding: false
+  metadata_consulted_before_binding:
+  - pinned Git commit/tree/blob metadata
+  - pinned README text
+  - public GitHub README rendering for the same DeepBlueCLI source
+protocol:
+  phase_a_binding_only: true
+  phase_b_after_binding_merge:
+  - download only the four exact bound EVTX blobs from the pinned commit
+  - verify byte size and Git blob SHA-1 before any parser opens any file
+  - compute and record SHA256 for each file without parsing records
+  - do not execute the BreachScope detector
+  - do not inspect EVTX record content
+  phase_c_required_before_content_observation: Freeze and merge exact SHA256 values, per-dataset scoring expectations, and a one-pass runner before parsing any EVTX record.
+  detector_execution_before_phase_c_contract: prohibited
+  content_observation_before_phase_c_contract: prohibited
+  tuning_after_source_observation_before_measurement_allowed: false
+  duplicate_measurement_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_24c_canonical_result_modified: false
+  p2_24d_development_diagnosis_modified: false
+claim_boundary:
+  fresh_attack_revalidation_for_current_rulepack: NOT_YET_MEASURED
+  dataset_level_attack_detection: NOT_YET_MEASURED
+  event_level_recall: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
