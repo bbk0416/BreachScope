@@ -1,5 +1,5 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-24d-posthoc-rule-noise-remediation-current-detection-evidence
+current_evidence_id: p2-25-fresh-attack-revalidation-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 current_frozen_detector:
@@ -47,6 +47,22 @@ posthoc_remediations:
   to_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
   fresh_attack_revalidation: NOT_RUN
   fresh_benign_revalidation: NOT_RUN
+post_remediation_revalidations:
+- revalidation_id: p2-25-deepbluecli-fresh-attack
+  class: fresh_external_attack_fixture_revalidation
+  binding_record: external_baseline/p2_25_deepblue_attack_binding.yaml
+  contract_record: external_baseline/p2_25_deepblue_attack_one_pass_contract.yaml
+  result_record: external_baseline/results/p2_25_e712fc7/result.yaml
+  measurement_record: external_baseline/results/p2_25_e712fc7/result.json
+  detector_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  fixture_count: 8
+  hits: 6
+  misses: 2
+  errors: 0
+  fixture_hit_rate: 0.75
+  event_level_ground_truth: NOT_AVAILABLE
+  fixture_hit_rate_is_event_level_recall: false
+  fresh_attack_revalidation: COMPLETED
 external_holdout_evidence:
 - evidence_id: p2-12-external-evidence-closure
   closure_record: external_baseline/p2_12_external_evidence_closure.yaml
@@ -191,7 +207,10 @@ claim_boundary:
     manual adjudication, so those 2,404 events are not claimed as confirmed false
     positives. P2-24D uses the already observed P2-24C source only as development data
     to narrow three noisy command-line predicates; its estimated 570-event residual is
-    post-hoc and is not a fresh measurement. The P2-24D rulepack has not yet received
-    fresh attack or benign revalidation. Neither P2-24B, P2-24C, nor P2-24D establishes
-    a general fresh full benign FPR for the current rulepack or any production
-    false-positive rate.'
+    post-hoc and is not a fresh measurement. P2-25 then performed a preregistered,
+    first-run-only revalidation of the unchanged P2-24D rulepack on eight previously
+    unused DeepBlueCLI README-labeled attack fixtures: 6/8 fixtures produced at least one
+    finding, 2/8 did not, and all 450 parsed events had zero parse errors. The 75% fixture
+    hit rate is not event-level or technique recall, and a fixture HIT does not prove the
+    named attack action itself was the triggering evidence. Fresh benign revalidation
+    after P2-24D is still not run. No general benign FPR or production rate is claimed.'
