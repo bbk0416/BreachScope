@@ -1,0 +1,106 @@
+schema: breachscope.p2_25_deepblue_attack_contract.v1
+analysis_id: p2-25-deepbluecli-fresh-attack-revalidation-one-pass-v1
+status: PREREGISTERED_BEFORE_EVTX_CONTENT_OBSERVATION
+purpose: fresh attack fixture revalidation of the P2-24D 68-rule detector
+binding: external_baseline/p2_25_deepblue_attack_binding.yaml
+frozen_product:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+  parent_remediation: p2-24d-rule-noise-remediation
+phase_b_identity_observation:
+  performed_after_binding_merge: true
+  binding_merge_commit: 76ed109371daed7911c5ee8464196f3c77c278c4
+  evtx_records_parsed: false
+  detector_executed: false
+  all_eight_size_and_git_blob_identities_verified: true
+  sha256_values_computed_without_record_parsing: true
+datasets:
+- dataset_id: obfuscation-encoding
+  scenario_label: Obfuscation (encoding)
+  filename: Powershell-Invoke-Obfuscation-encoding-menu.evtx
+  size_bytes: 1118208
+  git_blob_sha1: 015795a0164f24be5eb91ea539cf154b1bcc3e65
+  sha256: b1d7c3411053a4190c93657265679958228b4bdb97652984c1564a67fcfab167
+- dataset_id: metasploit-psexec-powershell-security
+  scenario_label: Metasploit PowerShell target (security)
+  filename: metasploit-psexec-powershell-target-security.evtx
+  size_bytes: 69632
+  git_blob_sha1: 033aebcc0bdda1d498f7443dfece4b849891cb73
+  sha256: 84a086d6d4afc2a0de2040518757ee99eb83550156b95719c936a16130c7e9fb
+- dataset_id: mimikatz-lsadump-sam
+  scenario_label: Mimikatz lsadump::sam
+  filename: mimikatz-privesc-hashdump.evtx
+  size_bytes: 69632
+  git_blob_sha1: f82f01d16bc8cae33d20f96d0ea31519c08e2989
+  sha256: ee2278c513a42eb58b896e3696fabb5b2ee84c7a12cfc323993b1dbd74c75f3b
+- dataset_id: password-spray
+  scenario_label: Password spraying
+  filename: password-spray.evtx
+  size_bytes: 1118208
+  git_blob_sha1: ca8929494da8bbaf12ef2f643c69d5cc4b141bf7
+  sha256: de910e6c86476db2898d8b5f22201c7505a52c90d6a3b03f9362eebe8f242029
+- dataset_id: powersploit-security
+  scenario_label: PowerSploit (security)
+  filename: powersploit-security.evtx
+  size_bytes: 69632
+  git_blob_sha1: b32df5b1f6c7a792acfef52e50a33b64c683eee2
+  sha256: b9d805537ca768fcbed1ed765e61bee56e16d3c1baec65b12567e73d865fb8ae
+- dataset_id: psattack-security
+  scenario_label: PSAttack
+  filename: psattack-security.evtx
+  size_bytes: 69632
+  git_blob_sha1: 6e7a711936305919c2a021700280d1d41065b47a
+  sha256: 2207cef54b911475c03ee268125b6290beedddae86bbd59ebca700cbb293f7c7
+- dataset_id: new-user-security
+  scenario_label: New user creation
+  filename: new-user-security.evtx
+  size_bytes: 69632
+  git_blob_sha1: ae8553affd793e7b266972bf2b992daf0947cb13
+  sha256: 6f9fe51d0a5dec63dc68f819e23bc14da5db0b75db4a68dfdf6b39f02868a379
+- dataset_id: eventlog-manipulation
+  scenario_label: Event log manipulation
+  filename: disablestop-eventlog.evtx
+  size_bytes: 69632
+  git_blob_sha1: 5e7ce922ee681277c8c8d82413bb9ba944caef54
+  sha256: 7645e96c6d778f96d60ce2a6f209cc4202385c9d87cc077139921270a8e9bb23
+runner:
+  path: scripts/p2_25_deepblue_attack_one_pass.py
+  sha256: 1b5a5e60c47bcb36a0a07f063d4e558dea9f0c4e4de44d306ee73f977c61b024
+  storage_normalization: CRLF_TO_LF_ONLY
+  permanent_exclusive_lock: true
+scoring:
+  fixture_count: 8
+  fixture_hit_definition: one or more detector findings after at least one event parses
+  fixture_miss_definition: zero detector findings after at least one event parses
+  fixture_error_definition: zero parsed events or runtime failure
+  aggregate_formula: fixture_hits / 8
+  parse_errors: reported but do not convert an otherwise parseable fixture to ERROR
+  findings_by_rule: reported for diagnosis only
+  findings_by_technique: reported for diagnosis only
+  event_level_recall: NOT_MEASURED
+  technique_recall: NOT_MEASURED
+protocol:
+  contract_must_merge_before_any_evtx_record_parse: true
+  contract_must_merge_before_detector_execution: true
+  all_source_identities_reverified_before_first_record_parse: true
+  permanent_lock_acquired_before_source_verification_and_parse: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_result: false
+  source_hash_or_size_mismatch_fails_closed: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_24c_canonical_result_modified: false
+  p2_24d_posthoc_counterfactual_used_as_fresh_evidence: false
+claim_boundary:
+  fresh_attack_revalidation: NOT_YET_MEASURED
+  fixture_hit_rate: NOT_YET_MEASURED
+  event_level_ground_truth: NOT_AVAILABLE
+  event_level_recall: NOT_CLAIMED
+  technique_recall: NOT_CLAIMED
+  production_detection_rate: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
