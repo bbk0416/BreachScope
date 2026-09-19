@@ -91,6 +91,19 @@ def test_p2_24d_posthoc_diagnosis_keeps_claim_boundary() -> None:
     assert row["diagnostic_method"]["canonical_result_modified"] is False
     assert row["diagnostic_method"]["canonical_rule_counts_reproduced_by_raw_predicates"] is True
 
+    remediation = row["remediation"]
+    assert remediation["remediation_id"] == "p2-24d-rule-noise-remediation"
+    assert remediation["detector_repo_commit"] == "66f5d2e0061ea34113038a712597113a6df7bd63"
+    assert remediation["from_rules_tree_sha256"] == (
+        "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075"
+    )
+    assert remediation["to_rules_tree_sha256"] == (
+        "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
+    )
+    assert remediation["rule_file_git_blob_sha1"] == "ef1e026256eb1e66f992459166ede963424606df"
+    assert remediation["fresh_attack_revalidation"] == "NOT_RUN"
+    assert remediation["fresh_benign_revalidation"] == "NOT_RUN"
+
     diagnosis = row["rule_diagnosis"]
     assert diagnosis["R-PS-Bypass"]["first_match_noprofile"] == 1824
     assert diagnosis["R-PROCESS-Discovery"]["get_process"] == 498
