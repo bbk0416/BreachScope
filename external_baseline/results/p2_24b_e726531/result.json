@@ -1,0 +1,47 @@
+{
+  "schema": "breachscope.p2_24b_clean_security_one_pass.v1",
+  "analysis_id": "p2-24b-queryfarm-clean-security-one-pass-v1",
+  "status": "completed",
+  "contract_sha256": "8653f3395da2a8c24539754b032bea1938a63dfc308d8fe167e29c395db918c4",
+  "runner_sha256": "bafec03a6a65139d9de279091925899b0c26c80373cd8acdd3ae3bf0d49e7510",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "frozen_product": {
+    "repo_commit": "4a5b16d33781638570f7cee1b6fea56bbd01731c",
+    "rules_tree_sha256": "93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075",
+    "rule_file_count": 5,
+    "rule_count": 68
+  },
+  "source_verification": {
+    "size_bytes": 69632,
+    "git_blob_sha1": "7c0eab77b0ed388da193827a14286a56634b3a6b",
+    "sha256": "50c87926d2dfed9776906ffbcc77e61577940910a71fb1c1871860a4e2213456",
+    "size_match": true,
+    "git_blob_match": true,
+    "sha256_match": true
+  },
+  "parse": {
+    "parsed_events": 7,
+    "parse_errors": 0,
+    "seconds": 0.27710099999967497
+  },
+  "measurement": {
+    "status": "MEASURED",
+    "source_label": "benign_by_upstream_explicit_clean_fixture_description",
+    "parsed_benign_events": 7,
+    "flagged_benign_events": 0,
+    "findings": 0,
+    "false_positive_rate": 0.0,
+    "false_positive_percent": 0.0,
+    "rules_evaluated": 68,
+    "findings_by_rule": {},
+    "findings_by_primary_technique": {},
+    "detection_seconds": 0.002315599995199591
+  },
+  "claim_boundary": {
+    "corpus_representativeness": "VERY_LIMITED_7_RECORD_FIXTURE",
+    "event_level_manual_adjudication": false,
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_accuracy": "NOT_CLAIMED",
+    "representative_production_population": "NOT_CLAIMED"
+  }
+}

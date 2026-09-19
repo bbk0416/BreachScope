@@ -1,0 +1,64 @@
+schema: breachscope.p2_24b_clean_security_result.v1
+analysis_id: p2-24b-queryfarm-clean-security-one-pass-v1
+analysis_class: independent_source_designated_clean_negative_control
+status: COMPLETED
+binding: external_baseline/p2_24a_queryfarm_clean_security_benign_binding.yaml
+contract: external_baseline/p2_24b_clean_security_one_pass_contract.yaml
+runner: scripts/p2_24b_clean_security_one_pass.py
+frozen_product:
+  repo_commit: 4a5b16d33781638570f7cee1b6fea56bbd01731c
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+artifacts:
+  measurement:
+    path: external_baseline/results/p2_24b_e726531/result.json
+    original_sha256: fc2a91890d05584b2b59dcd9c3ab452fb58e6d9cb9d9d8b97913aac5c0f753a7
+    stored_sha256: 6b4dd36e0296efaabbec384e4761dddf17ecfb335253d82be69c8eb7b0a54900
+    storage_normalization: CRLF_TO_LF_ONLY
+  permanent_lock:
+    path: external_baseline/results/p2_24b_e726531/P2_24B_ONE_PASS.lock
+    original_sha256: 9787c3373e5e6f396629dfa46befbd725bd644d27cb56819985f9edb5d5d1c36
+    stored_sha256: 9787c3373e5e6f396629dfa46befbd725bd644d27cb56819985f9edb5d5d1c36
+  contract_sha256: 8653f3395da2a8c24539754b032bea1938a63dfc308d8fe167e29c395db918c4
+  runner_sha256: bafec03a6a65139d9de279091925899b0c26c80373cd8acdd3ae3bf0d49e7510
+  source_sha256: 50c87926d2dfed9776906ffbcc77e61577940910a71fb1c1871860a4e2213456
+  source_git_blob_sha1: 7c0eab77b0ed388da193827a14286a56634b3a6b
+execution:
+  one_pass: true
+  permanent_lock_acquired: true
+  rerun_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  source_identity_verified: true
+  frozen_product_verified: true
+  frozen_rules_verified: true
+  frozen_runner_verified: true
+  contract_merged_before_record_parse: true
+  contract_merge_commit: e726531e667e1782cf93eb08bf8f1663b20cc765
+  result_replaced_for_better_numbers: false
+  product_or_rules_tuned_from_result: false
+measurement:
+  source_label: benign_by_upstream_explicit_clean_fixture_description
+  source_documented_records: 7
+  parsed_benign_events: 7
+  parse_errors: 0
+  rules_evaluated: 68
+  findings: 0
+  flagged_benign_events: 0
+  observed_fixture_false_positive_rate: 0.0
+  observed_fixture_false_positive_percent: 0.0
+evidence_boundary:
+  corpus_representativeness: VERY_LIMITED_7_RECORD_FIXTURE
+  event_level_manual_adjudication: false
+  source_wide_clean_label_only: true
+  fresh_full_rulepack_negative_control_measured: true
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  statistical_confidence_interval: NOT_CLAIMED
+interpretation: The canonical P2-24B one-pass run parsed all 7 source-designated clean Windows Security records
+  with zero parse errors and applied all 68 frozen rules. Zero events produced findings, so the observed fixture-specific
+  false-positive rate is 0/7 = 0%. Because this is only a seven-record parser test fixture and has no event-level
+  manual adjudication or representative production sampling, it does not establish the current rulepack's general
+  benign FPR or any production false-positive rate.
