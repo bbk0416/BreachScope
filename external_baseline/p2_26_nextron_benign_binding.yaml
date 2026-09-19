@@ -1,6 +1,6 @@
-schema: breachscope.p2_26_nextron_benign_binding.v1
+schema: breachscope.p2_26_nextron_benign_binding.v2
 analysis_id: p2-26-nextron-win10-fresh-benign-revalidation-v1
-analysis_class: pre_observation_external_benign_archive_binding
+analysis_class: aborted_duplicate_external_benign_source_binding
 purpose: fresh benign revalidation of the unchanged P2-24D 68-rule detector after P2-25 fresh attack revalidation
 frozen_detector:
   repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
@@ -33,7 +33,7 @@ source_ground_truth:
   manual_event_adjudication: NOT_AVAILABLE
   confirmed_false_positive_labels: NOT_AVAILABLE
 selection_basis:
-  source_repository_previously_used_by_breachscope: false
+  source_repository_previously_used_by_breachscope: true
   breachscope_default_branch_search_hits_for_source_names: 0
   selected_asset: win10-client.tgz
   selection_reason: upstream documents Windows 10 software installation and normal user interaction for this donated
@@ -46,6 +46,10 @@ selection_basis:
   evtx_members_extracted_before_binding: false
   evtx_records_parsed_before_binding: false
   breachscope_detector_executed_before_binding: false
+  selected_asset_previously_used_by_breachscope: true
+  duplicate_discovered_from: external_baseline/p2_13a_win11_benign_selection.yaml
+  prior_benign_corpus_seen_asset: win10-client.tgz
+  prior_benign_corpus_seen_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
 protocol:
   phase_a_binding_only: true
   phase_b_after_binding_merge:
@@ -70,6 +74,7 @@ protocol:
   p2_14e_final_blind_holdout_rerun: false
   p2_24c_canonical_result_modified: false
   p2_25_canonical_result_modified: false
+  measurement_prohibited_after_abort: true
 planned_scoring:
   unit: parsed_event
   flagged_event_definition: parsed event with one or more detector findings
@@ -81,9 +86,32 @@ planned_scoring:
   production_false_positive_rate: NOT_CLAIMED
   production_accuracy: NOT_CLAIMED
 claim_boundary:
-  fresh_benign_revalidation: NOT_YET_MEASURED
-  source_intent_benign_flagged_event_fraction: NOT_YET_MEASURED
+  fresh_benign_revalidation: ABORTED_DUPLICATE_SOURCE
+  source_intent_benign_flagged_event_fraction: NOT_MEASURED_DUPLICATE_SOURCE
   confirmed_false_positive_rate: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
   production_accuracy: NOT_CLAIMED
   production_recall: NOT_CLAIMED
+status: ABORTED_DUPLICATE_SOURCE
+post_binding_observation:
+  binding_merge_commit: c739f40b2f1f148fde9bd57076ea21104c904b19
+  asset_downloaded_after_binding_merge: true
+  downloaded_size_bytes: 70844052
+  downloaded_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  release_sha256_match: true
+  archive_opened: false
+  archive_member_names_observed: false
+  evtx_members_extracted: false
+  evtx_records_parsed: false
+  breachscope_detector_executed: false
+abort:
+  reason: selected release asset is an already-seen BreachScope benign corpus
+  evidence_record: external_baseline/p2_13a_win11_benign_selection.yaml
+  evidence_field: freshness_boundary.prior_benign_corpus_seen
+  prior_asset_name: win10-client.tgz
+  prior_asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  exact_asset_match: true
+  eligible_for_fresh_benign_revalidation: false
+  measurement_prohibited_after_abort: true
+  detector_execution_after_binding: false
+  evtx_content_observation_after_binding: false
