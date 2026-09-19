@@ -1,0 +1,81 @@
+schema: breachscope.p2_24c_ask92_benign_contract.v1
+analysis_id: p2-24c-ask92-sysmon-20251113-benign-one-pass-v1
+status: PREREGISTERED_BEFORE_EVTX_CONTENT_OBSERVATION
+purpose: measure a larger fresh full-rulepack source-intent benign false-positive fraction on one exact ASK92 Sysmon
+  export
+binding: external_baseline/p2_24c_ask92_sysmon_benign_binding.yaml
+frozen_product:
+  repo_commit: dcd7f5bef9ae4e7be8e4d1a55d3a1fc3f3102766
+  product_semantics_commit: 62c5cf38bd566c4ec37ec52f55a68ca63ced8758
+  rules_tree_sha256: 93c1baf1af676eb9c1e4c7dd7238b8a16f67e96f2fdf7320ebe0aa8053c0d075
+  rule_count: 68
+source:
+  repository: ASK92/lolbin-detection-system
+  pinned_commit: ea164dee2ae71c9e9213a4167785095630723c38
+  path: data/Sysmon_logs/SysmonLogs_20251113.evtx
+  size_bytes: 66129920
+  git_blob_sha1: 5b25c2dab0c87219fbce6d9ce3d2730257c650ec
+  sha256: 7a0ff89ae20b0d1a3a5e904ab73f3cbe7fdc7d8eb0fc74dec8f8c906b7014104
+phase_b_identity_observation:
+  performed_after_binding_merge: true
+  binding_merge_commit: 08238ccd72aba81c9464acc0b08e3a6622a7781a
+  binary_parsed: false
+  records_observed: false
+  detector_executed: false
+  verified_size_bytes: 66129920
+  verified_git_blob_sha1: 5b25c2dab0c87219fbce6d9ce3d2730257c650ec
+  computed_sha256: 7a0ff89ae20b0d1a3a5e904ab73f3cbe7fdc7d8eb0fc74dec8f8c906b7014104
+label_eligibility:
+  upstream_collection_intent: benign baseline collection before malicious attack generation
+  upstream_boundary_conflict_present: true
+  strict_cutoff_naive: '2025-11-15T23:59:59'
+  strict_cutoff_reason: earlier of the documented benign cutoffs
+  timestamp_source: EVTX System/TimeCreated@SystemTime
+  timestamp_interpretation: datetime.fromisoformat(SystemTime.replace('Z','+00:00')).replace(tzinfo=None)
+  required_raw_record_count: GREATER_THAN_ZERO
+  required_product_parse_errors: 0
+  required_missing_timestamps: 0
+  required_timestamp_parse_errors: 0
+  required_events_after_strict_cutoff: 0
+  required_parsed_events_equal_raw_records: true
+  failure_result: NOT_MEASURED
+  detector_must_not_run_if_ineligible: true
+runner:
+  path: scripts/p2_24c_ask92_benign_one_pass.py
+  sha256: 9c4613bca5306928a7b80a6c172c5494b12a9f27b102f4ebe30f60373cf30437
+  storage_normalization: CRLF_TO_LF_ONLY
+  permanent_exclusive_lock: true
+scoring:
+  denominator: all parsed records from the exact bound EVTX after the label-eligibility gate passes
+  false_positive_event_definition: an eligible source-intent benign event producing one or more findings from the
+    frozen 68-rule pack
+  flagged_event_deduplication: event_object_identity_within_single_parse
+  false_positive_rate_formula: flagged_benign_events / parsed_benign_events
+  finding_count_reported_separately: true
+  all_68_rules_evaluated: true
+  event_level_manual_adjudication: false
+  single_raw_export_only: true
+  cross_export_duplicate_inflation_avoided: true
+protocol:
+  contract_must_merge_before_any_evtx_record_parse: true
+  contract_must_merge_before_detector_execution: true
+  source_identity_reverified_before_parse: true
+  permanent_lock_acquired_before_source_verification_and_parse: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_result: false
+  source_hash_or_size_mismatch_fails_closed: true
+  label_eligibility_failure_skips_detector: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_14e_artifacts_modified: false
+  p2_24b_canonical_result_modified: false
+claim_boundary:
+  fresh_full_rulepack_single_source_negative_control: NOT_YET_MEASURED
+  source_intent_benign_false_positive_rate: NOT_YET_MEASURED
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_quality: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  statistical_confidence_interval: NOT_CLAIMED
