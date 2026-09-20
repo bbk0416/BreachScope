@@ -1,0 +1,116 @@
+schema: breachscope.p2_28_real_evtx_ingest_contract.v1
+benchmark_id: p2-28-windows-real-evtx-ingest-nextron-win10-v1
+status: PREREGISTERED_BEFORE_CANONICAL_EXECUTION
+purpose: measure the current product's real EVTX extract, conversion, normalization, and in-memory collection path on one exact pinned public EVTX corpus without running detection
+
+relation_to_prior_performance:
+  p2_23b_result: performance/p2_23b_peak_memory_result.yaml
+  p2_23b_status: COMPLETED
+  p2_23b_workload: synthetic_jsonl_full_pipeline
+  p2_23b_real_evtx_ingest_performance: NOT_MEASURED
+  p2_28_scope: real_evtx_ingest_only
+
+product:
+  repo_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  rules_are_not_evaluated: true
+
+source:
+  prior_source_record: external_baseline/p2_09d_benign_sources.yaml
+  prior_measurement_record: external_baseline/results/p2_09d_main_789c1f45/measurement.yaml
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  release_id: 295655133
+  asset_id: 371540503
+  asset_name: win10-client.tgz
+  asset_url: https://github.com/NextronSystems/evtx-baseline/releases/download/v0.8.4/win10-client.tgz
+  asset_size_bytes: 70844052
+  asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  expected_source_evtx_files_total: 352
+  expected_source_evtx_files_with_events: 97
+  expected_reference_events: 766623
+  source_label_policy: benign_by_source_intent
+  reused_for_performance_only: true
+  fresh_detection_evaluation: false
+
+runner:
+  path: scripts/p2_28_real_evtx_ingest_benchmark.py
+  sha256: 126b5e33fc9e1ec5485198d4f1a3100672e2ef62c7305596577df3d26c974ac1
+  storage_normalization: CRLF_TO_LF_ONLY
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  memory_api: GetProcessMemoryInfo
+  memory_metric: PeakWorkingSetSize
+
+canonical_invocation:
+  launcher: py -3.11
+  command_template: >-
+    py -3.11 scripts/p2_28_real_evtx_ingest_benchmark.py
+    --product-repo <frozen-product-worktree>
+    --contract performance/p2_28_real_evtx_ingest_contract.yaml
+    --archive <exact-win10-client.tgz>
+    --out-dir <fresh-canonical-output-directory>
+  default_python_launcher_prohibited: true
+
+measurement:
+  product_path:
+  - safe_extract_evtx_from_bound_archive
+  - breachscope.ingest.convert_evtx_dir
+  - breachscope.pipeline.Pipeline.collect_events
+  detection_stage_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+  primary_metrics:
+  - total_real_evtx_ingest_seconds
+  - throughput_events_per_second
+  - peak_working_set_bytes
+  secondary_metrics:
+  - extract_evtx_seconds
+  - convert_evtx_dir_seconds
+  - collect_and_normalize_seconds
+  - source_evtx_files
+  - source_evtx_bytes
+  - converted_jsonl_files
+  - converted_jsonl_bytes
+  - normalized_events
+  repetitions: 1
+  statistical_summary: false
+
+accounting_gate:
+  exact_source_evtx_files_required: 352
+  exact_normalized_events_required: 766623
+  source_file_count_mismatch_status: FAILED_ACCOUNTING_MISMATCH
+  normalized_event_count_mismatch_status: FAILED_ACCOUNTING_MISMATCH
+  throughput_claim_if_accounting_mismatch: NOT_CLAIMED
+  performance_success_requires_accounting_match: true
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  exact_product_commit_required: true
+  exact_rules_tree_required_for_reproducibility: true
+  exact_archive_size_and_sha256_required_before_extraction: true
+  permanent_lock_acquired_before_archive_verification: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_tuning_after_contract_before_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  unsafe_tar_member_fails_closed: true
+  source_accounting_mismatch_fails_performance_claim: true
+  detection_must_not_execute: true
+  p2_23b_canonical_result_modified: false
+  p2_26c_canonical_result_modified: false
+
+claim_boundary:
+  real_evtx_ingest_performance: NOT_YET_MEASURED
+  single_machine_observation: true
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
