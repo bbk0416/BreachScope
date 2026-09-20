@@ -1,0 +1,116 @@
+schema: breachscope.p2_26c_gha_windows_benign_contract.v1
+analysis_id: p2-26c-gha-windows-fresh-benign-revalidation-one-pass-v1
+status: PREREGISTERED_AFTER_IDENTITY_BEFORE_RECORD_PARSE
+purpose: fresh benign revalidation of the unchanged P2-24D 68-rule detector using one exact pre-checkout GitHub-hosted Windows runner EVTX capture
+binding: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+frozen_product:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+  parent_remediation: p2-24d-rule-noise-remediation
+phase_b_identity_observation:
+  performed_after_binding_merge: true
+  binding_merge_commit: 6f431ba2cf2d0fc08aa8b2124f020ced93da404f
+  workflow_run_id: 35492508210
+  workflow_run_attempt: 1
+  workflow_event: push
+  workflow_conclusion: success
+  workflow_created_at_utc: '2026-09-20T05:46:07Z'
+  workflow_completed_at_utc: '2026-09-20T05:46:17Z'
+  runner_os: Windows
+  runner_arch: X64
+  image_os: win25-vs2026
+  image_version: 20260907.229.1
+  repository_checkout_before_collection: false
+  repository_code_executed_before_collection: false
+  evtx_records_parsed: false
+  detector_executed: false
+source_artifact:
+  artifact_id: 10599666432
+  artifact_name: p2-26c-benign-source-35492508210
+  artifact_size_bytes: 147091
+  artifact_digest: sha256:cd733c028bacef530ed95ccc094a81cbe50f0c7386ba1ea107745a2730e0e719
+  expired: false
+  created_at_utc: '2026-09-20T05:46:15Z'
+  expires_at_utc: '2026-12-19T05:46:07Z'
+source_identity:
+  schema: breachscope.p2_26c_gha_windows_benign_source_identity.v1
+  status: IDENTITY_CAPTURED
+  collection_window_milliseconds: 900000
+  files:
+  - channel: Security
+    filename: Security.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: d07ecab6b9782c9196bf21548ff6fe8ce88311f939456ec66a05586dc2fe0806
+  - channel: System
+    filename: System.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: 3a3afebd5319f6ef373a9dab97783cb37bea2012bcb820ec80c7e7f2d02da741
+  - channel: Application
+    filename: Application.evtx
+    required: true
+    available: true
+    size_bytes: 69632
+    sha256: 8b0d5010af14d6b973a5421e1520da4141c0f662a1a7411408f539bb6ac32864
+  - channel: Windows PowerShell
+    filename: Windows_PowerShell.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+  - channel: Microsoft-Windows-PowerShell/Operational
+    filename: Microsoft-Windows-PowerShell_Operational.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+  identical_sha_files_are_retained_as_separate_preregistered_channel_exports: true
+runner:
+  path: scripts/p2_26c_gha_windows_benign_one_pass.py
+  sha256: 1edeca9e33e30286cc3b5bf31117c3004f42780d3924d0e7756bacf041053128
+  storage_normalization: CRLF_TO_LF_ONLY
+  permanent_exclusive_lock: true
+scoring:
+  denominator: all successfully parsed events from every available exact bound EVTX file
+  flagged_event_definition: a parsed event producing one or more findings from the frozen 68-rule pack
+  flagged_event_deduplication: event_object_identity_within_single_combined_parse
+  aggregate_formula: unique_flagged_events / parsed_events
+  metric_name: observed_source_intent_benign_flagged_event_fraction
+  findings_reported_separately: true
+  findings_by_rule: DIAGNOSTIC_ONLY
+  findings_by_channel: DIAGNOSTIC_ONLY
+  flagged_events_by_channel: DIAGNOSTIC_ONLY
+  parse_errors: REPORTED_SEPARATELY
+  event_level_manual_adjudication: false
+  all_68_rules_evaluated: true
+protocol:
+  contract_must_merge_before_any_evtx_record_parse: true
+  contract_must_merge_before_detector_execution: true
+  artifact_identity_reverified_before_parse: true
+  every_available_file_size_and_sha256_reverified_before_parse: true
+  permanent_lock_acquired_before_source_verification_and_parse: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_canonical_result_for_better_numbers: false
+  product_or_rules_tuning_after_contract_before_result: false
+  source_hash_or_size_mismatch_fails_closed: true
+  all_files_parse_zero_events_fails_not_measured: true
+  phase_b_rerun_allowed: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_24c_canonical_result_modified: false
+  p2_25_canonical_result_modified: false
+claim_boundary:
+  fresh_benign_revalidation: NOT_YET_MEASURED
+  observed_source_intent_benign_flagged_event_fraction: NOT_YET_MEASURED
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  confirmed_false_positive_rate: NOT_CLAIMED
+  general_fresh_full_benign_fpr: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
