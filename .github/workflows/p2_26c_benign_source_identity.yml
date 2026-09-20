@@ -1,0 +1,103 @@
+name: P2-26C Benign Source Identity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/p2_26c_benign_source_identity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  collect-source-identity:
+    name: Collect fresh Windows benign source identity
+    runs-on: windows-2025
+    timeout-minutes: 10
+
+    steps:
+      - name: Collect EVTX before repository checkout
+        id: collect
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $root = Join-Path $env:RUNNER_TEMP "p2_26c_benign_source"
+          New-Item -ItemType Directory -Path $root -Force | Out-Null
+
+          $channels = @(
+            @{ channel = "Security"; filename = "Security.evtx"; required = $true },
+            @{ channel = "System"; filename = "System.evtx"; required = $true },
+            @{ channel = "Application"; filename = "Application.evtx"; required = $true },
+            @{ channel = "Windows PowerShell"; filename = "Windows_PowerShell.evtx"; required = $false },
+            @{ channel = "Microsoft-Windows-PowerShell/Operational"; filename = "Microsoft-Windows-PowerShell_Operational.evtx"; required = $false }
+          )
+
+          $rows = @()
+          $query = "*[System[TimeCreated[timediff(@SystemTime) <= 900000]]]"
+          foreach ($item in $channels) {
+            $path = Join-Path $root $item.filename
+            $available = $true
+            $errorText = $null
+            & wevtutil epl $item.channel $path "/q:$query" /ow:true
+            if ($LASTEXITCODE -ne 0) {
+              $available = $false
+              $errorText = "wevtutil_exit_$LASTEXITCODE"
+              Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+              if ($item.required) {
+                throw "Required channel export failed: $($item.channel) exit=$LASTEXITCODE"
+              }
+            }
+
+            if ($available) {
+              $file = Get-Item -LiteralPath $path
+              $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+              $rows += [ordered]@{
+                channel = $item.channel
+                filename = $item.filename
+                required = [bool]$item.required
+                available = $true
+                size_bytes = [int64]$file.Length
+                sha256 = $hash
+              }
+            } else {
+              $rows += [ordered]@{
+                channel = $item.channel
+                filename = $item.filename
+                required = [bool]$item.required
+                available = $false
+                error = $errorText
+              }
+            }
+          }
+
+          $identity = [ordered]@{
+            schema = "breachscope.p2_26c_gha_windows_benign_source_identity.v1"
+            analysis_id = "p2-26c-gha-windows-fresh-benign-revalidation-v1"
+            status = "IDENTITY_CAPTURED"
+            binding_merge_commit = "${{ github.sha }}"
+            workflow_run_id = "${{ github.run_id }}"
+            workflow_run_attempt = "${{ github.run_attempt }}"
+            runner_os = $env:RUNNER_OS
+            runner_arch = $env:RUNNER_ARCH
+            image_os = $env:ImageOS
+            image_version = $env:ImageVersion
+            repository_checkout_before_collection = $false
+            repository_code_executed_before_collection = $false
+            evtx_records_parsed = $false
+            breachscope_detector_executed = $false
+            collection_window_milliseconds = 900000
+            files = $rows
+          }
+
+          $identityPath = Join-Path $root "identity.json"
+          $json = $identity | ConvertTo-Json -Depth 8
+          [System.IO.File]::WriteAllText($identityPath, $json + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
+          Write-Output ("P2_26C_IDENTITY=" + ($identity | ConvertTo-Json -Depth 8 -Compress))
+
+      - name: Upload immutable source capture
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: p2-26c-benign-source-${{ github.run_id }}
+          path: ${{ runner.temp }}\p2_26c_benign_source
+          if-no-files-found: error
+          retention-days: 90
