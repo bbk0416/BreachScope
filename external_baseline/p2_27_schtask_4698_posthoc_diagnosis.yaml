@@ -1,0 +1,123 @@
+schema: breachscope.p2_27_schtask_4698_posthoc_diagnosis.v1
+review_id: p2-27-schtask-4698-posthoc-diagnosis
+review_class: evidence_only_no_rule_change
+base_main_commit: cdef24323fcdeacb3f84a3343413451b064b728e
+parent_evidence:
+  current_evidence_id: p2-26c-fresh-benign-revalidation-current-detection-evidence
+  result_record: external_baseline/results/p2_26c_81b839d/result.yaml
+  measurement_record: external_baseline/results/p2_26c_81b839d/result.json
+  measurement_stored_sha256: 9cff2b8616632031807dffa4771eb69e37f1040ef28576b9bd73442bbeb3264c
+  detector_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  parsed_events: 1643
+  parse_errors: 0
+  findings: 1
+  flagged_events: 1
+  observed_source_intent_benign_flagged_event_fraction: 0.0006086427267194157
+  observed_source_intent_benign_flagged_event_percent: 0.06086427267194157
+  event_level_ground_truth: NOT_AVAILABLE
+  confirmed_false_positives: NOT_CLAIMED
+rule_under_review:
+  rule_file: rules/p2_10_event_rules.yml
+  rule_id: R-SCHTASK-4698
+  name: Scheduled Task Creation Event
+  severity: low
+  mitre_technique: T1053.005
+  predicates:
+  - field: event_id
+    operator: equals
+    pattern: '4698'
+  - field: source
+    operator: equals
+    pattern: Microsoft-Windows-Security-Auditing
+  diagnosis: The current rule is an event-level scheduled-task creation signal. It does not inspect task name, task XML, principal, hidden state, command, or trigger semantics.
+p2_26c_flagged_event:
+  interpretation: BENIGN_CONSISTENT_NOT_CONFIRMED_FALSE_POSITIVE
+  source_file: Security.evtx
+  source_file_size_bytes: 1118208
+  source_file_sha256: d07ecab6b9782c9196bf21548ff6fe8ce88311f939456ec66a05586dc2fe0806
+  provider: Microsoft-Windows-Security-Auditing
+  event_id: '4698'
+  event_record_id: '398628'
+  time_utc: '2026-09-20 05:40:58.317972+00:00'
+  subject_user_sid: S-1-5-21-3699639565-2515463329-295617607-500
+  subject_user_name: runneradmin
+  subject_domain_name: runnervmvmocb
+  task_name: \HostedComputeAgent
+  task_principal_user: runneradmin
+  task_logon_type: InteractiveToken
+  task_run_level: HighestAvailable
+  task_hidden: false
+  task_trigger_shape: EMPTY
+  task_command: C:\ProgramData\GitHub\HostedComputeAgent\hosted-compute-agent
+  context:
+    repository_checkout_before_collection: false
+    repository_code_executed_before_collection: false
+    source_population: newly_provisioned_github_hosted_windows_2025_runner
+  interpretation_basis:
+  - The task name and executable path identify the HostedComputeAgent installed on the GitHub-hosted runner image.
+  - The task was observed in the pre-checkout capture, before BreachScope repository code executed.
+  - The task XML is enabled and visible, has no trigger, and runs the HostedComputeAgent as runneradmin.
+  limitation: Source and environment context are strongly benign-consistent, but the P2-26C source does not provide event-level manual benign ground truth.
+historical_attack_comparator:
+  source:
+    repository: sbousseaden/EVTX-ATTACK-SAMPLES
+    commit: 4ceed2f4706daf601c212a8f91c113dd85349a2c
+    upstream_path: Execution/temp_scheduled_task_4698_4699.evtx
+    git_blob_sha1: 9fc179fe1ac4a07733ef956f7b66046ddac362be
+    size_bytes: 69632
+    sha256: a7decf0fbabc340e37de7e7c39fddd5398a7106a4f6acded0ea1d2ffa6bf8b70
+    scenario_id: exec-scheduled-task
+    expected_technique: T1053.005
+  event:
+    provider: Microsoft-Windows-Security-Auditing
+    event_id: '4698'
+    event_record_id: '566836'
+    time_utc: '2019-03-19 00:02:04.319944+00:00'
+    subject_user_name: Administrator
+    subject_domain_name: EXAMPLE
+    task_name: \CYAlyNSS
+    task_principal_user: S-1-5-18
+    task_logon_type: InteractiveToken
+    task_run_level: HighestAvailable
+    task_hidden: true
+    task_trigger_shape: DAILY_CALENDAR_TRIGGER
+    task_command: cmd.exe
+    task_arguments: '/C tasklist > %windir%\Temp\CYAlyNSS.tmp 2>&1'
+  comparison:
+    both_match_current_event_only_rule: true
+    task_semantics_differ_materially: true
+candidate_refinements_reviewed:
+- candidate: require TaskContent Hidden=true
+  disposition: REJECT_NO_CHANGE
+  reason: The historical attack sample is hidden, but requiring hidden tasks would narrow T1053.005 coverage and can miss malicious scheduled tasks that are not hidden. One attack sample is insufficient support for this restriction.
+- candidate: require TaskContent command=cmd.exe
+  disposition: REJECT_NO_CHANGE
+  reason: This is tool-specific to the historical sample and would exclude scheduled-task execution using other binaries or interpreters.
+- candidate: exclude exact HostedComputeAgent task name or executable path
+  disposition: REJECT_NO_CHANGE
+  reason: This would be an environment-specific allowlist derived from one GitHub-hosted runner observation and would overfit the fresh revalidation source.
+decision:
+  status: CLOSE_POSTHOC_NO_CHANGE
+  new_rule_added: false
+  existing_rule_modified: false
+  rule_tree_changed: false
+  detector_rerun_required: false
+  p2_26c_canonical_result_modified: false
+  current_detection_evidence_rewrite_required: false
+  reason: The single P2-26C finding is a strong benign-consistent infrastructure event and shows that generic Security 4698 is broad, but the available evidence does not justify a semantics-preserving narrowing of T1053.005 detection. The rule remains a low-severity scheduled-task creation signal.
+  reopen_conditions:
+  - Multiple independent benign sources show recurring 4698 noise with a generalizable discriminator.
+  - Independent malicious and benign scheduled-task captures support a task-semantic predicate without materially reducing technique coverage.
+  - Product semantics are intentionally changed from low-severity scheduled-task creation telemetry to a narrower high-confidence alert.
+claim_boundary:
+  review_is_fresh_evaluation: false
+  parent_p2_26c_is_modified: false
+  parent_p2_26c_may_be_used_as_development_data_after_this_review: true
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  benign_consistent_event_is_confirmed_false_positive: false
+  confirmed_false_positives: NOT_CLAIMED
+  general_fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
