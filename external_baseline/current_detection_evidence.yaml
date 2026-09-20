@@ -1,5 +1,5 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-25-fresh-attack-revalidation-current-detection-evidence
+current_evidence_id: p2-26c-fresh-benign-revalidation-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 current_frozen_detector:
@@ -63,6 +63,23 @@ post_remediation_revalidations:
   event_level_ground_truth: NOT_AVAILABLE
   fixture_hit_rate_is_event_level_recall: false
   fresh_attack_revalidation: COMPLETED
+- revalidation_id: p2-26c-gha-windows-fresh-benign
+  class: fresh_external_ephemeral_ci_benign_revalidation
+  binding_record: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+  contract_record: external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml
+  result_record: external_baseline/results/p2_26c_81b839d/result.yaml
+  measurement_record: external_baseline/results/p2_26c_81b839d/result.json
+  detector_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  parsed_events: 1643
+  parse_errors: 0
+  findings: 1
+  flagged_events: 1
+  observed_source_intent_benign_flagged_event_fraction: 0.0006086427267194157
+  observed_source_intent_benign_flagged_event_percent: 0.06086427267194157
+  event_level_ground_truth: NOT_AVAILABLE
+  flagged_events_are_confirmed_false_positives: false
+  fresh_benign_revalidation: COMPLETED
+  production_false_positive_rate: NOT_CLAIMED
 external_holdout_evidence:
 - evidence_id: p2-12-external-evidence-closure
   closure_record: external_baseline/p2_12_external_evidence_closure.yaml
@@ -168,6 +185,25 @@ benign_operational_evidence:
   confirmed_false_positives: NOT_CLAIMED
   fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
+- evidence_id: p2-26c-gha-windows-benign-one-pass
+  source_binding_record: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+  contract_record: external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml
+  result_record: external_baseline/results/p2_26c_81b839d/result.yaml
+  measurement_record: external_baseline/results/p2_26c_81b839d/result.json
+  class: fresh_external_ephemeral_ci_benign_revalidation
+  status: COMPLETED
+  detector_rule_count: 68
+  workflow_run_id: 35492508210
+  artifact_id: 10599666432
+  parsed_records: 1643
+  parse_errors: 0
+  findings: 1
+  flagged_events: 1
+  observed_source_intent_benign_flagged_event_fraction: 0.0006086427267194157
+  observed_source_intent_benign_flagged_event_percent: 0.06086427267194157
+  event_level_manual_adjudication: false
+  confirmed_false_positives: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
 claim_boundary:
   production_accuracy: NOT_CLAIMED
   production_detection_rate: NOT_CLAIMED
@@ -212,5 +248,11 @@ claim_boundary:
     unused DeepBlueCLI README-labeled attack fixtures: 6/8 fixtures produced at least one
     finding, 2/8 did not, and all 450 parsed events had zero parse errors. The 75% fixture
     hit rate is not event-level or technique recall, and a fixture HIT does not prove the
-    named attack action itself was the triggering evidence. Fresh benign revalidation
-    after P2-24D is still not run. No general benign FPR or production rate is claimed.'
+    named attack action itself was the triggering evidence. P2-26C then completed the
+    preregistered first-run-only fresh benign revalidation on a newly provisioned
+    GitHub-hosted Windows 2025 runner captured before repository checkout: 1,643 events
+    parsed with zero errors and 1 event was flagged by R-SCHTASK-4698, for an observed
+    source-intent benign flagged-event fraction of 1/1,643 = 0.06086427267194157%.
+    The CI population is not event-level adjudicated and is not claimed representative
+    of production workstations, so the flagged event is not a confirmed false positive
+    and no general benign FPR or production rate is claimed.'

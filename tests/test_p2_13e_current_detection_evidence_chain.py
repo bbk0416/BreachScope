@@ -10,7 +10,7 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
         "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
@@ -67,6 +67,25 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
             "event_level_ground_truth": "NOT_AVAILABLE",
             "fixture_hit_rate_is_event_level_recall": False,
             "fresh_attack_revalidation": "COMPLETED",
+        },
+        {
+            "revalidation_id": "p2-26c-gha-windows-fresh-benign",
+            "class": "fresh_external_ephemeral_ci_benign_revalidation",
+            "binding_record": "external_baseline/p2_26c_gha_windows_benign_binding.yaml",
+            "contract_record": "external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml",
+            "result_record": "external_baseline/results/p2_26c_81b839d/result.yaml",
+            "measurement_record": "external_baseline/results/p2_26c_81b839d/result.json",
+            "detector_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "parsed_events": 1643,
+            "parse_errors": 0,
+            "findings": 1,
+            "flagged_events": 1,
+            "observed_source_intent_benign_flagged_event_fraction": 0.0006086427267194157,
+            "observed_source_intent_benign_flagged_event_percent": 0.06086427267194157,
+            "event_level_ground_truth": "NOT_AVAILABLE",
+            "flagged_events_are_confirmed_false_positives": False,
+            "fresh_benign_revalidation": "COMPLETED",
+            "production_false_positive_rate": "NOT_CLAIMED",
         }
     ]
 

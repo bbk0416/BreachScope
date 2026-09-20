@@ -78,14 +78,26 @@ def test_p2_25_claim_boundary_does_not_turn_fixture_hits_into_recall() -> None:
     assert boundary["production_false_positive_rate"] == "NOT_CLAIMED"
 
 
-def test_current_chain_marks_attack_revalidation_complete_but_benign_still_unrun() -> None:
+def test_current_chain_keeps_attack_revalidation_and_adds_fresh_benign() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
-    assert chain["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
-    row = chain["post_remediation_revalidations"][0]
-    assert row["fresh_attack_revalidation"] == "COMPLETED"
-    assert row["fixture_count"] == 8
-    assert row["hits"] == 6
-    assert row["misses"] == 2
-    assert row["fixture_hit_rate"] == 0.75
+    assert chain["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
+
+    attack = chain["post_remediation_revalidations"][0]
+    assert attack["fresh_attack_revalidation"] == "COMPLETED"
+    assert attack["fixture_count"] == 8
+    assert attack["hits"] == 6
+    assert attack["misses"] == 2
+    assert attack["fixture_hit_rate"] == 0.75
+
+    benign = chain["post_remediation_revalidations"][1]
+    assert benign["fresh_benign_revalidation"] == "COMPLETED"
+    assert benign["parsed_events"] == 1643
+    assert benign["parse_errors"] == 0
+    assert benign["findings"] == 1
+    assert benign["flagged_events"] == 1
+    assert benign["observed_source_intent_benign_flagged_event_fraction"] == 0.0006086427267194157
+    assert benign["flagged_events_are_confirmed_false_positives"] is False
+
+    # P2-24D remains a historical at-the-time remediation record.
     assert chain["posthoc_remediations"][0]["fresh_benign_revalidation"] == "NOT_RUN"
     assert chain["claim_boundary"]["fresh_full_benign_fpr_for_current_rulepack"] == "NOT_CLAIMED"
