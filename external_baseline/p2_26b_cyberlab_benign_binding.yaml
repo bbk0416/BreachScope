@@ -1,7 +1,7 @@
-schema: breachscope.p2_26b_cyberlab_benign_binding.v1
+schema: breachscope.p2_26b_cyberlab_benign_binding.v2
 analysis_id: p2-26b-cyberlab-win10-fresh-benign-revalidation-v1
-analysis_class: pre_observation_external_benign_fixture_binding
-status: BOUND_PRE_OBSERVATION
+analysis_class: aborted_source_identity_mismatch_external_benign_source_binding
+status: ABORTED_SOURCE_IDENTITY_MISMATCH
 purpose: fresh benign revalidation of the unchanged P2-24D 68-rule detector after P2-25 fresh attack revalidation
 binding_base_commit: 2fefbb4e19c1473304bb3fbeba019ddbbb44b41e
 frozen_detector:
@@ -27,7 +27,8 @@ source:
   repository_license_at_pinned_commit: NOT_IDENTIFIED
   source_bytes_will_be_redistributed_by_breachscope: false
 source_ground_truth:
-  label_basis: upstream module README explicitly declares the selected Security EVTX benign/inert and says it was generated on an isolated Windows 10 lab VM by triggering normal logon/logoff events before export
+  label_basis: upstream module README explicitly declares the selected Security EVTX benign/inert and says it was
+    generated on an isolated Windows 10 lab VM by triggering normal logon/logoff events before export
   fixture_intent: BENIGN_INERT_NORMAL_LOGON_LOGOFF
   event_level_labels: NOT_AVAILABLE
   manual_event_adjudication: NOT_AVAILABLE
@@ -51,7 +52,8 @@ protocol:
   - compute SHA256 and require an exact match to the upstream-declared SHA256
   - do not parse any EVTX record
   - do not execute the BreachScope detector
-  phase_c_required_before_record_parse: Freeze and merge the verified SHA256, scoring contract, permanent-lock behavior, and one-pass runner before parsing any EVTX record.
+  phase_c_required_before_record_parse: Freeze and merge the verified SHA256, scoring contract, permanent-lock behavior,
+    and one-pass runner before parsing any EVTX record.
   content_observation_before_phase_c_contract: prohibited
   record_parse_before_phase_c_contract: prohibited
   detector_execution_before_phase_c_contract: prohibited
@@ -62,6 +64,7 @@ protocol:
   p2_14e_final_blind_holdout_rerun: false
   p2_24c_canonical_result_modified: false
   p2_25_canonical_result_modified: false
+  measurement_prohibited_after_abort: true
 planned_scoring:
   unit: parsed_event
   flagged_event_definition: parsed event with one or more detector findings
@@ -72,11 +75,50 @@ planned_scoring:
   production_false_positive_rate: NOT_CLAIMED
   production_accuracy: NOT_CLAIMED
 claim_boundary:
-  fresh_benign_revalidation: NOT_YET_MEASURED
-  source_intent_benign_flagged_event_fraction: NOT_YET_MEASURED
+  fresh_benign_revalidation: ABORTED_SOURCE_IDENTITY_MISMATCH
+  source_intent_benign_flagged_event_fraction: NOT_MEASURED_SOURCE_IDENTITY_MISMATCH
   fixture_scope: one upstream-declared benign Security EVTX generated from normal logon/logoff activity
   general_fresh_full_benign_fpr: NOT_CLAIMED
   confirmed_false_positive_rate: NOT_CLAIMED
   production_false_positive_rate: NOT_CLAIMED
   production_accuracy: NOT_CLAIMED
   production_recall: NOT_CLAIMED
+post_binding_observation:
+  binding_merge_commit: 50c99ab4dd0e02f7eb91ef98ba7b4046af6d3eda
+  selected_file_downloaded_after_binding_merge: true
+  first_transfer_attempt: FAILED_ZERO_BYTE_POWERSHELL_BINARY_REDIRECTION
+  first_transfer_output_used_as_evidence: false
+  downloaded_size_bytes: 69632
+  downloaded_git_blob_sha1: 540677984c675604d9318ee9accc3ce823ea60f5
+  downloaded_sha256: f56a7c918e212b2c77a518ab57768c873fc6666c98f366c24b7c9b0e88ac916c
+  expected_size_bytes: 69632
+  expected_git_blob_sha1: 540677984c675604d9318ee9accc3ce823ea60f5
+  upstream_declared_sha256: 452d7f45bf0629a795cd413e200631eb3c8fcfef1327d3766014541aabe58c88
+  size_match: true
+  git_blob_sha1_match: true
+  upstream_declared_sha256_match: false
+  evtx_records_parsed: false
+  breachscope_detector_executed: false
+  source_file_deleted_after_identity_record: true
+upstream_identity_crosscheck:
+  same_git_blob_paths:
+  - modules/lab-linux/06-windows-artifact-libs/exercise/Security.evtx
+  - modules/lab-linux/58-eventlog-hunting/exercise/Security_sample.evtx
+  - modules/lab-linux/60-ad-attack-paths/exercise/Security_sample.evtx
+  all_three_paths_git_blob_sha1: 540677984c675604d9318ee9accc3ce823ea60f5
+  all_three_paths_size_bytes: 69632
+  module_58_and_60_readme_declared_sha256: f56a7c918e212b2c77a518ab57768c873fc6666c98f366c24b7c9b0e88ac916c
+  interpretation: upstream documentation is internally inconsistent; the selected module-06 README SHA256 does not
+    identify the exact pinned Git blob
+abort:
+  reason: upstream-declared SHA256 does not match the exact pinned Git blob bytes
+  expected_upstream_sha256: 452d7f45bf0629a795cd413e200631eb3c8fcfef1327d3766014541aabe58c88
+  actual_pinned_blob_sha256: f56a7c918e212b2c77a518ab57768c873fc6666c98f366c24b7c9b0e88ac916c
+  exact_size_match: true
+  exact_git_blob_sha1_match: true
+  sha256_match: false
+  eligible_for_fresh_benign_revalidation: false
+  measurement_prohibited_after_abort: true
+  evtx_records_parsed: false
+  detector_execution_after_binding: false
+  result_driven_expected_hash_rewrite_allowed: false
