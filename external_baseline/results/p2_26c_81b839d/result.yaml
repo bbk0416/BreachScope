@@ -1,0 +1,103 @@
+schema: breachscope.p2_26c_gha_windows_benign_result.v1
+analysis_id: p2-26c-gha-windows-fresh-benign-revalidation-one-pass-v1
+analysis_class: fresh_external_ephemeral_ci_benign_revalidation
+status: COMPLETED
+binding: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+contract: external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml
+runner: scripts/p2_26c_gha_windows_benign_one_pass.py
+frozen_product:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+source:
+  workflow_run_id: 35492508210
+  workflow_run_attempt: 1
+  artifact_id: 10599666432
+  artifact_name: p2-26c-benign-source-35492508210
+  artifact_digest: sha256:cd733c028bacef530ed95ccc094a81cbe50f0c7386ba1ea107745a2730e0e719
+  binding_merge_commit: 6f431ba2cf2d0fc08aa8b2124f020ced93da404f
+  runner_image_os: win25-vs2026
+  runner_image_version: 20260907.229.1
+  repository_checkout_before_collection: false
+  repository_code_executed_before_collection: false
+artifacts:
+  measurement:
+    path: external_baseline/results/p2_26c_81b839d/result.json
+    original_sha256: 839d9bb5083fa433ddc29ffdce33252767ce805e5c654cf6ad94fa5d85ed7658
+    stored_sha256: 9cff2b8616632031807dffa4771eb69e37f1040ef28576b9bd73442bbeb3264c
+    storage_normalization: CRLF_TO_LF_ONLY
+  permanent_lock:
+    path: external_baseline/results/p2_26c_81b839d/P2_26C_ONE_PASS.lock
+    original_sha256: cde7cb5ca7d6e5225592a9354694daa59d6deb536d825f3c662a62427b732906
+    stored_sha256: cde7cb5ca7d6e5225592a9354694daa59d6deb536d825f3c662a62427b732906
+  contract_sha256: 271e92371fa7a69d50d2e0841ffd61f4ef43036bcb2661b0d7bb4b21e7e79566
+  runner_sha256: 1edeca9e33e30286cc3b5bf31117c3004f42780d3924d0e7756bacf041053128
+execution:
+  one_pass: true
+  permanent_lock_acquired: true
+  rerun_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  artifact_identity_verified: true
+  all_source_file_identities_verified_before_parse: true
+  frozen_product_verified: true
+  frozen_rules_verified: true
+  frozen_runner_verified: true
+  contract_merged_before_record_parse: true
+  contract_merge_commit: 81b839d84f07a724fd010c98c5bb44f8c40a2fd6
+  result_replaced_for_better_numbers: false
+  product_or_rules_tuned_from_result: false
+measurement:
+  source_label: source_intent_benign_ephemeral_ci_baseline
+  raw_records: 1643
+  parsed_events: 1643
+  parse_errors: 0
+  findings: 1
+  flagged_events: 1
+  observed_source_intent_benign_flagged_event_fraction: 0.0006086427267194157
+  observed_source_intent_benign_flagged_event_percent: 0.06086427267194157
+  rules_evaluated: 68
+  channels:
+  - channel: Security
+    raw_records: 1212
+    parsed_events: 1212
+    parse_errors: 0
+  - channel: System
+    raw_records: 347
+    parsed_events: 347
+    parse_errors: 0
+  - channel: Application
+    raw_records: 84
+    parsed_events: 84
+    parse_errors: 0
+  - channel: Windows PowerShell
+    raw_records: 0
+    parsed_events: 0
+    parse_errors: 0
+  - channel: Microsoft-Windows-PowerShell/Operational
+    raw_records: 0
+    parsed_events: 0
+    parse_errors: 0
+  findings_by_rule:
+    R-SCHTASK-4698: 1
+  findings_by_channel:
+    Security: 1
+  flagged_events_by_channel:
+    Security: 1
+evidence_boundary:
+  fresh_benign_revalidation_completed: true
+  source_intent_benign_label: true
+  event_level_manual_adjudication: false
+  flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positives: NOT_CLAIMED
+  general_fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+interpretation: The first and only P2-26C one-pass run parsed 1,643 events from the exact five-file GitHub-hosted
+  Windows 2025 runner capture with zero parse errors. The frozen 68-rule detector produced one finding on one Security
+  event via R-SCHTASK-4698, an observed source-intent benign flagged-event fraction of 1/1,643 =
+  0.06086427267194157%. The capture was collected before repository checkout and before any BreachScope code ran.
+  Because the benign label is source/population intent rather than event-level manual adjudication, the flagged event
+  is not claimed as a confirmed false positive. This result does not establish a general benign FPR or production FPR.

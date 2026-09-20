@@ -1,0 +1,133 @@
+{
+  "schema": "breachscope.p2_26c_gha_windows_benign_one_pass.v1",
+  "analysis_id": "p2-26c-gha-windows-fresh-benign-revalidation-one-pass-v1",
+  "status": "completed",
+  "contract_sha256": "271e92371fa7a69d50d2e0841ffd61f4ef43036bcb2661b0d7bb4b21e7e79566",
+  "runner_sha256": "1edeca9e33e30286cc3b5bf31117c3004f42780d3924d0e7756bacf041053128",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "channels": [
+    {
+      "channel": "Security",
+      "filename": "Security.evtx",
+      "raw_records": 1212,
+      "parsed_events": 1212,
+      "parse_errors": 0,
+      "parse_seconds": 22.02273110000533
+    },
+    {
+      "channel": "System",
+      "filename": "System.evtx",
+      "raw_records": 347,
+      "parsed_events": 347,
+      "parse_errors": 0,
+      "parse_seconds": 2.628063199983444
+    },
+    {
+      "channel": "Application",
+      "filename": "Application.evtx",
+      "raw_records": 84,
+      "parsed_events": 84,
+      "parse_errors": 0,
+      "parse_seconds": 0.47178220000932924
+    },
+    {
+      "channel": "Windows PowerShell",
+      "filename": "Windows_PowerShell.evtx",
+      "raw_records": 0,
+      "parsed_events": 0,
+      "parse_errors": 0,
+      "parse_seconds": 0.0004287000047042966
+    },
+    {
+      "channel": "Microsoft-Windows-PowerShell/Operational",
+      "filename": "Microsoft-Windows-PowerShell_Operational.evtx",
+      "raw_records": 0,
+      "parsed_events": 0,
+      "parse_errors": 0,
+      "parse_seconds": 0.0003831000067293644
+    }
+  ],
+  "frozen_product": {
+    "repo_commit": "b70ab6bbc519ac137dae324ad860391371f470db",
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5,
+    "rule_count": 68
+  },
+  "source_verification": [
+    {
+      "channel": "Security",
+      "filename": "Security.evtx",
+      "size_bytes": 1118208,
+      "sha256": "d07ecab6b9782c9196bf21548ff6fe8ce88311f939456ec66a05586dc2fe0806",
+      "size_match": true,
+      "sha256_match": true
+    },
+    {
+      "channel": "System",
+      "filename": "System.evtx",
+      "size_bytes": 1118208,
+      "sha256": "3a3afebd5319f6ef373a9dab97783cb37bea2012bcb820ec80c7e7f2d02da741",
+      "size_match": true,
+      "sha256_match": true
+    },
+    {
+      "channel": "Application",
+      "filename": "Application.evtx",
+      "size_bytes": 69632,
+      "sha256": "8b0d5010af14d6b973a5421e1520da4141c0f662a1a7411408f539bb6ac32864",
+      "size_match": true,
+      "sha256_match": true
+    },
+    {
+      "channel": "Windows PowerShell",
+      "filename": "Windows_PowerShell.evtx",
+      "size_bytes": 69632,
+      "sha256": "f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b",
+      "size_match": true,
+      "sha256_match": true
+    },
+    {
+      "channel": "Microsoft-Windows-PowerShell/Operational",
+      "filename": "Microsoft-Windows-PowerShell_Operational.evtx",
+      "size_bytes": 69632,
+      "sha256": "f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b",
+      "size_match": true,
+      "sha256_match": true
+    }
+  ],
+  "parse_summary": {
+    "raw_records": 1643,
+    "parsed_events": 1643,
+    "parse_errors": 0
+  },
+  "measurement": {
+    "status": "MEASURED",
+    "source_label": "source_intent_benign_ephemeral_ci_baseline",
+    "parsed_events": 1643,
+    "parse_errors": 0,
+    "flagged_events": 1,
+    "findings": 1,
+    "observed_source_intent_benign_flagged_event_fraction": 0.0006086427267194157,
+    "observed_source_intent_benign_flagged_event_percent": 0.06086427267194157,
+    "rules_evaluated": 68,
+    "findings_by_rule": {
+      "R-SCHTASK-4698": 1
+    },
+    "findings_by_channel": {
+      "Security": 1
+    },
+    "flagged_events_by_channel": {
+      "Security": 1
+    },
+    "detection_seconds": 0.5080794999958016
+  },
+  "claim_boundary": {
+    "event_level_benign_ground_truth": "NOT_AVAILABLE",
+    "confirmed_false_positive_rate": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_accuracy": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "representative_production_population": "NOT_CLAIMED",
+    "measured_value_is_production_fpr": false
+  }
+}

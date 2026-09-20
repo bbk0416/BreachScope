@@ -64,8 +64,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v8"
-    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v9"
+    assert data["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
     assert data["rule_file_count"] == 5
     assert data["base_attack_scenario_hits"] == 2
@@ -76,7 +76,13 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert data["fresh_attack_fixture_hits"] == 6
     assert data["fresh_attack_fixture_total"] == 8
     assert data["fresh_attack_fixture_hit_rate"] == 0.75
-    assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert data["fresh_benign_parsed_events"] == 1643
+    assert data["fresh_benign_parse_errors"] == 0
+    assert data["fresh_benign_flagged_events"] == 1
+    assert data["fresh_benign_findings"] == 1
+    assert data["fresh_benign_observed_flagged_event_fraction"] == 0.0006086427267194157
+    assert data["fresh_benign_observed_flagged_event_percent"] == 0.06086427267194157
     assert data["historical_benign"]["events"] == 766623
     assert len(data["calibrations"]) == 7
 
@@ -122,7 +128,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p24d["production_false_positive_rate"] == "NOT_CLAIMED"
 
 
-    assert len(data["post_remediation_revalidations"]) == 1
+    assert len(data["post_remediation_revalidations"]) == 2
     p25 = data["post_remediation_revalidations"][0]
     assert p25["revalidation_id"] == "p2-25-deepbluecli-fresh-attack"
     assert p25["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
@@ -135,11 +141,23 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p25["event_level_recall"] == "NOT_CLAIMED"
     assert p25["production_recall"] == "NOT_CLAIMED"
 
+    p26c = data["post_remediation_revalidations"][1]
+    assert p26c["revalidation_id"] == "p2-26c-gha-windows-fresh-benign"
+    assert p26c["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p26c["parsed_events"] == 1643
+    assert p26c["parse_errors"] == 0
+    assert p26c["findings"] == 1
+    assert p26c["flagged_events"] == 1
+    assert p26c["observed_source_intent_benign_flagged_event_fraction"] == 0.0006086427267194157
+    assert p26c["observed_source_intent_benign_flagged_event_percent"] == 0.06086427267194157
+    assert p26c["flagged_events_are_confirmed_false_positives"] is False
+    assert p26c["production_false_positive_rate"] == "NOT_CLAIMED"
+
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-25-fresh-attack-revalidation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "66f5d2e0061ea34113038a712597113a6df7bd63",
         "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
@@ -183,6 +201,25 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
             "event_level_ground_truth": "NOT_AVAILABLE",
             "fixture_hit_rate_is_event_level_recall": False,
             "fresh_attack_revalidation": "COMPLETED",
+        },
+        {
+            "revalidation_id": "p2-26c-gha-windows-fresh-benign",
+            "class": "fresh_external_ephemeral_ci_benign_revalidation",
+            "binding_record": "external_baseline/p2_26c_gha_windows_benign_binding.yaml",
+            "contract_record": "external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml",
+            "result_record": "external_baseline/results/p2_26c_81b839d/result.yaml",
+            "measurement_record": "external_baseline/results/p2_26c_81b839d/result.json",
+            "detector_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+            "parsed_events": 1643,
+            "parse_errors": 0,
+            "findings": 1,
+            "flagged_events": 1,
+            "observed_source_intent_benign_flagged_event_fraction": 0.0006086427267194157,
+            "observed_source_intent_benign_flagged_event_percent": 0.06086427267194157,
+            "event_level_ground_truth": "NOT_AVAILABLE",
+            "flagged_events_are_confirmed_false_positives": False,
+            "fresh_benign_revalidation": "COMPLETED",
+            "production_false_positive_rate": "NOT_CLAIMED",
         }
     ]
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"

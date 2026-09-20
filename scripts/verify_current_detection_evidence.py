@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the current detection-evidence chain through P2-20."""
+"""Verify the current detection-evidence chain through P2-26C."""
 from __future__ import annotations
 
 import argparse
@@ -42,6 +42,12 @@ P24D_COMMIT = "66f5d2e0061ea34113038a712597113a6df7bd63"
 P25_ID = "p2-25-deepbluecli-fresh-attack"
 P25_RESULT_SHA = "be56514a196551904f32cd2bd829912cd13ae3bd4a2ce4cc28f268dceca9f664"
 P25_RULE_HASH = P24D_HASH
+
+P26C_ID = "p2-26c-gha-windows-fresh-benign"
+P26C_RESULT_SHA = "9cff2b8616632031807dffa4771eb69e37f1040ef28576b9bd73442bbeb3264c"
+P26C_LOCK_SHA = "cde7cb5ca7d6e5225592a9354694daa59d6deb536d825f3c662a62427b732906"
+P26C_RULE_HASH = P24D_HASH
+P26C_CURRENT_ID = "p2-26c-fresh-benign-revalidation-current-detection-evidence"
 
 
 
@@ -550,12 +556,210 @@ def _verify_p2_25(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _verify_p2_26c(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
+    label = "P2-26C"
+    _require(row.get("revalidation_id"), P26C_ID, f"{label} chain id")
+    _require(
+        row.get("class"),
+        "fresh_external_ephemeral_ci_benign_revalidation",
+        f"{label} class",
+    )
+    _require(row.get("detector_rules_tree_sha256"), P26C_RULE_HASH, f"{label} detector hash")
+    for key, expected in {
+        "parsed_events": 1643,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+    }.items():
+        _require(row.get(key), expected, f"{label} chain {key}")
+    _require(
+        row.get("observed_source_intent_benign_flagged_event_fraction"),
+        0.0006086427267194157,
+        f"{label} chain fraction",
+    )
+    _require(
+        row.get("observed_source_intent_benign_flagged_event_percent"),
+        0.06086427267194157,
+        f"{label} chain percent",
+    )
+    _require(row.get("event_level_ground_truth"), "NOT_AVAILABLE", f"{label} ground truth")
+    _require(
+        row.get("flagged_events_are_confirmed_false_positives"),
+        False,
+        f"{label} confirmed FP boundary",
+    )
+    _require(row.get("fresh_benign_revalidation"), "COMPLETED", f"{label} completion")
+    _require(
+        row.get("production_false_positive_rate"),
+        "NOT_CLAIMED",
+        f"{label} production FPR",
+    )
+
+    result_path = legacy._relative_file(repo, row.get("result_record"), f"{label} result")
+    record = legacy._load_yaml(result_path)
+    _require(
+        record.get("schema"),
+        "breachscope.p2_26c_gha_windows_benign_result.v1",
+        f"{label} result schema",
+    )
+    _require(
+        record.get("analysis_class"),
+        "fresh_external_ephemeral_ci_benign_revalidation",
+        f"{label} result class",
+    )
+    _require(record.get("status"), "COMPLETED", f"{label} result status")
+
+    artifacts = _mapping(record.get("artifacts"), f"{label} artifacts")
+    measurement_artifact = _mapping(
+        artifacts.get("measurement"),
+        f"{label} measurement artifact",
+    )
+    _require(
+        measurement_artifact.get("stored_sha256"),
+        P26C_RESULT_SHA,
+        f"{label} stored result SHA",
+    )
+    raw = _locked_json(
+        repo,
+        measurement_artifact.get("path"),
+        P26C_RESULT_SHA,
+        f"{label} raw result",
+    )
+    lock_artifact = _mapping(artifacts.get("permanent_lock"), f"{label} lock artifact")
+    _require(lock_artifact.get("stored_sha256"), P26C_LOCK_SHA, f"{label} lock SHA record")
+    lock_path = legacy._relative_file(repo, lock_artifact.get("path"), f"{label} lock")
+    _require(_sha256(lock_path), P26C_LOCK_SHA, f"{label} lock SHA")
+
+    _require(raw.get("status"), "completed", f"{label} raw status")
+    frozen = _mapping(raw.get("frozen_product"), f"{label} frozen product")
+    _require(frozen.get("rules_tree_sha256"), P26C_RULE_HASH, f"{label} raw rule hash")
+    _require(frozen.get("rule_count"), 68, f"{label} raw rule count")
+    _require(frozen.get("rule_file_count"), 5, f"{label} raw rule files")
+
+    parse_summary = _mapping(raw.get("parse_summary"), f"{label} parse summary")
+    _require(parse_summary.get("raw_records"), 1643, f"{label} raw records")
+    _require(parse_summary.get("parsed_events"), 1643, f"{label} parsed events")
+    _require(parse_summary.get("parse_errors"), 0, f"{label} parse errors")
+
+    measurement = _mapping(raw.get("measurement"), f"{label} measurement")
+    _require(measurement.get("status"), "MEASURED", f"{label} measurement status")
+    _require(measurement.get("parsed_events"), 1643, f"{label} measured events")
+    _require(measurement.get("parse_errors"), 0, f"{label} measured parse errors")
+    _require(measurement.get("flagged_events"), 1, f"{label} flagged events")
+    _require(measurement.get("findings"), 1, f"{label} findings")
+    _require(measurement.get("rules_evaluated"), 68, f"{label} rules")
+    _require(
+        measurement.get("observed_source_intent_benign_flagged_event_fraction"),
+        0.0006086427267194157,
+        f"{label} fraction",
+    )
+    _require(
+        measurement.get("observed_source_intent_benign_flagged_event_percent"),
+        0.06086427267194157,
+        f"{label} percent",
+    )
+    _require(measurement.get("findings_by_rule"), {"R-SCHTASK-4698": 1}, f"{label} rules")
+    _require(measurement.get("findings_by_channel"), {"Security": 1}, f"{label} channels")
+    _require(
+        measurement.get("flagged_events_by_channel"),
+        {"Security": 1},
+        f"{label} flagged channels",
+    )
+
+    channels = raw.get("channels")
+    if not isinstance(channels, list) or len(channels) != 5:
+        raise CurrentEvidenceError(f"{label} must contain exactly five channel rows")
+    expected_channels = {
+        "Security": (1212, 1212, 0),
+        "System": (347, 347, 0),
+        "Application": (84, 84, 0),
+        "Windows PowerShell": (0, 0, 0),
+        "Microsoft-Windows-PowerShell/Operational": (0, 0, 0),
+    }
+    observed_channels = {
+        item.get("channel"): (
+            item.get("raw_records"),
+            item.get("parsed_events"),
+            item.get("parse_errors"),
+        )
+        for item in channels
+    }
+    _require(observed_channels, expected_channels, f"{label} channel counts")
+
+    raw_boundary = _mapping(raw.get("claim_boundary"), f"{label} raw boundary")
+    _require(
+        raw_boundary.get("event_level_benign_ground_truth"),
+        "NOT_AVAILABLE",
+        f"{label} event ground truth",
+    )
+    _require(
+        raw_boundary.get("confirmed_false_positive_rate"),
+        "NOT_CLAIMED",
+        f"{label} confirmed FPR",
+    )
+    _require(
+        raw_boundary.get("production_false_positive_rate"),
+        "NOT_CLAIMED",
+        f"{label} production FPR",
+    )
+    _require(
+        raw_boundary.get("measured_value_is_production_fpr"),
+        False,
+        f"{label} production boundary",
+    )
+
+    evidence_boundary = _mapping(record.get("evidence_boundary"), f"{label} boundary")
+    _require(
+        evidence_boundary.get("fresh_benign_revalidation_completed"),
+        True,
+        f"{label} completed",
+    )
+    _require(
+        evidence_boundary.get("flagged_events_are_confirmed_false_positives"),
+        False,
+        f"{label} confirmed FP",
+    )
+    _require(
+        evidence_boundary.get("production_false_positive_rate"),
+        "NOT_CLAIMED",
+        f"{label} production claim",
+    )
+
+    execution = _mapping(record.get("execution"), f"{label} execution")
+    _require(
+        execution.get("contract_merge_commit"),
+        "81b839d84f07a724fd010c98c5bb44f8c40a2fd6",
+        f"{label} contract merge",
+    )
+    _require(execution.get("one_pass"), True, f"{label} one pass")
+    _require(execution.get("rerun_allowed"), False, f"{label} rerun")
+    _require(
+        execution.get("first_completed_or_failed_execution_is_canonical"),
+        True,
+        f"{label} canonical",
+    )
+
+    return {
+        "revalidation_id": P26C_ID,
+        "detector_rules_tree_sha256": P26C_RULE_HASH,
+        "parsed_events": 1643,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "observed_source_intent_benign_flagged_event_fraction": 0.0006086427267194157,
+        "observed_source_intent_benign_flagged_event_percent": 0.06086427267194157,
+        "flagged_events_are_confirmed_false_positives": False,
+        "production_false_positive_rate": "NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
     _require(
         chain.get("current_evidence_id"),
-        "p2-25-fresh-attack-revalidation-current-detection-evidence",
+        P26C_CURRENT_ID,
         "current evidence id",
     )
     calibrations = chain.get("calibrations")
@@ -612,10 +816,14 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     final_hash, p24d = _verify_p2_24d(repo, p24d_record, p20_hash)
 
     revalidation_rows = chain.get("post_remediation_revalidations")
-    if not isinstance(revalidation_rows, list) or len(revalidation_rows) != 1:
-        raise CurrentEvidenceError("post_remediation_revalidations must contain exactly P2-25")
+    if not isinstance(revalidation_rows, list) or len(revalidation_rows) != 2:
+        raise CurrentEvidenceError(
+            "post_remediation_revalidations must contain P2-25 then P2-26C"
+        )
     p25_row = _mapping(revalidation_rows[0], "P2-25 chain row")
     p25 = _verify_p2_25(repo, p25_row)
+    p26c_row = _mapping(revalidation_rows[1], "P2-26C chain row")
+    p26c = _verify_p2_26c(repo, p26c_row)
 
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
@@ -632,7 +840,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v8",
+        "schema": "breachscope.current_detection_evidence_verification.v9",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -646,12 +854,22 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "fresh_attack_fixture_hits": p25["hits"],
         "fresh_attack_fixture_total": p25["fixture_count"],
         "fresh_attack_fixture_hit_rate": p25["fixture_hit_rate"],
-        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_parsed_events": p26c["parsed_events"],
+        "fresh_benign_parse_errors": p26c["parse_errors"],
+        "fresh_benign_flagged_events": p26c["flagged_events"],
+        "fresh_benign_findings": p26c["findings"],
+        "fresh_benign_observed_flagged_event_fraction": p26c[
+            "observed_source_intent_benign_flagged_event_fraction"
+        ],
+        "fresh_benign_observed_flagged_event_percent": p26c[
+            "observed_source_intent_benign_flagged_event_percent"
+        ],
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
         "posthoc_remediations": [p24d],
-        "post_remediation_revalidations": [p25],
+        "post_remediation_revalidations": [p25, p26c],
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",
@@ -691,6 +909,11 @@ def main() -> int:
                     f"{calibration['dataset_hits_after']}/{calibration['dataset_total']} post-hoc"
                 )
         print(f"Fresh attack revalidation after current rule change: {result['fresh_attack_fixture_hits']}/{result['fresh_attack_fixture_total']} fixtures")
+        print(
+            "Fresh benign revalidation after current rule change: "
+            f"{result['fresh_benign_flagged_events']}/{result['fresh_benign_parsed_events']} "
+            "source-intent benign events flagged"
+        )
         print("Fresh full benign FPR for current rulepack: NOT CLAIMED")
         print("Production accuracy/FPR: NOT CLAIMED")
     return 0
