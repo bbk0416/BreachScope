@@ -1,0 +1,111 @@
+schema: breachscope.p2_26c_gha_windows_benign_binding.v1
+analysis_id: p2-26c-gha-windows-fresh-benign-revalidation-v1
+analysis_class: pre_collection_fresh_external_ephemeral_windows_benign_binding
+status: BOUND_PRE_COLLECTION
+purpose: fresh benign revalidation of the unchanged P2-24D 68-rule detector after P2-25 attack revalidation
+binding_base_commit: 5ea5c710ccdb7d6116380e2603ac1367a1ac23c9
+frozen_detector:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+  current_evidence_id: p2-25-fresh-attack-revalidation-current-detection-evidence
+  parent_remediation: p2-24d-rule-noise-remediation
+source:
+  platform: GitHub Actions hosted runner
+  runner_label: windows-2025
+  source_class: fresh_ephemeral_ci_windows_event_logs
+  fresh_vm_documentation: https://docs.github.com/en/actions/how-tos/manage-runners/github-hosted-runners/use-github-hosted-runners
+  collection_workflow: .github/workflows/p2_26c_benign_source_identity.yml
+  collection_trigger:
+    event: push
+    branch: main
+    path: .github/workflows/p2_26c_benign_source_identity.yml
+  collection_window:
+    type: fixed_lookback_from_each_export
+    milliseconds: 900000
+    description: last 15 minutes at export time, covering fresh-runner provisioning and pre-checkout CI activity
+  channels:
+  - channel: Security
+    filename: Security.evtx
+    required: true
+  - channel: System
+    filename: System.evtx
+    required: true
+  - channel: Application
+    filename: Application.evtx
+    required: true
+  - channel: Windows PowerShell
+    filename: Windows_PowerShell.evtx
+    required: false
+  - channel: Microsoft-Windows-PowerShell/Operational
+    filename: Microsoft-Windows-PowerShell_Operational.evtx
+    required: false
+source_ground_truth:
+  label_basis: no adversarial workload, attack emulator, malware sample, or BreachScope repository code is executed before collection; the source is the normal platform and runner activity of a newly provisioned GitHub-hosted Windows VM
+  population_intent: BENIGN_CI_BASELINE
+  event_level_labels: NOT_AVAILABLE
+  manual_event_adjudication: NOT_AVAILABLE
+  confirmed_false_positive_labels: NOT_AVAILABLE
+  malware_free_guarantee_by_platform: NOT_CLAIMED
+  production_workstation_representativeness: NOT_ESTABLISHED
+selection_basis:
+  exact_source_bytes_exist_before_binding: false
+  source_is_generated_only_after_binding_merge: true
+  source_previously_seen_by_breachscope: false
+  source_results_available_before_binding: false
+  evtx_records_parsed_before_binding: false
+  breachscope_detector_executed_before_binding: false
+  repository_code_executed_before_source_collection: false
+  source_collection_occurs_before_repository_checkout: true
+  rejected_prior_attempts:
+  - id: p2-26
+    status: ABORTED_DUPLICATE_SOURCE
+  - id: p2-26b
+    status: ABORTED_SOURCE_IDENTITY_MISMATCH
+protocol:
+  phase_a_binding_only: true
+  phase_b_identity_only:
+  - run the merged identity workflow once on windows-2025
+  - collect source EVTX before any repository checkout
+  - export only the preregistered channels and fixed 15-minute lookback
+  - require successful export of Security, System, and Application
+  - optional PowerShell channels may be absent but their availability must be recorded
+  - compute exact byte size and SHA256 for every collected EVTX
+  - upload the exact EVTX bytes plus identity.json as one GitHub Actions artifact
+  - do not parse any EVTX record
+  - do not execute the BreachScope detector
+  phase_c_required_before_record_parse: freeze the phase-B workflow run id, artifact id/name, exact collected file list, sizes, SHA256 values, scoring contract, permanent-lock behavior, and one-pass runner in main before parsing any EVTX record
+  repository_checkout_before_phase_b_collection: prohibited
+  evtx_record_parsing_in_phase_b: prohibited
+  detector_execution_in_phase_b: prohibited
+  phase_b_rerun_allowed: false
+  first_completed_or_failed_phase_b_execution_is_canonical: true
+  phase_c_duplicate_measurement_allowed: false
+  first_completed_or_failed_phase_c_execution_is_canonical: true
+  tuning_between_phase_b_and_phase_c_allowed: false
+  no_result_driven_remeasurement: true
+  p2_14e_final_blind_holdout_rerun: false
+  p2_24c_canonical_result_modified: false
+  p2_25_canonical_result_modified: false
+planned_scoring:
+  unit: parsed_event
+  corpus_scope: every EVTX file frozen from the canonical phase-B identity artifact
+  flagged_event_definition: parsed event with one or more detector findings
+  aggregate: unique_flagged_events / parsed_events
+  metric_name: observed_source_intent_benign_flagged_event_fraction
+  findings_by_rule: DIAGNOSTIC_ONLY
+  findings_by_channel: DIAGNOSTIC_ONLY
+  parse_errors: REPORTED_SEPARATELY
+  confirmed_false_positive_rate: NOT_MEASURED
+  production_false_positive_rate: NOT_CLAIMED
+claim_boundary:
+  fresh_benign_revalidation: NOT_YET_MEASURED
+  exact_source_identity: NOT_YET_COLLECTED
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  confirmed_false_positive_rate: NOT_CLAIMED
+  general_fresh_full_benign_fpr: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
