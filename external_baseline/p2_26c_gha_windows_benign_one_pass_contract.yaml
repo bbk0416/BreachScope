@@ -1,0 +1,116 @@
+schema: breachscope.p2_26c_gha_windows_benign_one_pass_contract.v1
+analysis_id: p2-26c-gha-windows-fresh-benign-revalidation-v1
+analysis_class: preregistered_fresh_external_ephemeral_windows_benign_one_pass
+status: PREREGISTERED_PRE_MEASUREMENT
+binding_record: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+binding_merge_commit: 6f431ba2cf2d0fc08aa8b2124f020ced93da404f
+frozen_product:
+  repo_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+source_identity:
+  phase_b_status: COMPLETED
+  phase_b_workflow_name: P2-26C Benign Source Identity
+  workflow_id: 362475004
+  workflow_run_id: 35492508210
+  workflow_run_attempt: 1
+  workflow_job_id: 106029749195
+  binding_merge_commit: 6f431ba2cf2d0fc08aa8b2124f020ced93da404f
+  artifact_id: 10599666432
+  artifact_name: p2-26c-benign-source-35492508210
+  artifact_size_bytes: 147091
+  artifact_zip_sha256: cd733c028bacef530ed95ccc094a81cbe50f0c7386ba1ea107745a2730e0e719
+  identity_json_sha256: 8e0064f148679e5b49b691946e1e8d64468b550f255790a11dc1963d93be175b
+  artifact_expires_utc: '2026-12-19T05:46:07Z'
+  runner_os: Windows
+  runner_arch: X64
+  image_os: win25-vs2026
+  image_version: 20260907.229.1
+  collection_window_milliseconds: 900000
+  repository_checkout_before_collection: false
+  repository_code_executed_before_collection: false
+  evtx_records_parsed_in_phase_b: false
+  breachscope_detector_executed_in_phase_b: false
+  files:
+  - channel: Security
+    filename: Security.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: d07ecab6b9782c9196bf21548ff6fe8ce88311f939456ec66a05586dc2fe0806
+  - channel: System
+    filename: System.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: 3a3afebd5319f6ef373a9dab97783cb37bea2012bcb820ec80c7e7f2d02da741
+  - channel: Application
+    filename: Application.evtx
+    required: true
+    available: true
+    size_bytes: 69632
+    sha256: 8b0d5010af14d6b973a5421e1520da4141c0f662a1a7411408f539bb6ac32864
+  - channel: Windows PowerShell
+    filename: Windows_PowerShell.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+  - channel: Microsoft-Windows-PowerShell/Operational
+    filename: Microsoft-Windows-PowerShell_Operational.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+runner:
+  path: scripts/p2_26c_gha_windows_benign_one_pass.py
+  sha256: 213267a415f31bcf544035ca243709817ef8c7e590507e63cf2f2f9a773f8b1a
+measurement_workflow:
+  path: .github/workflows/p2_26c_benign_one_pass.yml
+  trigger:
+    event: push
+    branch: main
+    path: .github/workflows/p2_26c_benign_one_pass.yml
+  workflow_dispatch: false
+  pull_request: false
+  rerun_guard: github.run_attempt == 1
+scoring:
+  unit: parsed_event
+  channel_count: 5
+  corpus_scope: all five exact EVTX files frozen above
+  flagged_event_definition: parsed event with one or more findings
+  aggregate: unique_flagged_events / parsed_events
+  metric_name: observed_source_intent_benign_flagged_event_fraction
+  per_channel_counts: DIAGNOSTIC_ONLY
+  findings_by_rule: DIAGNOSTIC_ONLY
+  flagged_events_by_rule: DIAGNOSTIC_ONLY
+  parse_errors: REPORTED_SEPARATELY
+  zero_total_parsed_events: CANONICAL_FAILURE
+  confirmed_false_positive_rate: NOT_MEASURED
+  general_fresh_full_benign_fpr: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+protocol:
+  contract_must_merge_before_first_evtx_record_parse: true
+  source_artifact_must_match_phase_b_identity_before_parse: true
+  permanent_lock_acquired_before_source_verification: true
+  first_completed_or_failed_execution_is_canonical: true
+  duplicate_measurement_allowed: false
+  workflow_rerun_allowed: false
+  tuning_after_phase_b_before_measurement_allowed: false
+  result_driven_rule_change_before_measurement_allowed: false
+  better_number_replacement_allowed: false
+  p2_14e_final_blind_holdout_rerun: false
+  p2_24c_canonical_result_modified: false
+  p2_25_canonical_result_modified: false
+claim_boundary:
+  source_population_intent: BENIGN_CI_BASELINE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  event_level_manual_adjudication: false
+  observed_fraction_is_confirmed_false_positive_rate: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  general_fresh_full_benign_fpr: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
