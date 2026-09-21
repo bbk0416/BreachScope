@@ -1,0 +1,68 @@
+schema: breachscope.p2_30_evtx_stage_cache_parser_failure_result.v1
+benchmark_id: p2-30-windows-evtx-stage-cache-parser-v1
+status: FAILED_CANONICAL
+contract_merge_commit: 1c906b05f7bab67a77a10c176aa7ba7573addb92
+
+canonical_artifacts:
+  result:
+    path: performance/results/p2_30_1c906b05_failed/result.json
+    sha256: 00aa87ed62f48601cc37bb25afdbf001dc7df8053f5bea6068ba710b934a2638
+    size_bytes: 1304
+  permanent_lock:
+    path: performance/results/p2_30_1c906b05_failed/P2_30_ONE_PASS.lock
+    sha256: 1ff840cf259c6fd7b4bda81f3b04c5cac890a3fb9c687ca061d28f614a87d42d
+    size_bytes: 111
+
+frozen_inputs:
+  contract_sha256: 5b0714e68a254409c2d9401fce3e8a3475f6194fe2cedd131c3c43a24a99ac0b
+  runner_sha256: 883defde8951614e2887121f07fa98aa10b1a22594cf5d62b4b8b3381d6081ed
+  old_product_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+  old_parser_git_blob_sha1: 42ce35bff10d0541d26e0a5181cfcd1ef9a459cc
+  new_product_commit: d823551bea1d07e18a6d4eb04ddabea741af86e3
+  new_parser_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+  source_size_bytes: 799084544
+  source_sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+failure:
+  exception: "KeyError: 'parser_order'"
+  class: RUNNER_CONTRACT_PATH_BUG
+  contract_location: measurement.parser_stage.parser_order
+  runner_location_used: measurement.parser_order
+  explanation: runner selected measurement into cfg, then incorrectly accessed cfg["parser_order"] instead of cfg["parser_stage"]["parser_order"]
+  benchmark_measurement_completed: false
+  parser_comparison_completed: false
+  canonical_performance_result_available: false
+  partial_timing_reconstruction_allowed: false
+
+protocol:
+  permanent_exclusive_lock_used: true
+  first_completed_or_failed_execution_is_canonical: true
+  duplicate_execution_under_same_benchmark_id_allowed: false
+  rerun_under_same_benchmark_id_performed: false
+  replace_failure_for_better_result: false
+  runner_fix_requires_new_benchmark_id: true
+  p2_28_result_modified: false
+  p2_29b_result_modified: false
+  p2_29c_diagnosis_modified: false
+
+claim_boundary:
+  parser_stage_comparison: NOT_MEASURED
+  record_xml_variability: NOT_SEALED_AS_RESULT
+  causal_explanation_for_p2_29b: NOT_ESTABLISHED
+  true_cold_cache_performance: NOT_MEASURED
+  general_full_pipeline_speedup: NOT_CLAIMED
+  general_full_pipeline_slowdown: NOT_CLAIMED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
+
+next_step:
+  benchmark_id: p2-30b-windows-evtx-stage-cache-parser-v1
+  requirement: fix only the parser_order contract lookup, freeze a new runner SHA and contract under a new benchmark ID, merge preregistration before any canonical execution
