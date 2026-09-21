@@ -1,0 +1,104 @@
+schema: breachscope.p2_28_real_evtx_ingest_result.v1
+benchmark_id: p2-28-windows-real-evtx-ingest-nextron-win10-v1
+status: COMPLETED
+contract: performance/p2_28_real_evtx_ingest_contract.yaml
+contract_merge_commit: bc61532ac642ac4a78c42252b873ddb9a9cfe455
+
+frozen_product:
+  repo_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  detection_executed: false
+
+runner:
+  sha256: 126b5e33fc9e1ec5485198d4f1a3100672e2ef62c7305596577df3d26c974ac1
+  launcher: py -3.11
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win10-client.tgz
+  asset_size_bytes: 70844052
+  asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  source_label_policy: benign_by_source_intent
+  reused_for_performance_only: true
+  fresh_detection_evaluation: false
+
+canonical_artifacts:
+  result:
+    path: performance/results/p2_28_bc61532/result.json
+    sha256: 324a77c782623aa53d9f73fdded2f2eef9c1576a585dec18fa529cb7368cbaf8
+  permanent_lock:
+    path: performance/results/p2_28_bc61532/P2_28_ONE_PASS.lock
+    sha256: e97719573090366a17656fc4de635ede999b5da05ca34fec9884f5ccdf30d6fe
+
+accounting:
+  source_evtx_files: 352
+  source_evtx_bytes: 876675072
+  converted_jsonl_files: 352
+  converted_jsonl_bytes: 2453341953
+  normalized_events: 766623
+  expected_reference_events: 766623
+  exact_source_file_count_match: true
+  exact_normalized_event_count_match: true
+
+results:
+  extract_evtx_seconds: 3.918071
+  convert_evtx_dir_seconds: 5412.38946
+  collect_and_normalize_seconds: 1324.719248
+  total_real_evtx_ingest_seconds: 6741.026779
+  total_real_evtx_ingest_minutes: 112.35044631666666
+  throughput_events_per_second: 113.725
+  peak_working_set_bytes: 4297842688
+  peak_working_set_mb: 4098.742
+
+descriptive_breakdown:
+  extract_share_percent: 0.05812276272519463
+  convert_evtx_dir_share_percent: 80.2902827334993
+  collect_and_normalize_share_percent: 19.65159450377552
+  peak_working_set_share_of_physical_memory_percent: 25.437825600933657
+  interpretation: On this single Windows machine and exact pinned corpus, EVTX-to-JSONL conversion dominated the measured ingest time.
+
+protocol:
+  permanent_exclusive_lock_used: true
+  first_completed_or_failed_execution_retained_as_canonical: true
+  duplicate_execution_performed: false
+  result_replaced_for_better_numbers: false
+  product_tuned_from_result: false
+  rules_tuned_from_result: false
+  accounting_gate_passed: true
+  detection_stage_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+  p2_23b_canonical_result_modified: false
+  p2_26c_canonical_result_modified: false
+
+relation_to_prior_performance:
+  p2_23b_result: performance/p2_23b_peak_memory_result.yaml
+  p2_23b_workload: synthetic_jsonl_full_pipeline
+  p2_23b_real_evtx_ingest_performance: NOT_MEASURED
+  p2_28_scope: real_evtx_ingest_only
+  exact_apples_to_apples_comparison_with_p2_23b: false
+
+claim_boundary:
+  real_evtx_ingest_performance: MEASURED_ON_PINNED_P2_09D_CORPUS
+  single_machine_observation: true
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
+
+interpretation:
+  measured_result: The first and only canonical P2-28 execution ingested 766,623 normalized events from 352 exact EVTX files in 6,741.026779 seconds, or 113.725 events per second, with a 4,098.742 MiB peak working set.
+  bottleneck: EVTX-to-JSONL conversion consumed 5,412.38946 seconds, about 80.29% of measured ingest time; collection and normalization consumed 1,324.719248 seconds, about 19.65%.
+  boundary: This is one observation on one machine and one pinned public corpus. It does not establish production capacity, enterprise-scale readiness, statistical performance, cross-tool superiority, detection accuracy, or benign false-positive rate.
