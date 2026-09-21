@@ -1,0 +1,83 @@
+schema: breachscope.p2_31_cached_evtx_renderer_diagnosis.v1
+phase: P2-31
+status: CLOSE_POSTHOC_NO_CHANGE
+purpose: evaluate whether replacing python-evtx record.xml rendering with a BreachScope-local cached renderer is justified after P2-30B identified record.xml generation as the dominant variable stage
+
+baseline:
+  main_commit: f328f5c192e45d4b84ef7f95daadc4cab996479b
+  p2_30b_result: performance/p2_30b_evtx_stage_cache_parser_result.yaml
+  p2_30b_parser_new_median_seconds: 2.4767881999723613
+  p2_30b_record_xml_no_prewarm_median_seconds: 64.98229309997987
+  p2_30b_record_xml_no_prewarm_max_over_min_ratio: 1.7813373864639979
+  p2_30b_record_xml_warm_median_seconds: 67.68253360001836
+  p2_30b_record_xml_warm_max_over_min_ratio: 1.320029265955978
+
+dependency:
+  package: python-evtx
+  version: 0.8.1
+  locked_in:
+  - requirements-lock-py310.txt
+  - requirements-lock-py311.txt
+  - requirements-lock-py312.txt
+  renderer: Evtx.Views.render_root_node
+  open_start_element_node:
+    tag_name_method: Evtx.Nodes.OpenStartElementNode.tag_name
+    tag_name_is_memoized: true
+    children_method: Evtx.Nodes.OpenStartElementNode.children
+    children_is_memoized: true
+
+candidate_change:
+  description: copy python-evtx XML renderer into BreachScope and cache OpenStartElementNode tag_name() and children() in local variables
+  files_considered:
+  - breachscope/evtx_renderer.py
+  - breachscope/ingest.py
+  maintenance_cost:
+  - duplicate upstream XML rendering implementation
+  - depend on python-evtx internal node classes and rendering behavior
+  - require ongoing semantic-equivalence maintenance when python-evtx changes
+
+development_probe:
+  source: exact P2-30B pinned Sysmon Operational EVTX
+  source_sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+  records: 5000
+  order_control: stock-first on even records, cached-first on odd records
+  stock_xml_digest_sha256: 892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58
+  cached_xml_digest_sha256: 892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58
+  mismatches: 0
+  stock_seconds: 64.83765399851836
+  cached_seconds: 64.62745509820525
+  stock_over_cached_ratio: 1.0032524706410566
+  cached_change_percent: -0.32419263707153867
+  formal_benchmark: false
+  use_for_speedup_claim: false
+
+findings:
+  - id: F1
+    statement: The candidate cached renderer produced byte-for-byte equivalent XML on all 5,000 pinned Sysmon records in the development probe.
+  - id: F2
+    statement: The candidate did not show a material renderer-level improvement in the development probe.
+    support: stock and cached render time differed by about 0.324 percent, far smaller than the record.xml timing variability observed in P2-30B.
+  - id: F3
+    statement: The targeted python-evtx methods are already memoized by python-evtx 0.8.1.
+    support: OpenStartElementNode.tag_name() and OpenStartElementNode.children() both use the package memoize decorator.
+  - id: F4
+    statement: A local renderer copy would add maintenance and compatibility risk without evidence of a meaningful performance gain.
+
+decision:
+  merge_cached_renderer: "NO"
+  product_code_change: false
+  preserve_current_ingest_call: _extract_from_xml(record.xml())
+  reason: existing dependency-level memoization makes the proposed local cache largely redundant and the measured development-only difference is immaterial relative to observed EVTX rendering variability
+  p2_30b_result_modified: false
+  rerun_p2_30b: false
+  general_speedup_claim: NOT_CLAIMED
+  next_direction: profile or redesign lower-level EVTX record rendering/conversion work rather than duplicating memoization already present in python-evtx
+
+claim_boundary:
+  cached_renderer_speedup: NOT_ESTABLISHED
+  candidate_semantic_equivalence: OBSERVED_ON_PINNED_5000_RECORD_DEVELOPMENT_PROBE
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
