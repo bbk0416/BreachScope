@@ -2,3 +2,4 @@
 *.bat text eol=crlf
 *.ps1 text eol=crlf
 performance/results/p2_30_1c906b05_failed/P2_30_ONE_PASS.lock -text -whitespace
+performance/results/p2_30b_55ba2a7e/P2_30B_ONE_PASS.lock -text -whitespace
