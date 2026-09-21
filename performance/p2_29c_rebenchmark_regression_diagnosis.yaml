@@ -1,0 +1,109 @@
+schema: breachscope.p2_29c_rebenchmark_regression_diagnosis.v1
+diagnosis_id: p2-29c-p2-29b-regression-posthoc
+status: CLOSE_POSTHOC_NO_CAUSAL_ATTRIBUTION_NO_ROLLBACK
+purpose: diagnose the P2-29B single paired observation regression without rerunning or replacing either canonical benchmark
+
+sealed_observations:
+  p2_28:
+    benchmark_id: p2-28-windows-real-evtx-ingest-nextron-win10-v1
+    product_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+    raw_result_sha256: 324a77c782623aa53d9f73fdded2f2eef9c1576a585dec18fa529cb7368cbaf8
+    total_real_evtx_ingest_seconds: 6741.026779
+    convert_evtx_dir_seconds: 5412.38946
+    collect_and_normalize_seconds: 1324.719248
+    throughput_events_per_second: 113.725
+    peak_working_set_bytes: 4297842688
+  p2_29b:
+    benchmark_id: p2-29b-windows-real-evtx-single-parse-rebenchmark-v1
+    product_commit: 5bef1e71440a312a278a5e686f63203391dcdf7b
+    raw_result_sha256: 4c2d96542102e8c6f9ef5072a7143beb29e4b5a6e0acfc1af0d954f8f56e6503
+    total_real_evtx_ingest_seconds: 10727.157911
+    convert_evtx_dir_seconds: 9334.587379
+    collect_and_normalize_seconds: 1380.083951
+    throughput_events_per_second: 71.466
+    peak_working_set_bytes: 5005115392
+    observed_total_time_change_percent_vs_p2_28: 59.132403
+    observed_throughput_change_percent_vs_p2_28: -37.158936
+    observed_peak_working_set_change_percent_vs_p2_28: 16.456459
+
+runtime_change_scope:
+  comparison:
+    from_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+    to_commit: 5bef1e71440a312a278a5e686f63203391dcdf7b
+    paths_checked:
+    - breachscope
+    - rules
+  changed_runtime_paths:
+  - breachscope/ingest.py
+  rules_changed: false
+  parser_change: two ElementTree parses to one shared parsed root
+
+development_posthoc_probe:
+  source_file: Microsoft-Windows-Sysmon%4Operational.evtx
+  source_file_role: DEVELOPMENT_DIAGNOSTIC_ONLY
+  source_origin: exact extracted P2-28 pinned Nextron corpus
+  records_per_run: 2000
+  order:
+  - old
+  - new
+  - new
+  - old
+  output_digest_sha256_all_runs: fb7e3d23b424688a0757966d532d271799b1299d1899a740e3ca3b1845c7a922
+  normalized_output_mismatches: 0
+  old_parser_runs_seconds:
+  - 1.7724090000265278
+  - 1.918314000009559
+  new_parser_runs_seconds:
+  - 1.3800576999783516
+  - 1.8405302000464872
+  old_parser_average_seconds: 1.8453615000180434
+  new_parser_average_seconds: 1.6102939500124194
+  old_over_new_parser_ratio: 1.1459780371178885
+  new_parser_average_change_percent: -12.738292741196
+  record_xml_runs_seconds:
+  - 25.03074519999791
+  - 24.683021600008942
+  - 21.12045050004963
+  - 15.411098700016737
+  record_xml_min_seconds: 15.411098700016737
+  record_xml_max_seconds: 25.03074519999791
+  record_xml_max_over_min_ratio: 1.6242025106211748
+  old_parser_share_of_old_xml_plus_parser_average_percent: 8.362810639124287
+  new_parser_share_of_new_xml_plus_parser_average_percent: 6.569402656612609
+  formal_benchmark: false
+  speedup_claim_allowed: false
+
+findings:
+  - id: F1
+    statement: The P2-29B canonical result is a valid single paired observation and must remain sealed as observed.
+    support: exact accounting matched, environment identity fields matched the sealed P2-28 baseline, and the first canonical after-run completed successfully.
+  - id: F2
+    statement: The post-hoc 2,000-record alternating probe does not reproduce a parser-level regression.
+    support: the new parser average was 1.6102939500124194 seconds versus 1.8453615000180434 seconds for the old parser, with identical normalized output digests.
+  - id: F3
+    statement: EVTX record.xml generation dominates the short diagnostic path and varied materially even across adjacent runs.
+    support: record.xml generation ranged from 15.411098700016737 to 25.03074519999791 seconds for the same 2,000 records, a 1.6242025106211748 max/min ratio.
+  - id: F4
+    statement: The available evidence does not establish that the single-parse refactor caused the P2-29B whole-run regression.
+    support: the isolated parser did not reproduce the regression, while the much larger record.xml portion showed substantial short-run timing variation.
+
+decision:
+  rollback_single_parse_refactor: "NO"
+  reason: correctness is preserved on current sealed detection evidence sources and the post-hoc parser probe does not show a parser-level slowdown
+  general_speedup_claim: NOT_CLAIMED
+  general_slowdown_claim: NOT_CLAIMED
+  p2_29b_canonical_regression_observation_retained: true
+  p2_28_canonical_result_modified: false
+  p2_29b_canonical_result_modified: false
+  rerun_p2_28_or_p2_29b_under_same_benchmark_id: false
+  next_measurement_design: preregister a new repeated stage-level benchmark that separates EVTX record.xml generation from normalized parser work and explicitly defines warm/cold cache handling
+
+claim_boundary:
+  causal_attribution_to_single_parse_refactor: NOT_ESTABLISHED
+  parser_level_regression: NOT_OBSERVED_IN_DEVELOPMENT_POSTHOC_PROBE
+  p2_29b_whole_run_regression: OBSERVED_IN_ONE_CANONICAL_PAIRED_RUN
+  statistical_benchmark: false
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
