@@ -1,0 +1,229 @@
+{
+  "schema": "breachscope.p2_30b_evtx_stage_cache_parser_benchmark.v1",
+  "benchmark_id": "p2-30b-windows-evtx-stage-cache-parser-v1",
+  "status": "completed",
+  "contract_sha256": "0300fcea5299255b32b4ac8d78bd3283142a7d0909eee61fa813016a97b33210",
+  "runner_sha256": "63f9139fcd66a5ee4862a84e2671920c271f490d39d345217cdeb38a14447719",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpu_count": 22,
+    "total_physical_memory_bytes": 16895479808
+  },
+  "products": {
+    "old": {
+      "repo_commit": "7dd6da1069f4d5a29de5fd367fd45fdee24d70d6",
+      "parser_git_blob_sha1": "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc"
+    },
+    "new": {
+      "repo_commit": "d823551bea1d07e18a6d4eb04ddabea741af86e3",
+      "parser_git_blob_sha1": "34534bf8256ce658c5f05991c05045f7c5066816"
+    }
+  },
+  "source": {
+    "path": "C:\\Users\\bbk0416\\Downloads\\p2_28_canonical\\extracted\\Logs_Client\\Microsoft-Windows-Sysmon%4Operational.evtx",
+    "size_bytes": 799084544,
+    "sha256": "efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb"
+  },
+  "record_xml_runs": [
+    {
+      "deliberate_warm": {
+        "records": 5000,
+        "seconds": 73.61016689997632,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "no_in_process_prewarm": {
+        "records": 5000,
+        "seconds": 79.06082340003923,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "repetition": 1
+    },
+    {
+      "deliberate_warm": {
+        "records": 5000,
+        "seconds": 67.68253360001836,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "no_in_process_prewarm": {
+        "records": 5000,
+        "seconds": 92.69287829997484,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "repetition": 2
+    },
+    {
+      "deliberate_warm": {
+        "records": 5000,
+        "seconds": 55.7640415999922,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "no_in_process_prewarm": {
+        "records": 5000,
+        "seconds": 64.98229309997987,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "repetition": 3
+    },
+    {
+      "deliberate_warm": {
+        "records": 5000,
+        "seconds": 70.4729137000395,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "no_in_process_prewarm": {
+        "records": 5000,
+        "seconds": 52.03555430000415,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "repetition": 4
+    },
+    {
+      "deliberate_warm": {
+        "records": 5000,
+        "seconds": 55.86323509999784,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "no_in_process_prewarm": {
+        "records": 5000,
+        "seconds": 56.64995970000746,
+        "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+      },
+      "repetition": 5
+    }
+  ],
+  "materialized_xml_corpus": {
+    "records": 5000,
+    "xml_corpus_bytes": 7481758,
+    "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58"
+  },
+  "parser_runs": [
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 4.85356060002232,
+      "repetition": 1,
+      "variant": "old"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 2.293353900022339,
+      "repetition": 1,
+      "variant": "new"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 3.869569100032095,
+      "repetition": 2,
+      "variant": "new"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 3.221731999947224,
+      "repetition": 2,
+      "variant": "old"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 2.5258124000392854,
+      "repetition": 3,
+      "variant": "old"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 2.146005700051319,
+      "repetition": 3,
+      "variant": "new"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 2.4767881999723613,
+      "repetition": 4,
+      "variant": "new"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 3.9760278000030667,
+      "repetition": 4,
+      "variant": "old"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 3.0768103000009432,
+      "repetition": 5,
+      "variant": "old"
+    },
+    {
+      "normalized_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+      "records": 5000,
+      "seconds": 3.2284592000069097,
+      "repetition": 5,
+      "variant": "new"
+    }
+  ],
+  "record_xml_summary": {
+    "no_in_process_prewarm": {
+      "count": 5,
+      "median_seconds": 64.98229309997987,
+      "mean_seconds": 69.08430176000111,
+      "min_seconds": 52.03555430000415,
+      "max_seconds": 92.69287829997484,
+      "max_over_min_ratio": 1.7813373864639979
+    },
+    "deliberate_warm": {
+      "count": 5,
+      "median_seconds": 67.68253360001836,
+      "mean_seconds": 64.67857818000485,
+      "min_seconds": 55.7640415999922,
+      "max_seconds": 73.61016689997632,
+      "max_over_min_ratio": 1.320029265955978
+    }
+  },
+  "parser_summary": {
+    "old": {
+      "count": 5,
+      "median_seconds": 3.221731999947224,
+      "mean_seconds": 3.5307886200025678,
+      "min_seconds": 2.5258124000392854,
+      "max_seconds": 4.85356060002232,
+      "max_over_min_ratio": 1.9215839624300006
+    },
+    "new": {
+      "count": 5,
+      "median_seconds": 2.4767881999723613,
+      "mean_seconds": 2.8028352200170046,
+      "min_seconds": 2.146005700051319,
+      "max_seconds": 3.869569100032095,
+      "max_over_min_ratio": 1.803149497664223
+    }
+  },
+  "comparison": {
+    "old_over_new_parser_median_ratio": 1.300770086026401,
+    "new_parser_median_change_percent": -23.12246332056998,
+    "normalized_output_digest_sha256": "54e65dcddc6154d0ed562e66addb8152fce8c262a9c150f7b423420e9e925e66",
+    "record_xml_no_prewarm_max_over_min_ratio": 1.7813373864639979,
+    "record_xml_warm_max_over_min_ratio": 1.320029265955978
+  },
+  "claim_boundary": {
+    "true_cold_os_cache": "NOT_MEASURED",
+    "no_in_process_prewarm_is_true_cold": false,
+    "deliberate_warm_is_same_process_immediate_second_pass": true,
+    "parser_comparison": "REPEATED_STAGE_LEVEL_OBSERVATION",
+    "general_full_pipeline_speedup": "NOT_CLAIMED",
+    "production_capacity": "NOT_CLAIMED",
+    "enterprise_scale_readiness": "NOT_CLAIMED",
+    "detection_executed": false,
+    "detection_accuracy": "NOT_EVALUATED",
+    "benign_fpr": "NOT_EVALUATED"
+  }
+}
