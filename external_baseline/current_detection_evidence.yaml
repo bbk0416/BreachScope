@@ -80,6 +80,15 @@ post_remediation_revalidations:
   flagged_events_are_confirmed_false_positives: false
   fresh_benign_revalidation: COMPLETED
   production_false_positive_rate: NOT_CLAIMED
+parser_maintenance:
+- maintenance_id: p2-29-single-parse-evtx
+  record: external_baseline/p2_29_single_parse_parser_maintenance.yaml
+  change_class: semantics_preserving_parser_performance_refactor
+  from_git_blob_sha1: 42ce35bff10d0541d26e0a5181cfcd1ef9a459cc
+  to_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+  current_evidence_id_changed: false
+  rules_tree_changed: false
+  normalized_event_semantics: PRESERVED_BY_EQUIVALENCE_CHECKS
 external_holdout_evidence:
 - evidence_id: p2-12-external-evidence-closure
   closure_record: external_baseline/p2_12_external_evidence_closure.yaml
@@ -255,4 +264,9 @@ claim_boundary:
     source-intent benign flagged-event fraction of 1/1,643 = 0.06086427267194157%.
     The CI population is not event-level adjudicated and is not claimed representative
     of production workstations, so the flagged event is not a confirmed false positive
-    and no general benign FPR or production rate is claimed.'
+    and no general benign FPR or production rate is claimed. P2-29 later performs a
+    performance-only single-parse refactor of the live EVTX XML normalizer. The historical
+    P2-20 parser blob remains recorded unchanged; P2-29 records the new live parser blob
+    separately and preserves the P2-26C current evidence ID and unchanged 68-rule tree
+    after exact old/new normalized-output equivalence across all 450 P2-25 attack
+    records and all 1,643 P2-26C benign records (2,093 total), with zero mismatches.'
