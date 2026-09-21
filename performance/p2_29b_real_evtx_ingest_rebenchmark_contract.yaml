@@ -1,0 +1,144 @@
+schema: breachscope.p2_29b_real_evtx_ingest_rebenchmark_contract.v1
+benchmark_id: p2-29b-windows-real-evtx-single-parse-rebenchmark-v1
+status: PREREGISTERED_BEFORE_CANONICAL_EXECUTION
+purpose: measure the merged P2-29 single-parse EVTX implementation once on the exact P2-28 corpus and compare it descriptively with the sealed P2-28 baseline without rerunning or replacing the baseline
+
+baseline:
+  benchmark_id: p2-28-windows-real-evtx-ingest-nextron-win10-v1
+  summary_record: performance/p2_28_real_evtx_ingest_result.yaml
+  summary_record_sha256: f524f8e96f411aafd5b9feaa160f05a79a9969d43859dd9912320f1d4a020afa
+  raw_result_path: performance/results/p2_28_bc61532/result.json
+  raw_result_sha256: 324a77c782623aa53d9f73fdded2f2eef9c1576a585dec18fa529cb7368cbaf8
+  product_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+  normalized_events: 766623
+  stages_seconds:
+    extract_evtx: 3.918071
+    convert_evtx_dir: 5412.38946
+    collect_and_normalize: 1324.719248
+    total_real_evtx_ingest: 6741.026779
+  throughput_events_per_second: 113.725
+  peak_working_set_bytes: 4297842688
+  environment:
+    platform: Windows-10-10.0.26200-SP0
+    machine: AMD64
+    processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+    logical_cpu_count: 22
+    total_physical_memory_bytes: 16895479808
+  rerun_allowed: false
+  result_replacement_allowed: false
+
+product:
+  repo_commit: 5bef1e71440a312a278a5e686f63203391dcdf7b
+  parser_maintenance_record: external_baseline/p2_29_single_parse_parser_maintenance.yaml
+  parser_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  rules_are_not_evaluated: true
+
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  release_id: 295655133
+  asset_id: 371540503
+  asset_name: win10-client.tgz
+  asset_size_bytes: 70844052
+  asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  expected_source_evtx_files_total: 352
+  expected_reference_events: 766623
+  source_role: DEVELOPMENT_PERFORMANCE_CORPUS
+  reused_from_p2_28: true
+  fresh_detection_evaluation: false
+
+runner:
+  path: scripts/p2_29b_real_evtx_ingest_rebenchmark.py
+  sha256: 36239dd828aa7856d9472ba43195a55e90fdc1893ea628619895fb6c097f2383
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  memory_api: GetProcessMemoryInfo
+  memory_metric: PeakWorkingSetSize
+
+canonical_invocation:
+  launcher: py -3.11
+  command_template: >-
+    py -3.11 scripts/p2_29b_real_evtx_ingest_rebenchmark.py
+    --product-repo <frozen-product-worktree>
+    --contract performance/p2_29b_real_evtx_ingest_rebenchmark_contract.yaml
+    --archive <exact-win10-client.tgz>
+    --out-dir <fresh-canonical-output-directory>
+  default_python_launcher_prohibited: true
+
+environment_gate:
+  exact_match_to_p2_28_required: true
+  fields:
+  - platform
+  - machine
+  - processor
+  - logical_cpu_count
+  - total_physical_memory_bytes
+  mismatch_status: FAILED_PRECONDITION
+  comparison_claim_if_mismatch: NOT_CLAIMED
+
+measurement:
+  product_path:
+  - safe_extract_evtx_from_bound_archive
+  - breachscope.ingest.convert_evtx_dir
+  - breachscope.pipeline.Pipeline.collect_events
+  detection_stage_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+  after_repetitions: 1
+  baseline_repetitions: 1
+  statistical_summary: false
+  preregistered_speedup_target: NONE
+  primary_metrics:
+  - total_real_evtx_ingest_seconds
+  - throughput_events_per_second
+  - peak_working_set_bytes
+  comparison_metrics:
+  - observed_total_speedup_ratio
+  - observed_total_time_reduction_percent
+  - observed_convert_speedup_ratio
+  - observed_collect_speedup_ratio
+  - observed_throughput_ratio
+  - observed_throughput_change_percent
+  - observed_peak_working_set_change_bytes
+  - observed_peak_working_set_change_percent
+
+accounting_gate:
+  exact_source_evtx_files_required: 352
+  exact_normalized_events_required: 766623
+  source_file_count_mismatch_status: FAILED_ACCOUNTING_MISMATCH
+  normalized_event_count_mismatch_status: FAILED_ACCOUNTING_MISMATCH
+  comparison_claim_if_accounting_mismatch: NOT_CLAIMED
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  exact_after_product_commit_required: true
+  exact_sealed_baseline_sha_required: true
+  exact_archive_size_and_sha256_required_before_extraction: true
+  exact_environment_match_to_p2_28_required: true
+  permanent_lock_acquired_before_measured_work: true
+  duplicate_after_execution_allowed: false
+  first_completed_or_failed_after_execution_is_canonical: true
+  replace_after_result_for_better_numbers: false
+  baseline_rerun_allowed: false
+  baseline_result_replacement_allowed: false
+  product_tuning_after_contract_before_result: false
+  runner_change_after_measurement_requires_new_benchmark_id: true
+  detection_must_not_execute: true
+  p2_28_canonical_result_modified: false
+  p2_29_parser_maintenance_record_modified_by_measurement: false
+
+claim_boundary:
+  before_after_comparison: NOT_YET_MEASURED
+  comparison_class: PAIRED_SINGLE_OBSERVATION_SAME_MACHINE_CORPUS
+  general_speedup: NOT_CLAIMED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
