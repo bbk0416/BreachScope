@@ -1,0 +1,135 @@
+schema: breachscope.p2_30_evtx_stage_cache_parser_contract.v1
+benchmark_id: p2-30-windows-evtx-stage-cache-parser-v1
+status: PREREGISTERED_BEFORE_CANONICAL_EXECUTION
+purpose: separate EVTX record.xml generation from normalized parser work with repeated stage-level measurements after the P2-29B single paired whole-run regression observation
+
+evidence_context:
+  p2_29b_result: performance/p2_29b_real_evtx_ingest_rebenchmark_result.yaml
+  p2_29c_diagnosis: performance/p2_29c_rebenchmark_regression_diagnosis.yaml
+  p2_29c_diagnosis_sha256: 2ab2b97379605e063150e7366b1a37223b426b6bcaa14bcf0e8eedd518cdac5d
+  p2_29b_whole_run_regression_observed: true
+  causal_attribution_to_single_parse_refactor: NOT_ESTABLISHED
+
+products:
+  old:
+    role: P2_28_BASELINE_PARSER
+    repo_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+    parser_git_blob_sha1: 42ce35bff10d0541d26e0a5181cfcd1ef9a459cc
+  new:
+    role: CURRENT_SINGLE_PARSE_PARSER
+    repo_commit: d823551bea1d07e18a6d4eb04ddabea741af86e3
+    parser_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+
+source:
+  origin: P2_28_PINNED_NEXTRON_CORPUS
+  relative_name: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  size_bytes: 799084544
+  sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+  record_subset: FIRST_5000_RECORDS
+  source_role: DEVELOPMENT_PERFORMANCE_DIAGNOSTIC
+  fresh_detection_evaluation: false
+
+runner:
+  path: scripts/p2_30_evtx_stage_cache_parser_benchmark.py
+  sha256: 883defde8951614e2887121f07fa98aa10b1a22594cf5d62b4b8b3381d6081ed
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  result_file: result.json
+  lock_file: P2_30_ONE_PASS.lock
+
+environment:
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+measurement:
+  record_limit: 5000
+  repetitions: 5
+  record_xml_stage:
+    fresh_child_process_each_repetition: true
+    passes_per_repetition: 2
+    first_pass_label: NO_IN_PROCESS_PREWARM
+    second_pass_label: DELIBERATE_WARM
+    same_source_file_both_passes: true
+    require_identical_xml_digest_between_all_passes: true
+  parser_stage:
+    materialize_xml_once_after_record_xml_stage: true
+    materialization_is_outside_parser_timing: true
+    load_xml_corpus_is_outside_parser_timing: true
+    fresh_child_process_each_variant_run: true
+    variants:
+    - old
+    - new
+    parser_order:
+    - [old, new]
+    - [new, old]
+    - [old, new]
+    - [new, old]
+    - [old, new]
+    require_identical_normalized_digest_across_all_old_new_runs: true
+  primary_summary:
+    statistic: median
+    inferential_statistics: false
+  descriptive_summary:
+  - mean
+  - min
+  - max
+  - max_over_min_ratio
+  detection_stage_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+
+cache_policy:
+  exact_source_sha256_verification_before_timing: true
+  source_sha_verification_reads_entire_799mb_file: true
+  true_cold_os_cache: NOT_MEASURED
+  os_page_cache_flush_performed: false
+  os_page_cache_flush_required: false
+  no_in_process_prewarm_is_true_cold: false
+  no_in_process_prewarm_definition: fresh Python child process with no prior record.xml pass in that child; OS page cache state is not controlled
+  deliberate_warm_definition: immediate second record.xml pass over the same source in the same Python child process
+  between_repetition_os_cache_state: UNCONTROLLED
+  cold_cache_speed_claim: NOT_CLAIMED
+  warm_cache_speed_claim: DESCRIPTIVE_ONLY
+
+accounting_gate:
+  exact_records_per_record_xml_pass: 5000
+  exact_records_per_parser_run: 5000
+  xml_digest_must_match_across_record_xml_and_materialized_corpus: true
+  normalized_digest_must_match_across_old_and_new_parser_runs: true
+  mismatch_status: FAILED_ACCOUNTING_OR_SEMANTIC_MISMATCH
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  exact_old_product_commit_required: true
+  exact_new_product_commit_required: true
+  exact_old_parser_blob_required: true
+  exact_new_parser_blob_required: true
+  exact_source_size_and_sha256_required: true
+  exact_environment_required: true
+  permanent_lock_required: true
+  duplicate_canonical_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_numbers: false
+  runner_change_requires_new_benchmark_id: true
+  product_tuning_after_contract_before_result: false
+  p2_28_result_modified: false
+  p2_29b_result_modified: false
+  p2_29c_diagnosis_modified_by_measurement: false
+
+claim_boundary:
+  parser_stage_comparison: NOT_YET_MEASURED
+  record_xml_variability: NOT_YET_MEASURED
+  causal_explanation_for_p2_29b: NOT_YET_ESTABLISHED
+  true_cold_cache_performance: NOT_MEASURED
+  general_full_pipeline_speedup: NOT_CLAIMED
+  general_full_pipeline_slowdown: NOT_CLAIMED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
