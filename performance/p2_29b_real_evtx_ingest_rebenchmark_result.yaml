@@ -1,0 +1,115 @@
+schema: breachscope.p2_29b_real_evtx_ingest_rebenchmark_result.v1
+benchmark_id: p2-29b-windows-real-evtx-single-parse-rebenchmark-v1
+status: COMPLETED
+contract: performance/p2_29b_real_evtx_ingest_rebenchmark_contract.yaml
+contract_merge_commit: 32499723d13032c1a88f7cffeae9ef98ccd1fd5c
+
+frozen_after_product:
+  repo_commit: 5bef1e71440a312a278a5e686f63203391dcdf7b
+  parser_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  detection_executed: false
+
+baseline:
+  benchmark_id: p2-28-windows-real-evtx-ingest-nextron-win10-v1
+  product_commit: 7dd6da1069f4d5a29de5fd367fd45fdee24d70d6
+  raw_result_sha256: 324a77c782623aa53d9f73fdded2f2eef9c1576a585dec18fa529cb7368cbaf8
+  total_real_evtx_ingest_seconds: 6741.026779
+  convert_evtx_dir_seconds: 5412.38946
+  collect_and_normalize_seconds: 1324.719248
+  throughput_events_per_second: 113.725
+  peak_working_set_bytes: 4297842688
+  peak_working_set_mb: 4098.742
+
+runner:
+  sha256: 36239dd828aa7856d9472ba43195a55e90fdc1893ea628619895fb6c097f2383
+  launcher: py -3.11
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+  environment_matches_p2_28: true
+
+source:
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  asset_name: win10-client.tgz
+  asset_size_bytes: 70844052
+  asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  source_role: DEVELOPMENT_PERFORMANCE_CORPUS
+  fresh_detection_evaluation: false
+
+canonical_artifacts:
+  result:
+    path: performance/results/p2_29b_32499723/result.json
+    sha256: 4c2d96542102e8c6f9ef5072a7143beb29e4b5a6e0acfc1af0d954f8f56e6503
+  permanent_lock:
+    path: performance/results/p2_29b_32499723/P2_29B_ONE_PASS.lock
+    sha256: d63c40863bcdedb5be52ef9b833cac6fafd4dcbc3f3852b1dcbff5c0c3875cf3
+
+accounting:
+  source_evtx_files: 352
+  source_evtx_bytes: 876675072
+  converted_jsonl_files: 352
+  converted_jsonl_bytes: 2453341953
+  normalized_events: 766623
+  expected_reference_events: 766623
+  exact_source_file_count_match: true
+  exact_normalized_event_count_match: true
+
+after_results:
+  extract_evtx_seconds: 12.486581
+  convert_evtx_dir_seconds: 9334.587379
+  collect_and_normalize_seconds: 1380.083951
+  total_real_evtx_ingest_seconds: 10727.157911
+  total_real_evtx_ingest_minutes: 178.78596518333333
+  throughput_events_per_second: 71.466
+  peak_working_set_bytes: 5005115392
+  peak_working_set_mb: 4773.25
+
+comparison:
+  class: PAIRED_SINGLE_OBSERVATION_SAME_MACHINE_CORPUS
+  observed_total_speedup_ratio: 0.628408
+  observed_total_time_reduction_percent: -59.132403
+  observed_convert_speedup_ratio: 0.579821
+  observed_collect_speedup_ratio: 0.959883
+  observed_throughput_ratio: 0.628411
+  observed_throughput_change_percent: -37.158936
+  observed_peak_working_set_change_bytes: 707272704
+  observed_peak_working_set_change_percent: 16.456459
+  observed_direction: REGRESSION_IN_THIS_SINGLE_PAIRED_OBSERVATION
+
+protocol:
+  permanent_exclusive_lock_used: true
+  first_completed_or_failed_after_execution_retained_as_canonical: true
+  duplicate_after_execution_performed: false
+  after_result_replaced_for_better_numbers: false
+  baseline_rerun_performed: false
+  baseline_result_modified: false
+  product_tuned_from_result: false
+  accounting_gate_passed: true
+  detection_stage_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+
+claim_boundary:
+  before_after_comparison: MEASURED_AS_SINGLE_PAIRED_OBSERVATION
+  general_speedup: NOT_CLAIMED
+  causal_attribution_to_single_parse_refactor: NOT_CLAIMED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  cross_tool_speed_comparison: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
+
+interpretation:
+  measured_result: On the exact pinned corpus and matching recorded machine environment, the single canonical P2-29B after-run completed in 10,727.157911 seconds at 71.466 events per second with a 4,773.25 MiB peak working set.
+  paired_observation: Relative to the sealed P2-28 baseline, this single paired observation was 59.132403% longer in total ingest time, 37.158936% lower in throughput, and 16.456459% higher in peak working set.
+  dominant_stage: EVTX-to-JSONL conversion was 9,334.587379 seconds in P2-29B versus 5,412.38946 seconds in P2-28, while collect-and-normalize was 1,380.083951 seconds versus 1,324.719248 seconds.
+  causal_boundary: The benchmark protocol controls the recorded machine identity, Python version, corpus identity, and product commit, but it is one before observation and one after observation rather than a statistical benchmark. It does not establish that the single-parse code change caused the observed regression, and no general speedup or slowdown claim is made.
