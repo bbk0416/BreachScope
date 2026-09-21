@@ -1,0 +1,31 @@
+{
+  "schema": "breachscope.p2_30_evtx_stage_cache_parser_benchmark.v1",
+  "benchmark_id": "p2-30-windows-evtx-stage-cache-parser-v1",
+  "status": "failed",
+  "contract_sha256": "5b0714e68a254409c2d9401fce3e8a3475f6194fe2cedd131c3c43a24a99ac0b",
+  "runner_sha256": "883defde8951614e2887121f07fa98aa10b1a22594cf5d62b4b8b3381d6081ed",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpu_count": 22,
+    "total_physical_memory_bytes": 16895479808
+  },
+  "products": {
+    "old": {
+      "repo_commit": "7dd6da1069f4d5a29de5fd367fd45fdee24d70d6",
+      "parser_git_blob_sha1": "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc"
+    },
+    "new": {
+      "repo_commit": "d823551bea1d07e18a6d4eb04ddabea741af86e3",
+      "parser_git_blob_sha1": "34534bf8256ce658c5f05991c05045f7c5066816"
+    }
+  },
+  "source": {
+    "path": "C:\\Users\\bbk0416\\Downloads\\p2_28_canonical\\extracted\\Logs_Client\\Microsoft-Windows-Sysmon%4Operational.evtx",
+    "size_bytes": 799084544,
+    "sha256": "efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb"
+  },
+  "error": "KeyError: 'parser_order'"
+}
