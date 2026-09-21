@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the current detection-evidence chain through P2-26C."""
+"""Verify the current detection-evidence chain through P2-29 parser maintenance."""
 from __future__ import annotations
 
 import argparse
@@ -48,6 +48,11 @@ P26C_RESULT_SHA = "9cff2b8616632031807dffa4771eb69e37f1040ef28576b9bd73442bbeb32
 P26C_LOCK_SHA = "cde7cb5ca7d6e5225592a9354694daa59d6deb536d825f3c662a62427b732906"
 P26C_RULE_HASH = P24D_HASH
 P26C_CURRENT_ID = "p2-26c-fresh-benign-revalidation-current-detection-evidence"
+
+P29_ID = "p2-29-single-parse-evtx"
+P29_RECORD = "external_baseline/p2_29_single_parse_parser_maintenance.yaml"
+P29_RECORD_SHA = "3958351d3465d9ab2667696c0c02165765d1e3b24a14ea1695c5f22405cc2905"
+P29_INGEST_BLOB = "34534bf8256ce658c5f05991c05045f7c5066816"
 
 
 
@@ -308,14 +313,7 @@ def _verify_p2_20(
     parser = _mapping(record.get("parser_change"), f"{label} parser change")
     _require(parser.get("file"), "breachscope/ingest.py", f"{label} parser file")
     _require(parser.get("git_blob_sha1"), P20_INGEST_BLOB, f"{label} parser blob")
-    _require(
-        legacy._git_blob_sha1(repo / "breachscope/ingest.py"),
-        P20_INGEST_BLOB,
-        f"{label} live parser blob",
-    )
     _require(parser.get("helper"), "iter_event_xml_records", f"{label} parser helper")
-    source = (repo / "breachscope/ingest.py").read_text(encoding="utf-8")
-    _require("def iter_event_xml_records(" in source, True, f"{label} parser helper source")
 
     raw_spec = _mapping(record.get("raw_measurement"), f"{label} raw measurement")
     _require(raw_spec.get("sha256"), P20_RAW_SHA, f"{label} raw SHA record")
@@ -754,6 +752,239 @@ def _verify_p2_26c(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _verify_p2_29_parser_maintenance(
+    repo: Path,
+    chain: Mapping[str, Any],
+) -> dict[str, Any]:
+    rows = chain.get("parser_maintenance")
+    if not isinstance(rows, list) or len(rows) != 1:
+        raise CurrentEvidenceError(
+            "parser_maintenance must contain exactly P2-29"
+        )
+
+    row = _mapping(rows[0], "P2-29 parser maintenance chain row")
+    _require(row.get("maintenance_id"), P29_ID, "P2-29 chain id")
+    _require(row.get("record"), P29_RECORD, "P2-29 chain record")
+    _require(
+        row.get("change_class"),
+        "semantics_preserving_parser_performance_refactor",
+        "P2-29 chain change class",
+    )
+    _require(row.get("from_git_blob_sha1"), P20_INGEST_BLOB, "P2-29 from blob")
+    _require(row.get("to_git_blob_sha1"), P29_INGEST_BLOB, "P2-29 to blob")
+    _require(row.get("current_evidence_id_changed"), False, "P2-29 evidence id")
+    _require(row.get("rules_tree_changed"), False, "P2-29 rule tree")
+    _require(
+        row.get("normalized_event_semantics"),
+        "PRESERVED_BY_EQUIVALENCE_CHECKS",
+        "P2-29 semantics",
+    )
+
+    path = legacy._relative_file(repo, P29_RECORD, "P2-29 maintenance record")
+    _require(_sha256(path), P29_RECORD_SHA, "P2-29 maintenance record SHA")
+    record = legacy._load_yaml(path)
+    _require(
+        record.get("schema"),
+        "breachscope.p2_29_parser_maintenance.v1",
+        "P2-29 schema",
+    )
+    _require(record.get("maintenance_id"), P29_ID, "P2-29 record id")
+    _require(
+        record.get("change_class"),
+        "semantics_preserving_parser_performance_refactor",
+        "P2-29 record change class",
+    )
+
+    parser = _mapping(record.get("parser"), "P2-29 parser")
+    _require(parser.get("file"), "breachscope/ingest.py", "P2-29 parser file")
+    _require(
+        parser.get("historical_p2_20_git_blob_sha1"),
+        P20_INGEST_BLOB,
+        "P2-29 historical parser blob",
+    )
+    _require(
+        parser.get("current_git_blob_sha1"),
+        P29_INGEST_BLOB,
+        "P2-29 recorded live parser blob",
+    )
+    _require(
+        legacy._git_blob_sha1(repo / "breachscope/ingest.py"),
+        P29_INGEST_BLOB,
+        "P2-29 live parser blob",
+    )
+    _require(
+        parser.get("canonical_elementtree_fromstring_calls_per_valid_record"),
+        1,
+        "P2-29 parse count",
+    )
+    _require(
+        parser.get("public_convert_evtx_dir_signature_changed"),
+        False,
+        "P2-29 convert signature",
+    )
+
+    equivalence = _mapping(record.get("equivalence"), "P2-29 equivalence")
+
+    p25_compat = _mapping(equivalence.get("p2_25"), "P2-29 P2-25 equivalence")
+    for key, expected in {
+        "exact_evtx_files": 8,
+        "records_compared": 450,
+        "old_parse_errors": 0,
+        "new_parse_errors": 0,
+        "mismatches": 0,
+    }.items():
+        _require(p25_compat.get(key), expected, f"P2-29 P2-25 {key}")
+    _require(
+        p25_compat.get("all_normalized_dicts_equal"),
+        True,
+        "P2-29 P2-25 equality",
+    )
+    for key in ("old_aggregate_digest_sha256", "new_aggregate_digest_sha256"):
+        _require(
+            p25_compat.get(key),
+            "dad2930a569b11f0256d890ba6427bb09a5925cc89f82eaab95691cccaf0a303",
+            f"P2-29 P2-25 {key}",
+        )
+
+    p26c_compat = _mapping(equivalence.get("p2_26c"), "P2-29 P2-26C equivalence")
+    for key, expected in {
+        "exact_evtx_files": 5,
+        "records_compared": 1643,
+        "old_parse_errors": 0,
+        "new_parse_errors": 0,
+        "mismatches": 0,
+    }.items():
+        _require(p26c_compat.get(key), expected, f"P2-29 P2-26C {key}")
+    _require(
+        p26c_compat.get("all_normalized_dicts_equal"),
+        True,
+        "P2-29 P2-26C equality",
+    )
+    for key in ("old_aggregate_digest_sha256", "new_aggregate_digest_sha256"):
+        _require(
+            p26c_compat.get(key),
+            "29fbe83203c47206ee86e66798f287c8a9b02cc3973731ac6dec389a82ee78a3",
+            f"P2-29 P2-26C {key}",
+        )
+
+    combined = _mapping(
+        equivalence.get("combined_current_revalidation_sources"),
+        "P2-29 combined equivalence",
+    )
+    for key, expected in {
+        "exact_evtx_files": 13,
+        "records_compared": 2093,
+        "old_parse_errors": 0,
+        "new_parse_errors": 0,
+        "mismatches": 0,
+    }.items():
+        _require(combined.get(key), expected, f"P2-29 combined {key}")
+    _require(
+        combined.get("all_normalized_dicts_equal"),
+        True,
+        "P2-29 combined equality",
+    )
+    for key in ("old_aggregate_digest_sha256", "new_aggregate_digest_sha256"):
+        _require(
+            combined.get(key),
+            "a22fb6b0cb9faed59ab2813629e6dea7625ccad7519c512d0b99e9587d7ec8d9",
+            f"P2-29 combined {key}",
+        )
+
+    development = _mapping(
+        record.get("development_only_probe"),
+        "P2-29 development-only probe",
+    )
+    _require(development.get("records_compared"), 2000, "P2-29 development records")
+    _require(development.get("mismatches"), 0, "P2-29 development mismatches")
+    _require(
+        development.get("all_normalized_dicts_equal"),
+        True,
+        "P2-29 development equality",
+    )
+    _require(
+        development.get("formal_performance_result"),
+        False,
+        "P2-29 development formal result",
+    )
+    _require(
+        development.get("use_for_speedup_claim"),
+        False,
+        "P2-29 development speed claim",
+    )
+
+    preservation = _mapping(record.get("preservation"), "P2-29 preservation")
+    _require(
+        preservation.get("current_evidence_id"),
+        P26C_CURRENT_ID,
+        "P2-29 current evidence id",
+    )
+    _require(
+        preservation.get("rules_tree_sha256"),
+        P24D_HASH,
+        "P2-29 current rule hash",
+    )
+    _require(
+        preservation.get("p2_20_measurement_modified"),
+        False,
+        "P2-29 P2-20 preservation",
+    )
+    _require(
+        preservation.get("p2_25_canonical_result_modified"),
+        False,
+        "P2-29 P2-25 preservation",
+    )
+    _require(
+        preservation.get("p2_26c_canonical_result_modified"),
+        False,
+        "P2-29 P2-26C preservation",
+    )
+    _require(
+        preservation.get("detection_rerun_for_replacement_score"),
+        False,
+        "P2-29 detection rerun",
+    )
+
+    claim = _mapping(record.get("claim_boundary"), "P2-29 claim boundary")
+    _require(claim.get("speedup"), "NOT_YET_FORMALLY_MEASURED", "P2-29 speed")
+    _require(claim.get("production_capacity"), "NOT_CLAIMED", "P2-29 capacity")
+    _require(
+        claim.get("normalized_event_semantics"),
+        "PRESERVED_ON_EXACT_CURRENT_REVALIDATION_SOURCES",
+        "P2-29 normalized semantics",
+    )
+    _require(
+        claim.get("detection_accuracy_changed"),
+        False,
+        "P2-29 detection accuracy",
+    )
+
+    source = (repo / "breachscope/ingest.py").read_text(encoding="utf-8")
+    for marker in (
+        "def _extract_legacy_event_fields_from_root(",
+        "def _bs_extract_evtx_raw_from_root(",
+        "def _extract_with_raw_evidence(",
+        "def iter_event_xml_records(",
+    ):
+        _require(marker in source, True, f"P2-29 source marker {marker}")
+
+    return {
+        "maintenance_id": P29_ID,
+        "change_class": "semantics_preserving_parser_performance_refactor",
+        "historical_p2_20_parser_blob": P20_INGEST_BLOB,
+        "current_parser_blob": P29_INGEST_BLOB,
+        "p2_25_records_compared": 450,
+        "p2_26c_records_compared": 1643,
+        "total_current_revalidation_records_compared": 2093,
+        "total_mismatches": 0,
+        "combined_normalized_digest_sha256": "a22fb6b0cb9faed59ab2813629e6dea7625ccad7519c512d0b99e9587d7ec8d9",
+        "current_evidence_id_changed": False,
+        "rules_tree_changed": False,
+        "speedup": "NOT_YET_FORMALLY_MEASURED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
@@ -825,6 +1056,8 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     p26c_row = _mapping(revalidation_rows[1], "P2-26C chain row")
     p26c = _verify_p2_26c(repo, p26c_row)
 
+    p29 = _verify_p2_29_parser_maintenance(repo, chain)
+
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
     detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
@@ -840,7 +1073,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v9",
+        "schema": "breachscope.current_detection_evidence_verification.v10",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -870,6 +1103,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "calibrations": [*history["calibrations"], j, p20],
         "posthoc_remediations": [p24d],
         "post_remediation_revalidations": [p25, p26c],
+        "parser_maintenance": [p29],
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",

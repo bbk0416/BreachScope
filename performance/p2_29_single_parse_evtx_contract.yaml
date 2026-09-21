@@ -1,0 +1,73 @@
+schema: breachscope.p2_29_single_parse_evtx_contract.v1
+phase: P2-29A
+status: IMPLEMENTATION_CORRECTNESS_ONLY
+purpose: remove duplicate ElementTree parsing from the canonical EVTX XML normalization path without changing normalized event semantics
+
+baseline:
+  product_commit: 7ea37854905e86dcab1ccd6e43ae812e89d3bce6
+  p2_28_result: performance/p2_28_real_evtx_ingest_result.yaml
+  p2_28_corpus_status: DEVELOPMENT_DATA_AFTER_P2_28
+  p2_28_normalized_events: 766623
+  p2_28_convert_evtx_dir_seconds: 5412.38946
+  p2_28_total_real_evtx_ingest_seconds: 6741.026779
+  p2_28_throughput_events_per_second: 113.725
+  p2_28_peak_working_set_mb: 4098.742
+
+observed_code_path:
+  canonical_parser: breachscope.ingest._extract_from_xml
+  legacy_field_parser: breachscope.ingest._extract_legacy_event_fields
+  raw_evidence_parser: breachscope.ingest._bs_extract_evtx_raw
+  baseline_xml_parse_behavior: TWO_ELEMENTTREE_FROMSTRING_CALLS_PER_SUCCESSFUL_CANONICAL_RECORD
+  proposed_xml_parse_behavior: ONE_ELEMENTTREE_FROMSTRING_CALL_PER_SUCCESSFUL_CANONICAL_RECORD
+
+implementation_scope:
+  files:
+  - breachscope/ingest.py
+  allowed_change: share one parsed ElementTree root between legacy-field extraction and raw-evidence extraction
+  convert_evtx_dir_public_signature_change: false
+  normalized_event_schema_change: false
+  canonical_enrichment_change: false
+  detection_rule_change: false
+  detection_engine_change: false
+  correlation_change: false
+  scenario_change: false
+  report_change: false
+
+correctness_requirements:
+  canonical_parser_output_equivalent_to_prior_two_parse_composition: true
+  legacy_parser_remains_independently_callable: true
+  raw_evidence_parser_remains_independently_callable: true
+  malformed_xml_fail_closed_behavior_preserved: true
+  convert_evtx_dir_python_evtx_path_contract_preserved: true
+  existing_ingest_eventdata_tests_must_pass: true
+  existing_canonical_event_model_tests_must_pass: true
+  full_regression_must_pass: true
+  exact_current_evidence_source_compatibility_required_before_merge: true
+  p2_25_old_new_normalized_events_must_match: true
+  p2_26c_old_new_normalized_events_must_match: true
+  compatibility_record: external_baseline/p2_29_single_parse_parser_maintenance.yaml
+
+performance_claim_policy:
+  p2_29a_speed_claim: NOT_CLAIMED
+  p2_29a_production_capacity: NOT_CLAIMED
+  p2_29a_enterprise_scale_readiness: NOT_CLAIMED
+  followup_measurement: P2-29B
+  followup_measurement_rule: benchmark the merged implementation against the frozen P2-28 baseline on the same exact development corpus under a separately frozen benchmark contract
+  preregistered_speedup_target: NONE
+  regression_result_replacement_allowed: false
+
+evidence_boundary:
+  p2_28_canonical_result_modified: false
+  p2_28_rerun_as_blind_evaluation: false
+  p2_28_corpus_reuse_role: DEVELOPMENT_PERFORMANCE_DATA
+  detection_accuracy_evaluated: false
+  benign_fpr_evaluated: false
+
+evidence_chain_requirements:
+  historical_p2_20_parser_blob_record_must_remain_unchanged: true
+  live_parser_blob_change_must_be_recorded_separately: true
+  current_evidence_id_must_remain_p2_26c: true
+  current_rules_tree_must_remain_unchanged: true
+  p2_25_canonical_result_must_not_be_rerun_or_replaced: true
+  p2_26c_canonical_result_must_not_be_rerun_or_replaced: true
+  current_p2_25_and_p2_26c_normalized_outputs_must_match_old_parser: true

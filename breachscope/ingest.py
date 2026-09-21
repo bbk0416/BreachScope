@@ -32,10 +32,8 @@ except ImportError:
         return []
 
 
-def _extract_legacy_event_fields(xml_text: str) -> dict:
+def _extract_legacy_event_fields_from_root(root) -> dict:
     try:
-        import xml.etree.ElementTree as ET
-        root = ET.fromstring(xml_text)
         ns = "{http://schemas.microsoft.com/win/2004/08/events/event}"
         get = lambda p: (root.find(p) or {}).get("SystemTime") if p.endswith("TimeCreated") else None
         sys_node = root.find(f"{ns}System")
@@ -78,6 +76,15 @@ def _extract_legacy_event_fields(xml_text: str) -> dict:
         }
     except Exception:
         return {}
+
+
+def _extract_legacy_event_fields(xml_text: str) -> dict:
+    try:
+        import xml.etree.ElementTree as ET
+        root = ET.fromstring(xml_text)
+    except Exception:
+        return {}
+    return _extract_legacy_event_fields_from_root(root)
 
 
 def convert_evtx_dir(input_dir: Path) -> Optional[Path]:
@@ -490,11 +497,8 @@ def _bs_xml_node(node):
     return item
 
 
-def _bs_extract_evtx_raw(xml_text: str) -> dict:
+def _bs_extract_evtx_raw_from_root(root) -> dict:
     """Preserve EventData, UserData and useful System evidence as JSON-safe values."""
-    import xml.etree.ElementTree as ET
-
-    root = ET.fromstring(xml_text)
     raw: dict = {}
 
     event_data: dict = {}
@@ -572,13 +576,24 @@ def _bs_extract_evtx_raw(xml_text: str) -> dict:
     return raw
 
 
+def _bs_extract_evtx_raw(xml_text: str) -> dict:
+    """Preserve EventData, UserData and useful System evidence as JSON-safe values."""
+    import xml.etree.ElementTree as ET
+
+    root = ET.fromstring(xml_text)
+    return _bs_extract_evtx_raw_from_root(root)
+
+
 def _extract_with_raw_evidence(xml_text: str):
-    """Run the existing parser unchanged, then attach preserved EVTX evidence."""
-    result = _extract_legacy_event_fields(xml_text)
+    """Parse one XML tree, then attach legacy fields and preserved raw evidence."""
+    import xml.etree.ElementTree as ET
+
+    root = ET.fromstring(xml_text)
+    result = _extract_legacy_event_fields_from_root(root)
     if not isinstance(result, dict):
         return result
 
-    extracted = _bs_extract_evtx_raw(xml_text)
+    extracted = _bs_extract_evtx_raw_from_root(root)
     existing = result.get("raw")
 
     if not isinstance(existing, dict):

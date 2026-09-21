@@ -64,7 +64,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v9"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v10"
     assert data["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
     assert data["rule_file_count"] == 5
@@ -153,6 +153,22 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p26c["flagged_events_are_confirmed_false_positives"] is False
     assert p26c["production_false_positive_rate"] == "NOT_CLAIMED"
 
+    assert len(data["parser_maintenance"]) == 1
+    p29 = data["parser_maintenance"][0]
+    assert p29["maintenance_id"] == "p2-29-single-parse-evtx"
+    assert p29["historical_p2_20_parser_blob"] == "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc"
+    assert p29["current_parser_blob"] == "34534bf8256ce658c5f05991c05045f7c5066816"
+    assert p29["p2_25_records_compared"] == 450
+    assert p29["p2_26c_records_compared"] == 1643
+    assert p29["total_current_revalidation_records_compared"] == 2093
+    assert p29["total_mismatches"] == 0
+    assert p29["combined_normalized_digest_sha256"] == (
+        "a22fb6b0cb9faed59ab2813629e6dea7625ccad7519c512d0b99e9587d7ec8d9"
+    )
+    assert p29["current_evidence_id_changed"] is False
+    assert p29["rules_tree_changed"] is False
+    assert p29["speedup"] == "NOT_YET_FORMALLY_MEASURED"
+
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
@@ -182,6 +198,18 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
             "to_rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
             "fresh_attack_revalidation": "NOT_RUN",
             "fresh_benign_revalidation": "NOT_RUN",
+        }
+    ]
+    assert data["parser_maintenance"] == [
+        {
+            "maintenance_id": "p2-29-single-parse-evtx",
+            "record": "external_baseline/p2_29_single_parse_parser_maintenance.yaml",
+            "change_class": "semantics_preserving_parser_performance_refactor",
+            "from_git_blob_sha1": "42ce35bff10d0541d26e0a5181cfcd1ef9a459cc",
+            "to_git_blob_sha1": "34534bf8256ce658c5f05991c05045f7c5066816",
+            "current_evidence_id_changed": False,
+            "rules_tree_changed": False,
+            "normalized_event_semantics": "PRESERVED_BY_EQUIVALENCE_CHECKS",
         }
     ]
     assert data["post_remediation_revalidations"] == [

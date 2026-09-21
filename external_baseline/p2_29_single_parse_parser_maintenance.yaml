@@ -1,0 +1,103 @@
+schema: breachscope.p2_29_parser_maintenance.v1
+maintenance_id: p2-29-single-parse-evtx
+change_class: semantics_preserving_parser_performance_refactor
+status: COMPATIBILITY_PROVEN_ON_CURRENT_SEALED_EVIDENCE_SOURCES
+purpose: preserve the current P2-25 and P2-26C detection evidence chain while removing duplicate ElementTree parsing from the live EVTX normalizer
+
+parser:
+  file: breachscope/ingest.py
+  historical_p2_20_git_blob_sha1: 42ce35bff10d0541d26e0a5181cfcd1ef9a459cc
+  historical_parser_product_commit: b70ab6bbc519ac137dae324ad860391371f470db
+  current_base_commit: 7ea37854905e86dcab1ccd6e43ae812e89d3bce6
+  current_git_blob_sha1: 34534bf8256ce658c5f05991c05045f7c5066816
+  canonical_parser: breachscope.ingest._extract_from_xml
+  canonical_elementtree_fromstring_calls_per_valid_record: 1
+  previous_elementtree_fromstring_calls_per_valid_record: 2
+  public_convert_evtx_dir_signature_changed: false
+  normalized_event_schema_changed: false
+  canonical_enrichment_changed: false
+  detection_engine_changed: false
+  rules_changed: false
+
+comparison_method:
+  python: 3.11.9
+  event_serialization: JSON UTF-8, ensure_ascii=false, sort_keys=true, compact separators
+  per_dataset_digest: SHA256 over each normalized event as an 8-byte big-endian byte-length followed by canonical JSON bytes, in EVTX record order
+  aggregate_digest: SHA256 over dataset id, raw/parsed/error counts, and per-dataset digest in fixed dataset order
+  detector_executed: false
+  findings_recomputed: false
+  source_role: parser_compatibility_only
+  fresh_detection_evaluation: false
+
+equivalence:
+  p2_25:
+    source_binding: external_baseline/p2_25_deepblue_attack_binding.yaml
+    source_commit: 2eecc65698e8666408ece67525577c895676d579
+    exact_evtx_files: 8
+    records_compared: 450
+    old_parse_errors: 0
+    new_parse_errors: 0
+    mismatches: 0
+    all_normalized_dicts_equal: true
+    old_aggregate_digest_sha256: dad2930a569b11f0256d890ba6427bb09a5925cc89f82eaab95691cccaf0a303
+    new_aggregate_digest_sha256: dad2930a569b11f0256d890ba6427bb09a5925cc89f82eaab95691cccaf0a303
+    source_identity_check: all eight file sizes and Git blob SHA-1 values matched the sealed P2-25 binding before comparison
+  p2_26c:
+    source_contract: external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml
+    source_result: external_baseline/results/p2_26c_81b839d/result.yaml
+    workflow_run_id: 35492508210
+    artifact_id: 10599666432
+    exact_evtx_files: 5
+    records_compared: 1643
+    old_parse_errors: 0
+    new_parse_errors: 0
+    mismatches: 0
+    all_normalized_dicts_equal: true
+    old_aggregate_digest_sha256: 29fbe83203c47206ee86e66798f287c8a9b02cc3973731ac6dec389a82ee78a3
+    new_aggregate_digest_sha256: 29fbe83203c47206ee86e66798f287c8a9b02cc3973731ac6dec389a82ee78a3
+    source_identity_check: exact file sizes and SHA256 values were already sealed and verified by the P2-26C contract/result chain
+  combined_current_revalidation_sources:
+    exact_evtx_files: 13
+    records_compared: 2093
+    old_parse_errors: 0
+    new_parse_errors: 0
+    mismatches: 0
+    all_normalized_dicts_equal: true
+    old_aggregate_digest_sha256: a22fb6b0cb9faed59ab2813629e6dea7625ccad7519c512d0b99e9587d7ec8d9
+    new_aggregate_digest_sha256: a22fb6b0cb9faed59ab2813629e6dea7625ccad7519c512d0b99e9587d7ec8d9
+
+development_only_probe:
+  source: P2-28 pinned Nextron win10-client Sysmon Operational EVTX
+  records_compared: 2000
+  mismatches: 0
+  all_normalized_dicts_equal: true
+  prior_two_parse_seconds_runs:
+  - 2.113643900025636
+  - 2.27164890000131
+  single_parse_seconds_runs:
+  - 1.687329199980013
+  - 1.9835291000199504
+  prior_two_parse_seconds_average: 2.192646400013473
+  single_parse_seconds_average: 1.8354291499999817
+  ratio_prior_over_single: 1.1946232847034681
+  formal_performance_result: false
+  use_for_speedup_claim: false
+
+preservation:
+  current_evidence_id: p2-26c-fresh-benign-revalidation-current-detection-evidence
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  p2_20_measurement_modified: false
+  p2_25_canonical_result_modified: false
+  p2_26c_canonical_result_modified: false
+  detection_rerun_for_replacement_score: false
+  sealed_detection_results_replaced: false
+
+claim_boundary:
+  normalized_event_semantics: PRESERVED_ON_EXACT_CURRENT_REVALIDATION_SOURCES
+  speedup: NOT_YET_FORMALLY_MEASURED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy_changed: false
+  new_detection_accuracy_measurement: false
+  benign_fpr_remeasured: false
