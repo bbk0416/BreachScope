@@ -1,0 +1,137 @@
+schema: breachscope.p2_34_evtx_value_node_semantic_sweep_contract.v1
+benchmark_id: p2-34-windows-evtx-value-node-semantic-sweep-v1
+status: PREREGISTERED_BEFORE_CANONICAL_EXECUTION
+purpose: broaden semantic-equivalence evidence for the P2-33 ValueNode.children memoization candidate across every EVTX channel in the pinned P2-28 corpus before any product adoption decision
+
+predecessor:
+  phase: P2-33
+  result: performance/p2_33_evtx_value_node_memo_result.yaml
+  result_main_commit: cf401d1e2a7e8def144624120c77557b967b17e2
+  result_sha256: 35768c31be9fbbcbeb7a1c7d3c7440ad06e999473d20c0ef77a8e6d514ce62f8
+  status: COMPLETED
+  observed_candidate_median_change_percent: -9.207793279664797
+  product_adoption: NOT_DECIDED
+  predecessor_result_modified: false
+
+dependency:
+  package: python-evtx
+  version: 0.8.1
+  nodes_py_sha256: a1b8ce8de6219ff54af9e65a0aacf70f5167567c6036225f355cfc2063cbcaeb
+  value_node_children_source_sha256: 7dd92b06690a1ec1a16658551ba54a65a15496c21c047eb5646e460c84e50533
+  stock_value_node_children_memoized: false
+  candidate:
+    description: wrap Evtx.Nodes.ValueNode.children with Evtx.BinaryParser.memoize in the benchmark child process only
+    identical_to_p2_33_candidate: true
+    product_monkey_patch: false
+    fork_created: false
+    vendor_copy_created: false
+    upstream_patch_applied: false
+
+source:
+  origin: P2_28_PINNED_NEXTRON_CORPUS
+  repository: NextronSystems/evtx-baseline
+  release_tag: v0.8.4
+  archive:
+    relative_name: win10-client.tgz
+    size_bytes: 70844052
+    sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  extracted_corpus:
+    file_count: 352
+    total_bytes: 876675072
+    path_size_manifest_sha256: a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e
+  source_role: DEVELOPMENT_SEMANTIC_SAFETY_CORPUS
+  fresh_detection_evaluation: false
+
+runner:
+  path: scripts/p2_34_evtx_value_node_semantic_sweep.py
+  sha256: e30620f3dca7f95c11b3305ce11600e8a3e299a95bfac295c24a267e6d9936e3
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  result_file: result.json
+  lock_file: P2_34_ONE_PASS.lock
+
+environment:
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+measurement:
+  purpose: semantic_equivalence_only
+  file_selection: ALL_352_SORTED_EVTX_FILES
+  records_per_file: 25
+  record_selection: FIRST_UP_TO_25_RECORDS_PER_FILE
+  all_records_when_file_has_fewer_than_limit: true
+  fresh_child_process_each_variant: true
+  variants:
+  - stock
+  - candidate
+  variant_order:
+  - stock
+  - candidate
+  semantic_projection:
+  - file_count
+  - total_bytes
+  - path_size_manifest_sha256
+  - records_per_file_limit
+  - total_sampled_records
+  - zero_record_files
+  - global_xml_digest_sha256
+  - per_file_relative_path
+  - per_file_record_count
+  - per_file_xml_digest_sha256
+  require_exact_semantic_projection_match: true
+  elapsed_seconds_recorded_for_diagnostics_only: true
+  performance_comparison_allowed: false
+  detection_stage_executed: false
+  breachscope_event_parser_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+
+accounting_gate:
+  exact_archive_size_and_sha256_required: true
+  exact_extracted_file_count: 352
+  exact_extracted_total_bytes: 876675072
+  exact_path_size_manifest_sha256: a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e
+  dependency_version_and_source_hash_must_match: true
+  runner_hash_must_match: true
+  environment_must_match: true
+  stock_candidate_semantic_projection_must_match_exactly: true
+  mismatch_status: FAILED_ACCOUNTING_OR_SEMANTIC_MISMATCH
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  permanent_lock_required: true
+  duplicate_canonical_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_outcome: false
+  runner_change_requires_new_benchmark_id: true
+  measurement_design_change_requires_new_benchmark_id: true
+  candidate_change_requires_new_benchmark_id: true
+  product_code_change_before_result: false
+  product_code_change_as_part_of_gate: false
+  p2_33_result_modified: false
+  p2_32_diagnosis_modified: false
+  p2_30b_result_modified: false
+
+decision_rule:
+  any_semantic_mismatch_rejects_candidate_for_product_adoption: true
+  exact_semantic_match_is_required_but_not_sufficient_for_product_adoption: true
+  passing_gate_does_not_auto_authorize_product_patch: true
+  dependency_fork_vendor_or_upstream_choice_deferred_until_after_result: true
+  performance_result_from_this_gate_must_not_be_used_for_speed_claim: true
+
+claim_boundary:
+  semantic_equivalence_scope: NOT_YET_MEASURED
+  all_records_semantic_equivalence: NOT_EVALUATED
+  performance_comparison: NOT_EVALUATED
+  candidate_general_speedup: NOT_CLAIMED
+  product_adoption: NOT_DECIDED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
