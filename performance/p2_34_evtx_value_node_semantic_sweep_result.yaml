@@ -1,0 +1,111 @@
+schema: breachscope.p2_34_evtx_value_node_semantic_sweep_result.v1
+benchmark_id: p2-34-windows-evtx-value-node-semantic-sweep-v1
+status: COMPLETED
+contract: performance/p2_34_evtx_value_node_semantic_sweep_contract.yaml
+contract_merge_commit: 40724bf58352f090e826421af680b62e1cabf423
+
+predecessor:
+  phase: P2-33
+  result: performance/p2_33_evtx_value_node_memo_result.yaml
+  result_main_commit: cf401d1e2a7e8def144624120c77557b967b17e2
+  result_sha256: 35768c31be9fbbcbeb7a1c7d3c7440ad06e999473d20c0ef77a8e6d514ce62f8
+  predecessor_result_modified: false
+
+dependency:
+  package: python-evtx
+  version: 0.8.1
+  nodes_py_sha256: a1b8ce8de6219ff54af9e65a0aacf70f5167567c6036225f355cfc2063cbcaeb
+  value_node_children_source_sha256: 7dd92b06690a1ec1a16658551ba54a65a15496c21c047eb5646e460c84e50533
+  candidate: benchmark-child-only memoization of Evtx.Nodes.ValueNode.children
+
+runner:
+  sha256: e30620f3dca7f95c11b3305ce11600e8a3e299a95bfac295c24a267e6d9936e3
+  contract_sha256: 17360f77464ecd497bf797f0f13fdd20d02a50e342b926915e9d4009b506c5d5
+  launcher: py -3.11
+  python: 3.11.9
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+source:
+  origin: P2_28_PINNED_NEXTRON_CORPUS
+  archive:
+    relative_name: win10-client.tgz
+    size_bytes: 70844052
+    sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+  extracted_corpus:
+    file_count: 352
+    total_bytes: 876675072
+    path_size_manifest_sha256: a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e
+  source_role: DEVELOPMENT_SEMANTIC_SAFETY_CORPUS
+  fresh_detection_evaluation: false
+
+canonical_artifacts:
+  result:
+    path: performance/results/p2_34_40724bf/result.json
+    size_bytes: 177568
+    sha256: 72579d61e447c4809303b5460d985fddef27e959c8d39991949881fd44d2e119
+  permanent_lock:
+    path: performance/results/p2_34_40724bf/P2_34_ONE_PASS.lock
+    size_bytes: 116
+    sha256: 5b76190379c3dacc6e1d3c5edba75dcb34d91ecf81573b7255ee63314d9f9dcc
+
+semantic_equivalence:
+  file_selection: ALL_352_SORTED_EVTX_FILES
+  records_per_file_limit: 25
+  total_sampled_records: 1827
+  zero_record_files: 255
+  global_xml_digest_sha256: b4c7c01e0ac6e1b7e7871111a41b1173c37b7249da59e6b0b5e324c87ad064cf
+  stock_candidate_projection_identical: true
+  scope: FIRST_UP_TO_25_RECORDS_PER_EACH_OF_352_PINNED_EVTX_FILES
+  all_records_semantic_equivalence: NOT_EVALUATED
+
+descriptive_timing_seconds:
+  performance_comparison_allowed: false
+  stock_elapsed: 26.089332799994736
+  candidate_elapsed: 31.65723060000164
+  interpretation: RECORDED_FOR_DIAGNOSTICS_ONLY_NOT_A_PERFORMANCE_COMPARISON
+
+protocol:
+  permanent_exclusive_lock_used: true
+  first_completed_or_failed_execution_retained_as_canonical: true
+  duplicate_canonical_execution_performed: false
+  replace_result_for_better_outcome: false
+  product_code_changed_for_gate: false
+  dependency_fork_created: false
+  vendor_copy_created: false
+  upstream_patch_applied: false
+  p2_33_result_modified: false
+  p2_32_diagnosis_modified: false
+  p2_30b_result_modified: false
+  detection_stage_executed: false
+  breachscope_event_parser_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+
+decision:
+  semantic_gate: PASS
+  benchmark_candidate_semantic_equivalence: OBSERVED_ON_PREREGISTERED_CROSS_FILE_SAMPLE
+  any_semantic_mismatch_observed: false
+  product_code_change: false
+  product_monkey_patch_python_evtx: "NO"
+  dependency_fork_or_vendor_change: DEFERRED
+  upstream_contribution: DEFERRED
+  adoption_authorized_by_gate_alone: false
+  product_adoption: NOT_DECIDED
+  reason: exact stock/candidate XML semantic projection matched across the preregistered first-up-to-25 records from every one of the 352 pinned EVTX files, but the gate was semantic-only and does not establish general performance benefit or justify a product dependency patch
+
+claim_boundary:
+  semantic_equivalence_scope: FIRST_UP_TO_25_RECORDS_PER_EACH_OF_352_PINNED_EVTX_FILES
+  all_records_semantic_equivalence: NOT_EVALUATED
+  performance_comparison: NOT_EVALUATED
+  candidate_general_speedup: NOT_CLAIMED
+  product_adoption: NOT_DECIDED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
