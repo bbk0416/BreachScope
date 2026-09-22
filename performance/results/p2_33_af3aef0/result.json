@@ -1,0 +1,178 @@
+{
+  "schema": "breachscope.p2_33_evtx_value_node_memo_benchmark.v1",
+  "benchmark_id": "p2-33-windows-evtx-value-node-memo-v1",
+  "status": "completed",
+  "contract_sha256": "5aeff2d6f22cc65c2f17922393ab394b66e0f397e99987461fd863bb8da5f7ed",
+  "runner_sha256": "14c9be2f0163c8b0fb1d5250622c4c06982cf87ca43cbef164e7bc96dc26d1fd",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpu_count": 22,
+    "total_physical_memory_bytes": 16895479808
+  },
+  "dependency": {
+    "package": "python-evtx",
+    "version": "0.8.1",
+    "nodes_py_sha256": "a1b8ce8de6219ff54af9e65a0aacf70f5167567c6036225f355cfc2063cbcaeb",
+    "value_node_children_source_sha256": "7dd92b06690a1ec1a16658551ba54a65a15496c21c047eb5646e460c84e50533"
+  },
+  "source": {
+    "path": "C:\\Users\\bbk0416\\Downloads\\p2_28_canonical\\extracted\\Logs_Client\\Microsoft-Windows-Sysmon%4Operational.evtx",
+    "size_bytes": 799084544,
+    "sha256": "efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb"
+  },
+  "runs": [
+    {
+      "records": 5000,
+      "rss_end_bytes": 41615360,
+      "rss_peak_bytes": 47116288,
+      "rss_start_bytes": 32567296,
+      "seconds": 52.72847089999959,
+      "variant": "stock",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 1
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42291200,
+      "rss_peak_bytes": 47792128,
+      "rss_start_bytes": 32763904,
+      "seconds": 53.38920449999932,
+      "variant": "candidate",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 1
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42225664,
+      "rss_peak_bytes": 47726592,
+      "rss_start_bytes": 32595968,
+      "seconds": 52.54138239999884,
+      "variant": "candidate",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 2
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 41615360,
+      "rss_peak_bytes": 47116288,
+      "rss_start_bytes": 32792576,
+      "seconds": 49.36438610000005,
+      "variant": "stock",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 2
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42270720,
+      "rss_peak_bytes": 47771648,
+      "rss_start_bytes": 32694272,
+      "seconds": 52.3955662999997,
+      "variant": "stock",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 3
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42250240,
+      "rss_peak_bytes": 47751168,
+      "rss_start_bytes": 32677888,
+      "seconds": 47.87334229999942,
+      "variant": "candidate",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 3
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42188800,
+      "rss_peak_bytes": 47689728,
+      "rss_start_bytes": 32595968,
+      "seconds": 43.80499950000012,
+      "variant": "candidate",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 4
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 41533440,
+      "rss_peak_bytes": 47034368,
+      "rss_start_bytes": 32690176,
+      "seconds": 55.30867639999997,
+      "variant": "stock",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 4
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 41553920,
+      "rss_peak_bytes": 47054848,
+      "rss_start_bytes": 32686080,
+      "seconds": 59.61860990000059,
+      "variant": "stock",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 5
+    },
+    {
+      "records": 5000,
+      "rss_end_bytes": 42303488,
+      "rss_peak_bytes": 47804416,
+      "rss_start_bytes": 32563200,
+      "seconds": 47.39039409999896,
+      "variant": "candidate",
+      "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+      "repetition": 5
+    }
+  ],
+  "xml_digest_sha256": "892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58",
+  "time_summary_seconds": {
+    "stock": {
+      "count": 5,
+      "median": 52.72847089999959,
+      "mean": 53.88314191999998,
+      "min": 49.36438610000005,
+      "max": 59.61860990000059,
+      "max_over_min_ratio": 1.2077251356722642
+    },
+    "candidate": {
+      "count": 5,
+      "median": 47.87334229999942,
+      "mean": 48.99986455999933,
+      "min": 43.80499950000012,
+      "max": 53.38920449999932,
+      "max_over_min_ratio": 1.2187924919391717
+    }
+  },
+  "rss_summary": {
+    "stock_peak_bytes": {
+      "count": 5,
+      "median": 47116288.0,
+      "mean": 47218688.0,
+      "min": 47034368.0,
+      "max": 47771648.0,
+      "max_over_min_ratio": 1.0156753461638945
+    },
+    "candidate_peak_bytes": {
+      "count": 5,
+      "median": 47751168.0,
+      "mean": 47752806.4,
+      "min": 47689728.0,
+      "max": 47804416.0,
+      "max_over_min_ratio": 1.0024048784677488
+    }
+  },
+  "comparison": {
+    "stock_over_candidate_median_ratio": 1.1014161194256167,
+    "candidate_median_change_percent": -9.207793279664797
+  },
+  "claim_boundary": {
+    "true_cold_os_cache": "NOT_MEASURED",
+    "general_speedup": "NOT_CLAIMED",
+    "full_pipeline_speedup": "NOT_CLAIMED",
+    "production_capacity": "NOT_CLAIMED",
+    "statistical_benchmark": false,
+    "detection_accuracy": "NOT_EVALUATED",
+    "benign_fpr": "NOT_EVALUATED"
+  }
+}
