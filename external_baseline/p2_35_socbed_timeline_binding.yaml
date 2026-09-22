@@ -1,0 +1,130 @@
+schema: breachscope.p2_35_socbed_timeline_binding.v1
+analysis_id: p2-35-socbed-acsac2021-timeline-v1
+analysis_class: pre_observation_external_attack_timeline_binding
+status: PREREGISTERED_BEFORE_DATA_OBSERVATION
+purpose: measure whether current BreachScope findings, chains, and scenarios preserve the source-defined order of a previously unused multi-step SOCBED attack simulation before any source dataset event is inspected
+
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  product_or_rules_change_before_measurement_allowed: false
+
+source:
+  repository: fkie-cad/socbed-eval-acsac-2021
+  pinned_commit: c264060f0e65ea69c2d891525ae835a543f851ca
+  pinned_tree: 12c20febfb81251c5cb21a79d89cdf6db94e28ae
+  license: MIT
+  readme:
+    path: README.md
+    size_bytes: 8108
+    git_blob_sha1: 44c888c139b3cd4c29781a95963038b6405aff69
+    sha256: 876ef2b7ed0a76039306cf6840456eed7b494a488b9420cb3a65f7a4c53aaf91
+  schedule:
+    path: run_simulations
+    size_bytes: 1253
+    git_blob_sha1: 501c32e41196d56d0d6b4d67d963edf10e4156a3
+    sha256: 1ae844300d87af32af55b3ae1c8f881e1d3e424c3b7cf51051c61df3fa76837c
+  dataset_archive:
+    path: dataset.zip
+    size_bytes: 77984817
+    git_blob_sha1: 270ea757ade54a9fe6f6cf730658c053a04f4460
+    sha256: NOT_YET_MEASURED
+  upstream_description: SOCBED evaluation dataset with Windows Event logs from repeated scripted cyberattack simulations
+
+selection_basis:
+  source_repository_previously_used_by_breachscope: false
+  breachscope_repository_search_hits_for_socbed_before_binding: 0
+  source_selected_from_public_readme_and_schedule_metadata_only: true
+  dataset_archive_downloaded_before_binding: false
+  dataset_archive_opened_before_binding: false
+  archive_member_inventory_observed_before_binding: false
+  windows_event_log_content_observed_before_binding: false
+  breachscope_detector_executed_on_source_before_binding: false
+  breachscope_output_observed_before_binding: false
+
+selected_run:
+  host_configuration: host1_bestpractice
+  iteration: 1
+  rationale: deterministic first run from the first best-practice configuration documented by the source; selected before archive inventory
+  expected_windows_member_policy: exactly one archive member under the host1_bestpractice configuration whose basename is winlogbeat_01.jsonl
+  zero_or_multiple_matching_members: ABORT_UNSUPPORTED
+  fallback_to_other_configuration_or_iteration_after_inventory: false
+
+source_defined_timeline:
+  schedule_source: run_simulations
+  session_log_window_seconds: 3600
+  first_attack_nominal_offset_seconds: 900
+  inter_step_nominal_spacing_seconds: 180
+  timing_semantics: nominal invocation offsets relative to the script session start; command runtime and completion times are not asserted
+  steps:
+  - ordinal: 1
+    attack: misc_sqlmap
+    nominal_offset_seconds: 900
+  - ordinal: 2
+    attack: infect_email_exe
+    nominal_offset_seconds: 1080
+  - ordinal: 3
+    attack: c2_take_screenshot
+    nominal_offset_seconds: 1260
+  - ordinal: 4
+    attack: c2_exfiltration
+    nominal_offset_seconds: 1440
+  - ordinal: 5
+    attack: c2_mimikatz
+    nominal_offset_seconds: 1620
+  - ordinal: 6
+    attack: misc_download_malware
+    nominal_offset_seconds: 1800
+  - ordinal: 7
+    attack: misc_set_autostart
+    nominal_offset_seconds: 1980
+  - ordinal: 8
+    attack: misc_execute_malware
+    nominal_offset_seconds: 2160
+
+protocol:
+  phase_a_binding_only: true
+  binding_must_merge_before_dataset_download: true
+  phase_b_after_binding_merge:
+  - download only the exact dataset.zip bytes from the pinned source commit
+  - verify exact byte size and Git blob identity before opening the archive
+  - compute archive SHA256
+  - inspect archive member names and uncompressed sizes only
+  - require the preregistered host1_bestpractice iteration-1 Windows member to resolve uniquely
+  - record whether source-generated attackconsole or session timing logs exist by member name only
+  - do not read selected Windows JSONL content
+  - do not execute BreachScope
+  - do not inspect BreachScope output
+  phase_c_required_before_event_content_observation: freeze selected member bytes, ingestion adapter, timeline-alignment scoring contract, and one-pass runner before reading any event record
+  duplicate_canonical_measurement_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  result_driven_remeasurement_allowed: false
+  tuning_after_source_observation_before_measurement_allowed: false
+
+planned_measurement:
+  primary_question: does current BreachScope preserve source-defined attack-step ordering in its findings, chains, and scenarios on a previously unused external simulation run
+  units:
+  - source_defined_attack_step
+  - breachscope_finding
+  - breachscope_chain
+  - breachscope_scenario
+  exact_time_window_scoring: DEFERRED_UNTIL_PHASE_B_CAN_CONFIRM_A_SOURCE_SUPPORTED_SESSION_TIME_ANCHOR
+  step_visibility_scoring: DEFERRED_UNTIL_PHASE_C_PREREGISTRATION
+  chain_order_alignment: DEFERRED_UNTIL_PHASE_C_PREREGISTRATION
+  scenario_order_alignment: DEFERRED_UNTIL_PHASE_C_PREREGISTRATION
+  event_level_precision: NOT_MEASURED
+  event_level_recall: NOT_MEASURED
+
+claim_boundary:
+  independent_source: true
+  source_timeline_known_before_event_observation: true
+  timeline_reconstruction_quality: NOT_YET_MEASURED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  production_detection_quality: NOT_CLAIMED
+  production_reconstruction_quality: NOT_CLAIMED
+  statistical_benchmark: false
