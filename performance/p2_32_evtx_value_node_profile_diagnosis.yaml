@@ -1,0 +1,105 @@
+schema: breachscope.p2_32_evtx_value_node_profile_diagnosis.v1
+phase: P2-32
+status: CLOSE_POSTHOC_CANDIDATE_IDENTIFIED
+purpose: identify a lower-level python-evtx record.xml cost after P2-31 showed that copying the renderer and caching already-memoized OpenStartElementNode methods was not justified
+
+baseline:
+  main_commit: d28880f8bc7d639f9cceaa419bb1f64b881dbc75
+  p2_31_diagnosis: performance/p2_31_cached_evtx_renderer_diagnosis.yaml
+  p2_30b_result: performance/p2_30b_evtx_stage_cache_parser_result.yaml
+  dependency:
+    package: python-evtx
+    version: 0.8.1
+  source:
+    relative_name: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+    sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+    subset: FIRST_5000_RECORDS
+
+development_profile:
+  formal_benchmark: false
+  use_for_speedup_claim: false
+  stock_cprofile:
+    records: 5000
+    xml_digest_sha256: 892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58
+    total_seconds: 118.688
+    function_calls: 55647188
+    primitive_calls: 51197844
+    value_node_children_calls: 211622
+    value_node_children_cumulative_seconds: 12.713
+    get_variant_value_calls: 356606
+    get_variant_value_cumulative_seconds: 14.190
+  memoized_value_node_cprofile:
+    records: 5000
+    xml_digest_sha256: 892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58
+    total_seconds: 115.326
+    function_calls: 53239388
+    primitive_calls: 48643406
+    value_node_children_calls: 73319
+    value_node_children_cumulative_seconds: 4.797
+    get_variant_value_calls: 218303
+    get_variant_value_cumulative_seconds: 8.006
+
+development_timing_probe:
+  formal_benchmark: false
+  use_for_speedup_claim: false
+  records: 1000
+  order_control:
+  - [stock, value_children_memoized]
+  - [value_children_memoized, stock]
+  xml_digest_sha256: f1116edb660676bf3342f847c9864141ee77cadbb56d81bb3d12837990e7d568
+  stock_seconds:
+  - 11.237771500000235
+  - 11.038677700000335
+  value_children_memoized_seconds:
+  - 8.315483200000017
+  - 10.173403599999801
+
+development_5000_record_spot_check:
+  formal_benchmark: false
+  use_for_speedup_claim: false
+  xml_digest_sha256: 892861e093f0ee24b48132eae32d897a6cb84b3e2cc338ce3c9a0013baa58c58
+  stock:
+    seconds: 46.42167470000095
+    rss_start_bytes: 34611200
+    rss_peak_bytes: 48869376
+    rss_end_bytes: 43368448
+  value_children_memoized:
+    seconds: 42.33556320000025
+    rss_start_bytes: 34680832
+    rss_peak_bytes: 49844224
+    rss_end_bytes: 44343296
+
+findings:
+- id: F1
+  statement: The dominant record.xml cost is lower-level python-evtx node traversal and decoding rather than XML escaping or string assembly.
+- id: F2
+  statement: ValueNode.children is not memoized in python-evtx 0.8.1 and is invoked repeatedly during node length calculation and later rendering.
+- id: F3
+  statement: Memoizing ValueNode.children materially reduced duplicate variant decoding work in the development profile.
+  support: ValueNode.children calls fell from 211622 to 73319 and get_variant_value calls fell from 356606 to 218303 on the same first 5000 records.
+- id: F4
+  statement: No XML output difference was observed in the development probes.
+  support: The 5000-record XML digest matched the P2-30B canonical XML digest and the 1000-record order-controlled probe produced one shared digest across all four runs.
+- id: F5
+  statement: The observed wall-clock timings are too variable and too limited to establish a general speedup claim.
+
+decision:
+  product_code_change: false
+  monkey_patch_python_evtx_in_product: "NO"
+  dependency_fork_or_vendor_change: "NO"
+  candidate_for_preregistered_benchmark: "YES"
+  candidate: memoize Evtx.Nodes.ValueNode.children at the dependency implementation level
+  reason: the candidate removes demonstrated duplicate decoding work, but the current evidence is development-only and product-level monkey patching would add maintenance and compatibility risk
+  p2_30b_result_modified: false
+  p2_31_result_modified: false
+  next_direction: preregister an isolated dependency-level benchmark and semantic-equivalence check before deciding whether to carry a patch, fork, vendor change, or upstream contribution
+
+claim_boundary:
+  lower_level_duplicate_decode_cost: OBSERVED_ON_PINNED_DEVELOPMENT_CORPUS
+  candidate_semantic_equivalence: OBSERVED_ON_PINNED_1000_AND_5000_RECORD_DEVELOPMENT_PROBES
+  candidate_general_speedup: NOT_ESTABLISHED
+  statistical_benchmark: false
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
