@@ -1,0 +1,86 @@
+schema: breachscope.p2_35b_socbed_phase_b_assessment.v1
+analysis_id: p2-35b-socbed-acsac2021-phase-b-v1
+analysis_class: pre_event_observation_source_byte_binding
+status: COMPLETED
+binding: external_baseline/p2_35_socbed_timeline_binding.yaml
+binding_main_commit: 683a2207d966cb7eadb672702380bd3b0de274a9
+
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  product_or_rules_changed_after_binding: false
+
+source:
+  repository: fkie-cad/socbed-eval-acsac-2021
+  pinned_commit: c264060f0e65ea69c2d891525ae835a543f851ca
+  dataset_archive:
+    path: dataset.zip
+    expected_size_bytes: 77984817
+    actual_size_bytes: 77984817
+    expected_git_blob_sha1: 270ea757ade54a9fe6f6cf730658c053a04f4460
+    actual_git_blob_sha1: 270ea757ade54a9fe6f6cf730658c053a04f4460
+    sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+    identity_match: true
+
+archive_inventory:
+  member_count: 244
+  observation_scope: MEMBER_NAMES_AND_UNCOMPRESSED_SIZES_ONLY
+  selected_member_match_count: 1
+  selected_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+    extraction_mode: OPAQUE_BINARY_STREAM_FOR_SIZE_AND_SHA256_ONLY
+    decoded: false
+    json_parsed: false
+    searched: false
+    sampled: false
+  timing_anchor_candidate_members:
+  - path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+  - path: host1_bestpractice/vmconsole_01.log
+    size_bytes: 435
+  - path: host1_bestpractice/attackconsole_01.stdout
+    size_bytes: 21242
+  timing_anchor_member_contents_read: false
+
+protocol:
+  archive_download_after_binding_merge: true
+  archive_identity_verified_before_inventory: true
+  selected_run_resolved_uniquely: true
+  selected_member_content_observed: false
+  timing_log_content_observed: false
+  breachscope_detector_executed: false
+  breachscope_output_observed: false
+  product_or_rules_tuned_after_source_observation: false
+  duplicate_measurement_performed: false
+
+source_defined_timeline:
+  inherited_from_binding: true
+  attack_step_count: 8
+  first_attack_nominal_offset_seconds: 900
+  inter_step_nominal_spacing_seconds: 180
+  exact_session_time_anchor: NOT_YET_OBSERVED
+
+next_phase:
+  id: P2-35C
+  requirement: merge a contract freezing the exact selected member SHA256, ingestion adapter, timing-anchor parser, timeline alignment scoring, and one-pass runner before decoding any selected JSONL record or timing-log content
+  selected_member_sha256_frozen: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+  timing_anchor_parser_required: true
+  event_content_observation_before_phase_c_merge: prohibited
+  breachscope_execution_before_phase_c_merge: prohibited
+
+claim_boundary:
+  timeline_reconstruction_quality: NOT_YET_MEASURED
+  exact_time_window_alignment: NOT_YET_MEASURED
+  attack_step_visibility: NOT_YET_MEASURED
+  chain_order_alignment: NOT_YET_MEASURED
+  scenario_order_alignment: NOT_YET_MEASURED
+  event_level_precision: NOT_CLAIMED
+  event_level_recall: NOT_CLAIMED
+  chain_precision: NOT_CLAIMED
+  chain_recall: NOT_CLAIMED
+  scenario_precision: NOT_CLAIMED
+  scenario_recall: NOT_CLAIMED
+  production_reconstruction_quality: NOT_CLAIMED
