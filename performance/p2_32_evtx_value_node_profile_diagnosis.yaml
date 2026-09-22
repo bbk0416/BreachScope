@@ -103,3 +103,9 @@ claim_boundary:
   enterprise_scale_readiness: NOT_CLAIMED
   detection_accuracy: NOT_EVALUATED
   benign_fpr: NOT_EVALUATED
+
+verification:
+  focused_tests: 11 passed
+  git_diff_check: PASS
+  github_actions: NOT_RUN
+  reason: evidence-only diagnosis validated locally because paid GitHub Actions overage is not permitted
