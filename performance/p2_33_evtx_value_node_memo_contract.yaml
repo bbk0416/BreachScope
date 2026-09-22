@@ -1,0 +1,138 @@
+schema: breachscope.p2_33_evtx_value_node_memo_contract.v1
+benchmark_id: p2-33-windows-evtx-value-node-memo-v1
+status: PREREGISTERED_BEFORE_CANONICAL_EXECUTION
+purpose: formally compare stock python-evtx 0.8.1 record.xml rendering with dependency-level memoization of Evtx.Nodes.ValueNode.children after P2-32 identified repeated variant decoding as a lower-level cost
+
+predecessor:
+  phase: P2-32
+  diagnosis: performance/p2_32_evtx_value_node_profile_diagnosis.yaml
+  diagnosis_main_commit: 196778350779e9ec4639e1ac98ea9b0ad17e1f6d
+  status: CLOSE_POSTHOC_CANDIDATE_IDENTIFIED
+  candidate_general_speedup: NOT_ESTABLISHED
+  predecessor_result_modified: false
+
+dependency:
+  package: python-evtx
+  version: 0.8.1
+  nodes_py_sha256: a1b8ce8de6219ff54af9e65a0aacf70f5167567c6036225f355cfc2063cbcaeb
+  value_node_children_source_sha256: 7dd92b06690a1ec1a16658551ba54a65a15496c21c047eb5646e460c84e50533
+  stock_value_node_children_memoized: false
+  candidate:
+    description: wrap Evtx.Nodes.ValueNode.children with Evtx.BinaryParser.memoize in the benchmark child process only
+    product_monkey_patch: false
+    fork_created: false
+    vendor_copy_created: false
+    upstream_patch_applied: false
+
+source:
+  origin: P2_28_PINNED_NEXTRON_CORPUS
+  relative_name: Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx
+  size_bytes: 799084544
+  sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+  record_subset: FIRST_5000_RECORDS
+  source_role: DEVELOPMENT_PERFORMANCE_DIAGNOSTIC
+  fresh_detection_evaluation: false
+
+runner:
+  path: scripts/p2_33_evtx_value_node_memo_benchmark.py
+  sha256: 14c9be2f0163c8b0fb1d5250622c4c06982cf87ca43cbef164e7bc96dc26d1fd
+  python_major_minor: "3.11"
+  operating_system: Windows
+  permanent_exclusive_lock: true
+  result_file: result.json
+  lock_file: P2_33_ONE_PASS.lock
+
+environment:
+  platform: Windows-10-10.0.26200-SP0
+  machine: AMD64
+  processor: Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+  logical_cpu_count: 22
+  total_physical_memory_bytes: 16895479808
+
+measurement:
+  record_limit: 5000
+  repetitions_per_variant: 5
+  fresh_child_process_each_variant_run: true
+  variants:
+  - stock
+  - candidate
+  variant_order:
+  - [stock, candidate]
+  - [candidate, stock]
+  - [stock, candidate]
+  - [candidate, stock]
+  - [stock, candidate]
+  timing_scope: open pinned EVTX, iterate first 5000 records, call record.xml, and update canonical XML digest
+  rss_sampling_interval_records: 25
+  require_exact_record_count_each_run: true
+  require_identical_xml_digest_across_all_runs: true
+  primary_summary:
+    statistic: median
+    inferential_statistics: false
+  descriptive_summary:
+  - mean
+  - min
+  - max
+  - max_over_min_ratio
+  memory_summary:
+  - rss_start_bytes
+  - rss_peak_bytes
+  - rss_end_bytes
+  detection_stage_executed: false
+  parsing_into_breachscope_event_executed: false
+  correlation_stage_executed: false
+  scenario_stage_executed: false
+  report_stage_executed: false
+
+cache_policy:
+  exact_source_sha256_verification_before_timing: true
+  source_sha_verification_reads_entire_799mb_file: true
+  true_cold_os_cache: NOT_MEASURED
+  os_page_cache_flush_performed: false
+  os_page_cache_flush_required: false
+  each_variant_run_is_fresh_python_process: true
+  between_run_os_cache_state: UNCONTROLLED
+  order_is_alternated_to_reduce_systematic_variant_order_bias: true
+  cold_cache_speed_claim: NOT_CLAIMED
+  warm_cache_speed_claim: NOT_CLAIMED
+
+accounting_gate:
+  exact_records_per_run: 5000
+  xml_digest_must_match_across_stock_and_candidate_runs: true
+  dependency_version_and_source_hash_must_match: true
+  runner_hash_must_match: true
+  source_size_and_sha256_must_match: true
+  environment_must_match: true
+  mismatch_status: FAILED_ACCOUNTING_OR_SEMANTIC_MISMATCH
+
+protocol:
+  contract_must_merge_before_canonical_execution: true
+  permanent_lock_required: true
+  duplicate_canonical_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_numbers: false
+  runner_change_requires_new_benchmark_id: true
+  measurement_design_change_requires_new_benchmark_id: true
+  candidate_change_requires_new_benchmark_id: true
+  product_code_change_before_result: false
+  product_code_change_as_part_of_benchmark: false
+  p2_30b_result_modified: false
+  p2_31_result_modified: false
+  p2_32_diagnosis_modified: false
+
+decision_rule:
+  semantic_equivalence_required_before_any_performance_interpretation: true
+  benchmark_outcome_does_not_auto_authorize_product_patch: true
+  product_adoption_requires_separate_posthoc_decision: true
+  dependency_fork_vendor_or_upstream_choice_deferred_until_after_result: true
+
+claim_boundary:
+  candidate_comparison: NOT_YET_MEASURED
+  candidate_general_speedup: NOT_ESTABLISHED
+  true_cold_cache_performance: NOT_MEASURED
+  general_full_pipeline_speedup: NOT_CLAIMED
+  production_capacity: NOT_CLAIMED
+  enterprise_scale_readiness: NOT_CLAIMED
+  statistical_benchmark: false
+  detection_accuracy: NOT_EVALUATED
+  benign_fpr: NOT_EVALUATED
