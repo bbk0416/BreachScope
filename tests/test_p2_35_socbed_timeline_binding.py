@@ -90,7 +90,8 @@ def test_p2_35_protocol_prevents_peeking_and_result_driven_reruns() -> None:
     assert row["tuning_after_source_observation_before_measurement_allowed"] is False
     phase_b = "\n".join(row["phase_b_after_binding_merge"])
     assert "member names and uncompressed sizes only" in phase_b
-    assert "do not read selected Windows JSONL content" in phase_b
+    assert "opaque bytes only to record exact size and SHA256" in phase_b
+    assert "do not decode parse search sample or otherwise inspect selected Windows JSONL content" in phase_b
     assert "do not execute BreachScope" in phase_b
 
 

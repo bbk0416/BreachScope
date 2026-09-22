@@ -93,8 +93,9 @@ protocol:
   - compute archive SHA256
   - inspect archive member names and uncompressed sizes only
   - require the preregistered host1_bestpractice iteration-1 Windows member to resolve uniquely
+  - extract the selected Windows member as opaque bytes only to record exact size and SHA256 for Phase C binding
   - record whether source-generated attackconsole or session timing logs exist by member name only
-  - do not read selected Windows JSONL content
+  - do not decode parse search sample or otherwise inspect selected Windows JSONL content
   - do not execute BreachScope
   - do not inspect BreachScope output
   phase_c_required_before_event_content_observation: freeze selected member bytes, ingestion adapter, timeline-alignment scoring contract, and one-pass runner before reading any event record
