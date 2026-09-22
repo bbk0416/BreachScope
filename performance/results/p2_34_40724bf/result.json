@@ -1,0 +1,3594 @@
+{
+  "schema": "breachscope.p2_34_evtx_value_node_semantic_sweep.v1",
+  "benchmark_id": "p2-34-windows-evtx-value-node-semantic-sweep-v1",
+  "status": "completed",
+  "contract_sha256": "17360f77464ecd497bf797f0f13fdd20d02a50e342b926915e9d4009b506c5d5",
+  "runner_sha256": "e30620f3dca7f95c11b3305ce11600e8a3e299a95bfac295c24a267e6d9936e3",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpu_count": 22,
+    "total_physical_memory_bytes": 16895479808
+  },
+  "dependency": {
+    "package": "python-evtx",
+    "version": "0.8.1",
+    "nodes_py_sha256": "a1b8ce8de6219ff54af9e65a0aacf70f5167567c6036225f355cfc2063cbcaeb",
+    "value_node_children_source_sha256": "7dd92b06690a1ec1a16658551ba54a65a15496c21c047eb5646e460c84e50533"
+  },
+  "source": {
+    "archive_path": "C:\\Users\\bbk0416\\Downloads\\p2_28_source\\win10-client.tgz",
+    "archive_size_bytes": 70844052,
+    "archive_sha256": "d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e",
+    "corpus_dir": "C:\\Users\\bbk0416\\Downloads\\p2_28_canonical\\extracted",
+    "file_count": 352,
+    "total_bytes": 876675072,
+    "path_size_manifest_sha256": "a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e"
+  },
+  "measurement": {
+    "records_per_file_limit": 25,
+    "variants": {
+      "stock": {
+        "elapsed_seconds_descriptive_only": 26.089332799994736,
+        "file_count": 352,
+        "file_results": [
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Application.evtx",
+            "xml_digest_sha256": "d236bd952844e33816aeeb6152c1b102ae41902866c2b812c5764134a32df356"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/HardwareEvents.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Internet Explorer.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Key Management Service.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Virtual Applications.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Client-Licensing-Platform%4Admin.evtx",
+            "xml_digest_sha256": "614ba035f8fd334a58afc034345315ed4f762f2f0501287ce269275465beb0af"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-Agent Driver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-App Agent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-IPC%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-SQM Uploader%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 9,
+            "relative_path": "Logs_Client/Microsoft-Windows-AAD%4Operational.evtx",
+            "xml_digest_sha256": "6b5ffb567328c96c6d042bbc6034561fb46937beb8a4ef8ec5eaa3eefb90cd6e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-All-User-Install-Agent%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AllJoyn%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppHost%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppID%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4EXE and DLL.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4MSI and Script.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4Packaged app-Deployment.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4Packaged app-Execution.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppModel-Runtime%4Admin.evtx",
+            "xml_digest_sha256": "9e52d6e167644a0e4b3ee39f682ac1daa390223d1b1457062e87c0f4807f6764"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppReadiness%4Admin.evtx",
+            "xml_digest_sha256": "91d6b7928b3e99434c83a2ef23d3abcd50b03d2cf6bd20293609597994a0b990"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppReadiness%4Operational.evtx",
+            "xml_digest_sha256": "7a4fed923e9a2434e4a0a69406873690db9a19fcb15e8b484a05ef7aa90d79eb"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeployment%4Operational.evtx",
+            "xml_digest_sha256": "3a781e2f1edd39c456523423a1b694b3ff52f425e215446ebfe2a5b3b71d7847"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeploymentServer%4Operational.evtx",
+            "xml_digest_sha256": "b4fe710bfb12e0f49e7fc5013361ab694a5cd0ea4407dc7331df97a37c7565fe"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeploymentServer%4Restricted.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ApplicabilityEngine%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application Server-Applications%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application Server-Applications%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 5,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx",
+            "xml_digest_sha256": "2eac5d70d97652505e643b5a615741f0d884ed662c2bf66f04fcd41501b9257e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Compatibility-Troubleshooter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Inventory.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 23,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Telemetry.evtx",
+            "xml_digest_sha256": "49fcfc337c1e596c8fbb7c54d9bc809269b4ddeeffef5ddcff9ab54e7d17bd92"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Steps-Recorder.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppxPackaging%4Operational.evtx",
+            "xml_digest_sha256": "b73bb6823114ae8a6f3276639206006b0e14dfb00de13a44f36def1331c21bc0"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AssignedAccess%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AssignedAccessBroker%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4CaptureMonitor.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 16,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4Operational.evtx",
+            "xml_digest_sha256": "9d8b6e47680550b87f1ca35e97abdab3b98f9799386cb99684fa340fde3bda8b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4PlaybackManager.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Authentication User Interface%4Operational.evtx",
+            "xml_digest_sha256": "177dfe15763bb95a9ec571843f382b7903bab2a7ad0d298e9893ac7f7121e459"
+          },
+          {
+            "records": 3,
+            "relative_path": "Logs_Client/Microsoft-Windows-BackgroundTaskInfrastructure%4Operational.evtx",
+            "xml_digest_sha256": "32bb919f976246b92b795b020d5210e29b3f9480b092ad181ce7eec841c52efd"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Backup.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Biometrics%4Operational.evtx",
+            "xml_digest_sha256": "487a2279a0657f346a93e0135f24f4b9bce39fef4667084baf4c5f680dc291b5"
+          },
+          {
+            "records": 2,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker%4BitLocker Management.evtx",
+            "xml_digest_sha256": "f0e6f81ce8364fa0a4ed1bc17dde1e811c1dac132e6ccb7a00e84cc54a87ca97"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker-DrivePreparationTool%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker-DrivePreparationTool%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bits-Client%4Operational.evtx",
+            "xml_digest_sha256": "6da902d25682a4904e0aa72f2f38963bce3ac0523a5776545ffa7b44c1f65566"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bluetooth-BthLEPrepairing%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bluetooth-MTPEnum%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BranchCache%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BranchCacheSMB%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CertificateServicesClient-Lifecycle-System%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CertificateServicesClient-Lifecycle-User%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Cleanmgr%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-CloudStore%4Operational.evtx",
+            "xml_digest_sha256": "fa0f61ca22842c8392c0f502f67d0e05c1472900815f2997fbef0219d71e45c3"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-CodeIntegrity%4Operational.evtx",
+            "xml_digest_sha256": "9803b11d95dc19b0f90ec31d9e8a69383c19f80335d049c77165f9a7fe990bb7"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Compat-Appraiser%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-BindFlt%4Operational.evtx",
+            "xml_digest_sha256": "9b3dde7b9263ba70a35c88f4a30ebbee5f16bf15a084a001f9f9cbab541b2551"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-Wcifs%4Operational.evtx",
+            "xml_digest_sha256": "73f44253b892bb7de9bd9b952eff49b1664e1cabdd5f3aef3497d2aee5cef34e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-Wcnfs%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CoreApplication%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 24,
+            "relative_path": "Logs_Client/Microsoft-Windows-CoreSystem-SmsRouter-Events%4Operational.evtx",
+            "xml_digest_sha256": "97c032767bc165853586db90b94cc1b57f8a7d304a91b97d1e2d4b2ae096eef6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CorruptedFileRecovery-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CorruptedFileRecovery-Server%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-DPAPI%4BackUpKeySvc.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-DPAPI%4Operational.evtx",
+            "xml_digest_sha256": "9831ec394f24d1fe637972a9fe136b7c7b16a60853637f5c5f80d0a8d3b08a71"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-NCrypt%4Operational.evtx",
+            "xml_digest_sha256": "eccf14292b737abe964ee6a9faeb4e7091def809ed2360c115023832623dd270"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DAL-Provider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DSC%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DSC%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DataIntegrityScan%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DataIntegrityScan%4CrashRecovery.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DateTimeControlPanel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Scrubbing.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceGuard%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "71cf21f570fb4f12ca3bca03a2f9b82f8c5cfd5dec9cc1999bb0bc554eb422b3"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Operational.evtx",
+            "xml_digest_sha256": "e962276166f22c2c23cfb5c99a2ac53e218f88975eee66abeaf6e69a3d58588e"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSetupManager%4Admin.evtx",
+            "xml_digest_sha256": "72a70a0a7f2cd322172be3b16f8297bc5f4bece955c693e58b39c4ea05d9bcec"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSetupManager%4Operational.evtx",
+            "xml_digest_sha256": "c87c6b74cfbfaf0a2a1515c7eeae0373a12cd67f144ef7505550aa86128786a5"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSync%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Devices-Background%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Dhcp-Client%4Admin.evtx",
+            "xml_digest_sha256": "ff33f227e954efc1b190c4dc0c204226cc7e46e582d45ad28ebbf0bd25deebd9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Dhcpv6-Client%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-DPS%4Operational.evtx",
+            "xml_digest_sha256": "20704d4916b7d5cb28908029074ceffbc5dc74c6e232a4047f69a8b471d3bfb4"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-PCW%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-PLA%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scheduled%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scripted%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scripted%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-ScriptedDiagnosticsProvider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnostics-Networking%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnostics-Performance%4Operational.evtx",
+            "xml_digest_sha256": "4c31b6c6aeb00aa07df68dfd3eaea2d0908e7ef2c72d88ed4185d0d30c7ecd49"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnostic%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnosticDataCollector%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnosticResolver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DucUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DxgKrnl-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DxgKrnl-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Application-Learning%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Audit-Regular%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Audit-TCB%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapHost%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-RasChap%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-RasTls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-Sim%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-Ttls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EventCollector%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FMS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Fault-Tolerant-Heap%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FeatureConfiguration%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FileHistory-Core%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FileHistory-Engine%4BackupLog.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Folder Redirection%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Forwarding%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-GenericRoaming%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-GroupPolicy%4Operational.evtx",
+            "xml_digest_sha256": "75d3f45142d2a8f9ca767c3deebc07a6589d32960e216e48fbe6a387bdb021e0"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-HelloForBusiness%4Operational.evtx",
+            "xml_digest_sha256": "4615bffc57692b76dbf25b13686014f5da2390d6546d776f42e623e9605706b5"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Help%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Control Panel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Listener Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Provider Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HotspotAuth%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Guest-Drivers%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Hypervisor-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Hypervisor-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-VID-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IKE%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IPxlatCfg%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IdCtrls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-International-RegionalOptionsControlPanel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Iphlpsvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-KdsSvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-ApphelpCache%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-Boot%4Operational.evtx",
+            "xml_digest_sha256": "a0273b2268b2525452f68ad00f5eb479137ef95bcc84f28dbc9502ba4ab38e4e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-EventTracing%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-IO%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-LiveDump%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-PnP%4Configuration.evtx",
+            "xml_digest_sha256": "3cf63ef5222bcc4c36e791f4843d572ccf99020f74abe3ba4b04ad719a5702a8"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-PnP%4Driver Watchdog.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-Power%4Thermal-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-ShimEngine%4Operational.evtx",
+            "xml_digest_sha256": "df91ae58f5861eed8d8ff7faca66bbfe50ce0c7124cd2e5e5a2b5941b995f8a6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-StoreMgr%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WDI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WHEA%4Errors.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WHEA%4Operational.evtx",
+            "xml_digest_sha256": "897a276d55a34fc4bdbc7df4099b44913a309ee0fc4fea56590aa287c8841f42"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-KeyboardFilter%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Known Folders API Service.evtx",
+            "xml_digest_sha256": "dfe72f3fbf38449f7565e0c06d25f00e15c4d8f70e727bcd09c94d767edddbfc"
+          },
+          {
+            "records": 3,
+            "relative_path": "Logs_Client/Microsoft-Windows-LanguagePackSetup%4Operational.evtx",
+            "xml_digest_sha256": "754a31054ac517741f2b2fcb483ded487f3f923dbbb1e5d14e3f9aca725a1635"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-LiveId%4Operational.evtx",
+            "xml_digest_sha256": "ec24f9312916bc3644eeb7592e5b66d33ae03cf7dd2b625c3b904dbf1ca26a17"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-MUI%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 14,
+            "relative_path": "Logs_Client/Microsoft-Windows-MUI%4Operational.evtx",
+            "xml_digest_sha256": "e75f05758f898b34400f6e377b1c720a1774e99f30226c6f79c29ae1d5b23793"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-MemoryDiagnostics-Results%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Mobile-Broadband-Experience-Parser-Task%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4Autopilot.evtx",
+            "xml_digest_sha256": "3f46be0dac2a621dd84f562a4f3e56cceac646bcb468e3d954dbb26265122531"
+          },
+          {
+            "records": 16,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4ManagementService.evtx",
+            "xml_digest_sha256": "a99cfc18c2e4bfb4c5c0889173ce7ed9f3c152779d3c913b4826b58b0a0d4c02"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Mprddm%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 14,
+            "relative_path": "Logs_Client/Microsoft-Windows-NCSI%4Operational.evtx",
+            "xml_digest_sha256": "276c3fd027d6882563e15a924d2eb64a17d054dcd025b4d0a31b82ea8f28f424"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NTLM%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NcdAutoSetup%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NdisImPlatform%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkLocationWizard%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProfile%4Operational.evtx",
+            "xml_digest_sha256": "9e267332739ad98aa2f2c0deef8ea88f5c1e2496d38a940ac83ae60e75d41772"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProvider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProvisioning%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NlaSvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Ntfs%4Operational.evtx",
+            "xml_digest_sha256": "13c5ae4c195642ff47189cbc8b1f310db40b9237d5b0a2becdacb5a07d544243"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Ntfs%4WHC.evtx",
+            "xml_digest_sha256": "6f699d750e15c0f05a11f84f75a56f970e5d664ee08a390f5751ff1dfc5560bc"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OOBE-Machine-DUI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OcpUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OfflineFiles%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OneBackup%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PackageStateRoaming%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ParentalControls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Partition%4Diagnostic.evtx",
+            "xml_digest_sha256": "dfaa94af89575e70cb176725fd9a8f790c9745696b75025989d3372dc6206429"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PerceptionRuntime%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PerceptionSensorDataService%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-Nvdimm%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-PmemDisk%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-ScmBus%4Certification.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-ScmBus%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Policy%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell%4Operational.evtx",
+            "xml_digest_sha256": "a3a3f6ff933b66e250b3ec423b18e924b55061df30350b1d20d8365634d7b45a"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell-DesiredStateConfiguration-FileDownloadManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PrintBRM%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PrintService%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Privacy-Auditing%4Operational.evtx",
+            "xml_digest_sha256": "f99512f27164400a9b4aeb532dea38040ee460f8efaff334fe42d76c5c052163"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Program-Compatibility-Assistant%4CompatAfterUpgrade.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "c43377c1b9fca53e770a6e5d839219f42e68829d210caa05f31dc9792a9da3a6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4AutoPilot.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4ManagementService.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PushNotification-Platform%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-PushNotification-Platform%4Operational.evtx",
+            "xml_digest_sha256": "1bed986ae79ce77ad5524e8a414268ea6620faa9e599f60e5bdfb7724252dce9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReFS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 24,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReadyBoost%4Operational.evtx",
+            "xml_digest_sha256": "0e22472565da6aed08073cc37a29545a6ca1d3129560ee7386a3613ba18eecf9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReadyBoostDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Regsvr32%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteApp and Desktop Connections%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteApp and Desktop Connections%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteAssistance%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteAssistance%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RemoteFX-Synth3dvsc%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-SessionServices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 18,
+            "relative_path": "Logs_Client/Microsoft-Windows-Resource-Exhaustion-Detector%4Operational.evtx",
+            "xml_digest_sha256": "0e588288afa2659762ef711f04975a9969a28f70f41a339935bd17425cbf36cf"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Resource-Exhaustion-Resolver%4Operational.evtx",
+            "xml_digest_sha256": "f552efac46533aa0762890b8ed9d290ca5715f580fdeb5c7aab3aaca05d9e179"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RestartManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RetailDemo%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RetailDemo%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SENSE%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBClient%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBDirect%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Connectivity.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Operational.evtx",
+            "xml_digest_sha256": "3607e9d3f4a7c0ca875a5432d894d36d658ee1001f36d63eb0510c353d3b4049"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Security.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBWitnessClient%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBWitnessClient%4Informational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SearchUI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Adminless%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Audit-Configuration-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-EnterpriseData-FileRevocationManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-LessPrivilegedAppContainer%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Mitigations%4KernelMode.evtx",
+            "xml_digest_sha256": "446bbac370b8987b0c0409a75883dbe4a80d0bf51e3fe85d048f72ff82818f35"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Mitigations%4UserMode.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Netlogon%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-SPP-UX-GenuineCenter-Logging%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-SPP-UX-Notifications%4ActionCenter.evtx",
+            "xml_digest_sha256": "924fcd9ff1e56de639ab6f0472493604880da53c8520dbfecae4e63ea90e00db"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-UserConsentVerifier%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SecurityMitigationsBroker%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SenseIR%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync%4Debug.evtx",
+            "xml_digest_sha256": "a933e6b3a614e48322537add12a4a8465eee2678b955fbb71ea12b1e24a9f7c4"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync%4Operational.evtx",
+            "xml_digest_sha256": "9dd2c1b49f582ab21f7b6b922a49e59b44e853f3e66019697786c7c311423a2e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-Azure%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-Azure%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-OneDrive%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-OneDrive%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-ConnectedAccountState%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4AppDefaults.evtx",
+            "xml_digest_sha256": "f4405c0ebb583b3b86caf98dc855c6b7503f0be26601bce20f88ca3262568254"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4LogonTasksChannel.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4Operational.evtx",
+            "xml_digest_sha256": "efe9380d2cd326a5f67bc021eba48b82281b1a8bb0ef077ecf6efdf03995f0f2"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-ShellCommon-StartLayoutPopulation%4Operational.evtx",
+            "xml_digest_sha256": "889ff11302404ff193ac39e4e989cf047ea2cd49d6163609f105a6422156e864"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-Audit%4Authentication.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-DeviceEnum%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Connectivity.evtx",
+            "xml_digest_sha256": "2ed633935fcf0b71e185c41bdbcebf86bcb296e16e8044795389ccc722e6157b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Security.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-StateRepository%4Operational.evtx",
+            "xml_digest_sha256": "29fe51e568ddf521e2acf6c17d176ded6e3a06f295065b6f22772d90b9ef5911"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StateRepository%4Restricted.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-ClassPnP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Storport%4Health.evtx",
+            "xml_digest_sha256": "7ade3b021abdbdef7a3f7610b4984f2fef8ae118502b774a5f7817b953f6dd6d"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Storport%4Operational.evtx",
+            "xml_digest_sha256": "2d259f26832e19c93e974c0fdf04324a42d06e006394ca233298da91a490d4db"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Tiering%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageManagement%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSettings%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-Driver%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-Driver%4Operational.evtx",
+            "xml_digest_sha256": "c6850bc7eb6c7d6cd3fc5d6bb78db39bafe3ba6a7e0a7bcf412be520aeb93a22"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-ManagementAgent%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-SpaceManager%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-SpaceManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Store%4Operational.evtx",
+            "xml_digest_sha256": "e685f35c6f427265be74fa63d17fc84899800aafc43f1af00d0ac2eb1e6bfb8d"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storsvc%4Diagnostic.evtx",
+            "xml_digest_sha256": "86021675d932a7f6f9da539bdbc4d193cbf70a07cddacedbfebf8e28a6078131"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx",
+            "xml_digest_sha256": "f0f719be5e3c1f2659c9c2913e81abbf69d78c784a14c58465237a1188008294"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SystemSettingsThreshold%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TCPIP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-TWinUI%4Operational.evtx",
+            "xml_digest_sha256": "b4b6b08e64af860a2906a427ac11df995337cbce384bd3585fa82e1780c21ec6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TZSync%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TZUtil%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-TaskScheduler%4Maintenance.evtx",
+            "xml_digest_sha256": "1fa9a86a3c08b68f005a5d3fbaaec2a9829a5a34178dae56a38c18b4ab7b1195"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TenantRestrictions%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-LocalSessionManager%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx",
+            "xml_digest_sha256": "8ac176f6ef93cdc2b26c83760db06d49d736618ef672cb023de6b90dbc1220b2"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-PnPDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-PnPDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-Printers%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-Printers%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 20,
+            "relative_path": "Logs_Client/Microsoft-Windows-Time-Service%4Operational.evtx",
+            "xml_digest_sha256": "f9785dab07e2405b21e2c61505df8d2bf6f390b217a63a4f33f3aa38e87c2d3e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Time-Service-PTP-Provider%4PTP-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Troubleshooting-Recommended%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Troubleshooting-Recommended%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-UAC%4Operational.evtx",
+            "xml_digest_sha256": "4db188f7f28e8e516ff2d5b16565c05f10d8288e9286d5a251b6b3ffcaca1a6e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-UAC-FileVirtualization%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx",
+            "xml_digest_sha256": "f2370c90ad94d1112e721fb375b114a6290e442c79baf6dcb744bf24f7e246e2"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Control Panel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Device Registration%4Admin.evtx",
+            "xml_digest_sha256": "4b37867b5142fdd8520efc81b5be58243e36aeb5e93e5985cb6730b752d1e607"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Profile Service%4Operational.evtx",
+            "xml_digest_sha256": "8b08540cc5740d5925903e06166bffee96420bfebd9d5575640438adc71da704"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-User-Loader%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-UserPnp%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 10,
+            "relative_path": "Logs_Client/Microsoft-Windows-UserPnp%4DeviceInstall.evtx",
+            "xml_digest_sha256": "fb14fd689c6c09d843ce4e6234169375f2fb6b2e00f497d1bfa738114ebd9302"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VDRVROOT%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 13,
+            "relative_path": "Logs_Client/Microsoft-Windows-VHDMP-Operational.evtx",
+            "xml_digest_sha256": "fcdadb9c34fdad3f425c337f3b15b8e470a4d8c7b037d395e83f55d89dcd5141"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VPN%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VPN-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VerifyHardwareSecurity%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Volume%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-VolumeSnapshot-Driver%4Operational.evtx",
+            "xml_digest_sha256": "4a52244c80209537bd31f48f82784c110a059db5d1da8cf0b72e82a524d2ac51"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WDAG-PolicyEvaluator-CSP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WDAG-PolicyEvaluator-GP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 5,
+            "relative_path": "Logs_Client/Microsoft-Windows-WER-PayloadHealth%4Operational.evtx",
+            "xml_digest_sha256": "ec9467285b9a0d18bdd36cab8c25cb2f6bae02435a25ffec45e3daae120ba8b7"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-WFP%4Operational.evtx",
+            "xml_digest_sha256": "8eb55b34b5c1c3d03023139e44de2e152f34e1060bfeac3499199e3da690bf2b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WLAN-AutoConfig%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WMI-Activity%4Operational.evtx",
+            "xml_digest_sha256": "2acb38cf00c7f285955220f2e04ac045236b67afe2f459cec89f71ab3865d96c"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WMPNSS-Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-ClassInstaller%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-CompositeClassDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-MTPClassDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WWAN-SVC-Events%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Wcmsvc%4Operational.evtx",
+            "xml_digest_sha256": "ae9e43041812e3f3f6d1c2b317c53058881d4e9c80bcfb8dd96a037cebbc8b36"
+          },
+          {
+            "records": 12,
+            "relative_path": "Logs_Client/Microsoft-Windows-WebAuthN%4Operational.evtx",
+            "xml_digest_sha256": "764ba4386be982a0f9286a5ac3cfb9400a62f03113334ccc0b80189b4975ac18"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Win32k%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 4,
+            "relative_path": "Logs_Client/Microsoft-Windows-WinINet-Config%4ProxyConfigChanged.evtx",
+            "xml_digest_sha256": "1edbf1deea42f7c44ffd8accfe1e3e853166e431912855e3601263db9410a298"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WinRM%4Operational.evtx",
+            "xml_digest_sha256": "f62b922f8afd5ea0d89eac24709ff51387ecfd4264e7184a89e4e247d9cb2b21"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Defender%4Operational.evtx",
+            "xml_digest_sha256": "135ea5752301edcad55feedc6becb4bb5bf824f17df993af6c2fd1ea6182c73f"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Defender%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4ConnectionSecurity.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4Firewall.evtx",
+            "xml_digest_sha256": "cc9e78bd645f06c545ecd769bc84875c57ac996e5dd6752059fa630fd54d0255"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsBackup%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsSystemAssessmentTool%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsUpdateClient%4Operational.evtx",
+            "xml_digest_sha256": "1a425100615e969b2ebd6c6f07c674345188959159d298ebbbc2ee0a95448942"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Winlogon%4Operational.evtx",
+            "xml_digest_sha256": "ba2914c53ab53a8b5e67e8fc164af82ff09dec7495782f0ce557b5960237d407"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Winsock-WS2HELP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Wired-AutoConfig%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WorkFolders%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WorkFolders%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Workplace Join%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-WindowsPhone-Connectivity-WiFiConnSvc-Channel.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OAlerts.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OpenSSH%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OpenSSH%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/SMSApi.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Security.evtx",
+            "xml_digest_sha256": "a0f4609fb116bf87cad45e28a63463090df526a26f455bf9457acd6eba69f60d"
+          },
+          {
+            "records": 9,
+            "relative_path": "Logs_Client/Setup.evtx",
+            "xml_digest_sha256": "e63085695237a3eb0cffc1fa339a16226e364f26291dc9fc625a8a7b451c32b0"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/System.evtx",
+            "xml_digest_sha256": "7995f120100c642f99dd10a3ea8ae6f81e1ccae826715612b81ef8e53f79ae70"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Windows PowerShell.evtx",
+            "xml_digest_sha256": "eb6c02bda7e77ecf0ccfede52acbcee1caf09b0da83a7e351288baf7140d2208"
+          }
+        ],
+        "global_xml_digest_sha256": "b4c7c01e0ac6e1b7e7871111a41b1173c37b7249da59e6b0b5e324c87ad064cf",
+        "path_size_manifest_sha256": "a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e",
+        "records_per_file_limit": 25,
+        "total_bytes": 876675072,
+        "total_sampled_records": 1827,
+        "variant": "stock",
+        "zero_record_files": 255
+      },
+      "candidate": {
+        "elapsed_seconds_descriptive_only": 31.65723060000164,
+        "file_count": 352,
+        "file_results": [
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Application.evtx",
+            "xml_digest_sha256": "d236bd952844e33816aeeb6152c1b102ae41902866c2b812c5764134a32df356"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/HardwareEvents.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Internet Explorer.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Key Management Service.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-AppV-Client%4Virtual Applications.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Client-Licensing-Platform%4Admin.evtx",
+            "xml_digest_sha256": "614ba035f8fd334a58afc034345315ed4f762f2f0501287ce269275465beb0af"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-Agent Driver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-App Agent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-IPC%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-User Experience Virtualization-SQM Uploader%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 9,
+            "relative_path": "Logs_Client/Microsoft-Windows-AAD%4Operational.evtx",
+            "xml_digest_sha256": "6b5ffb567328c96c6d042bbc6034561fb46937beb8a4ef8ec5eaa3eefb90cd6e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-All-User-Install-Agent%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AllJoyn%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppHost%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppID%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4EXE and DLL.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4MSI and Script.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4Packaged app-Deployment.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppLocker%4Packaged app-Execution.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppModel-Runtime%4Admin.evtx",
+            "xml_digest_sha256": "9e52d6e167644a0e4b3ee39f682ac1daa390223d1b1457062e87c0f4807f6764"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppReadiness%4Admin.evtx",
+            "xml_digest_sha256": "91d6b7928b3e99434c83a2ef23d3abcd50b03d2cf6bd20293609597994a0b990"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppReadiness%4Operational.evtx",
+            "xml_digest_sha256": "7a4fed923e9a2434e4a0a69406873690db9a19fcb15e8b484a05ef7aa90d79eb"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeployment%4Operational.evtx",
+            "xml_digest_sha256": "3a781e2f1edd39c456523423a1b694b3ff52f425e215446ebfe2a5b3b71d7847"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeploymentServer%4Operational.evtx",
+            "xml_digest_sha256": "b4fe710bfb12e0f49e7fc5013361ab694a5cd0ea4407dc7331df97a37c7565fe"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppXDeploymentServer%4Restricted.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ApplicabilityEngine%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application Server-Applications%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application Server-Applications%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 5,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx",
+            "xml_digest_sha256": "2eac5d70d97652505e643b5a615741f0d884ed662c2bf66f04fcd41501b9257e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Compatibility-Troubleshooter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Inventory.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 23,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Program-Telemetry.evtx",
+            "xml_digest_sha256": "49fcfc337c1e596c8fbb7c54d9bc809269b4ddeeffef5ddcff9ab54e7d17bd92"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Application-Experience%4Steps-Recorder.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-AppxPackaging%4Operational.evtx",
+            "xml_digest_sha256": "b73bb6823114ae8a6f3276639206006b0e14dfb00de13a44f36def1331c21bc0"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AssignedAccess%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-AssignedAccessBroker%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4CaptureMonitor.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 16,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4Operational.evtx",
+            "xml_digest_sha256": "9d8b6e47680550b87f1ca35e97abdab3b98f9799386cb99684fa340fde3bda8b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Audio%4PlaybackManager.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Authentication User Interface%4Operational.evtx",
+            "xml_digest_sha256": "177dfe15763bb95a9ec571843f382b7903bab2a7ad0d298e9893ac7f7121e459"
+          },
+          {
+            "records": 3,
+            "relative_path": "Logs_Client/Microsoft-Windows-BackgroundTaskInfrastructure%4Operational.evtx",
+            "xml_digest_sha256": "32bb919f976246b92b795b020d5210e29b3f9480b092ad181ce7eec841c52efd"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Backup.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Biometrics%4Operational.evtx",
+            "xml_digest_sha256": "487a2279a0657f346a93e0135f24f4b9bce39fef4667084baf4c5f680dc291b5"
+          },
+          {
+            "records": 2,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker%4BitLocker Management.evtx",
+            "xml_digest_sha256": "f0e6f81ce8364fa0a4ed1bc17dde1e811c1dac132e6ccb7a00e84cc54a87ca97"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker-DrivePreparationTool%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BitLocker-DrivePreparationTool%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bits-Client%4Operational.evtx",
+            "xml_digest_sha256": "6da902d25682a4904e0aa72f2f38963bce3ac0523a5776545ffa7b44c1f65566"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bluetooth-BthLEPrepairing%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Bluetooth-MTPEnum%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BranchCache%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-BranchCacheSMB%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CertificateServicesClient-Lifecycle-System%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CertificateServicesClient-Lifecycle-User%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Cleanmgr%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-CloudStore%4Operational.evtx",
+            "xml_digest_sha256": "fa0f61ca22842c8392c0f502f67d0e05c1472900815f2997fbef0219d71e45c3"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-CodeIntegrity%4Operational.evtx",
+            "xml_digest_sha256": "9803b11d95dc19b0f90ec31d9e8a69383c19f80335d049c77165f9a7fe990bb7"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Compat-Appraiser%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-BindFlt%4Operational.evtx",
+            "xml_digest_sha256": "9b3dde7b9263ba70a35c88f4a30ebbee5f16bf15a084a001f9f9cbab541b2551"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-Wcifs%4Operational.evtx",
+            "xml_digest_sha256": "73f44253b892bb7de9bd9b952eff49b1664e1cabdd5f3aef3497d2aee5cef34e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Containers-Wcnfs%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CoreApplication%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 24,
+            "relative_path": "Logs_Client/Microsoft-Windows-CoreSystem-SmsRouter-Events%4Operational.evtx",
+            "xml_digest_sha256": "97c032767bc165853586db90b94cc1b57f8a7d304a91b97d1e2d4b2ae096eef6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CorruptedFileRecovery-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-CorruptedFileRecovery-Server%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-DPAPI%4BackUpKeySvc.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-DPAPI%4Operational.evtx",
+            "xml_digest_sha256": "9831ec394f24d1fe637972a9fe136b7c7b16a60853637f5c5f80d0a8d3b08a71"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Crypto-NCrypt%4Operational.evtx",
+            "xml_digest_sha256": "eccf14292b737abe964ee6a9faeb4e7091def809ed2360c115023832623dd270"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DAL-Provider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DSC%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DSC%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DataIntegrityScan%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DataIntegrityScan%4CrashRecovery.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DateTimeControlPanel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Deduplication%4Scrubbing.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceGuard%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "71cf21f570fb4f12ca3bca03a2f9b82f8c5cfd5dec9cc1999bb0bc554eb422b3"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Operational.evtx",
+            "xml_digest_sha256": "e962276166f22c2c23cfb5c99a2ac53e218f88975eee66abeaf6e69a3d58588e"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSetupManager%4Admin.evtx",
+            "xml_digest_sha256": "72a70a0a7f2cd322172be3b16f8297bc5f4bece955c693e58b39c4ea05d9bcec"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSetupManager%4Operational.evtx",
+            "xml_digest_sha256": "c87c6b74cfbfaf0a2a1515c7eeae0373a12cd67f144ef7505550aa86128786a5"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceSync%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DeviceUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Devices-Background%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Dhcp-Client%4Admin.evtx",
+            "xml_digest_sha256": "ff33f227e954efc1b190c4dc0c204226cc7e46e582d45ad28ebbf0bd25deebd9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Dhcpv6-Client%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-DPS%4Operational.evtx",
+            "xml_digest_sha256": "20704d4916b7d5cb28908029074ceffbc5dc74c6e232a4047f69a8b471d3bfb4"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-PCW%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-PLA%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scheduled%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scripted%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-Scripted%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnosis-ScriptedDiagnosticsProvider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnostics-Networking%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Diagnostics-Performance%4Operational.evtx",
+            "xml_digest_sha256": "4c31b6c6aeb00aa07df68dfd3eaea2d0908e7ef2c72d88ed4185d0d30c7ecd49"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnostic%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnosticDataCollector%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DiskDiagnosticResolver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DucUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DxgKrnl-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-DxgKrnl-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Application-Learning%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Audit-Regular%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EDP-Audit-TCB%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapHost%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-RasChap%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-RasTls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-Sim%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EapMethods-Ttls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-EventCollector%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FMS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Fault-Tolerant-Heap%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FeatureConfiguration%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FileHistory-Core%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-FileHistory-Engine%4BackupLog.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Folder Redirection%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Forwarding%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-GenericRoaming%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-GroupPolicy%4Operational.evtx",
+            "xml_digest_sha256": "75d3f45142d2a8f9ca767c3deebc07a6589d32960e216e48fbe6a387bdb021e0"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-HelloForBusiness%4Operational.evtx",
+            "xml_digest_sha256": "4615bffc57692b76dbf25b13686014f5da2390d6546d776f42e623e9605706b5"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Help%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Control Panel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Listener Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HomeGroup Provider Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-HotspotAuth%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Guest-Drivers%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Hypervisor-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-Hypervisor-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Hyper-V-VID-Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IKE%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IPxlatCfg%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-IdCtrls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-International-RegionalOptionsControlPanel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Iphlpsvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-KdsSvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-ApphelpCache%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-Boot%4Operational.evtx",
+            "xml_digest_sha256": "a0273b2268b2525452f68ad00f5eb479137ef95bcc84f28dbc9502ba4ab38e4e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-EventTracing%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-IO%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-LiveDump%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-PnP%4Configuration.evtx",
+            "xml_digest_sha256": "3cf63ef5222bcc4c36e791f4843d572ccf99020f74abe3ba4b04ad719a5702a8"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-PnP%4Driver Watchdog.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-Power%4Thermal-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-ShimEngine%4Operational.evtx",
+            "xml_digest_sha256": "df91ae58f5861eed8d8ff7faca66bbfe50ce0c7124cd2e5e5a2b5941b995f8a6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-StoreMgr%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WDI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WHEA%4Errors.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Kernel-WHEA%4Operational.evtx",
+            "xml_digest_sha256": "897a276d55a34fc4bdbc7df4099b44913a309ee0fc4fea56590aa287c8841f42"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-KeyboardFilter%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Known Folders API Service.evtx",
+            "xml_digest_sha256": "dfe72f3fbf38449f7565e0c06d25f00e15c4d8f70e727bcd09c94d767edddbfc"
+          },
+          {
+            "records": 3,
+            "relative_path": "Logs_Client/Microsoft-Windows-LanguagePackSetup%4Operational.evtx",
+            "xml_digest_sha256": "754a31054ac517741f2b2fcb483ded487f3f923dbbb1e5d14e3f9aca725a1635"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-LiveId%4Operational.evtx",
+            "xml_digest_sha256": "ec24f9312916bc3644eeb7592e5b66d33ae03cf7dd2b625c3b904dbf1ca26a17"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-MUI%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 14,
+            "relative_path": "Logs_Client/Microsoft-Windows-MUI%4Operational.evtx",
+            "xml_digest_sha256": "e75f05758f898b34400f6e377b1c720a1774e99f30226c6f79c29ae1d5b23793"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-MemoryDiagnostics-Results%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Mobile-Broadband-Experience-Parser-Task%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4Autopilot.evtx",
+            "xml_digest_sha256": "3f46be0dac2a621dd84f562a4f3e56cceac646bcb468e3d954dbb26265122531"
+          },
+          {
+            "records": 16,
+            "relative_path": "Logs_Client/Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4ManagementService.evtx",
+            "xml_digest_sha256": "a99cfc18c2e4bfb4c5c0889173ce7ed9f3c152779d3c913b4826b58b0a0d4c02"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Mprddm%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 14,
+            "relative_path": "Logs_Client/Microsoft-Windows-NCSI%4Operational.evtx",
+            "xml_digest_sha256": "276c3fd027d6882563e15a924d2eb64a17d054dcd025b4d0a31b82ea8f28f424"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NTLM%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NcdAutoSetup%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NdisImPlatform%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkLocationWizard%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProfile%4Operational.evtx",
+            "xml_digest_sha256": "9e267332739ad98aa2f2c0deef8ea88f5c1e2496d38a940ac83ae60e75d41772"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProvider%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NetworkProvisioning%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-NlaSvc%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Ntfs%4Operational.evtx",
+            "xml_digest_sha256": "13c5ae4c195642ff47189cbc8b1f310db40b9237d5b0a2becdacb5a07d544243"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Ntfs%4WHC.evtx",
+            "xml_digest_sha256": "6f699d750e15c0f05a11f84f75a56f970e5d664ee08a390f5751ff1dfc5560bc"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OOBE-Machine-DUI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OcpUpdateAgent%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OfflineFiles%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-OneBackup%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PackageStateRoaming%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ParentalControls%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-Partition%4Diagnostic.evtx",
+            "xml_digest_sha256": "dfaa94af89575e70cb176725fd9a8f790c9745696b75025989d3372dc6206429"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PerceptionRuntime%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PerceptionSensorDataService%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-Nvdimm%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-PmemDisk%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-ScmBus%4Certification.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PersistentMemory-ScmBus%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Policy%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell%4Operational.evtx",
+            "xml_digest_sha256": "a3a3f6ff933b66e250b3ec423b18e924b55061df30350b1d20d8365634d7b45a"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PowerShell-DesiredStateConfiguration-FileDownloadManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PrintBRM%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PrintService%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Privacy-Auditing%4Operational.evtx",
+            "xml_digest_sha256": "f99512f27164400a9b4aeb532dea38040ee460f8efaff334fe42d76c5c052163"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Program-Compatibility-Assistant%4CompatAfterUpgrade.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4Admin.evtx",
+            "xml_digest_sha256": "c43377c1b9fca53e770a6e5d839219f42e68829d210caa05f31dc9792a9da3a6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4AutoPilot.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Provisioning-Diagnostics-Provider%4ManagementService.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-PushNotification-Platform%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-PushNotification-Platform%4Operational.evtx",
+            "xml_digest_sha256": "1bed986ae79ce77ad5524e8a414268ea6620faa9e599f60e5bdfb7724252dce9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReFS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 24,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReadyBoost%4Operational.evtx",
+            "xml_digest_sha256": "0e22472565da6aed08073cc37a29545a6ca1d3129560ee7386a3613ba18eecf9"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-ReadyBoostDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Regsvr32%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteApp and Desktop Connections%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteApp and Desktop Connections%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteAssistance%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteAssistance%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-RemoteFX-Synth3dvsc%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RemoteDesktopServices-SessionServices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 18,
+            "relative_path": "Logs_Client/Microsoft-Windows-Resource-Exhaustion-Detector%4Operational.evtx",
+            "xml_digest_sha256": "0e588288afa2659762ef711f04975a9969a28f70f41a339935bd17425cbf36cf"
+          },
+          {
+            "records": 8,
+            "relative_path": "Logs_Client/Microsoft-Windows-Resource-Exhaustion-Resolver%4Operational.evtx",
+            "xml_digest_sha256": "f552efac46533aa0762890b8ed9d290ca5715f580fdeb5c7aab3aaca05d9e179"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RestartManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RetailDemo%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-RetailDemo%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SENSE%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBClient%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBDirect%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Connectivity.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Operational.evtx",
+            "xml_digest_sha256": "3607e9d3f4a7c0ca875a5432d894d36d658ee1001f36d63eb0510c353d3b4049"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBServer%4Security.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBWitnessClient%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SMBWitnessClient%4Informational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SearchUI%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Adminless%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Audit-Configuration-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-EnterpriseData-FileRevocationManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-LessPrivilegedAppContainer%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Mitigations%4KernelMode.evtx",
+            "xml_digest_sha256": "446bbac370b8987b0c0409a75883dbe4a80d0bf51e3fe85d048f72ff82818f35"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Mitigations%4UserMode.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-Netlogon%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-SPP-UX-GenuineCenter-Logging%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-SPP-UX-Notifications%4ActionCenter.evtx",
+            "xml_digest_sha256": "924fcd9ff1e56de639ab6f0472493604880da53c8520dbfecae4e63ea90e00db"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Security-UserConsentVerifier%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SecurityMitigationsBroker%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SenseIR%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync%4Debug.evtx",
+            "xml_digest_sha256": "a933e6b3a614e48322537add12a4a8465eee2678b955fbb71ea12b1e24a9f7c4"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync%4Operational.evtx",
+            "xml_digest_sha256": "9dd2c1b49f582ab21f7b6b922a49e59b44e853f3e66019697786c7c311423a2e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-Azure%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-Azure%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-OneDrive%4Debug.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SettingSync-OneDrive%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-ConnectedAccountState%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4AppDefaults.evtx",
+            "xml_digest_sha256": "f4405c0ebb583b3b86caf98dc855c6b7503f0be26601bce20f88ca3262568254"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4LogonTasksChannel.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Shell-Core%4Operational.evtx",
+            "xml_digest_sha256": "efe9380d2cd326a5f67bc021eba48b82281b1a8bb0ef077ecf6efdf03995f0f2"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-ShellCommon-StartLayoutPopulation%4Operational.evtx",
+            "xml_digest_sha256": "889ff11302404ff193ac39e4e989cf047ea2cd49d6163609f105a6422156e864"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-Audit%4Authentication.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-DeviceEnum%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Audit.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Connectivity.evtx",
+            "xml_digest_sha256": "2ed633935fcf0b71e185c41bdbcebf86bcb296e16e8044795389ccc722e6157b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SmbClient%4Security.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-StateRepository%4Operational.evtx",
+            "xml_digest_sha256": "29fe51e568ddf521e2acf6c17d176ded6e3a06f295065b6f22772d90b9ef5911"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StateRepository%4Restricted.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-ClassPnP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Storport%4Health.evtx",
+            "xml_digest_sha256": "7ade3b021abdbdef7a3f7610b4984f2fef8ae118502b774a5f7817b953f6dd6d"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Storport%4Operational.evtx",
+            "xml_digest_sha256": "2d259f26832e19c93e974c0fdf04324a42d06e006394ca233298da91a490d4db"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storage-Tiering%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageManagement%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSettings%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-Driver%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 7,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-Driver%4Operational.evtx",
+            "xml_digest_sha256": "c6850bc7eb6c7d6cd3fc5d6bb78db39bafe3ba6a7e0a7bcf412be520aeb93a22"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-ManagementAgent%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-SpaceManager%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-StorageSpaces-SpaceManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Store%4Operational.evtx",
+            "xml_digest_sha256": "e685f35c6f427265be74fa63d17fc84899800aafc43f1af00d0ac2eb1e6bfb8d"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-Storsvc%4Diagnostic.evtx",
+            "xml_digest_sha256": "86021675d932a7f6f9da539bdbc4d193cbf70a07cddacedbfebf8e28a6078131"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Sysmon%4Operational.evtx",
+            "xml_digest_sha256": "f0f719be5e3c1f2659c9c2913e81abbf69d78c784a14c58465237a1188008294"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-SystemSettingsThreshold%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TCPIP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-TWinUI%4Operational.evtx",
+            "xml_digest_sha256": "b4b6b08e64af860a2906a427ac11df995337cbce384bd3585fa82e1780c21ec6"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TZSync%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TZUtil%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-TaskScheduler%4Maintenance.evtx",
+            "xml_digest_sha256": "1fa9a86a3c08b68f005a5d3fbaaec2a9829a5a34178dae56a38c18b4ab7b1195"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TenantRestrictions%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-LocalSessionManager%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx",
+            "xml_digest_sha256": "8ac176f6ef93cdc2b26c83760db06d49d736618ef672cb023de6b90dbc1220b2"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-PnPDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-PnPDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-Printers%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-Printers%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 20,
+            "relative_path": "Logs_Client/Microsoft-Windows-Time-Service%4Operational.evtx",
+            "xml_digest_sha256": "f9785dab07e2405b21e2c61505df8d2bf6f390b217a63a4f33f3aa38e87c2d3e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Time-Service-PTP-Provider%4PTP-Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Troubleshooting-Recommended%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Troubleshooting-Recommended%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-UAC%4Operational.evtx",
+            "xml_digest_sha256": "4db188f7f28e8e516ff2d5b16565c05f10d8288e9286d5a251b6b3ffcaca1a6e"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-UAC-FileVirtualization%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx",
+            "xml_digest_sha256": "f2370c90ad94d1112e721fb375b114a6290e442c79baf6dcb744bf24f7e246e2"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Control Panel%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 6,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Device Registration%4Admin.evtx",
+            "xml_digest_sha256": "4b37867b5142fdd8520efc81b5be58243e36aeb5e93e5985cb6730b752d1e607"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-User Profile Service%4Operational.evtx",
+            "xml_digest_sha256": "8b08540cc5740d5925903e06166bffee96420bfebd9d5575640438adc71da704"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-User-Loader%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-UserPnp%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 10,
+            "relative_path": "Logs_Client/Microsoft-Windows-UserPnp%4DeviceInstall.evtx",
+            "xml_digest_sha256": "fb14fd689c6c09d843ce4e6234169375f2fb6b2e00f497d1bfa738114ebd9302"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VDRVROOT%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 13,
+            "relative_path": "Logs_Client/Microsoft-Windows-VHDMP-Operational.evtx",
+            "xml_digest_sha256": "fcdadb9c34fdad3f425c337f3b15b8e470a4d8c7b037d395e83f55d89dcd5141"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VPN%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VPN-Client%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-VerifyHardwareSecurity%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Volume%4Diagnostic.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-VolumeSnapshot-Driver%4Operational.evtx",
+            "xml_digest_sha256": "4a52244c80209537bd31f48f82784c110a059db5d1da8cf0b72e82a524d2ac51"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WDAG-PolicyEvaluator-CSP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WDAG-PolicyEvaluator-GP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 5,
+            "relative_path": "Logs_Client/Microsoft-Windows-WER-PayloadHealth%4Operational.evtx",
+            "xml_digest_sha256": "ec9467285b9a0d18bdd36cab8c25cb2f6bae02435a25ffec45e3daae120ba8b7"
+          },
+          {
+            "records": 1,
+            "relative_path": "Logs_Client/Microsoft-Windows-WFP%4Operational.evtx",
+            "xml_digest_sha256": "8eb55b34b5c1c3d03023139e44de2e152f34e1060bfeac3499199e3da690bf2b"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WLAN-AutoConfig%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WMI-Activity%4Operational.evtx",
+            "xml_digest_sha256": "2acb38cf00c7f285955220f2e04ac045236b67afe2f459cec89f71ab3865d96c"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WMPNSS-Service%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-ClassInstaller%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-CompositeClassDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WPD-MTPClassDriver%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WWAN-SVC-Events%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Wcmsvc%4Operational.evtx",
+            "xml_digest_sha256": "ae9e43041812e3f3f6d1c2b317c53058881d4e9c80bcfb8dd96a037cebbc8b36"
+          },
+          {
+            "records": 12,
+            "relative_path": "Logs_Client/Microsoft-Windows-WebAuthN%4Operational.evtx",
+            "xml_digest_sha256": "764ba4386be982a0f9286a5ac3cfb9400a62f03113334ccc0b80189b4975ac18"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Win32k%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 4,
+            "relative_path": "Logs_Client/Microsoft-Windows-WinINet-Config%4ProxyConfigChanged.evtx",
+            "xml_digest_sha256": "1edbf1deea42f7c44ffd8accfe1e3e853166e431912855e3601263db9410a298"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WinRM%4Operational.evtx",
+            "xml_digest_sha256": "f62b922f8afd5ea0d89eac24709ff51387ecfd4264e7184a89e4e247d9cb2b21"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Defender%4Operational.evtx",
+            "xml_digest_sha256": "135ea5752301edcad55feedc6becb4bb5bf824f17df993af6c2fd1ea6182c73f"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Defender%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4ConnectionSecurity.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4Firewall.evtx",
+            "xml_digest_sha256": "cc9e78bd645f06c545ecd769bc84875c57ac996e5dd6752059fa630fd54d0255"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsBackup%4ActionCenter.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsSystemAssessmentTool%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-WindowsUpdateClient%4Operational.evtx",
+            "xml_digest_sha256": "1a425100615e969b2ebd6c6f07c674345188959159d298ebbbc2ee0a95448942"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Microsoft-Windows-Winlogon%4Operational.evtx",
+            "xml_digest_sha256": "ba2914c53ab53a8b5e67e8fc164af82ff09dec7495782f0ce557b5960237d407"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Winsock-WS2HELP%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Wired-AutoConfig%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WorkFolders%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-WorkFolders%4WHC.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-Windows-Workplace Join%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/Microsoft-WindowsPhone-Connectivity-WiFiConnSvc-Channel.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OAlerts.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OpenSSH%4Admin.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/OpenSSH%4Operational.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 0,
+            "relative_path": "Logs_Client/SMSApi.evtx",
+            "xml_digest_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Security.evtx",
+            "xml_digest_sha256": "a0f4609fb116bf87cad45e28a63463090df526a26f455bf9457acd6eba69f60d"
+          },
+          {
+            "records": 9,
+            "relative_path": "Logs_Client/Setup.evtx",
+            "xml_digest_sha256": "e63085695237a3eb0cffc1fa339a16226e364f26291dc9fc625a8a7b451c32b0"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/System.evtx",
+            "xml_digest_sha256": "7995f120100c642f99dd10a3ea8ae6f81e1ccae826715612b81ef8e53f79ae70"
+          },
+          {
+            "records": 25,
+            "relative_path": "Logs_Client/Windows PowerShell.evtx",
+            "xml_digest_sha256": "eb6c02bda7e77ecf0ccfede52acbcee1caf09b0da83a7e351288baf7140d2208"
+          }
+        ],
+        "global_xml_digest_sha256": "b4c7c01e0ac6e1b7e7871111a41b1173c37b7249da59e6b0b5e324c87ad064cf",
+        "path_size_manifest_sha256": "a9b870148219041b787cc1f8e4e7ca1fc2f543c11c45b91e7d51d5c84271fc6e",
+        "records_per_file_limit": 25,
+        "total_bytes": 876675072,
+        "total_sampled_records": 1827,
+        "variant": "candidate",
+        "zero_record_files": 255
+      }
+    },
+    "semantic_projection_identical": true,
+    "total_sampled_records": 1827,
+    "zero_record_files": 255,
+    "global_xml_digest_sha256": "b4c7c01e0ac6e1b7e7871111a41b1173c37b7249da59e6b0b5e324c87ad064cf"
+  },
+  "claim_boundary": {
+    "semantic_equivalence_scope": "FIRST_UP_TO_25_RECORDS_PER_EACH_OF_352_PINNED_EVTX_FILES",
+    "all_records_semantic_equivalence": "NOT_EVALUATED",
+    "performance_comparison": "NOT_EVALUATED",
+    "product_adoption": "NOT_AUTHORIZED_BY_THIS_GATE_ALONE",
+    "production_capacity": "NOT_CLAIMED",
+    "detection_accuracy": "NOT_EVALUATED",
+    "benign_fpr": "NOT_EVALUATED"
+  }
+}
