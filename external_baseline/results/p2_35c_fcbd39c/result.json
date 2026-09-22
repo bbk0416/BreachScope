@@ -1,0 +1,18 @@
+{
+  "schema": "breachscope.p2_35c_socbed_timeline_one_pass.v1",
+  "analysis_id": "p2-35c-socbed-acsac2021-timeline-one-pass-v1",
+  "status": "failed",
+  "contract_sha256": "ecf788dfcca3ec03d9db4742fe11c42fdad5e040e896dcdce8b29107ff1e181e",
+  "runner_sha256": "98a4980e269e42ba99d2178a9a4849474a6620c522a052f5552ec87394962aaa",
+  "product": {
+    "baseline_repo_commit": "3ca80865477cccfa5e967f549acf32d92182eccd",
+    "breachscope_and_rules_match_frozen_commit": true,
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5
+  },
+  "source": {
+    "archive_size_bytes": 77984817,
+    "archive_sha256": "7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54"
+  },
+  "exception": "RuntimeError: attackconsole run_attack order mismatch: [] != ['misc_sqlmap', 'infect_email_exe', 'c2_take_screenshot', 'c2_exfiltration', 'c2_mimikatz', 'misc_download_malware', 'misc_set_autostart', 'misc_execute_malware']"
+}

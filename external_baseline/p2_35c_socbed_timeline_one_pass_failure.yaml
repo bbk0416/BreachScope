@@ -1,0 +1,83 @@
+schema: breachscope.p2_35c_socbed_timeline_one_pass_failure.v1
+analysis_id: p2-35c-socbed-acsac2021-timeline-one-pass-v1
+status: FAILED_CANONICAL
+contract: external_baseline/p2_35c_socbed_timeline_one_pass_contract.yaml
+contract_main_commit: fcbd39cc8f46ff8b1c893e24e78e339274111065
+
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  breachscope_and_rules_match_frozen_commit: true
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+
+source:
+  archive_sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+  selected_windows_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+    bytes_loaded_by_runner_before_failure: true
+    decoded_as_text_before_failure: false
+    json_rows_parsed_before_failure: false
+  timing_anchor_member:
+    path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+    sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+    decoded_before_failure: true
+
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_35c_fcbd39c/result.json
+    size_bytes: 979
+    sha256: 6ec03490bc5541069e629ad8013ed9044ab40ddb3f214a0ae820bd80d3123cae
+  permanent_lock:
+    path: external_baseline/results/p2_35c_fcbd39c/P2_35C_ONE_PASS.lock
+    size_bytes: 115
+    sha256: 3f6cec46b2803c08998801caa22169b5354c9f8c42ddf9e23c807d136c7e60bd
+
+failure:
+  stage: TIMING_ANCHOR_PARSE
+  exception: "RuntimeError: attackconsole run_attack order mismatch: [] != ['misc_sqlmap', 'infect_email_exe', 'c2_take_screenshot', 'c2_exfiltration', 'c2_mimikatz', 'misc_download_malware', 'misc_set_autostart', 'misc_execute_malware']"
+  breachscope_detection_executed: false
+  breachscope_correlation_executed: false
+  breachscope_scenario_inference_executed: false
+
+posthoc_diagnosis:
+  cause: EVALUATOR_TIMING_REGEX_DID_NOT_ACCEPT_QUOTED_STRUCTURED_LOG_VALUES
+  preregistered_runner_expected_examples:
+  - event=run_attack
+  - attack=misc_sqlmap
+  observed_source_log_syntax_examples:
+  - 'event="run_attack"'
+  - 'attack="misc_sqlmap"'
+  source_attack_order_visible_post_failure: true
+  source_attack_order_matches_preregistered_eight_steps: true
+  product_or_rule_failure: false
+  source_archive_identity_failure: false
+  selected_windows_jsonl_failure: false
+  interpretation: the canonical run stopped before JSONL decoding or BreachScope execution because the evaluator regex treated structured log values as unquoted while the pinned timing log stores them with double quotes
+
+protocol:
+  permanent_exclusive_lock_used: true
+  first_completed_or_failed_execution_retained_as_canonical: true
+  duplicate_p2_35c_canonical_execution_performed: false
+  result_replaced_for_better_outcome: false
+  same_analysis_id_retry_allowed: false
+  product_or_rules_modified_after_failure: false
+
+next_step:
+  id: P2-35D
+  requirement: preregister and merge a new analysis id whose timing parser accepts the observed quoted structured-log value syntax while keeping the same frozen product, source bytes, adapter, attack order, temporal windows, and claim boundaries
+  p2_35c_must_remain_immutable: true
+
+claim_boundary:
+  source_attack_invocation_order: NOT_MEASURED_BY_P2_35C_CANONICAL
+  temporal_window_occupancy: NOT_MEASURED
+  attack_step_semantic_attribution: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  chain_precision: NOT_EVALUATED
+  chain_recall: NOT_EVALUATED
+  scenario_precision: NOT_EVALUATED
+  scenario_recall: NOT_EVALUATED
+  production_reconstruction_quality: NOT_CLAIMED
