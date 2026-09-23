@@ -1,0 +1,236 @@
+schema: breachscope.p2_35e_socbed_timeline_one_pass_contract.v1
+analysis_id: p2-35e-socbed-acsac2021-timeline-one-pass-v1
+status: PREREGISTERED_AFTER_P2_35D_IMPORT_FAILURE_BEFORE_SELECTED_JSONL_DECODING
+purpose: repeat the frozen SOCBED temporal alignment measurement under a new analysis id after P2-35D proved the quoted timing
+  parser but failed on standalone evaluator repository import bootstrap; also replace per-output-directory locking with one
+  analysis-id-global repository lock so concurrent sessions cannot execute the same analysis id twice; keep the same frozen
+  product, source bytes, quoted timing parser, adapter, attack order, temporal windows, measurement outputs, and claim boundaries
+predecessor:
+  p2_35d_contract: external_baseline/p2_35d_socbed_timeline_one_pass_contract.yaml
+  p2_35d_contract_main_commit: bea00124dc7f50ff901beda2846b3e48c0d9b6f5
+  p2_35d_failure: external_baseline/p2_35d_socbed_timeline_one_pass_failure.yaml
+  p2_35d_failure_main_commit: e61e35322a7382f60efbad55c9279b007684d00d
+  p2_35d_first_canonical_repo_commit: 38e3c51cb68af8783904637078b80c756207b0e3
+  p2_35d_first_canonical_failure_stage: TIMING_ANCHOR_TIMESTAMP_PARSE_IMPORT
+  p2_35d_first_canonical_exception: 'ModuleNotFoundError: No module named ''breachscope'''
+  p2_35d_duplicate_execution_count: 1
+  p2_35d_protocol_violation_detected: true
+  p2_35d_first_execution_remains_canonical: true
+  selected_windows_member_bytes_loaded_before_this_contract: true
+  selected_windows_member_sha256_verified_before_this_contract: true
+  selected_windows_member_decoded_before_this_contract: false
+  selected_windows_json_rows_parsed_before_this_contract: false
+  timing_log_decoded_before_this_contract: true
+  quoted_timing_parser_matched_before_this_contract: true
+  timing_timestamp_parsed_before_this_contract: false
+  breachscope_detection_executed_before_this_contract: false
+  breachscope_correlation_executed_before_this_contract: false
+  breachscope_scenario_inference_executed_before_this_contract: false
+  p2_35d_must_remain_immutable: true
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  verify_unchanged_paths:
+  - breachscope
+  - rules
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  product_or_rules_change_before_measurement_allowed: false
+source:
+  repository: fkie-cad/socbed-eval-acsac-2021
+  pinned_commit: c264060f0e65ea69c2d891525ae835a543f851ca
+  dataset_archive:
+    path: dataset.zip
+    size_bytes: 77984817
+    git_blob_sha1: 270ea757ade54a9fe6f6cf730658c053a04f4460
+    sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+  selected_windows_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+  timing_anchor_member:
+    path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+    content_sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+    content_transitively_pinned_by_archive_sha256: true
+timing_log_format_reference:
+  repository: fkie-cad/socbed
+  commit: 92ca444fac425a18141d90b09e3c9f8e7976dff4
+  path: src/attacks/attackconsole.py
+  git_blob_sha1: 4a4b3725c4cff1efd2bb7391cd9bb49a5b0c3177
+  size_bytes: 10631
+  sha256: cbcef9c4407fe18752aa124acc3837caa711d9b2437159e49746cd9ffea6d148
+  supported_format_facts:
+  - log records include an ISO timestamp as the first token
+  - observed records encode event as event="run_attack"
+  - observed records encode attack as attack="<attack_name>"
+  - P2-35D evaluator parser accepts the observed quoted syntax and the previously preregistered unquoted syntax
+adapter:
+  scope: EVALUATOR_ONLY_NO_PRODUCT_CODE_CHANGE
+  input_format: SOCBED Winlogbeat Elasticsearch hit.to_dict JSONL
+  timestamp_precedence:
+  - '@timestamp'
+  - timestamp
+  host_precedence:
+  - winlog.computer_name
+  - host.name
+  - host.hostname
+  - agent.hostname
+  - computer_name
+  source_precedence:
+  - winlog.provider_name
+  - event.provider
+  - winlog.channel
+  - source_name
+  event_id_precedence:
+  - winlog.event_id
+  - event.code
+  - event_id
+  command_line_precedence:
+  - winlog.event_data.CommandLine
+  - winlog.event_data.ProcessCommandLine
+  - process.command_line
+  - command_line
+  raw_mapping:
+    preserve_original_nested_row: true
+    copy_winlog_event_data_keys_to_raw_top_level_without_overwrite: true
+    preserve_channel_and_record_id_when_available: true
+    apply_breachscope_canonical_enrichment: true
+  invalid_json_policy: FAIL_CANONICAL
+  missing_or_unparseable_timestamp_policy: FAIL_CANONICAL
+timeline:
+  source: source attackconsole event="run_attack" records
+  expected_attack_order:
+  - misc_sqlmap
+  - infect_email_exe
+  - c2_take_screenshot
+  - c2_exfiltration
+  - c2_mimikatz
+  - misc_download_malware
+  - misc_set_autostart
+  - misc_execute_malware
+  exact_run_attack_record_count_required: 8
+  timestamps_must_be_strictly_increasing: true
+  maximum_step_window_seconds: 180
+  window_definition: each step starts at its actual run_attack timestamp and ends at the earlier of 180 seconds later or the
+    next step run_attack timestamp; the final step ends 180 seconds after its run_attack timestamp
+measurement:
+  stages:
+  - evaluator_adapter
+  - breachscope_normalizer
+  - breachscope_native_detection
+  - breachscope_correlation
+  - breachscope_scenario_inference
+  report_generation_executed: false
+  per_step_temporal_outputs:
+  - event_count
+  - finding_count
+  - finding_rule_ids
+  - finding_techniques
+  - finding_hosts
+  - chain_start_count
+  - chain_types
+  - scenario_start_count
+  - scenario_stages
+  - first_finding_delay_seconds
+  - first_chain_delay_seconds
+  - first_scenario_delay_seconds
+  aggregate_outputs:
+  - steps_with_events
+  - steps_with_findings
+  - steps_with_chain_starts
+  - steps_with_scenario_starts
+  - finding_window_occupancy_fraction
+  - chain_start_window_occupancy_fraction
+  - scenario_start_window_occupancy_fraction
+  temporal_coincidence_is_not_semantic_attack_attribution: true
+  attack_step_expected_techniques: NOT_DEFINED
+  event_level_labels: NOT_AVAILABLE
+runner:
+  path: scripts/p2_35e_socbed_timeline_one_pass.py
+  sha256: bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3
+  python_major_minor: '3.11'
+  operating_system: Windows
+  result_file: result.json
+  permanent_exclusive_lock: true
+  global_lock_file: external_baseline/locks/P2_35E_ONE_PASS.lock
+  global_lock_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+  global_lock_created_with_o_excl: true
+  global_lock_acquired_before_output_directory_creation: true
+protocol:
+  contract_must_merge_before_selected_jsonl_decoding_or_breachscope_execution: true
+  permanent_analysis_id_global_lock_required: true
+  duplicate_canonical_execution_allowed: false
+  first_lock_acquired_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_outcome: false
+  runner_change_requires_new_analysis_id: true
+  adapter_change_requires_new_analysis_id: true
+  scoring_change_requires_new_analysis_id: true
+  product_or_rule_change_before_measurement_allowed: false
+  result_driven_tuning_before_canonical_measurement_allowed: false
+  selected_jsonl_content_driven_tuning_before_p2_35e_canonical_allowed: false
+  p2_35d_analysis_id_must_not_be_reused: true
+  p2_35d_artifacts_must_remain_immutable: true
+  global_lock_acquired_before_output_directory_creation: true
+  global_lock_survives_completed_or_failed_execution: true
+decision_boundary:
+  this_measurement_can_establish:
+  - exact source attack invocation order and timestamps from the pinned timing log
+  - whether BreachScope events findings chain starts and scenario starts occupy each preregistered source-time window
+  this_measurement_cannot_establish:
+  - that any output within a window was semantically caused by the named attack step
+  - event-level precision or recall
+  - chain precision or recall
+  - scenario precision or recall
+  - production reconstruction quality
+claim_boundary:
+  source_attack_invocation_order: KNOWN_FROM_PRIOR_TIMING_LOG_OBSERVATION_NOT_YET_P2_35E_MEASURED
+  temporal_window_occupancy: NOT_YET_MEASURED_BY_P2_35E
+  attack_step_semantic_attribution: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  chain_precision: NOT_EVALUATED
+  chain_recall: NOT_EVALUATED
+  scenario_precision: NOT_EVALUATED
+  scenario_recall: NOT_EVALUATED
+  production_reconstruction_quality: NOT_CLAIMED
+  statistical_benchmark: false
+timing_log_format_observation:
+  source: P2-35C first-and-only canonical failure inspection
+  timing_anchor_sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+  observed_run_attack_record_count: 8
+  observed_syntax_examples:
+  - event="run_attack"
+  - attack="misc_sqlmap"
+  observed_attack_order_matches_frozen_expected_order: true
+  parser_change_scope: EVALUATOR_ONLY_ACCEPT_QUOTED_OR_UNQUOTED_STRUCTURED_VALUES
+  product_code_changed: false
+  rules_changed: false
+  adapter_changed: false
+  temporal_windows_changed: false
+  measurement_outputs_changed: false
+  claim_boundaries_changed: false
+evaluator_correction:
+  scope: EVALUATOR_RUNNER_ONLY
+  previous_runner_sha256: 892babc03a073a151bdede33561740595dd1cf0821c2e838eb762b4ea6979a72
+  new_runner_sha256: bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3
+  repository_import_bootstrap:
+    repo_root_inserted_into_sys_path_before_breachscope_imports: true
+    reason: P2-35D standalone runner failed importing breachscope.utils before selected JSONL decoding
+    product_code_changed: false
+  analysis_id_global_lock:
+    previous_scope: PER_OUTPUT_DIRECTORY
+    new_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+    path: external_baseline/locks/P2_35E_ONE_PASS.lock
+    o_excl_required: true
+    second_acquisition_must_fail: true
+    acquired_before_output_directory_creation: true
+    reason: P2-35D allowed two concurrent sessions to execute the same analysis id in different output directories
+  quoted_timing_parser_unchanged: true
+  adapter_mapping_unchanged: true
+  attack_order_unchanged: true
+  temporal_window_definition_unchanged: true
+  measurement_outputs_unchanged: true
+  claim_boundaries_unchanged: true
+  product_code_changed: false
+  rules_changed: false
