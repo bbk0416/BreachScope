@@ -1,0 +1,190 @@
+schema: breachscope.p2_35i_masquerading_candidate_contract.v1
+analysis_id: p2-35i-original-filename-masquerading-candidate-v1
+status: PREREGISTERED_DEVELOPMENT_REMEDIATION_CANDIDATE
+analysis_class: POSTHOC_DEVELOPMENT_CANDIDATE_NOT_FRESH_VALIDATION
+purpose: preregister a general, source-independent Sysmon process masquerading rule candidate for the P2-35G misc_execute_malware
+  detection gap without using meterpreter, SOCBED-specific filenames, hashes, users, hosts, or other source-specific identifiers
+predecessor:
+  p2_35g_result: external_baseline/p2_35g_socbed_clock_offset_binding_result.yaml
+  p2_35g_result_main_commit: 6b1cad450b3da4c876bfdf8ed34ea146229b8c03
+  p2_35h_assessment: external_baseline/p2_35h_named_run_key_rule_assessment.yaml
+  p2_35h_assessment_main_commit: ae9d70b45c491f2ffa236ca7875c2d808061227b
+  p2_35h_generic_run_key_candidate_rejected: true
+frozen_product_before_candidate:
+  repo_commit: ae9d70b45c491f2ffa236ca7875c2d808061227b
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_count: 68
+  rule_file_count: 5
+observed_gap:
+  action: misc_execute_malware
+  known_event_count: 1
+  events_with_findings: 0
+  event:
+    timestamp: '2021-06-18T13:09:49.103Z'
+    source: Microsoft-Windows-Sysmon
+    event_id: '1'
+    event_record_id: '2008'
+    executable: C:\Windows\meterpreter_bind_tcp.exe
+    original_file_name: ab.exe
+    parent_executable: C:\Windows\System32\cmd.exe
+    integrity_level: High
+    company: Apache Software Foundation
+    description: ApacheBench command line utility
+  source_specific_signature_allowed: false
+  attack_recall_interpretation_allowed: false
+candidate_predicate:
+  provider: Microsoft-Windows-Sysmon
+  event_id: '1'
+  executable_field: canonical.process.executable
+  original_file_name_field: OriginalFileName
+  parent_executable_field: canonical.process.parent_executable
+  executable_basename_relation: NOT_EQUALS_CASE_INSENSITIVE
+  executable_location_regex: (?i)^(?:[a-z]:\\[^\\]+\.exe|[a-z]:\\windows\\[^\\]+\.exe|[a-z]:\\windows\\temp\\.+\.exe|[a-z]:\\users\\[^\\]+\\appdata\\(?:roaming|local\\temp)\\.+\.exe)$
+  parent_executable_regex: (?i)^c:\\windows\\system32\\(?:cmd\.exe|windowspowershell\\v1\.0\\powershell\.exe)$
+  forbidden_source_specific_tokens:
+  - meterpreter
+  - meterpreter_bind_tcp.exe
+  - a14c7b38ef660603c792da24543524dada182c7b11fb8a354fa436d2401aace5
+  - CLIENT1
+  - CLIENT1\ssh
+  planned_mitre_technique: T1036.003
+  planned_severity: medium
+development_evidence:
+  socbed:
+    source_archive_sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+    selected_windows_member_sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+    refined_predicate_hits_on_known_execute_gap: 1
+    positive_unit_is_posthoc_known_event: true
+  atomic_evtx_t1036:
+    repository: arniki/atomic-evtx
+    pinned_commit: 8de5fa8f158b4d72d1e3c6f07053162c90ee6238
+    selected_sysmon_json_file_count: 13
+    selected_file_set_sha256: d9ddf4e145ef74d1c48582251514a9a93b2af752b2a093963356430988776f8b
+    selected_file_set_sha256_method: SHA256 of sorted UTF-8 lines path<TAB>file_sha256<TAB>size_bytes<LF>
+    sysmon_event1: 345
+    basename_mismatch_events: 50
+    refined_predicate_hits: 9
+    selected_files_with_refined_hits: 7
+    sample_labels_are_attack_scenario_level: true
+    event_level_labels_available: false
+    selected_file_manifest:
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Creating W32Time similar named service using sc/json/T1036.004-2_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 2809cd7baf423f090fe16285489bd14d0325415833b1d1bf3d09a980eb367caa
+      size_bytes: 31458
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Creating W32Time similar named service using schtasks/json/T1036.004-1_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 68ad3521f5915fff9c41bdca605125502d59781f11bc66e82e8d19f06de98b46
+      size_bytes: 35266
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/File Extension Masquerading/json/T1036.003-9_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 83d49185234f44530d31588f1e5477503518618e88c40af06408c991df3bf56d
+      size_bytes: 133842
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Malicious process Masquerading as LSM.exe/json/T1036.003-8_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 52c2fb824df0813d24814bb53786763ac47b7c8a46a4ee2b04627960e84bcb6d
+      size_bytes: 30396
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Malware Masquerading and Execution from Zip File/json/T1036-2_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 04e1190eb90685f7cdae038da75924bf6f83efaa0624c57eece6eefc09b63ab9
+      size_bytes: 100460
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerade as a built-in system executable/json/T1036.005-2_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 74e6d0cd413a229ffebd5f1ff613e9490c04e9ff4abf5a660ce9ecc127d7ef85
+      size_bytes: 38839
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading - cscript.exe running as notepad.exe/json/T1036.003-3_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 626b69c1ecbb0aa5cf293226f93397bc297c8042d01325f43da2be8bc4936622
+      size_bytes: 42849
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading - non-windows exe running as windows
+        exe/json/T1036.003-6_Microsoft-Windows-Sysmon_Operational.json
+      sha256: ab0975ec52130bd4f19d7d8fe4ac6b2cf1fd84a22abf7dad782f2b8fcf82bfef
+      size_bytes: 93351
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading - powershell.exe running as taskhostw.exe/json/T1036.003-5_Microsoft-Windows-Sysmon_Operational.json
+      sha256: cd50645deaac4758f3ee7aa2c6fc19716b1f748aba930ed54d81201db4bf340c
+      size_bytes: 123336
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading - windows exe running as different windows
+        exe/json/T1036.003-7_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 93896c8e4d5a1dea3fab94487c564a16da379c848e672b493fc6d65a4de21650
+      size_bytes: 42288
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading - wscript.exe running as svchost.exe/json/T1036.003-4_Microsoft-Windows-Sysmon_Operational.json
+      sha256: afa17e270fdf887f92fb9b33c3151477015394eb4304c3794eaf99ce58e2173e
+      size_bytes: 39111
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/Masquerading as Windows LSASS process/json/T1036.003-1_Microsoft-Windows-Sysmon_Operational.json
+      sha256: 5661a05d2906e7cebaea0db95e0151c6806e98ff64f8c0e7d15e1db2bc408cc5
+      size_bytes: 190935
+    - path: attacks_by_category_atomic_and_tools_removed/defense-evasion/System File Copied to Unusual Location/json/T1036-1_Microsoft-Windows-Sysmon_Operational.json
+      sha256: be976d60847613a99c73d893c78b5629f71fb2919229c66c964597c0e4f88dc7
+      size_bytes: 46941
+  nextron_win10_benign:
+    baseline_id: p2-09d-nextron-win10-v1
+    asset_name: win10-client.tgz
+    asset_size_bytes: 70844052
+    asset_sha256: d48f1b328d48db6c6dfaa9b6e232dbb454d93e833c6e1248efc0faf690b6808e
+    sysmon_evtx_size_bytes: 799084544
+    sysmon_evtx_sha256: efbc4d4cd450eddf7665f5965b0f6cfe30088f8f69225886e1d433329fb950cb
+    sysmon_records: 732200
+    sysmon_event1: 2149
+    basename_mismatch_events: 89
+    suspicious_location_mismatch_events: 25
+    refined_predicate_hits: 0
+    label_policy: BENIGN_BY_SOURCE_INTENT
+  nextron_win11_benign:
+    baseline_id: p2-13-source-intent-benign-win11
+    asset_name: win11-client-2023.tgz
+    asset_size_bytes: 169460461
+    asset_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+    sysmon_evtx_size_bytes: 2359365632
+    sysmon_evtx_sha256: cac4ff5e97c0605d7f64878cb89e81374a663b18763ccd94529414da1e6407df
+    sysmon_event1: 2323
+    basename_mismatch_events: 227
+    suspicious_location_mismatch_events: 37
+    refined_predicate_hits: 0
+    label_policy: BENIGN_BY_SOURCE_INTENT
+  combined_benign:
+    sysmon_event1: 4472
+    refined_predicate_hits: 0
+    confirmed_true_negatives: NOT_CLAIMED
+    production_false_positive_rate: NOT_CLAIMED
+  apt29_day1_context:
+    repository: OTRF/Security-Datasets
+    pinned_commit: d9d40ef123d2c87d5d3df28c96bcab4f0faccc87
+    archive_sha256: 98a073140860560d70080ace9142961be4f64b4862bae892d62d0f254d0fdbe5
+    sysmon_event1: 447
+    basename_mismatch_events: 25
+    event_level_labels_available: false
+    refined_predicate_not_used_as_positive_claim: true
+    archive_size_bytes: 13944973
+planned_implementation:
+  canonical_process_fallback:
+    goal: map ECS raw.process.executable and raw.process.parent.executable into raw.canonical.process when legacy Image/ParentImage
+      fields are absent
+    must_not_override_existing_legacy_fields: true
+  field_compare_operator:
+    name: basename_not_equals_field
+    scope: ALL_OF_ONLY
+    case_insensitive: true
+    empty_or_missing_field_behavior: FAIL_CLOSED
+    top_level_operator_allowed: false
+  product_rule:
+    planned_id: R-MASQUERADE-ORIGINAL-NAME-MISMATCH
+    planned_file: rules/p2_10_event_rules.yml
+    source_specific_literals_allowed: false
+protocol:
+  contract_must_merge_before_product_mutation: true
+  implementation_must_follow_exact_predicate: true
+  result_driven_predicate_tuning_after_contract_merge_allowed: false
+  source_specific_socbed_signature_allowed: false
+  product_rule_merge_requires_local_full_regression: true
+  product_rule_merge_requires_current_evidence_chain_update: true
+  fresh_post_change_revalidation_required_before_claiming_current_rulepack_performance: true
+decision:
+  candidate: GO_FOR_IMPLEMENTATION
+  product_merge: NOT_YET_AUTHORIZED
+  reason: the refined source-independent predicate matches the known SOCBED execution gap and nine events across seven Atomic-EVTX
+    T1036 sample files while producing zero matches across 4,472 ProcessCreate events from two pinned source-intent benign
+    Nextron Windows corpora; these are development observations, not fresh validation or production performance estimates
+claim_boundary:
+  fresh_validation: false
+  independent_holdout_performance: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  attack_level_recall: NOT_EVALUATED
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  atomic_refined_hits_are_event_level_true_positives: false
+  nextron_zero_matches_are_confirmed_true_negatives: false
