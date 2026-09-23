@@ -173,6 +173,19 @@ def _process_fields(
         executable = _lookup(fields, "Image", "NewProcessName", "ProcessName")
         parent_executable = _lookup(fields, "ParentImage", "ParentProcessName")
 
+        # P2-35I: preserve ECS Winlogbeat process identity when legacy
+        # Image/ParentImage fields are absent. Existing legacy values always win.
+        raw_obj = event.get("raw")
+        raw = raw_obj if isinstance(raw_obj, Mapping) else {}
+        ecs_process_obj = raw.get("process")
+        ecs_process = ecs_process_obj if isinstance(ecs_process_obj, Mapping) else {}
+        ecs_parent_obj = ecs_process.get("parent")
+        ecs_parent = ecs_parent_obj if isinstance(ecs_parent_obj, Mapping) else {}
+        if executable in (None, ""):
+            executable = _lookup(ecs_process, "executable")
+        if parent_executable in (None, ""):
+            parent_executable = _lookup(ecs_parent, "executable")
+
     result: dict[str, Any] = {}
     pairs = {
         "pid": _intish(pid),
