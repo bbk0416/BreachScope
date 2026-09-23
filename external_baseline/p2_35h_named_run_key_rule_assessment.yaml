@@ -1,0 +1,150 @@
+schema: breachscope.p2_35h_named_run_key_rule_assessment.v1
+analysis_id: p2-35h-named-run-key-rule-candidate-assessment
+status: CANDIDATE_REJECTED_NO_GO
+analysis_class: POSTHOC_RULE_CANDIDATE_ASSESSMENT_NOT_FRESH_VALIDATION
+
+predecessor:
+  phase: P2-35G
+  result: external_baseline/p2_35g_socbed_clock_offset_binding_result.yaml
+  result_main_commit: 6b1cad450b3da4c876bfdf8ed34ea146229b8c03
+  frozen_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  frozen_rule_count: 68
+  p2_35g_must_remain_immutable: true
+
+observed_gap:
+  misc_set_autostart:
+    posthoc_known_event_count: 2
+    frozen_findings_on_known_events: 0
+    exact_registry_event:
+      timestamp: "2021-06-18T13:06:48.592Z"
+      source: Microsoft-Windows-Sysmon
+      event_id: "13"
+      event_record_id: "1970"
+      event_type: SetValue
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\Meterpreter Bind TCP
+      details: meterpreter_bind_tcp.exe
+    attack_recall_interpretation_allowed: false
+  misc_execute_malware:
+    posthoc_known_event_count: 1
+    frozen_findings_on_known_events: 0
+    exact_process_event:
+      timestamp: "2021-06-18T13:09:49.103Z"
+      source: Microsoft-Windows-Sysmon
+      event_id: "1"
+      event_record_id: "2008"
+      normalized_command_line: '"C:\Windows\meterpreter_bind_tcp.exe"'
+    disposition: REMAINS_DOCUMENTED_GAP_NO_RULE_ADDED
+    reason: >-
+      A product rule keyed to the SOCBED meterpreter filename would be source-specific overfitting,
+      and no independently validated general process-execution predicate was established in this assessment.
+
+candidate_rule:
+  id: R-RUNKEY-NAMED-13
+  name: Named Run/RunOnce Registry Value
+  intended_technique: T1547.001
+  intended_severity: medium
+  rule_file: rules/p2_10_event_rules.yml
+  field: TargetObject
+  operator: regex
+  pattern: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\[^\\]+$'
+  required_predicates:
+    EventType: SetValue
+    event_id: "13"
+    source: Microsoft-Windows-Sysmon
+  candidate_rule_count: 69
+  candidate_rules_tree_sha256: ec872a19c98ead8b0cec6c250c980cbb8d7ca2adc268ce0a87dcd965d22914f2
+  synthetic_targeted_tests:
+    passed: 8
+    failed: 0
+  implementation_correctness: PASS
+  product_merge_performed: false
+  candidate_reverted_before_assessment_commit: true
+
+benign_noise_probe:
+  role: POSTHOC_DEVELOPMENT_NOISE_PROBE
+  source_intent: goodware software installation and ordinary user interaction
+  selection_record: external_baseline/p2_13a_win11_benign_selection.yaml
+  binding_record: external_baseline/p2_13b_win11_benign_binding.yaml
+  source:
+    repository: NextronSystems/evtx-baseline
+    release_tag: v0.8.4
+    asset_name: win11-client-2023.tgz
+    asset_size_bytes: 169460461
+    asset_sha256: 739079e63fc8a81d0b20eff6ee76b2f104a0cf6df115802c9bca128417c1e117
+  extracted_sysmon_evtx:
+    archive_member: Logs_Win11_2023/Microsoft-Windows-Sysmon%4Operational.evtx
+    size_bytes: 2359365632
+    sha256: cac4ff5e97c0605d7f64878cb89e81374a663b18763ccd94529414da1e6407df
+  method:
+    event_id_filter: "13"
+    event_type_filter: SetValue
+    candidate_target_regex: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\[^\\]+$'
+    extraction_tool: Windows wevtutil offline EVTX query
+    detector_full_rulepack_executed: false
+    candidate_predicate_only: true
+  results:
+    sysmon_event13_records: 175364
+    setvalue_records: 175364
+    candidate_named_run_runonce_matches: 16
+    unique_target_objects: 15
+    unnamed_run_runonce_matches: 0
+    match_fraction_of_event13: 0.00009123816494947766
+    confirmed_false_positives: NOT_CLAIMED
+    operational_noise_risk: OBSERVED_ON_SOURCE_INTENT_BENIGN_CORPUS
+  matched_targets:
+    - count: 2
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\AvastUI.exe
+    - count: 1
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\Opera Browser Assistant
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\RunOnce\{107e53e6-beb1-4a71-8419-77478cc8a1b5}
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\RunOnce\{cf9c4d97-48a7-4a27-b9fc-91b88a803c40}
+    - count: 1
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\Everything
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\Run\Discord
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\RunOnce\zoommsirepair
+    - count: 1
+      target_object: HKU\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Run\GoogleDriveFS
+    - count: 1
+      target_object: HKU\S-1-5-19\Software\Microsoft\Windows\CurrentVersion\Run\GoogleDriveFS
+    - count: 1
+      target_object: HKU\S-1-5-20\Software\Microsoft\Windows\CurrentVersion\Run\GoogleDriveFS
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\Run\GoogleDriveFS
+    - count: 1
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce\msedge_cleanup_{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}
+    - count: 1
+      target_object: HKU\S-1-5-21-1992711665-1655669231-58201500-1000\Software\Microsoft\Windows\CurrentVersion\Run\Opera Stable
+    - count: 1
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\KeePass 2 PreLoad
+    - count: 1
+      target_object: HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\AVGUI.exe
+
+decision:
+  candidate_rule: NO_GO
+  product_rule_change: REVERTED_NOT_MERGED
+  current_rules_tree_preserved: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  current_rule_count_preserved: 68
+  rationale: >-
+    The generic named Run/RunOnce predicate correctly covers the SOCBED registry event but also
+    matches 16 writes on a pinned source-intent benign Windows 11 corpus, including common
+    auto-start entries for Avast, Google Drive, Discord, Edge, Opera, Everything, KeePass, and Zoom.
+    That is sufficient evidence that the generic candidate is too broad to merge solely to close
+    the posthoc SOCBED gap.
+  next_rule_work: >-
+    Any future persistence rule must add independently defensible suspicious context and must be
+    evaluated against benign data before product merge. Do not add a SOCBED- or meterpreter-specific
+    signature merely to improve this dataset.
+
+claim_boundary:
+  candidate_benign_matches_are_confirmed_false_positives: false
+  p2_13_is_fresh_for_this_candidate: false
+  independent_validation: false
+  attack_level_recall: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
