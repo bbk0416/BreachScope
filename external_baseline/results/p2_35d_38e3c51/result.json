@@ -1,0 +1,18 @@
+{
+  "schema": "breachscope.p2_35d_socbed_timeline_one_pass.v1",
+  "analysis_id": "p2-35d-socbed-acsac2021-timeline-one-pass-v1",
+  "status": "failed",
+  "contract_sha256": "d8c85e1dc4555a9127c1b39bb3df306f6fb16c3eb045b58a352611ff30fa24ab",
+  "runner_sha256": "892babc03a073a151bdede33561740595dd1cf0821c2e838eb762b4ea6979a72",
+  "product": {
+    "baseline_repo_commit": "3ca80865477cccfa5e967f549acf32d92182eccd",
+    "breachscope_and_rules_match_frozen_commit": true,
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5
+  },
+  "source": {
+    "archive_size_bytes": 77984817,
+    "archive_sha256": "7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54"
+  },
+  "exception": "ModuleNotFoundError: No module named 'breachscope'"
+}
