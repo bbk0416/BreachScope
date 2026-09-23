@@ -130,11 +130,14 @@ def test_p2_27_does_not_rewrite_current_detection_chain_or_claim_fpr() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
 
     assert chain["current_evidence_id"] == (
-        "p2-26c-fresh-benign-revalidation-current-detection-evidence"
+        "p2-35i-masquerading-current-detection-evidence"
     )
-    assert chain["current_frozen_detector"]["rules_tree_sha256"] == RULE_HASH
+    assert chain["current_frozen_detector"]["rules_tree_sha256"] == (
+        "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+    )
     assert [row["remediation_id"] for row in chain["posthoc_remediations"]] == [
-        "p2-24d-rule-noise-remediation"
+        "p2-24d-rule-noise-remediation",
+        "p2-35i-original-filename-masquerading-remediation",
     ]
     assert [row["revalidation_id"] for row in chain["post_remediation_revalidations"]] == [
         "p2-25-deepbluecli-fresh-attack",

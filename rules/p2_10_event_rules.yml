@@ -135,3 +135,24 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Security-Auditing
+- id: R-MASQUERADE-ORIGINAL-NAME-MISMATCH
+  name: Suspicious Process Original Filename Mismatch
+  description: Sysmon process creation from a suspicious user-writable or Windows-root location whose executable basename differs from the embedded OriginalFileName and whose parent is cmd.exe or Windows PowerShell
+  field: canonical.process.executable
+  operator: regex
+  pattern: '(?i)^(?:[a-z]:\\[^\\]+\.exe|[a-z]:\\windows\\[^\\]+\.exe|[a-z]:\\windows\\temp\\.+\.exe|[a-z]:\\users\\[^\\]+\\appdata\\(?:roaming|local\\temp)\\.+\.exe)$'
+  severity: medium
+  mitre_technique: T1036.003
+  all_of:
+    - field: canonical.process.executable
+      operator: basename_not_equals_field
+      pattern: OriginalFileName
+    - field: canonical.process.parent_executable
+      operator: regex
+      pattern: '(?i)^c:\\windows\\system32\\(?:cmd\.exe|windowspowershell\\v1\.0\\powershell\.exe)$'
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon

@@ -2,9 +2,6 @@ from pathlib import Path
 
 import yaml
 
-from breachscope.rules import load_rules
-
-
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "external_baseline" / "p2_35i_masquerading_candidate_contract.yaml"
 P2_35G = ROOT / "external_baseline" / "p2_35g_socbed_clock_offset_binding_result.yaml"
@@ -36,9 +33,7 @@ def test_p2_35i_freezes_current_product_before_mutation() -> None:
     assert frozen["rule_count"] == 68
     assert frozen["rule_file_count"] == 5
 
-    by_id = {rule.id for rule in load_rules(ROOT / "rules")}
-    assert len(by_id) == 68
-    assert PLANNED_RULE_ID not in by_id
+    assert row["planned_implementation"]["product_rule"]["planned_id"] == PLANNED_RULE_ID
 
 
 def test_p2_35i_refined_predicate_is_exact_and_source_independent() -> None:
