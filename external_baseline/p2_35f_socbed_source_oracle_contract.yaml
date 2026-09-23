@@ -1,0 +1,260 @@
+schema: breachscope.p2_35f_socbed_source_oracle_contract.v1
+analysis_id: p2-35f-socbed-source-derived-oracle-v1
+status: PREREGISTERED_AFTER_P2_35E_COMPLETION
+purpose: >
+  Measure whether three deterministic Windows actions defined by pinned SOCBED attack source
+  produce source-derived oracle telemetry in the pinned selected Winlogbeat member and whether
+  BreachScope findings are bound to those exact oracle events. This is a descriptive observability
+  and event-binding audit, not an eight-attack recall benchmark.
+
+predecessor:
+  phase: P2-35E
+  result: external_baseline/p2_35e_socbed_timeline_one_pass_result.yaml
+  result_main_commit: eb2c74768e7e3369fdc0329f273cb75ba0818992
+  raw_result: external_baseline/results/p2_35e_e4561e3/result.json
+  raw_result_sha256: 2ddefd866f335a7f6c5aca4951344373a95bacabab92f9de32e58263d0b26b17
+  p2_35e_must_remain_immutable: true
+
+prior_exposure:
+  p2_35e_selected_jsonl_was_decoded_before_this_contract: true
+  p2_35e_aggregate_and_per_window_results_known_before_this_contract: true
+  source_attack_stdout_and_timing_log_inspected_before_this_contract: true
+  pinned_socbed_attack_source_inspected_before_this_contract: true
+  pinned_winlogbeat_and_sysmon_config_inspected_before_this_contract: true
+  selected_jsonl_raw_event_predicate_match_scan_before_this_contract: false
+  independent_blind_benchmark: false
+  interpretation: >
+    P2-35F is intentionally descriptive and source-derived. Oracle predicates are frozen from
+    pinned SOCBED attack source and collector configuration before scanning selected JSONL rows
+    for predicate matches, but P2-35E aggregate outcomes were already known.
+
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  verify_unchanged_paths:
+    - breachscope
+    - rules
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+  rule_count: 68
+  product_or_rules_change_before_measurement_allowed: false
+
+source:
+  repository: fkie-cad/socbed-eval-acsac-2021
+  pinned_commit: c264060f0e65ea69c2d891525ae835a543f851ca
+  dataset_archive:
+    path: dataset.zip
+    size_bytes: 77984817
+    sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+  selected_windows_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+  timing_anchor_member:
+    path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+    sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+
+source_definition:
+  repository: fkie-cad/socbed
+  pinned_commit: 92ca444fac425a18141d90b09e3c9f8e7976dff4
+  attack_files:
+    misc_sqlmap:
+      path: src/attacks/attack_sqlmap.py
+      size_bytes: 1423
+      sha256: 4b2d90f77be1976c4b2d3214772ef2eec2adeac6be7f71090d502ab12642a3fa
+    infect_email_exe:
+      path: src/attacks/attack_email_exe.py
+      size_bytes: 3228
+      sha256: 4eb7a8818150d5917f7a794e81fdf9784e38681602677be49baf830a8663df33
+    c2_take_screenshot:
+      path: src/attacks/attack_take_screenshot.py
+      size_bytes: 2556
+      sha256: e644936ab07ab36162de0c6745a7cdb0029f378d6877b649453003f772a3b3b1
+    c2_exfiltration:
+      path: src/attacks/attack_c2_exfiltration.py
+      size_bytes: 2892
+      sha256: 82626678f4bec51d1eaf71811cfa90c1c027b2ce9a35625c245abdc6bb6c4425
+    c2_mimikatz:
+      path: src/attacks/attack_mimikatz.py
+      size_bytes: 2712
+      sha256: e5fa7a8005c94715d43fa8872c1f96c3bfaa733cbf2b8dcbdcf6cc9248b9697b
+    misc_download_malware:
+      path: src/attacks/attack_download_malware.py
+      size_bytes: 1953
+      sha256: 5cb8364636f569e7a0aad12baf8e81d106e7e013991e354b71ae080e99d9f788
+    misc_set_autostart:
+      path: src/attacks/attack_set_autostart.py
+      size_bytes: 1912
+      sha256: 258ce78f953bdfeaefce32d0f697aa66cb81bccb78dc2c4c9c19aba88681bb72
+    misc_execute_malware:
+      path: src/attacks/attack_execute_malware.py
+      size_bytes: 2076
+      sha256: 1c11bce03a01805b0dfd126ca7511345384ab3675389882f79f659919cf8bfee
+  collector_files:
+    winlogbeat:
+      path: provisioning/ansible/roles/configure_win10_client/files/winlogbeat/winlogbeat.yml
+      size_bytes: 6277
+      sha256: 76d64893bdac246a0b436d018badf39a759d6a249ba4cd528d4e64c2c689776a
+    sysmon:
+      path: provisioning/ansible/roles/configure_win10_client/files/sysmon/sysmonconfig-export.xml
+      size_bytes: 114079
+      sha256: e778f87a0c2c3bf3a074b82643d8411ba952b9912cb61086fa908b00b04d2403
+  collector_facts:
+    winlogbeat_collects_application_security_system_powershell_and_sysmon: true
+    sysmon_process_create_is_enabled_except_configured_exclusions: true
+    sysmon_registry_currentversion_run_is_included: true
+    sysmon_process_access_has_empty_include_and_is_not_a_reliable_mimikatz_oracle: true
+
+predecessor_runner:
+  path: scripts/p2_35e_socbed_timeline_one_pass.py
+  sha256: bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3
+
+timeline:
+  expected_attack_order:
+    - misc_sqlmap
+    - infect_email_exe
+    - c2_take_screenshot
+    - c2_exfiltration
+    - c2_mimikatz
+    - misc_download_malware
+    - misc_set_autostart
+    - misc_execute_malware
+  maximum_step_window_seconds: 180
+  window_definition: >
+    Each step starts at its actual run_attack timestamp and ends at the earlier of
+    180 seconds later or the next run_attack timestamp; the final step ends 180 seconds
+    after its run_attack timestamp.
+
+oracle_actions:
+  misc_sqlmap:
+    disposition: NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE
+    reason: >
+      The pinned source performs SQL injection from the attacker against the DVWA Linux web server;
+      the selected data source is one Windows Winlogbeat member, so absence of a Windows event cannot
+      be treated as a detection miss.
+  infect_email_exe:
+    disposition: NOT_EVALUATED_NO_SELECTED_WINDOWS_EVENT_ORACLE
+    reason: >
+      The pinned source generates and sends a malicious attachment but does not define recipient-side
+      attachment execution as part of this attack action.
+  c2_take_screenshot:
+    disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+    reason: >
+      The pinned source performs a Meterpreter screenshot in an existing C2 session; the pinned collector
+      configuration does not define one deterministic Windows event that is guaranteed to identify this action.
+  c2_exfiltration:
+    disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+    reason: >
+      The pinned source collects remote DOC files through Meterpreter; the selected client Winlogbeat member
+      does not provide a predeclared deterministic event identity for this action.
+  c2_mimikatz:
+    disposition: NOT_EVALUATED_NO_DETERMINISTIC_EVENT_ORACLE
+    reason: >
+      The pinned source loads Meterpreter kiwi and runs creds_all. The pinned Sysmon ProcessAccess section
+      has an empty include, so a credential-access event cannot be assumed as a deterministic oracle.
+  misc_download_malware:
+    disposition: EVALUATED_SOURCE_DERIVED_ORACLE
+    predicate_id: DOWNLOAD_POWERSHELL_EXACT_SOURCE_TOKENS_V1
+    source_facts:
+      target_host: 192.168.56.101
+      url: http://172.18.1.1/meterpreter_bind_tcp.exe
+      output_file: C:\Windows\meterpreter_bind_tcp.exe
+      command_family: powershell Invoke-WebRequest
+    predicate: >
+      Within the preregistered misc_download_malware window, normalized event.command_line must contain
+      all of: invoke-webrequest, http://172.18.1.1/meterpreter_bind_tcp.exe,
+      and c:\windows\meterpreter_bind_tcp.exe, case-insensitive.
+  misc_set_autostart:
+    disposition: EVALUATED_SOURCE_DERIVED_ORACLE
+    predicate_id: AUTOSTART_RUN_KEY_EXACT_SOURCE_TOKENS_V1
+    source_facts:
+      target_host: 192.168.56.101
+      registry_key: HKLM\Software\Microsoft\Windows\CurrentVersion\Run
+      value_name: Meterpreter Bind TCP
+      value_data: meterpreter_bind_tcp.exe
+    predicate: >
+      Within the preregistered misc_set_autostart window, match either a registry event whose TargetObject
+      contains currentversion\run and whose TargetObject or Details contains the pinned value name/data,
+      or a normalized command line containing reg add, currentversion\run, and meterpreter_bind_tcp.exe.
+  misc_execute_malware:
+    disposition: EVALUATED_SOURCE_DERIVED_ORACLE
+    predicate_id: PROCESS_CREATE_EXACT_MALWARE_IMAGE_V1
+    source_facts:
+      target_host: 192.168.56.101
+      executable: C:\Windows\meterpreter_bind_tcp.exe
+    predicate: >
+      Within the preregistered misc_execute_malware window, match Sysmon ProcessCreate-compatible normalized
+      events with event_id 1 whose raw Image ends with \meterpreter_bind_tcp.exe, case-insensitive.
+
+measurement:
+  stages:
+    - frozen_p2_35e_adapter
+    - breachscope_normalizer
+    - breachscope_native_detection
+    - source_derived_oracle_binding
+  correlation_executed: false
+  scenario_inference_executed: false
+  evaluated_action_outputs:
+    - oracle_event_count
+    - oracle_event_finding_bound_count
+    - finding_count_on_oracle_events
+    - finding_rule_ids_on_oracle_events
+    - finding_techniques_on_oracle_events
+    - action_observable_in_selected_source
+    - any_finding_bound_to_oracle_event
+    - oracle_event_projection
+  aggregate_outputs:
+    - evaluated_action_count
+    - actions_with_oracle_telemetry
+    - actions_with_findings_bound_to_oracle_events
+    - oracle_event_count
+    - oracle_events_with_findings
+
+runner:
+  path: scripts/p2_35f_socbed_source_oracle.py
+  sha256: 6010438daef731096045fa4ebb789d09562d0b0a886e2c3ed98f3f965a57eae5
+  python_major_minor: "3.11"
+  operating_system: Windows
+  result_file: result.json
+  global_lock_file: external_baseline/locks/P2_35F_ONE_PASS.lock
+  global_lock_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+  global_lock_created_with_o_excl: true
+  global_lock_acquired_before_output_directory_creation: true
+
+protocol:
+  contract_must_merge_before_selected_jsonl_oracle_scan: true
+  permanent_analysis_id_global_lock_required: true
+  duplicate_canonical_execution_allowed: false
+  first_lock_acquired_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_outcome: false
+  oracle_predicate_change_requires_new_analysis_id: true
+  runner_change_requires_new_analysis_id: true
+  product_or_rule_change_before_measurement_allowed: false
+  result_driven_tuning_before_canonical_measurement_allowed: false
+  p2_35e_artifacts_must_remain_immutable: true
+
+decision_boundary:
+  this_measurement_can_establish:
+    - whether each of the three preregistered source-derived oracle predicates appears in the selected Windows telemetry
+    - whether BreachScope findings are bound to those exact oracle events
+  this_measurement_cannot_establish:
+    - eight-attack detection recall
+    - attack-level precision or recall
+    - event-level precision or recall over all true attack events
+    - semantic coverage of non-evaluated SOCBED actions
+    - general production detection accuracy
+    - independent holdout benchmark performance
+
+claim_boundary:
+  evaluated_actions: THREE_SOURCE_DERIVED_WINDOWS_ACTIONS_ONLY
+  source_derived_oracle_event_binding: NOT_YET_MEASURED
+  attack_level_precision: NOT_EVALUATED
+  attack_level_recall: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  non_evaluated_action_detection_quality: NOT_EVALUATED
+  eight_attack_recall: NOT_EVALUATED
+  independent_holdout_performance: NOT_EVALUATED
+  general_detection_accuracy: NOT_CLAIMED
+  production_reconstruction_quality: NOT_CLAIMED
+  statistical_benchmark: false
