@@ -1,0 +1,264 @@
+schema: breachscope.p2_35e_socbed_timeline_one_pass_result.v1
+analysis_id: p2-35e-socbed-acsac2021-timeline-one-pass-v1
+status: COMPLETED
+contract: external_baseline/p2_35e_socbed_timeline_one_pass_contract.yaml
+contract_merge_commit: e4561e34b5d80a3539c671ebfd3cfeae487b2caf
+canonical_repo_commit: e4561e34b5d80a3539c671ebfd3cfeae487b2caf
+predecessor:
+  phase: P2-35D
+  failure: external_baseline/p2_35d_socbed_timeline_one_pass_failure.yaml
+  failure_main_commit: e61e35322a7382f60efbad55c9279b007684d00d
+  p2_35d_must_remain_immutable: true
+frozen_product:
+  repo_commit: 3ca80865477cccfa5e967f549acf32d92182eccd
+  breachscope_and_rules_match_frozen_commit: true
+  rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+  rule_file_count: 5
+runner:
+  sha256: bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3
+  contract_sha256: f57eb39dc14aef054db4fc4d87a5e096e5bbf408793dc294a14622f6c815a8c9
+  global_lock_file: external_baseline/locks/P2_35E_ONE_PASS.lock
+  global_lock_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+  repository_import_bootstrap_executed_successfully: true
+source:
+  archive_size_bytes: 77984817
+  archive_sha256: 7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54
+  selected_windows_member:
+    path: host1_bestpractice/winlogbeat_01.jsonl
+    size_bytes: 21081975
+    sha256: d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d
+  timing_anchor_member:
+    path: host1_bestpractice/attackconsole_01.log
+    size_bytes: 6536
+    sha256: e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_35e_e4561e3/result.json
+    size_bytes: 11288
+    sha256: 2ddefd866f335a7f6c5aca4951344373a95bacabab92f9de32e58263d0b26b17
+  permanent_global_lock:
+    path: external_baseline/locks/P2_35E_ONE_PASS.lock
+    size_bytes: 115
+    sha256: a0dd97a531ee41f86b3b4c32fefe3baf6b70b721379533c12f26b0bb9342e5b7
+    analysis_id: p2-35e-socbed-acsac2021-timeline-one-pass-v1
+timeline:
+  source: attackconsole event=run_attack records
+  attack_count: 8
+  attacks:
+  - ordinal: 1
+    attack: misc_sqlmap
+    timestamp: '2021-06-18T12:48:50.260264+00:00'
+    line_number: 2
+  - ordinal: 2
+    attack: infect_email_exe
+    timestamp: '2021-06-18T12:51:49.908559+00:00'
+    line_number: 6
+  - ordinal: 3
+    attack: c2_take_screenshot
+    timestamp: '2021-06-18T12:54:49.782840+00:00'
+    line_number: 10
+  - ordinal: 4
+    attack: c2_exfiltration
+    timestamp: '2021-06-18T12:57:49.758653+00:00'
+    line_number: 14
+  - ordinal: 5
+    attack: c2_mimikatz
+    timestamp: '2021-06-18T13:00:49.425546+00:00'
+    line_number: 18
+  - ordinal: 6
+    attack: misc_download_malware
+    timestamp: '2021-06-18T13:03:50.002709+00:00'
+    line_number: 22
+  - ordinal: 7
+    attack: misc_set_autostart
+    timestamp: '2021-06-18T13:06:49.371620+00:00'
+    line_number: 26
+  - ordinal: 8
+    attack: misc_execute_malware
+    timestamp: '2021-06-18T13:09:49.890303+00:00'
+    line_number: 30
+measurement:
+  raw_jsonl_rows: 9370
+  events: 9369
+  unknown_host_events: 0
+  unknown_source_events: 0
+  missing_event_id_events: 0
+  findings: 29
+  finding_rule_counts:
+    R-DISCOVERY-Account-System: 12
+    R-DL: 16
+    R-SERVICE-PATHLESS-7045: 1
+  finding_technique_counts:
+    T1087.001: 12
+    T1105: 16
+    T1569.002: 1
+  chains: 42
+  chain_type_counts:
+    activity: 7
+    download_exec: 15
+    session: 20
+  scenarios: 1
+  scenario_stage_counts:
+    execution: 1
+  steps_with_events: 8
+  steps_with_findings: 2
+  steps_with_chain_starts: 4
+  steps_with_scenario_starts: 1
+  event_window_occupancy_fraction: 1.0
+  finding_window_occupancy_fraction: 0.25
+  chain_start_window_occupancy_fraction: 0.5
+  scenario_start_window_occupancy_fraction: 0.125
+  per_step:
+  - ordinal: 1
+    attack: misc_sqlmap
+    window_seconds: 179.648295
+    event_count: 199
+    finding_count: 0
+    chain_start_count: 0
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types: []
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: null
+    first_scenario_delay_seconds: null
+  - ordinal: 2
+    attack: infect_email_exe
+    window_seconds: 179.874281
+    event_count: 340
+    finding_count: 0
+    chain_start_count: 0
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types: []
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: null
+    first_scenario_delay_seconds: null
+  - ordinal: 3
+    attack: c2_take_screenshot
+    window_seconds: 179.975813
+    event_count: 168
+    finding_count: 0
+    chain_start_count: 0
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types: []
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: null
+    first_scenario_delay_seconds: null
+  - ordinal: 4
+    attack: c2_exfiltration
+    window_seconds: 179.666893
+    event_count: 182
+    finding_count: 0
+    chain_start_count: 2
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types:
+    - session
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: 14.023347
+    first_scenario_delay_seconds: null
+  - ordinal: 5
+    attack: c2_mimikatz
+    window_seconds: 180.0
+    event_count: 167
+    finding_count: 4
+    chain_start_count: 6
+    scenario_start_count: 1
+    finding_rule_ids:
+    - R-DL
+    - R-SERVICE-PATHLESS-7045
+    finding_techniques:
+    - T1105
+    - T1569.002
+    chain_types:
+    - download_exec
+    - session
+    scenario_stages:
+    - execution
+    first_finding_delay_seconds: 12.404454
+    first_chain_delay_seconds: 179.569454
+    first_scenario_delay_seconds: 179.952454
+  - ordinal: 6
+    attack: misc_download_malware
+    window_seconds: 179.368911
+    event_count: 141
+    finding_count: 5
+    chain_start_count: 8
+    scenario_start_count: 0
+    finding_rule_ids:
+    - R-DL
+    finding_techniques:
+    - T1105
+    chain_types:
+    - download_exec
+    - session
+    scenario_stages: []
+    first_finding_delay_seconds: 0.024291
+    first_chain_delay_seconds: 0.024291
+    first_scenario_delay_seconds: null
+  - ordinal: 7
+    attack: misc_set_autostart
+    window_seconds: 180.0
+    event_count: 205
+    finding_count: 0
+    chain_start_count: 3
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types:
+    - session
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: 179.47738
+    first_scenario_delay_seconds: null
+  - ordinal: 8
+    attack: misc_execute_malware
+    window_seconds: 180.0
+    event_count: 119
+    finding_count: 0
+    chain_start_count: 0
+    scenario_start_count: 0
+    finding_rule_ids: []
+    finding_techniques: []
+    chain_types: []
+    scenario_stages: []
+    first_finding_delay_seconds: null
+    first_chain_delay_seconds: null
+    first_scenario_delay_seconds: null
+protocol:
+  permanent_analysis_id_global_lock_used: true
+  first_lock_acquired_execution_retained_as_canonical: true
+  duplicate_p2_35e_canonical_execution_performed: false
+  replace_result_for_better_outcome: false
+  same_analysis_id_retry_allowed: false
+  product_or_rules_modified_after_canonical: false
+  p2_35d_artifacts_modified: false
+decision:
+  canonical_execution: COMPLETED
+  source_attack_order: MEASURED
+  all_eight_windows_contain_events: true
+  temporal_finding_occupancy_observed: 2_OF_8_WINDOWS
+  temporal_chain_start_occupancy_observed: 4_OF_8_WINDOWS
+  temporal_scenario_start_occupancy_observed: 1_OF_8_WINDOWS
+  semantic_attack_attribution_authorized: false
+  precision_or_recall_claim_authorized: false
+claim_boundary:
+  source_attack_invocation_order: MEASURED_FROM_SOURCE_TIMING_LOG
+  temporal_window_occupancy: MEASURED
+  attack_step_semantic_attribution: NOT_EVALUATED
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  chain_precision: NOT_EVALUATED
+  chain_recall: NOT_EVALUATED
+  scenario_precision: NOT_EVALUATED
+  scenario_recall: NOT_EVALUATED
+  production_reconstruction_quality: NOT_CLAIMED

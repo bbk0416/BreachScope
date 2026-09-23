@@ -1,0 +1,347 @@
+{
+  "schema": "breachscope.p2_35e_socbed_timeline_one_pass.v1",
+  "analysis_id": "p2-35e-socbed-acsac2021-timeline-one-pass-v1",
+  "status": "completed",
+  "contract_sha256": "f57eb39dc14aef054db4fc4d87a5e096e5bbf408793dc294a14622f6c815a8c9",
+  "runner_sha256": "bffd71419b11ad6e2ac1032ccfe904d7844e3a3a9f6159d6d9e7adeeeb83fca3",
+  "product": {
+    "baseline_repo_commit": "3ca80865477cccfa5e967f549acf32d92182eccd",
+    "breachscope_and_rules_match_frozen_commit": true,
+    "rules_tree_sha256": "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326",
+    "rule_file_count": 5
+  },
+  "source": {
+    "archive_size_bytes": 77984817,
+    "archive_sha256": "7eda65f08bbe6f274c1feff178ae132cfd0e8edbdf0a10ef08321259b6facc54",
+    "selected_windows_member": {
+      "path": "host1_bestpractice/winlogbeat_01.jsonl",
+      "size_bytes": 21081975,
+      "sha256": "d648be6ac0acd18a354e0e1b497800d9d41d2a511afe21308ca3c2a0b679064d"
+    },
+    "timing_anchor_member": {
+      "path": "host1_bestpractice/attackconsole_01.log",
+      "size_bytes": 6536,
+      "sha256": "e843ab909b729709b893fedc4a81c00d8d0336ff745fe05febc52ba00e9668b7"
+    }
+  },
+  "timeline": {
+    "source": "attackconsole event=run_attack records",
+    "attacks": [
+      {
+        "ordinal": 1,
+        "attack": "misc_sqlmap",
+        "timestamp": "2021-06-18T12:48:50.260264+00:00",
+        "line_number": 2
+      },
+      {
+        "ordinal": 2,
+        "attack": "infect_email_exe",
+        "timestamp": "2021-06-18T12:51:49.908559+00:00",
+        "line_number": 6
+      },
+      {
+        "ordinal": 3,
+        "attack": "c2_take_screenshot",
+        "timestamp": "2021-06-18T12:54:49.782840+00:00",
+        "line_number": 10
+      },
+      {
+        "ordinal": 4,
+        "attack": "c2_exfiltration",
+        "timestamp": "2021-06-18T12:57:49.758653+00:00",
+        "line_number": 14
+      },
+      {
+        "ordinal": 5,
+        "attack": "c2_mimikatz",
+        "timestamp": "2021-06-18T13:00:49.425546+00:00",
+        "line_number": 18
+      },
+      {
+        "ordinal": 6,
+        "attack": "misc_download_malware",
+        "timestamp": "2021-06-18T13:03:50.002709+00:00",
+        "line_number": 22
+      },
+      {
+        "ordinal": 7,
+        "attack": "misc_set_autostart",
+        "timestamp": "2021-06-18T13:06:49.371620+00:00",
+        "line_number": 26
+      },
+      {
+        "ordinal": 8,
+        "attack": "misc_execute_malware",
+        "timestamp": "2021-06-18T13:09:49.890303+00:00",
+        "line_number": 30
+      }
+    ]
+  },
+  "measurement": {
+    "raw_jsonl_rows": 9370,
+    "events": 9369,
+    "unknown_host_events": 0,
+    "unknown_source_events": 0,
+    "missing_event_id_events": 0,
+    "findings": 29,
+    "finding_rule_counts": {
+      "R-DISCOVERY-Account-System": 12,
+      "R-DL": 16,
+      "R-SERVICE-PATHLESS-7045": 1
+    },
+    "finding_technique_counts": {
+      "T1087.001": 12,
+      "T1105": 16,
+      "T1569.002": 1
+    },
+    "chains": 42,
+    "chain_type_counts": {
+      "activity": 7,
+      "download_exec": 15,
+      "session": 20
+    },
+    "scenarios": 1,
+    "scenario_stage_counts": {
+      "execution": 1
+    },
+    "timeline_alignment": {
+      "step_count": 8,
+      "steps": [
+        {
+          "ordinal": 1,
+          "attack": "misc_sqlmap",
+          "start_timestamp": "2021-06-18T12:48:50.260264+00:00",
+          "end_timestamp": "2021-06-18T12:51:49.908559+00:00",
+          "window_seconds": 179.648295,
+          "event_count": 199,
+          "finding_count": 0,
+          "chain_start_count": 0,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": null,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": false,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 2,
+          "attack": "infect_email_exe",
+          "start_timestamp": "2021-06-18T12:51:49.908559+00:00",
+          "end_timestamp": "2021-06-18T12:54:49.782840+00:00",
+          "window_seconds": 179.874281,
+          "event_count": 340,
+          "finding_count": 0,
+          "chain_start_count": 0,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": null,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": false,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 3,
+          "attack": "c2_take_screenshot",
+          "start_timestamp": "2021-06-18T12:54:49.782840+00:00",
+          "end_timestamp": "2021-06-18T12:57:49.758653+00:00",
+          "window_seconds": 179.975813,
+          "event_count": 168,
+          "finding_count": 0,
+          "chain_start_count": 0,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": null,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": false,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 4,
+          "attack": "c2_exfiltration",
+          "start_timestamp": "2021-06-18T12:57:49.758653+00:00",
+          "end_timestamp": "2021-06-18T13:00:49.425546+00:00",
+          "window_seconds": 179.666893,
+          "event_count": 182,
+          "finding_count": 0,
+          "chain_start_count": 2,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [
+            "session"
+          ],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": 14.023347,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": true,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 5,
+          "attack": "c2_mimikatz",
+          "start_timestamp": "2021-06-18T13:00:49.425546+00:00",
+          "end_timestamp": "2021-06-18T13:03:49.425546+00:00",
+          "window_seconds": 180.0,
+          "event_count": 167,
+          "finding_count": 4,
+          "chain_start_count": 6,
+          "scenario_start_count": 1,
+          "finding_rule_ids": [
+            "R-DL",
+            "R-SERVICE-PATHLESS-7045"
+          ],
+          "finding_techniques": [
+            "T1105",
+            "T1569.002"
+          ],
+          "finding_hosts": [
+            "CLIENT1.breach.local"
+          ],
+          "chain_types": [
+            "download_exec",
+            "session"
+          ],
+          "scenario_stages": [
+            "execution"
+          ],
+          "first_finding_delay_seconds": 12.404454,
+          "first_chain_delay_seconds": 179.569454,
+          "first_scenario_delay_seconds": 179.952454,
+          "has_events": true,
+          "has_findings": true,
+          "has_chain_start": true,
+          "has_scenario_start": true
+        },
+        {
+          "ordinal": 6,
+          "attack": "misc_download_malware",
+          "start_timestamp": "2021-06-18T13:03:50.002709+00:00",
+          "end_timestamp": "2021-06-18T13:06:49.371620+00:00",
+          "window_seconds": 179.368911,
+          "event_count": 141,
+          "finding_count": 5,
+          "chain_start_count": 8,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [
+            "R-DL"
+          ],
+          "finding_techniques": [
+            "T1105"
+          ],
+          "finding_hosts": [
+            "CLIENT1.breach.local"
+          ],
+          "chain_types": [
+            "download_exec",
+            "session"
+          ],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": 0.024291,
+          "first_chain_delay_seconds": 0.024291,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": true,
+          "has_chain_start": true,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 7,
+          "attack": "misc_set_autostart",
+          "start_timestamp": "2021-06-18T13:06:49.371620+00:00",
+          "end_timestamp": "2021-06-18T13:09:49.371620+00:00",
+          "window_seconds": 180.0,
+          "event_count": 205,
+          "finding_count": 0,
+          "chain_start_count": 3,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [
+            "session"
+          ],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": 179.47738,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": true,
+          "has_scenario_start": false
+        },
+        {
+          "ordinal": 8,
+          "attack": "misc_execute_malware",
+          "start_timestamp": "2021-06-18T13:09:49.890303+00:00",
+          "end_timestamp": "2021-06-18T13:12:49.890303+00:00",
+          "window_seconds": 180.0,
+          "event_count": 119,
+          "finding_count": 0,
+          "chain_start_count": 0,
+          "scenario_start_count": 0,
+          "finding_rule_ids": [],
+          "finding_techniques": [],
+          "finding_hosts": [],
+          "chain_types": [],
+          "scenario_stages": [],
+          "first_finding_delay_seconds": null,
+          "first_chain_delay_seconds": null,
+          "first_scenario_delay_seconds": null,
+          "has_events": true,
+          "has_findings": false,
+          "has_chain_start": false,
+          "has_scenario_start": false
+        }
+      ],
+      "steps_with_events": 8,
+      "steps_with_findings": 2,
+      "steps_with_chain_starts": 4,
+      "steps_with_scenario_starts": 1,
+      "finding_window_occupancy_fraction": 0.25,
+      "chain_start_window_occupancy_fraction": 0.5,
+      "scenario_start_window_occupancy_fraction": 0.125
+    },
+    "timing_seconds": {
+      "detection": 23.64672239999345,
+      "correlation": 6.69825810000475,
+      "scenario": 2.1138511000026483
+    }
+  },
+  "claim_boundary": {
+    "source_attack_invocation_order": "MEASURED_FROM_SOURCE_TIMING_LOG",
+    "temporal_window_occupancy": "MEASURED",
+    "attack_step_semantic_attribution": "NOT_EVALUATED",
+    "event_level_precision": "NOT_EVALUATED",
+    "event_level_recall": "NOT_EVALUATED",
+    "chain_precision": "NOT_EVALUATED",
+    "chain_recall": "NOT_EVALUATED",
+    "scenario_precision": "NOT_EVALUATED",
+    "scenario_recall": "NOT_EVALUATED",
+    "production_reconstruction_quality": "NOT_CLAIMED"
+  }
+}
