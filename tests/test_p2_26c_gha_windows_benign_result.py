@@ -89,8 +89,11 @@ def test_p2_26c_claim_boundary_does_not_turn_flag_into_confirmed_fp_or_productio
 
 def test_current_chain_marks_p2_26c_fresh_benign_revalidation_complete() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
-    assert chain["current_evidence_id"] == "p2-26c-fresh-benign-revalidation-current-detection-evidence"
+    assert chain["current_evidence_id"] == "p2-35i-masquerading-current-detection-evidence"
+    assert chain["current_rulepack_validation"]["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
+    assert chain["current_rulepack_validation"]["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     row = chain["post_remediation_revalidations"][1]
+    assert row["detector_rules_tree_sha256"] != chain["current_frozen_detector"]["rules_tree_sha256"]
     assert row["revalidation_id"] == "p2-26c-gha-windows-fresh-benign"
     assert row["fresh_benign_revalidation"] == "COMPLETED"
     assert row["parsed_events"] == 1643

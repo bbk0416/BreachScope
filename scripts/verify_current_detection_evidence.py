@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the current detection-evidence chain through P2-29 parser maintenance."""
+"""Verify the current detection-evidence chain through P2-35I remediation."""
 from __future__ import annotations
 
 import argparse
@@ -53,6 +53,17 @@ P29_ID = "p2-29-single-parse-evtx"
 P29_RECORD = "external_baseline/p2_29_single_parse_parser_maintenance.yaml"
 P29_RECORD_SHA = "3958351d3465d9ab2667696c0c02165765d1e3b24a14ea1695c5f22405cc2905"
 P29_INGEST_BLOB = "34534bf8256ce658c5f05991c05045f7c5066816"
+
+P35I_ID = "p2-35i-original-filename-masquerading-remediation"
+P35I_HASH = "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+P35I_COMMIT = "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4"
+P35I_RULE_BLOB = "8d379322ef74a88ebd6ef089e0b0c5386fad7cae"
+P35I_CANONICAL_BLOB = "547e4ecf6d76166c9766fb2c5e4ab3571f94416c"
+P35I_COMPARE_BLOB = "969c9a3649a13e3f7e939761203f706dbe61fc6a"
+P35I_RECORD = "external_baseline/p2_35i_masquerading_remediation.yaml"
+P35I_CONTRACT = "external_baseline/p2_35i_masquerading_candidate_contract.yaml"
+P35I_CONTRACT_SHA = "10311ea854baf4c5576e628935a55d0051ee6c643d51e9166004b5c34704c6a9"
+P35I_CURRENT_ID = "p2-35i-masquerading-current-detection-evidence"
 
 
 
@@ -985,12 +996,164 @@ def _verify_p2_29_parser_maintenance(
     }
 
 
+def _verify_p2_35i(
+    repo: Path,
+    record: Mapping[str, Any],
+    previous_hash: str,
+) -> tuple[str, dict[str, Any]]:
+    label = "P2-35I"
+    _require(record.get("schema"), "breachscope.p2_35i_masquerading_remediation.v1", f"{label} schema")
+    _require(record.get("analysis_id"), "p2-35i-original-filename-masquerading-remediation", f"{label} id")
+    _require(record.get("status"), "IMPLEMENTED_POSTHOC_PENDING_FRESH_REVALIDATION", f"{label} status")
+    _require(record.get("analysis_class"), "POSTHOC_DEVELOPMENT_REMEDIATION_NOT_FRESH_VALIDATION", f"{label} class")
+
+    contract = _mapping(record.get("contract"), f"{label} contract")
+    _require(contract.get("path"), P35I_CONTRACT, f"{label} contract path")
+    _require(contract.get("merge_commit"), "d7cfe656bd2fce2518a1a1435ffd6878e4b3e248", f"{label} contract merge")
+    _require(contract.get("sha256"), P35I_CONTRACT_SHA, f"{label} contract SHA")
+    contract_path = legacy._relative_file(repo, P35I_CONTRACT, f"{label} contract file")
+    _require(_sha256(contract_path), P35I_CONTRACT_SHA, f"{label} live contract SHA")
+
+    remediation = _mapping(record.get("remediation"), f"{label} remediation")
+    _require(remediation.get("remediation_id"), P35I_ID, f"{label} remediation id")
+    _require(remediation.get("change_class"), "posthoc_attack_gap_remediation", f"{label} change class")
+    _require(remediation.get("detector_repo_commit"), P35I_COMMIT, f"{label} detector commit")
+    _require(remediation.get("from_rules_tree_sha256"), previous_hash, f"{label} from hash")
+    _require(remediation.get("to_rules_tree_sha256"), P35I_HASH, f"{label} to hash")
+    _require(remediation.get("rule_count_before"), 68, f"{label} rule count before")
+    _require(remediation.get("rule_count_after"), 69, f"{label} rule count after")
+    _require(remediation.get("rule_file_count"), 5, f"{label} rule file count")
+    _require(remediation.get("rule_file"), "rules/p2_10_event_rules.yml", f"{label} rule file")
+    _require(remediation.get("rule_file_git_blob_sha1"), P35I_RULE_BLOB, f"{label} rule blob")
+    _require(remediation.get("canonical_file"), "breachscope/canonical.py", f"{label} canonical file")
+    _require(remediation.get("canonical_file_git_blob_sha1"), P35I_CANONICAL_BLOB, f"{label} canonical blob")
+    _require(remediation.get("field_compare_file"), "breachscope/rule_field_compare.py", f"{label} compare file")
+    _require(remediation.get("field_compare_file_git_blob_sha1"), P35I_COMPARE_BLOB, f"{label} compare blob")
+    _require(remediation.get("added_rule_id"), "R-MASQUERADE-ORIGINAL-NAME-MISMATCH", f"{label} added rule")
+    _require(remediation.get("fresh_attack_revalidation"), "NOT_RUN", f"{label} fresh attack")
+    _require(remediation.get("fresh_benign_revalidation"), "NOT_RUN", f"{label} fresh benign")
+
+    _require(legacy._git_blob_sha1(repo / "rules/p2_10_event_rules.yml"), P35I_RULE_BLOB, f"{label} live rule blob")
+    _require(legacy._git_blob_sha1(repo / "breachscope/canonical.py"), P35I_CANONICAL_BLOB, f"{label} live canonical blob")
+    _require(legacy._git_blob_sha1(repo / "breachscope/rule_field_compare.py"), P35I_COMPARE_BLOB, f"{label} live compare blob")
+
+    live_rule = legacy._load_rule(repo, "rules/p2_10_event_rules.yml", "R-MASQUERADE-ORIGINAL-NAME-MISMATCH")
+    _require(live_rule.get("field"), "canonical.process.executable", f"{label} rule field")
+    _require(live_rule.get("operator"), "regex", f"{label} rule operator")
+    _require(
+        live_rule.get("pattern"),
+        r"(?i)^(?:[a-z]:\\[^\\]+\.exe|[a-z]:\\windows\\[^\\]+\.exe|[a-z]:\\windows\\temp\\.+\.exe|[a-z]:\\users\\[^\\]+\\appdata\\(?:roaming|local\\temp)\\.+\.exe)$",
+        f"{label} rule pattern",
+    )
+    _require(live_rule.get("severity"), "medium", f"{label} severity")
+    _require(live_rule.get("mitre_technique"), "T1036.003", f"{label} technique")
+    _require(
+        live_rule.get("all_of"),
+        [
+            {"field": "canonical.process.executable", "operator": "basename_not_equals_field", "pattern": "OriginalFileName"},
+            {"field": "canonical.process.parent_executable", "operator": "regex", "pattern": r"(?i)^c:\\windows\\system32\\(?:cmd\.exe|windowspowershell\\v1\.0\\powershell\.exe)$"},
+            {"field": "event_id", "operator": "equals", "pattern": "1"},
+            {"field": "source", "operator": "equals", "pattern": "Microsoft-Windows-Sysmon"},
+        ],
+        f"{label} all_of",
+    )
+
+    implementation = _mapping(record.get("implementation"), f"{label} implementation")
+    ecs = _mapping(implementation.get("ecs_process_fallback"), f"{label} ECS fallback")
+    _require(ecs.get("executable_source"), "raw.process.executable", f"{label} ECS executable")
+    _require(ecs.get("parent_executable_source"), "raw.process.parent.executable", f"{label} ECS parent")
+    _require(ecs.get("legacy_image_fields_take_precedence"), True, f"{label} legacy precedence")
+    compare = _mapping(implementation.get("basename_field_compare"), f"{label} basename compare")
+    _require(compare.get("operator"), "basename_not_equals_field", f"{label} compare operator")
+    _require(compare.get("scope"), "ALL_OF_ONLY", f"{label} compare scope")
+    _require(compare.get("case_insensitive"), True, f"{label} compare case")
+    _require(compare.get("missing_or_empty_field_behavior"), "FAIL_CLOSED", f"{label} compare missing")
+    _require(compare.get("top_level_operator_allowed"), False, f"{label} compare top-level")
+
+    development = _mapping(record.get("development_rechecks"), f"{label} development")
+    socbed = _mapping(development.get("socbed"), f"{label} SOCBED")
+    _require(socbed.get("candidate_findings_on_exact_event"), 1, f"{label} SOCBED finding")
+    _require(socbed.get("candidate_rule_id"), "R-MASQUERADE-ORIGINAL-NAME-MISMATCH", f"{label} SOCBED rule")
+    _require(socbed.get("source_specific_signature_used"), False, f"{label} source specificity")
+    _require(socbed.get("attack_recall_interpretation_allowed"), False, f"{label} recall boundary")
+
+    atomic = _mapping(development.get("atomic_evtx_t1036"), f"{label} Atomic")
+    for key, expected in {
+        "selected_file_count": 13,
+        "sysmon_event1": 345,
+        "basename_mismatch_events": 50,
+        "refined_predicate_hits": 9,
+        "selected_files_with_refined_hits": 7,
+    }.items():
+        _require(atomic.get(key), expected, f"{label} Atomic {key}")
+    _require(atomic.get("selected_file_set_sha256"), "d9ddf4e145ef74d1c48582251514a9a93b2af752b2a093963356430988776f8b", f"{label} Atomic manifest")
+    _require(atomic.get("event_level_true_positive_claim"), False, f"{label} Atomic TP boundary")
+
+    win10 = _mapping(development.get("nextron_win10"), f"{label} Win10")
+    _require(win10.get("historical_sysmon_event1"), 2149, f"{label} Win10 Event1")
+    _require(win10.get("preregistered_refined_predicate_hits"), 0, f"{label} Win10 prereg hits")
+    recheck = _mapping(win10.get("implementation_recheck"), f"{label} Win10 recheck")
+    for key, expected in {
+        "sysmon_records_covered_exactly_once": 732200,
+        "raw_parent_records": 5861,
+        "event1_parent_candidates": 17,
+        "basename_mismatch_parent_candidates": 0,
+        "refined_predicate_hits": 0,
+    }.items():
+        _require(recheck.get(key), expected, f"{label} Win10 {key}")
+    _require(recheck.get("chunk_range_covered"), "0:11894", f"{label} Win10 chunks")
+
+    win11 = _mapping(development.get("nextron_win11"), f"{label} Win11")
+    for key, expected in {
+        "sysmon_event1": 2323,
+        "basename_mismatch_events": 227,
+        "suspicious_location_mismatch_events": 37,
+        "refined_predicate_hits": 0,
+    }.items():
+        _require(win11.get(key), expected, f"{label} Win11 {key}")
+
+    combined = _mapping(development.get("combined_nextron"), f"{label} combined benign")
+    _require(combined.get("sysmon_event1"), 4472, f"{label} combined Event1")
+    _require(combined.get("refined_predicate_hits"), 0, f"{label} combined hits")
+    _require(combined.get("confirmed_true_negatives"), "NOT_CLAIMED", f"{label} TN boundary")
+    _require(combined.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} FPR boundary")
+
+    decision = _mapping(record.get("decision"), f"{label} decision")
+    _require(decision.get("implementation"), "ACCEPTED_FOR_CURRENT_RULEPACK", f"{label} decision")
+    _require(decision.get("fresh_current_rulepack_performance_available"), False, f"{label} fresh performance")
+
+    claims = _mapping(record.get("claim_boundary"), f"{label} claims")
+    _require(claims.get("posthoc_development_change"), True, f"{label} posthoc")
+    _require(claims.get("fresh_validation"), False, f"{label} fresh")
+    _require(claims.get("prior_p2_25_attack_revalidation_applies_to_current_rulepack"), False, f"{label} prior attack applicability")
+    _require(claims.get("prior_p2_26c_benign_revalidation_applies_to_current_rulepack"), False, f"{label} prior benign applicability")
+    _require(claims.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} production FPR")
+    _require(claims.get("production_accuracy"), "NOT_CLAIMED", f"{label} production accuracy")
+
+    return P35I_HASH, {
+        "remediation_id": P35I_ID,
+        "detector_repo_commit": P35I_COMMIT,
+        "from_rules_tree_sha256": previous_hash,
+        "to_rules_tree_sha256": P35I_HASH,
+        "change_class": "posthoc_attack_gap_remediation",
+        "rule_count_before": 68,
+        "rule_count_after": 69,
+        "socbed_known_gap_findings": 1,
+        "atomic_refined_predicate_hits": 9,
+        "nextron_combined_event1": 4472,
+        "nextron_refined_predicate_hits": 0,
+        "fresh_attack_revalidation": "NOT_RUN",
+        "fresh_benign_revalidation": "NOT_RUN",
+        "production_false_positive_rate": "NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     chain = legacy._load_yaml(chain_path)
     _require(chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
     _require(
         chain.get("current_evidence_id"),
-        P26C_CURRENT_ID,
+        P35I_CURRENT_ID,
         "current evidence id",
     )
     calibrations = chain.get("calibrations")
@@ -1021,8 +1184,8 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     p20_hash, p20 = _verify_p2_20(repo, p20_record, j_hash)
 
     posthoc_rows = chain.get("posthoc_remediations")
-    if not isinstance(posthoc_rows, list) or len(posthoc_rows) != 1:
-        raise CurrentEvidenceError("posthoc_remediations must contain exactly P2-24D")
+    if not isinstance(posthoc_rows, list) or len(posthoc_rows) != 2:
+        raise CurrentEvidenceError("posthoc_remediations must contain P2-24D then P2-35I")
     posthoc_row = _mapping(posthoc_rows[0], "P2-24D chain row")
     _require(posthoc_row.get("remediation_id"), P24D_ID, "P2-24D chain id")
     _require(
@@ -1058,13 +1221,31 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
 
     p29 = _verify_p2_29_parser_maintenance(repo, chain)
 
+    p35i_row = _mapping(posthoc_rows[1], "P2-35I chain row")
+    _require(p35i_row.get("remediation_id"), P35I_ID, "P2-35I chain id")
+    _require(p35i_row.get("detector_repo_commit"), P35I_COMMIT, "P2-35I chain commit")
+    _require(p35i_row.get("from_rules_tree_sha256"), final_hash, "P2-35I chain from hash")
+    _require(p35i_row.get("to_rules_tree_sha256"), P35I_HASH, "P2-35I chain to hash")
+    _require(p35i_row.get("fresh_attack_revalidation"), "NOT_RUN", "P2-35I chain attack")
+    _require(p35i_row.get("fresh_benign_revalidation"), "NOT_RUN", "P2-35I chain benign")
+    p35i_path = legacy._relative_file(repo, p35i_row.get("remediation_record"), "P2-35I remediation")
+    p35i_record = legacy._load_yaml(p35i_path)
+    final_hash, p35i = _verify_p2_35i(repo, p35i_record, final_hash)
+
     current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
     _require(final_hash, current_hash, "current rule tree explained by chain")
     detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
-    _require(detector.get("repo_commit"), P24D_COMMIT, "current detector commit")
-    _require(detector.get("rules_tree_sha256"), P24D_HASH, "current detector rule hash")
-    _require(detector.get("rule_count"), 68, "current detector rule count")
+    _require(detector.get("repo_commit"), P35I_COMMIT, "current detector commit")
+    _require(detector.get("rules_tree_sha256"), P35I_HASH, "current detector rule hash")
+    _require(detector.get("rule_count"), 69, "current detector rule count")
     _require(detector.get("rule_file_count"), 5, "current detector rule file count")
+
+    current_validation = _mapping(chain.get("current_rulepack_validation"), "current rulepack validation")
+    _require(current_validation.get("rule_change_id"), P35I_ID, "current validation rule change")
+    _require(current_validation.get("fresh_attack_revalidation_after_current_rule_change"), "NOT_RUN", "current validation attack")
+    _require(current_validation.get("fresh_benign_revalidation_after_current_rule_change"), "NOT_RUN", "current validation benign")
+    _require(current_validation.get("prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"), False, "current validation prior applicability")
+    _require(current_validation.get("fresh_current_rulepack_performance_available"), False, "current validation performance")
 
     claims = _mapping(chain.get("claim_boundary"), "current evidence claims")
     _require(claims.get("production_accuracy"), "NOT_CLAIMED", "production accuracy")
@@ -1073,7 +1254,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v10",
+        "schema": "breachscope.current_detection_evidence_verification.v11",
         "current_evidence_id": chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -1083,27 +1264,31 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "current_attack_scenario_hits": history["current_attack_scenario_hits"],
         "current_attack_scenario_hits_applies_to_current_rulepack": False,
         "attack_scenario_total": history["attack_scenario_total"],
-        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
-        "fresh_attack_fixture_hits": p25["hits"],
-        "fresh_attack_fixture_total": p25["fixture_count"],
-        "fresh_attack_fixture_hit_rate": p25["fixture_hit_rate"],
-        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
-        "fresh_benign_parsed_events": p26c["parsed_events"],
-        "fresh_benign_parse_errors": p26c["parse_errors"],
-        "fresh_benign_flagged_events": p26c["flagged_events"],
-        "fresh_benign_findings": p26c["findings"],
-        "fresh_benign_observed_flagged_event_fraction": p26c[
-            "observed_source_intent_benign_flagged_event_fraction"
-        ],
-        "fresh_benign_observed_flagged_event_percent": p26c[
-            "observed_source_intent_benign_flagged_event_percent"
-        ],
+        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "prior_revalidations_apply_to_current_rulepack": False,
+        "prior_attack_fixture_hits": p25["hits"],
+        "prior_attack_fixture_total": p25["fixture_count"],
+        "prior_attack_fixture_hit_rate": p25["fixture_hit_rate"],
+        "prior_benign_parsed_events": p26c["parsed_events"],
+        "prior_benign_parse_errors": p26c["parse_errors"],
+        "prior_benign_flagged_events": p26c["flagged_events"],
+        "prior_benign_findings": p26c["findings"],
+        "prior_benign_observed_flagged_event_fraction": p26c["observed_source_intent_benign_flagged_event_fraction"],
+        "prior_benign_observed_flagged_event_percent": p26c["observed_source_intent_benign_flagged_event_percent"],
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
-        "posthoc_remediations": [p24d],
+        "posthoc_remediations": [p24d, p35i],
         "post_remediation_revalidations": [p25, p26c],
         "parser_maintenance": [p29],
+        "current_rulepack_validation": {
+            "rule_change_id": P35I_ID,
+            "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+            "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+            "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
+            "fresh_current_rulepack_performance_available": False,
+        },
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
             "production_false_positive_rate": "NOT_CLAIMED",
@@ -1142,11 +1327,11 @@ def main() -> int:
                     f"{calibration['dataset_hits_before']}/{calibration['dataset_total']} -> "
                     f"{calibration['dataset_hits_after']}/{calibration['dataset_total']} post-hoc"
                 )
-        print(f"Fresh attack revalidation after current rule change: {result['fresh_attack_fixture_hits']}/{result['fresh_attack_fixture_total']} fixtures")
+        print("Fresh attack revalidation after current rule change: NOT_RUN")
+        print("Fresh benign revalidation after current rule change: NOT_RUN")
         print(
-            "Fresh benign revalidation after current rule change: "
-            f"{result['fresh_benign_flagged_events']}/{result['fresh_benign_parsed_events']} "
-            "source-intent benign events flagged"
+            "Prior P2-25/P2-26C revalidations apply to current rulepack: "
+            f"{result['prior_revalidations_apply_to_current_rulepack']}"
         )
         print("Fresh full benign FPR for current rulepack: NOT CLAIMED")
         print("Production accuracy/FPR: NOT CLAIMED")
