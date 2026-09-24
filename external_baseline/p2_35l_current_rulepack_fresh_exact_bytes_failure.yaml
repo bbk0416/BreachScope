@@ -1,0 +1,62 @@
+schema: breachscope.p2_35l_current_rulepack_fresh_exact_bytes_failure.v1
+analysis_id: p2-35l-current-rulepack-fresh-exact-bytes-v1
+status: FAILED_CANONICAL_NO_RETRY
+contract: external_baseline/p2_35l_current_rulepack_fresh_exact_bytes_contract.yaml
+contract_merge_commit: a0569ca73e7d206a6f16addb43f111002170fd4a
+canonical_repo_commit: a0569ca73e7d206a6f16addb43f111002170fd4a
+frozen_product:
+  repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  rule_count: 69
+  rule_file_count: 5
+runner:
+  sha256: 65fb91c5313dc039c98f565577063b1555715687946b9278c8b5478d7d174e5b
+  contract_sha256: d9e7282d9aea137e737b6f27546a36ad157c35b34502de33df4840fea1ec4505
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_35l_a0569ca/result.json
+    size_bytes: 72572
+    sha256: b7e7ca552d394a6f7f2e325e02b5094131fd72c2777db1c6fa043599dd123a64
+  permanent_global_lock:
+    path: external_baseline/locks/P2_35L_CURRENT_RULEPACK_FRESH_EXACT_BYTES.lock
+    size_bytes: 114
+    sha256: df991aa55243b41bdc7ae5e02cc095e0d18a516f4641067cf9c2fb552fb987a5
+    analysis_id: p2-35l-current-rulepack-fresh-exact-bytes-v1
+execution:
+  canonical_execution_started: true
+  same_analysis_id_retry_allowed: false
+  duplicate_execution_performed: false
+  raw_status: failed
+  error: 'PermissionError: [WinError 5] 액세스가 거부되었습니다: ''C:\\Users\\bbk0416\\Downloads\\p2_35l_canonical_a0569ca\\result.json.tmp''
+    -> ''C:\\Users\\bbk0416\\Downloads\\p2_35l_canonical_a0569ca\\result.json'''
+  failure_class: EVALUATOR_OUTPUT_PERSISTENCE_PERMISSION_ERROR
+  failure_stage: BENIGN_MEMBER_PROGRESS_ATOMIC_WRITE
+  product_or_rules_failure: false
+  source_identity_failure: false
+  attack_phase_completed: true
+  attack_fixture_count: 6
+  attack_hits: 4
+  attack_misses: 2
+  attack_errors: 0
+  attack_fixture_hit_rate: 0.6666666666666666
+  benign_member_inventory_count: 330
+  benign_processed_member_count_before_failure: 61
+  benign_summary_completed: false
+  last_persisted_benign_member: win2022-evtx/Microsoft-Windows-Containers-Wcifs%4Operational.evtx
+interpretation:
+  attack_partial_result_is_fresh_attack_revalidation_claim: false
+  benign_fresh_revalidation_completed: false
+  combined_fresh_revalidation_completed: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  reason: The canonical run failed while persisting benign progress after 61 of 330 selected EVTX members. Attack fixtures
+    had completed, but the overall preregistered attack+benign revalidation did not complete.
+next_analysis:
+  analysis_id: p2-35m-current-rulepack-fresh-source-revalidation-v1
+  requirements:
+  - do not reuse P2-35L analysis id
+  - use a different benign archive because P2-35L already parsed part of win2022-evtx.tgz
+  - use the previously unused Yamato Security original attack EVTX deterministic bundle
+  - harden atomic output replacement against transient Windows PermissionError without changing detector semantics
+  - merge the new contract before detector execution
