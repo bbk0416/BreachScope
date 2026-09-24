@@ -30,18 +30,18 @@ jobs:
           test "$CONFIRMATION" = 'RUN-P2-14E-CANONICAL-ONCE'
 
       - name: Checkout control repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           path: control
 
       - name: Checkout frozen detector
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: 13eb8f6ac93cf29817ca3ed885e8dc18b8fbb2fb
           path: detector
 
       - name: Set up frozen Python runtime
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11.16'
           cache: pip
@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload canonical scoring evidence
         if: success()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: p2-14e-final-blind-one-pass-result
           path: |

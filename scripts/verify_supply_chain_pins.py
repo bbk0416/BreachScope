@@ -9,24 +9,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ACTION_PINS = {
     "actions/checkout": (
-        "11d5960a326750d5838078e36cf38b85af677262",
-        "v4.4.0",
+        "d23441a48e516b6c34aea4fa41551a30e30af803",
+        "v6.1.0",
     ),
     "actions/setup-python": (
-        "a26af69be951a213d495a4c3e4e4022e16d87065",
-        "v5.6.0",
+        "ece7cb06caefa5fff74198d8649806c4678c61a1",
+        "v6.3.0",
     ),
     "actions/upload-artifact": (
-        "ea165f8d65b6e75b540449e92b4886f43607fa02",
-        "v4.6.2",
+        "b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+        "v6.0.0",
     ),
     "docker/setup-buildx-action": (
         "8d2750c68a42422c14e847fe6c8ac0403b4cbd6f",
         "v3.12.0",
     ),
     "docker/build-push-action": (
-        "10e90e3645eae34f1e60eeb005ba3a3d33f178e8",
-        "v6.19.2",
+        "c3c9e263c25d99ce0380d002d59b67737d91b0dc",
+        "v7.4.0",
     ),
     "softprops/action-gh-release": (
         "3bb12739c298aeb8a4eeaf626c5b8d85266b0e65",

@@ -80,7 +80,7 @@ def test_p2_26c_identity_workflow_cannot_run_on_pull_request() -> None:
     assert "wevtutil epl" in text
     assert "evtx_records_parsed = $false" in text
     assert "breachscope_detector_executed = $false" in text
-    assert "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02" in text
+    assert "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f" in text
 
 
 def test_p2_26c_claims_remain_bounded_before_measurement() -> None:
