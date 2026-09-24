@@ -130,7 +130,7 @@ def test_p2_27_does_not_rewrite_current_detection_chain_or_claim_fpr() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
 
     assert chain["current_evidence_id"] == (
-        "p2-35i-masquerading-current-detection-evidence"
+        "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     )
     assert chain["current_frozen_detector"]["rules_tree_sha256"] == (
         "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
@@ -142,6 +142,7 @@ def test_p2_27_does_not_rewrite_current_detection_chain_or_claim_fpr() -> None:
     assert [row["revalidation_id"] for row in chain["post_remediation_revalidations"]] == [
         "p2-25-deepbluecli-fresh-attack",
         "p2-26c-gha-windows-fresh-benign",
+        "p2-35m-current-rulepack-fresh-source-revalidation",
     ]
 
     boundary = diagnosis["claim_boundary"]

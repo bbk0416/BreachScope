@@ -64,8 +64,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v11"
-    assert data["current_evidence_id"] == "p2-35i-masquerading-current-detection-evidence"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v12"
+    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == (
         "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
     )
@@ -74,8 +74,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert data["current_attack_scenario_hits"] == 10
     assert data["current_attack_scenario_hits_applies_to_current_rulepack"] is False
     assert data["attack_scenario_total"] == 10
-    assert data["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert data["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
     assert data["prior_revalidations_apply_to_current_rulepack"] is False
 
     assert data["prior_attack_fixture_hits"] == 6
@@ -129,7 +129,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p35i["fresh_attack_revalidation"] == "NOT_RUN"
     assert p35i["fresh_benign_revalidation"] == "NOT_RUN"
 
-    assert len(data["post_remediation_revalidations"]) == 2
+    assert len(data["post_remediation_revalidations"]) == 3
     p25 = data["post_remediation_revalidations"][0]
     assert p25["revalidation_id"] == "p2-25-deepbluecli-fresh-attack"
     assert p25["detector_rules_tree_sha256"] == (
@@ -153,6 +153,24 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p26c["flagged_events"] == 1
     assert p26c["flagged_events_are_confirmed_false_positives"] is False
 
+    p35m = data["post_remediation_revalidations"][2]
+    assert p35m["revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
+    assert p35m["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p35m["fixture_count"] == 10
+    assert p35m["hits"] == 6
+    assert p35m["misses"] == 4
+    assert p35m["expected_technique_matches"] == 1
+    assert p35m["expected_technique_match_fraction"] == 0.1
+    assert p35m["fixture_hit_rate_is_event_level_recall"] is False
+    assert p35m["benign_parsed_events"] == 425974
+    assert p35m["benign_parse_errors"] == 12
+    assert p35m["benign_findings"] == 4
+    assert p35m["benign_flagged_events"] == 4
+    assert p35m["flagged_events_are_confirmed_false_positives"] is False
+    assert p35m["fresh_attack_revalidation"] == "COMPLETED"
+    assert p35m["fresh_benign_revalidation"] == "COMPLETED"
+    assert p35m["independent_source_family_holdout"] is False
+
     assert len(data["parser_maintenance"]) == 1
     p29 = data["parser_maintenance"][0]
     assert p29["maintenance_id"] == "p2-29-single-parse-evtx"
@@ -164,15 +182,16 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
 
     validation = data["current_rulepack_validation"]
     assert validation["rule_change_id"] == "p2-35i-original-filename-masquerading-remediation"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert validation["current_revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
     assert validation["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
-    assert validation["fresh_current_rulepack_performance_available"] is False
+    assert validation["fresh_current_rulepack_performance_available"] is True
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-35i-masquerading-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4",
         "rules_tree_sha256": "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7",
@@ -209,10 +228,11 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     )
     assert data["current_rulepack_validation"] == {
         "rule_change_id": "p2-35i-original-filename-masquerading-remediation",
-        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
-        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "current_revalidation_id": "p2-35m-current-rulepack-fresh-source-revalidation",
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
         "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
-        "fresh_current_rulepack_performance_available": False,
+        "fresh_current_rulepack_performance_available": True,
     }
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"

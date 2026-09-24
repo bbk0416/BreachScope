@@ -1,0 +1,5460 @@
+{
+  "schema": "breachscope.p2_35m_current_rulepack_fresh_source_revalidation.v1",
+  "analysis_id": "p2-35m-current-rulepack-fresh-source-revalidation-v1",
+  "status": "completed",
+  "contract_sha256": "0636d07c4ab3ea15b790c7f872d86aadcc999810db2cfaea78e9ddff44824b2a",
+  "runner_sha256": "c50c2b7abb06ff9e8406443767a0ff7701b3a76c4abf7187cd4d487dae2b9427",
+  "global_lock_path": "C:\\Users\\bbk0416\\.breachscope\\canonical_locks\\P2_35M_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock",
+  "attack_revalidation": {
+    "datasets": [
+      {
+        "dataset_id": "t1558_003_kerberoasting_security",
+        "scenario_label": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting",
+        "source_path": "YamatoSecurity/CredentialAccess/T1558.003_StealOrForgeKerberosTicketsKerberoasting_Security.evtx",
+        "expected_technique": "T1558.003",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": false,
+        "raw_records": 6,
+        "parsed_events": 6,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-EVENTLOG-Clear-Audit-1102": 1
+        },
+        "findings_by_technique": {
+          "T1070.001": 1
+        }
+      },
+      {
+        "dataset_id": "t1558_004_asrep_roasting_security",
+        "scenario_label": "T1558.004 Steal or Forge Kerberos Tickets: AS-REP Roasting",
+        "source_path": "YamatoSecurity/CredentialAccess/T1558.004_StealOrForgeKerberosTicketsAS-REP-Roasting_Security.evtx",
+        "expected_technique": "T1558.004",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": false,
+        "raw_records": 43,
+        "parsed_events": 43,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-EVENTLOG-Clear-Audit-1102": 1
+        },
+        "findings_by_technique": {
+          "T1070.001": 1
+        }
+      },
+      {
+        "dataset_id": "t1027_004_compile_after_delivery_sysmon",
+        "scenario_label": "T1027.004 Obfuscated Files or Information: Compile After Delivery",
+        "source_path": "YamatoSecurity/DefenseEvasion/T1027.004_ObfuscatedFilesOrInformationCompileAfterDelivery_Sysmon.evtx",
+        "expected_technique": "T1027.004",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": false,
+        "raw_records": 9,
+        "parsed_events": 9,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-MSBUILD-InlineTask": 1
+        },
+        "findings_by_technique": {
+          "T1127.001": 1
+        }
+      },
+      {
+        "dataset_id": "t1218_004_installutil_sysmon",
+        "scenario_label": "T1218.004 System Binary Proxy Execution: InstallUtil",
+        "source_path": "YamatoSecurity/DefenseEvasion/T1218.004_SignedBinaryProxyExecutionInstallUtil_Sysmon.evtx",
+        "expected_technique": "T1218.004",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": true,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-INSTALLUTIL-ProxyExec": 1
+        },
+        "findings_by_technique": {
+          "T1218.004": 1
+        }
+      },
+      {
+        "dataset_id": "t1562_010_downgrade_attack_powershell",
+        "scenario_label": "T1562.010 Impair Defenses: Downgrade Attack",
+        "source_path": "YamatoSecurity/ImpairDefenses/T1562.010_DowngradeAttack_PowerShell.evtx",
+        "expected_technique": "T1562.010",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "expected_technique_match": false,
+        "raw_records": 26,
+        "parsed_events": 26,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {}
+      },
+      {
+        "dataset_id": "t1210_zerologon_sysmon",
+        "scenario_label": "T1210 Exploitation of Remote Services: Zerologon (Sysmon)",
+        "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_Sysmon.evtx",
+        "expected_technique": "T1210",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "expected_technique_match": false,
+        "raw_records": 22,
+        "parsed_events": 22,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {}
+      },
+      {
+        "dataset_id": "t1210_zerologon_windows_default",
+        "scenario_label": "T1210 Exploitation of Remote Services: Zerologon (Windows default logging)",
+        "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsDefaultLogging.evtx",
+        "expected_technique": "T1210",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": false,
+        "raw_records": 35,
+        "parsed_events": 35,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-EVENTLOG-Clear-Audit-1102": 1
+        },
+        "findings_by_technique": {
+          "T1070.001": 1
+        }
+      },
+      {
+        "dataset_id": "t1210_zerologon_windows_extra",
+        "scenario_label": "T1210 Exploitation of Remote Services: Zerologon (Windows extra logging)",
+        "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsExtraLogging.evtx",
+        "expected_technique": "T1210",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "expected_technique_match": false,
+        "raw_records": 14,
+        "parsed_events": 14,
+        "parse_errors": 0,
+        "findings": 1,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-EVENTLOG-Clear-Audit-1102": 1
+        },
+        "findings_by_technique": {
+          "T1070.001": 1
+        }
+      },
+      {
+        "dataset_id": "t1563_002_rdp_hijacking_security",
+        "scenario_label": "T1563.002 Remote Service Session Hijacking: RDP Hijacking",
+        "source_path": "YamatoSecurity/LateralMovement/T1563.002_RDP-Hijacking_Security.evtx",
+        "expected_technique": "T1563.002",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "expected_technique_match": false,
+        "raw_records": 4,
+        "parsed_events": 4,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {}
+      },
+      {
+        "dataset_id": "t1197_bitsclient",
+        "scenario_label": "T1197 BITS Jobs",
+        "source_path": "YamatoSecurity/Persistence/T1197_BitsClient.evtx",
+        "expected_technique": "T1197",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "expected_technique_match": false,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {}
+      }
+    ],
+    "summary": {
+      "fixture_count": 10,
+      "hits": 6,
+      "misses": 4,
+      "errors": 0,
+      "fixture_hit_rate": 0.6,
+      "expected_technique_matches": 1,
+      "expected_technique_nonmatches": 9,
+      "expected_technique_errors": 0,
+      "expected_technique_match_fraction_of_all_fixtures": 0.1,
+      "expected_technique_match_fraction_of_evaluable_fixtures": 0.1
+    }
+  },
+  "benign_revalidation": {
+    "members": [
+      {
+        "name": "Win2022-AD/Active Directory Web Services.evtx",
+        "size_bytes": 69632,
+        "raw_records": 32,
+        "parsed_events": 32,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Application.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 223,
+        "parsed_events": 223,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/DFS Replication.evtx",
+        "size_bytes": 69632,
+        "raw_records": 32,
+        "parsed_events": 32,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Directory Service.evtx",
+        "size_bytes": 69632,
+        "raw_records": 115,
+        "parsed_events": 115,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/DNS Server.evtx",
+        "size_bytes": 69632,
+        "raw_records": 35,
+        "parsed_events": 35,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/HardwareEvents.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Internet Explorer.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Key Management Service.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Virtual Applications.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Client-Licensing-Platform%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 21,
+        "parsed_events": 21,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Rdms-UI%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Rdms-UI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-ServerCore-ShellLauncher%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-System-Diagnostics-DiagnosticInvoker%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-Agent Driver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-App Agent%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-IPC%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-SQM Uploader%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AAD%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 10,
+        "parsed_events": 10,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-All-User-Install-Agent%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AllJoyn%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppHost%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppID%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ApplicabilityEngine%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application Server-Applications%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application Server-Applications%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Compatibility-Troubleshooter.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Inventory.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Telemetry.evtx",
+        "size_bytes": 69632,
+        "raw_records": 4,
+        "parsed_events": 4,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Steps-Recorder.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4EXE and DLL.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4MSI and Script.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4Packaged app-Deployment.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4Packaged app-Execution.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppModel-Runtime%4Admin.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 145,
+        "parsed_events": 145,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppReadiness%4Admin.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 122,
+        "parsed_events": 122,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppReadiness%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeployment%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 14,
+        "parsed_events": 14,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeploymentServer%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 955,
+        "parsed_events": 955,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeploymentServer%4Restricted.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppxPackaging%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 25,
+        "parsed_events": 25,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4CaptureMonitor.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4PlaybackManager.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Authentication User Interface%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BackgroundTaskInfrastructure%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Backup.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BestPractices%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Biometrics%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bits-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 2,
+        "parsed_events": 2,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bluetooth-BthLEPrepairing%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bluetooth-MTPEnum%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BranchCacheSMB%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServices-Deployment%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServicesClient-Lifecycle-System%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServicesClient-Lifecycle-User%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Cleanmgr%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CloudStore%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 54,
+        "parsed_events": 54,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CodeIntegrity%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 31,
+        "parsed_events": 31,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Compat-Appraiser%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Containers-BindFlt%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 5,
+        "parsed_events": 5,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Containers-Wcifs%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 5,
+        "parsed_events": 5,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CoreApplication%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CorruptedFileRecovery-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CorruptedFileRecovery-Server%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-DPAPI%4BackUpKeySvc.evtx",
+        "size_bytes": 69632,
+        "raw_records": 5,
+        "parsed_events": 5,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-DPAPI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 46,
+        "parsed_events": 46,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-NCrypt%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 12,
+        "parsed_events": 12,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DAL-Provider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DataIntegrityScan%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DataIntegrityScan%4CrashRecovery.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DateTimeControlPanel%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceGuard%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 1,
+        "parsed_events": 1,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 2,
+        "parsed_events": 2,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Devices-Background%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSetupManager%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 143,
+        "parsed_events": 143,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSetupManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 26,
+        "parsed_events": 26,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSync%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceUpdateAgent%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DFSN-Server%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Dhcp-Client%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 4,
+        "parsed_events": 4,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Dhcpv6-Client%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-DPS%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 2,
+        "parsed_events": 2,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-PCW%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 352,
+        "parsed_events": 352,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-PLA%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scheduled%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scripted%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scripted%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-ScriptedDiagnosticsProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnostics-Networking%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DirectoryServices-Deployment%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 210,
+        "parsed_events": 210,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnostic%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnosticDataCollector%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnosticResolver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DNSServer%4Audit.evtx",
+        "size_bytes": 69632,
+        "raw_records": 46,
+        "parsed_events": 46,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DSC%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DSC%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DxgKrnl-Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DxgKrnl-Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapHost%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-RasChap%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-RasTls%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-Sim%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-Ttls%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Application-Learning%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Audit-Regular%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Audit-TCB%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnhancedStorage-EhStorClass%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnrollmentPolicyWebService%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnrollmentWebService%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EventCollector%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Fault-Tolerant-Heap%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FeatureConfiguration%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FederationServices-Deployment%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileServices-ServerManager-EventProvider%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileServices-ServerManager-EventProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 50,
+        "parsed_events": 50,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileShareShadowCopyProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FMS%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Folder Redirection%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Forwarding%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-GenericRoaming%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-GroupPolicy%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 499,
+        "parsed_events": 499,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-HelloForBusiness%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 18,
+        "parsed_events": 18,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Help%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-HomeGroup Control Panel%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Guest-Drivers%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Hypervisor-Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Hypervisor-Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-IdCtrls%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-IKE%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-International-RegionalOptionsControlPanel%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Iphlpsvc%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-KdsSvc%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-ApphelpCache%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Boot%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 20,
+        "parsed_events": 20,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Cache%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 101,
+        "parsed_events": 101,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-CPU-Starvation%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Dump%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-EventTracing%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-IO%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 970,
+        "parsed_events": 970,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-LiveDump%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Configuration.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 370,
+        "parsed_events": 370,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Device Management.evtx",
+        "size_bytes": 69632,
+        "raw_records": 6,
+        "parsed_events": 6,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Driver Watchdog.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Power%4Thermal-Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-ShimEngine%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 15,
+        "parsed_events": 15,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-StoreMgr%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WDI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WHEA%4Errors.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WHEA%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 23,
+        "parsed_events": 23,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Known Folders API Service.evtx",
+        "size_bytes": 69632,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-LanguagePackSetup%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-LiveId%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 147,
+        "parsed_events": 147,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ManagementTools-RegistryProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ManagementTools-TaskManagerProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MemoryDiagnostics-Results%4Debug.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MiStreamProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Mprddm%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MsLbfoProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MUI%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MUI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 12,
+        "parsed_events": 12,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NCSI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 7,
+        "parsed_events": 7,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NdisImPlatform%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkLocationWizard%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkProfile%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 51,
+        "parsed_events": 51,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NlaSvc%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Ntfs%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 55,
+        "parsed_events": 43,
+        "parse_errors": 12,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Ntfs%4WHC.evtx",
+        "size_bytes": 69632,
+        "raw_records": 5,
+        "parsed_events": 5,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NTLM%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-OfflineFiles%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-OOBE-Machine-DUI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Partition%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 13,
+        "parsed_events": 13,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PerceptionRuntime%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PerceptionSensorDataService%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-Nvdimm%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-PmemDisk%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-ScmBus%4Certification.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-ScmBus%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Policy%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 179,
+        "parsed_events": 179,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell-DesiredStateConfiguration-FileDownloadManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PrintBRM%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PrintService%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Privacy-Auditing%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 73,
+        "parsed_events": 73,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Program-Compatibility-Assistant%4CompatAfterUpgrade.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PushNotification-Platform%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PushNotification-Platform%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 146,
+        "parsed_events": 146,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ReadyBoost%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ReFS%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Regsvr32%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteApp and Desktop Connections%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteApp and Desktop Connections%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-SessionServices%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Resource-Exhaustion-Detector%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 9,
+        "parsed_events": 9,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Resource-Exhaustion-Resolver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RestartManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SearchUI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Adminless%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Audit-Configuration-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 20,
+        "parsed_events": 20,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-EnterpriseData-FileRevocationManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-LessPrivilegedAppContainer%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Mitigations%4KernelMode.evtx",
+        "size_bytes": 69632,
+        "raw_records": 6,
+        "parsed_events": 6,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Mitigations%4UserMode.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Netlogon%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-SPP-UX-GenuineCenter-Logging%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-SPP-UX-Notifications%4ActionCenter.evtx",
+        "size_bytes": 69632,
+        "raw_records": 3,
+        "parsed_events": 3,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-UserConsentVerifier%4Audit.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SecurityMitigationsBroker%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SENSE%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SenseIR%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-ConfigureSMRemoting%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-DeploymentProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 99,
+        "parsed_events": 99,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MgmtProvider%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 246,
+        "parsed_events": 246,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MultiMachine%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MultiMachine%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 544,
+        "parsed_events": 544,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-ConnectedAccountState%4ActionCenter.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4ActionCenter.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4AppDefaults.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 357,
+        "parsed_events": 357,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4LogonTasksChannel.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 559,
+        "parsed_events": 559,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ShellCommon-StartLayoutPopulation%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 68,
+        "parsed_events": 68,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SilProvider%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-Audit%4Authentication.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-DeviceEnum%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Audit.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Connectivity.evtx",
+        "size_bytes": 69632,
+        "raw_records": 23,
+        "parsed_events": 23,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBClient%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Security.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBDirect%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Audit.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Connectivity.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 13,
+        "parsed_events": 13,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Security.evtx",
+        "size_bytes": 69632,
+        "raw_records": 10,
+        "parsed_events": 10,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBWitnessClient%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBWitnessClient%4Informational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StateRepository%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 118,
+        "parsed_events": 118,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StateRepository%4Restricted.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-ClassPnP%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 10,
+        "parsed_events": 10,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Storport%4Health.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 138,
+        "parsed_events": 138,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Storport%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 73,
+        "parsed_events": 73,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Tiering%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageManagement%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 36,
+        "parsed_events": 36,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageManagement-PartUtil%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSettings%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Api%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Driver%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Driver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 10,
+        "parsed_events": 10,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-ManagementAgent%4WHC.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Parser%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Parser%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-SpaceManager%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-SpaceManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Store%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 160,
+        "parsed_events": 160,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storsvc%4Diagnostic.evtx",
+        "size_bytes": 69632,
+        "raw_records": 4,
+        "parsed_events": 4,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Sysmon%4Operational.evtx",
+        "size_bytes": 551620608,
+        "raw_records": 409349,
+        "parsed_events": 409349,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SystemDataArchiver%4Diagnostic.evtx",
+        "size_bytes": 4263936,
+        "raw_records": 3097,
+        "parsed_events": 3097,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SystemSettingsThreshold%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TaskScheduler%4Maintenance.evtx",
+        "size_bytes": 69632,
+        "raw_records": 14,
+        "parsed_events": 14,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TaskScheduler%4Operational.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 433,
+        "parsed_events": 433,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TCPIP%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-LocalSessionManager%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 55,
+        "parsed_events": 55,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-PnPDevices%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-PnPDevices%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-Printers%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-Printers%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-SessionBroker-Client%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-SessionBroker-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Time-Service%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 65,
+        "parsed_events": 65,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Time-Service-PTP-Provider%4PTP-Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TWinUI%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 3,
+        "parsed_events": 3,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TZSync%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TZUtil%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UAC%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UAC-FileVirtualization%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 38,
+        "parsed_events": 38,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Control Panel%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Device Registration%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 37,
+        "parsed_events": 37,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Profile Service%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 33,
+        "parsed_events": 33,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User-Loader%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UserPnp%4ActionCenter.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UserPnp%4DeviceInstall.evtx",
+        "size_bytes": 69632,
+        "raw_records": 6,
+        "parsed_events": 6,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VDRVROOT%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VerifyHardwareSecurity%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VHDMP-Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VolumeSnapshot-Driver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 42,
+        "parsed_events": 42,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VPN%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VPN-Client%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Wcmsvc%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 44,
+        "parsed_events": 44,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WebAuthN%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 9,
+        "parsed_events": 9,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WER-PayloadHealth%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 4,
+        "parsed_events": 4,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WFP%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Win32k%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Defender%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 33,
+        "parsed_events": 33,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Defender%4WHC.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4ConnectionSecurity.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4Firewall.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 292,
+        "parsed_events": 292,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WindowsSystemAssessmentTool%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WindowsUpdateClient%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 14,
+        "parsed_events": 14,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinHttp%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinINet%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinINet-Config%4ProxyConfigChanged.evtx",
+        "size_bytes": 69632,
+        "raw_records": 1,
+        "parsed_events": 1,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Winlogon%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 161,
+        "parsed_events": 161,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinRM%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 154,
+        "parsed_events": 154,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Winsock-WS2HELP%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Wired-AutoConfig%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WMI-Activity%4Operational.evtx",
+        "size_bytes": 1052672,
+        "raw_records": 604,
+        "parsed_events": 604,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WMPNSS-Service%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Workplace Join%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-ClassInstaller%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-CompositeClassDriver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-MTPClassDriver%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/OpenSSH%4Admin.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/OpenSSH%4Operational.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Security.evtx",
+        "size_bytes": 4263936,
+        "raw_records": 2297,
+        "parsed_events": 2297,
+        "parse_errors": 0,
+        "findings": 4,
+        "flagged_events": 4,
+        "findings_by_rule": {
+          "R-WMI-WMIPRVSE-CHILD-4688": 4
+        },
+        "findings_by_source": {
+          "Microsoft-Windows-Security-Auditing": 4
+        }
+      },
+      {
+        "name": "Win2022-AD/Setup.evtx",
+        "size_bytes": 69632,
+        "raw_records": 33,
+        "parsed_events": 33,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/SMSApi.evtx",
+        "size_bytes": 69632,
+        "raw_records": 0,
+        "parsed_events": 0,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/System.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 1137,
+        "parsed_events": 1137,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      },
+      {
+        "name": "Win2022-AD/Windows PowerShell.evtx",
+        "size_bytes": 1118208,
+        "raw_records": 65,
+        "parsed_events": 65,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_source": {}
+      }
+    ],
+    "member_inventory": [
+      {
+        "name": "Win2022-AD/Active Directory Web Services.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Application.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/DFS Replication.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Directory Service.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/DNS Server.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/HardwareEvents.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Internet Explorer.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Key Management Service.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-AppV-Client%4Virtual Applications.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Client-Licensing-Platform%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Rdms-UI%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Rdms-UI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-ServerCore-ShellLauncher%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-System-Diagnostics-DiagnosticInvoker%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-Agent Driver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-App Agent%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-IPC%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-User Experience Virtualization-SQM Uploader%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AAD%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-All-User-Install-Agent%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AllJoyn%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppHost%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppID%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ApplicabilityEngine%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application Server-Applications%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application Server-Applications%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Compatibility-Assistant.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Compatibility-Troubleshooter.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Inventory.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Program-Telemetry.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Application-Experience%4Steps-Recorder.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4EXE and DLL.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4MSI and Script.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4Packaged app-Deployment.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppLocker%4Packaged app-Execution.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppModel-Runtime%4Admin.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppReadiness%4Admin.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppReadiness%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeployment%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeploymentServer%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppXDeploymentServer%4Restricted.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-AppxPackaging%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4CaptureMonitor.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Audio%4PlaybackManager.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Authentication User Interface%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BackgroundTaskInfrastructure%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Backup.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BestPractices%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Biometrics%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bits-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bluetooth-BthLEPrepairing%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Bluetooth-MTPEnum%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-BranchCacheSMB%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServices-Deployment%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServicesClient-Lifecycle-System%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CertificateServicesClient-Lifecycle-User%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Cleanmgr%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CloudStore%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CodeIntegrity%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Compat-Appraiser%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Containers-BindFlt%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Containers-Wcifs%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CoreApplication%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CorruptedFileRecovery-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-CorruptedFileRecovery-Server%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-DPAPI%4BackUpKeySvc.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-DPAPI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Crypto-NCrypt%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DAL-Provider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DataIntegrityScan%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DataIntegrityScan%4CrashRecovery.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DateTimeControlPanel%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceGuard%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Devices-Background%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSetupManager%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSetupManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceSync%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DeviceUpdateAgent%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DFSN-Server%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Dhcp-Client%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Dhcpv6-Client%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-DPS%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-PCW%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-PLA%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scheduled%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scripted%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-Scripted%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnosis-ScriptedDiagnosticsProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Diagnostics-Networking%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DirectoryServices-Deployment%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnostic%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnosticDataCollector%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DiskDiagnosticResolver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DNSServer%4Audit.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DSC%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DSC%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DxgKrnl-Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-DxgKrnl-Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapHost%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-RasChap%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-RasTls%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-Sim%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EapMethods-Ttls%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Application-Learning%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Audit-Regular%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EDP-Audit-TCB%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnhancedStorage-EhStorClass%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnrollmentPolicyWebService%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EnrollmentWebService%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-EventCollector%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Fault-Tolerant-Heap%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FeatureConfiguration%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FederationServices-Deployment%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileServices-ServerManager-EventProvider%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileServices-ServerManager-EventProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FileShareShadowCopyProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-FMS%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Folder Redirection%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Forwarding%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-GenericRoaming%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-GroupPolicy%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-HelloForBusiness%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Help%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-HomeGroup Control Panel%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Guest-Drivers%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Hypervisor-Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Hyper-V-Hypervisor-Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-IdCtrls%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-IKE%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-International-RegionalOptionsControlPanel%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Iphlpsvc%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-KdsSvc%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-ApphelpCache%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Boot%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Cache%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-CPU-Starvation%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Dump%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-EventTracing%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-IO%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-LiveDump%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Configuration.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Device Management.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-PnP%4Driver Watchdog.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-Power%4Thermal-Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-ShimEngine%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-StoreMgr%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WDI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WHEA%4Errors.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Kernel-WHEA%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Known Folders API Service.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-LanguagePackSetup%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-LiveId%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ManagementTools-RegistryProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ManagementTools-TaskManagerProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MemoryDiagnostics-Results%4Debug.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MiStreamProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Mprddm%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MsLbfoProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MUI%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-MUI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NCSI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NdisImPlatform%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkLocationWizard%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkProfile%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NetworkProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NlaSvc%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Ntfs%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Ntfs%4WHC.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-NTLM%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-OfflineFiles%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-OOBE-Machine-DUI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Partition%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PerceptionRuntime%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PerceptionSensorDataService%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-Nvdimm%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-PmemDisk%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-ScmBus%4Certification.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PersistentMemory-ScmBus%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Policy%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PowerShell-DesiredStateConfiguration-FileDownloadManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PrintBRM%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PrintService%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Privacy-Auditing%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Program-Compatibility-Assistant%4CompatAfterUpgrade.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PushNotification-Platform%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-PushNotification-Platform%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ReadyBoost%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ReFS%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Regsvr32%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteApp and Desktop Connections%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteApp and Desktop Connections%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-RdpCoreTS%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RemoteDesktopServices-SessionServices%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Resource-Exhaustion-Detector%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Resource-Exhaustion-Resolver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-RestartManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SearchUI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Adminless%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Audit-Configuration-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-EnterpriseData-FileRevocationManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-LessPrivilegedAppContainer%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Mitigations%4KernelMode.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Mitigations%4UserMode.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-Netlogon%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-SPP-UX-GenuineCenter-Logging%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-SPP-UX-Notifications%4ActionCenter.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Security-UserConsentVerifier%4Audit.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SecurityMitigationsBroker%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SENSE%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SenseIR%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-ConfigureSMRemoting%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-DeploymentProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MgmtProvider%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MultiMachine%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ServerManager-MultiMachine%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-ConnectedAccountState%4ActionCenter.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4ActionCenter.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4AppDefaults.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4LogonTasksChannel.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Shell-Core%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-ShellCommon-StartLayoutPopulation%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SilProvider%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-Audit%4Authentication.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-DeviceEnum%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmartCard-TPM-VCard-Module%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Audit.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Connectivity.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBClient%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SmbClient%4Security.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBDirect%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Audit.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Connectivity.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBServer%4Security.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBWitnessClient%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SMBWitnessClient%4Informational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StateRepository%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StateRepository%4Restricted.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-ClassPnP%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Storport%4Health.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Storport%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storage-Tiering%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageManagement%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageManagement-PartUtil%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSettings%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Api%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Driver%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Driver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-ManagementAgent%4WHC.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Parser%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-Parser%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-SpaceManager%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-StorageSpaces-SpaceManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Store%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Storsvc%4Diagnostic.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Sysmon%4Operational.evtx",
+        "size_bytes": 551620608
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SystemDataArchiver%4Diagnostic.evtx",
+        "size_bytes": 4263936
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-SystemSettingsThreshold%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TaskScheduler%4Maintenance.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TaskScheduler%4Operational.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TCPIP%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ClientUSBDevices%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-LocalSessionManager%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-PnPDevices%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-PnPDevices%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-Printers%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-Printers%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-RemoteConnectionManager%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-ServerUSBDevices%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-SessionBroker-Client%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TerminalServices-SessionBroker-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Time-Service%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Time-Service-PTP-Provider%4PTP-Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TWinUI%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TZSync%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-TZUtil%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UAC%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UAC-FileVirtualization%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UniversalTelemetryClient%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Control Panel%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Device Registration%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User Profile Service%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-User-Loader%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UserPnp%4ActionCenter.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-UserPnp%4DeviceInstall.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VDRVROOT%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VerifyHardwareSecurity%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VHDMP-Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VolumeSnapshot-Driver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VPN%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-VPN-Client%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Wcmsvc%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WebAuthN%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WER-PayloadHealth%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WFP%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Win32k%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Defender%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Defender%4WHC.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4ConnectionSecurity.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4Firewall.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Windows Firewall With Advanced Security%4FirewallDiagnostics.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WindowsSystemAssessmentTool%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WindowsUpdateClient%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinHttp%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinINet%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinINet-Config%4ProxyConfigChanged.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Winlogon%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WinRM%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Winsock-WS2HELP%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Wired-AutoConfig%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WMI-Activity%4Operational.evtx",
+        "size_bytes": 1052672
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WMPNSS-Service%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-Workplace Join%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-ClassInstaller%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-CompositeClassDriver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Microsoft-Windows-WPD-MTPClassDriver%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/OpenSSH%4Admin.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/OpenSSH%4Operational.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/Security.evtx",
+        "size_bytes": 4263936
+      },
+      {
+        "name": "Win2022-AD/Setup.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/SMSApi.evtx",
+        "size_bytes": 69632
+      },
+      {
+        "name": "Win2022-AD/System.evtx",
+        "size_bytes": 1118208
+      },
+      {
+        "name": "Win2022-AD/Windows PowerShell.evtx",
+        "size_bytes": 1118208
+      }
+    ],
+    "summary": {
+      "evtx_member_count": 337,
+      "raw_records": 425986,
+      "parsed_events": 425974,
+      "parse_errors": 12,
+      "findings": 4,
+      "flagged_events": 4,
+      "observed_source_intent_benign_flagged_event_fraction": 9.390244475014907e-06,
+      "observed_source_intent_benign_flagged_event_percent": 0.0009390244475014907,
+      "findings_by_rule": {
+        "R-WMI-WMIPRVSE-CHILD-4688": 4
+      },
+      "findings_by_source": {
+        "Microsoft-Windows-Security-Auditing": 4
+      }
+    }
+  },
+  "frozen_product": {
+    "repo_commit": "2401f8b9b6a569b8b932451f0a0ae20ffa26abbc",
+    "rules_tree_sha256": "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7",
+    "rule_count": 69,
+    "rule_file_count": 5
+  },
+  "source_verification": {
+    "attack": {
+      "repository": "Yamato-Security/hayabusa-sample-evtx",
+      "repo_commit": "0845333ecb4afcf64c55c6e10946383f168f308c",
+      "readme": {
+        "path": "README.md",
+        "size_bytes": 899,
+        "git_blob_sha1": "36d08b56243e856cb26293fd2add8e790df1a326",
+        "sha256": "2e162d543c2c8be7431c36f69f33eb5c4b37b1093b1aba5b7ad14d38964cbfff",
+        "size_match": true,
+        "git_blob_match": true,
+        "sha256_match": true
+      },
+      "selector_matched_source_paths": [
+        "YamatoSecurity/CredentialAccess/T1558.003_StealOrForgeKerberosTicketsKerberoasting_Security.evtx",
+        "YamatoSecurity/CredentialAccess/T1558.004_StealOrForgeKerberosTicketsAS-REP-Roasting_Security.evtx",
+        "YamatoSecurity/DefenseEvasion/T1027.004_ObfuscatedFilesOrInformationCompileAfterDelivery_Sysmon.evtx",
+        "YamatoSecurity/DefenseEvasion/T1218.004_SignedBinaryProxyExecutionInstallUtil_Sysmon.evtx",
+        "YamatoSecurity/ImpairDefenses/T1562.010_DowngradeAttack_PowerShell.evtx",
+        "YamatoSecurity/LateralMovement/T1210_Zerologon_Sysmon.evtx",
+        "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsDefaultLogging.evtx",
+        "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsExtraLogging.evtx",
+        "YamatoSecurity/LateralMovement/T1563.002_RDP-Hijacking_Security.evtx",
+        "YamatoSecurity/Persistence/T1197_BitsClient.evtx"
+      ],
+      "datasets": [
+        {
+          "dataset_id": "t1558_003_kerberoasting_security",
+          "source_path": "YamatoSecurity/CredentialAccess/T1558.003_StealOrForgeKerberosTicketsKerberoasting_Security.evtx",
+          "expected_technique": "T1558.003",
+          "size_bytes": 69632,
+          "git_blob_sha1": "3dae16bd9baa14e58d934cc335d5bdab5c69ae62",
+          "sha256": "957d0c301baad9e6936683b7aa727d23ca7fb6434eaea786794dae528ecffbe9",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1558_004_asrep_roasting_security",
+          "source_path": "YamatoSecurity/CredentialAccess/T1558.004_StealOrForgeKerberosTicketsAS-REP-Roasting_Security.evtx",
+          "expected_technique": "T1558.004",
+          "size_bytes": 69632,
+          "git_blob_sha1": "9b34ff50cabf78605368d0e4c1d70f256aa38aab",
+          "sha256": "56daf2609c5283b02ae13df2cff588f3f51f844f65339a938adbd237efc45d0d",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1027_004_compile_after_delivery_sysmon",
+          "source_path": "YamatoSecurity/DefenseEvasion/T1027.004_ObfuscatedFilesOrInformationCompileAfterDelivery_Sysmon.evtx",
+          "expected_technique": "T1027.004",
+          "size_bytes": 69632,
+          "git_blob_sha1": "822c11ecc90506c5291841d6916c8784bc169112",
+          "sha256": "85c0bf97dbffafb9c9e45b58457d3c43af4a489b9c4a29b06fb74c30f87a0e80",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1218_004_installutil_sysmon",
+          "source_path": "YamatoSecurity/DefenseEvasion/T1218.004_SignedBinaryProxyExecutionInstallUtil_Sysmon.evtx",
+          "expected_technique": "T1218.004",
+          "size_bytes": 69632,
+          "git_blob_sha1": "a3b54507de455af5c802dac8789f4c248b3052da",
+          "sha256": "351027606b81e6a9c46b42a407af1bc0d38ff550dcdb3d6940c4c26a0e1d8725",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1562_010_downgrade_attack_powershell",
+          "source_path": "YamatoSecurity/ImpairDefenses/T1562.010_DowngradeAttack_PowerShell.evtx",
+          "expected_technique": "T1562.010",
+          "size_bytes": 69632,
+          "git_blob_sha1": "0e1d4ce773cde8e6206c7f5521db5cea3cbb2384",
+          "sha256": "3948b0d598f1d24a098933a330d00f4082ee9dc98d8e83dd1be1322a88fcba7a",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1210_zerologon_sysmon",
+          "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_Sysmon.evtx",
+          "expected_technique": "T1210",
+          "size_bytes": 69632,
+          "git_blob_sha1": "13542433e4b3b86f9b7eb76fba06564a6bfef2b0",
+          "sha256": "f3c4396e84fbcbe69d27b33ebdcb03caa7967fe9e3508700241a903b086ec1d3",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1210_zerologon_windows_default",
+          "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsDefaultLogging.evtx",
+          "expected_technique": "T1210",
+          "size_bytes": 69632,
+          "git_blob_sha1": "3acaa396e870eefb3001d2aadf15fe88f407a748",
+          "sha256": "cfc67286924c2194220ec23b4787fedc3cca6ca646c0e37bf2f672deb1661ebd",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1210_zerologon_windows_extra",
+          "source_path": "YamatoSecurity/LateralMovement/T1210_Zerologon_WindowsExtraLogging.evtx",
+          "expected_technique": "T1210",
+          "size_bytes": 69632,
+          "git_blob_sha1": "c7ca2139444616be8bed25bcd5e5a89a4d947926",
+          "sha256": "f3c02abbb64e58c614a5653d2521c036e9cbdabefa1e8176952b54bfb3a95fac",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1563_002_rdp_hijacking_security",
+          "source_path": "YamatoSecurity/LateralMovement/T1563.002_RDP-Hijacking_Security.evtx",
+          "expected_technique": "T1563.002",
+          "size_bytes": 69632,
+          "git_blob_sha1": "a99f91f938f3dfb5b94ce8a2425d6b1e67d0316e",
+          "sha256": "ea906b54832f76a65b4d6a1af2ae8064d1ceec8b6c39653453dfa22ea08432d6",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        },
+        {
+          "dataset_id": "t1197_bitsclient",
+          "source_path": "YamatoSecurity/Persistence/T1197_BitsClient.evtx",
+          "expected_technique": "T1197",
+          "size_bytes": 69632,
+          "git_blob_sha1": "75c196304d819489aa2e31a3cc85cf4a0ef8c373",
+          "sha256": "e0af6818dfcc19b2e059bd65d50ffe3692581c7bd1bd71a4bc5cba20755f8697",
+          "size_match": true,
+          "git_blob_match": true,
+          "sha256_match": true
+        }
+      ]
+    },
+    "benign_archive": {
+      "filename": "win2022-ad.tgz",
+      "size_bytes": 65991035,
+      "sha256": "dde89557c8dd19756d1fb4797f566aaa94509847c2740968bf04b5bea0b34ec1",
+      "filename_match": true,
+      "size_match": true,
+      "sha256_match": true
+    }
+  },
+  "claim_boundary": {
+    "source_class": "FRESH_EXACT_BYTES_CURRENT_RULEPACK_REVALIDATION",
+    "attack_exact_bytes_previously_detector_evaluated": false,
+    "benign_archive_exact_bytes_previously_detector_evaluated": false,
+    "attack_source_family_previously_used_by_breachscope": false,
+    "same_benign_source_family_as_historical_baselines": true,
+    "attack_source_path_technique_match_is_event_level_recall": false,
+    "independent_source_family_holdout": false,
+    "attack_fixture_hit_rate_is_event_level_recall": false,
+    "event_level_attack_ground_truth": "NOT_AVAILABLE",
+    "event_level_benign_ground_truth": "NOT_AVAILABLE",
+    "flagged_benign_events_are_confirmed_false_positives": false,
+    "confirmed_false_positive_rate": "NOT_CLAIMED",
+    "production_false_positive_rate": "NOT_CLAIMED",
+    "production_accuracy": "NOT_CLAIMED",
+    "production_recall": "NOT_CLAIMED",
+    "representative_production_population": "NOT_CLAIMED"
+  }
+}

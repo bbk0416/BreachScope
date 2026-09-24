@@ -15,3 +15,5 @@ external_baseline/locks/P2_35K_CURRENT_RULEPACK_REPLAY.lock -text -whitespace
 external_baseline/results/p2_35k_33f23bc/result.json -text -eol -whitespace
 external_baseline/locks/P2_35L_CURRENT_RULEPACK_FRESH_EXACT_BYTES.lock -text -whitespace
 external_baseline/results/p2_35l_a0569ca/result.json -text -eol -whitespace
+external_baseline/locks/P2_35M_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock -text -whitespace
+external_baseline/results/p2_35m_4aa6a1d/result.json -text -eol -whitespace
