@@ -1,0 +1,179 @@
+schema: breachscope.p2_35l_current_rulepack_fresh_exact_bytes_contract.v1
+analysis_id: p2-35l-current-rulepack-fresh-exact-bytes-v1
+status: PREREGISTERED_NOT_RUN
+purpose: >-
+  Revalidate the frozen current 69-rule BreachScope detector on exact attack and benign
+  bytes that have not previously been evaluated by BreachScope. The attack bytes come
+  from the already-known DeepBlueCLI source family and the benign archive comes from the
+  already-known Nextron evtx-baseline source family, so this is fresh exact-byte
+  revalidation but not an independent-source-family holdout.
+
+preregistration:
+  base_main_commit: 078251b006a4acf124051f001ce1cb1244c0c7af
+  predecessor_result: external_baseline/p2_35k_current_rulepack_replay_result.yaml
+  predecessor_result_main_commit: 078251b006a4acf124051f001ce1cb1244c0c7af
+  current_evidence_id: p2-35i-masquerading-current-detection-evidence
+  fresh_attack_revalidation_before_p2_35l: NOT_RUN
+  fresh_benign_revalidation_before_p2_35l: NOT_RUN
+  detector_execution_on_selected_p2_35l_bytes_before_contract_merge: false
+  benign_archive_downloaded_before_contract_merge: false
+  benign_archive_inventory_before_contract_merge: false
+  benign_evtx_contents_parsed_before_contract_merge: false
+
+frozen_product:
+  repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  rule_count: 69
+  rule_file_count: 5
+
+runner:
+  path: scripts/p2_35l_current_rulepack_fresh_exact_bytes.py
+  sha256: 65fb91c5313dc039c98f565577063b1555715687946b9278c8b5478d7d174e5b
+  product_repo_mode: SEPARATE_FROZEN_GIT_WORKTREE
+  product_python_modules_must_resolve_under_product_repo: true
+  global_lock_path: ~/.breachscope/canonical_locks/P2_35L_CURRENT_RULEPACK_FRESH_EXACT_BYTES.lock
+  global_lock_scope: ANALYSIS_ID_REPOSITORY_GLOBAL
+  global_lock_created_before_source_verification_or_archive_inventory: true
+  same_analysis_id_retry_allowed: false
+  replace_result_for_better_outcome: false
+
+attack_revalidation:
+  source:
+    repository: sans-blue-team/DeepBlueCLI
+    pinned_commit: 2eecc65698e8666408ece67525577c895676d579
+    readme_path: README.md
+    readme_git_blob_sha1: 937616cd0cbcf5e6c5f249d9ba9f03468f65962d
+    readme_size_bytes: 6401
+    readme_sha256: dcac06abe6a1a30184fb3da059a0a60f98468e04a719625a7588e8f479c45817
+    same_source_family_as_p2_25: true
+  freshness:
+    selected_exact_bytes_previously_detector_evaluated: false
+    selected_filenames_present_in_breachscope_project_before_binding: 0
+    current_p2_35i_rule_development_used_selected_exact_bytes: false
+    attack_bytes_were_locally_present_for_hash_binding: true
+    attack_event_contents_parsed_for_selection: false
+    independent_source_family: false
+  selection_policy:
+    source_label_basis: PINNED_DEEPBLUECLI_README_SCENARIO_TABLE
+    selected_fixture_count: 6
+    result_based_selection_or_replacement_allowed: false
+    post_execution_fixture_replacement_allowed: false
+  datasets:
+    - dataset_id: metasploit-psexec-native-security-fresh
+      scenario_label: Metasploit native target (security)
+      filename: metasploit-psexec-native-target-security.evtx
+      size_bytes: 69632
+      git_blob_sha1: d7433d0308f60833d28fb42ef8876858d6aea36a
+      sha256: 0c3547836951912d0645b7496f79424d383c2f8287a7159950931acc93e6376d
+    - dataset_id: metasploit-psexec-native-system-fresh
+      scenario_label: Metasploit native target (system)
+      filename: metasploit-psexec-native-target-system.evtx
+      size_bytes: 69632
+      git_blob_sha1: de3aa6e6aae36d86ef7db64deb62941b77dcefb3
+      sha256: a6f285b356850395b8171cb526d10d86adeeb2e74a3bfa3d8a2eae40d310b040
+    - dataset_id: metasploit-psexec-powershell-system-fresh
+      scenario_label: Metasploit PowerShell target (system)
+      filename: metasploit-psexec-powershell-target-system.evtx
+      size_bytes: 69632
+      git_blob_sha1: 7411e43938eba88bc4f458d9fd6d5bd1b96a5dd4
+      sha256: 971915aa6e7a508c4f0a2cb0e76882fd43234fa61c906dc33adf431efc8f2cd4
+    - dataset_id: obfuscation-string-fresh
+      scenario_label: Obfuscation (string)
+      filename: Powershell-Invoke-Obfuscation-string-menu.evtx
+      size_bytes: 69632
+      git_blob_sha1: 2a9f86b8fdeda782c4cca4bf06cc9ec4fc202c77
+      sha256: 32c7e1b5169f6f7c2c27aa1f9e7272d7eefba35ea13b469fb57234a17613c6ac
+    - dataset_id: smb-password-guessing-fresh
+      scenario_label: Password guessing
+      filename: smb-password-guessing-security.evtx
+      size_bytes: 3215360
+      git_blob_sha1: e7ad9b8453d10b8c822c237684759f07639677e3
+      sha256: 19202585fe053e7b0acf43458dec26957c16a2ddb6f87a21f5f85e6cba98b89c
+    - dataset_id: powersploit-system-fresh
+      scenario_label: PowerSploit (system)
+      filename: powersploit-system.evtx
+      size_bytes: 69632
+      git_blob_sha1: 6d23da8e16134d6831e90602b3331b83f3af893a
+      sha256: d22f54beca194d8b95994d89c02e8ad7f97144b798e374937e41f5b238ac95ee
+  measurement:
+    fixture_status: HIT_IF_AT_LEAST_ONE_FINDING_ELSE_MISS
+    report_per_fixture_raw_records: true
+    report_per_fixture_parsed_events: true
+    report_per_fixture_parse_errors: true
+    report_per_fixture_findings: true
+    report_per_fixture_flagged_events: true
+    report_per_fixture_findings_by_rule: true
+    report_per_fixture_findings_by_technique: true
+    report_aggregate_fixture_hit_rate: true
+    fixture_hit_rate_is_event_level_recall: false
+
+benign_revalidation:
+  source:
+    repository: NextronSystems/evtx-baseline
+    release_tag: v0.8.4
+    release_tag_commit: 394bd48339f84b16053ad4804b894ab00c8a6c74
+    readme_path: README.md
+    readme_git_blob_sha1: 0e71f1bf21374b08432711db22aa50ec100f80ef
+    readme_size_bytes: 8570
+    source_intent_quote: A repository hosting example goodware evtx logs containing sample software installation and basic user interaction
+    same_source_family_as_p2_09d_and_p2_13: true
+  freshness:
+    selected_archive_previously_detector_evaluated: false
+    selected_asset_name_present_in_breachscope_project_before_binding: 0
+    current_p2_35i_rule_development_used_selected_archive: false
+    archive_downloaded_before_contract_merge: false
+    archive_inventory_before_contract_merge: false
+    event_contents_parsed_before_contract_merge: false
+    independent_source_family: false
+  archive:
+    asset_name: win2022-evtx.tgz
+    size_bytes: 27433731
+    sha256: 29406757f9761b56372d40550c9bef4eb2bf82ec21ba15115910742b03c4aab2
+    digest_source: GITHUB_RELEASE_V0_8_4_ASSET_METADATA
+  member_selection_policy:
+    selector: ALL_REGULAR_TAR_MEMBERS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: MEMBER_NAME_CASEFOLD_ASCENDING
+    minimum_evtx_member_count: 1
+    content_based_member_selection_allowed: false
+    post_inventory_member_dropping_allowed: false
+    fallback_to_different_asset_allowed: false
+  measurement:
+    label_policy: BENIGN_BY_SOURCE_INTENT_NOT_EVENT_LEVEL_ADJUDICATION
+    report_member_inventory: true
+    report_per_member_raw_records: true
+    report_per_member_parsed_events: true
+    report_per_member_parse_errors: true
+    report_per_member_findings: true
+    report_per_member_flagged_events: true
+    report_aggregate_flagged_event_fraction: true
+    flagged_events_are_confirmed_false_positives: false
+
+protocol:
+  contract_must_be_merged_before_canonical_execution: true
+  one_canonical_execution_only: true
+  permanent_analysis_id_global_lock: true
+  global_lock_before_source_verification: true
+  global_lock_before_benign_archive_inventory: true
+  product_or_rules_must_not_change_during_evaluation: true
+  same_analysis_id_retry_allowed: false
+  replace_result_for_better_outcome: false
+  result_acceptance_depends_on_measurement_value: false
+
+claim_boundary:
+  source_class: FRESH_EXACT_BYTES_CURRENT_RULEPACK_REVALIDATION
+  fresh_exact_bytes_for_current_69_rule_detector: true
+  independent_source_family_holdout: false
+  attack_fixture_hit_rate_is_event_level_recall: false
+  event_level_attack_ground_truth: NOT_AVAILABLE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+
+execution_state:
+  canonical_execution_started: false
+  attack_detector_run: false
+  benign_detector_run: false
+  result_observed: false
