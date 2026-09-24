@@ -1,0 +1,33 @@
+schema: breachscope.p2_35j_current_rulepack_postchange_replay_abort.v1
+analysis_id: p2-35j-current-rulepack-postchange-replay-v1
+status: ABORTED_PRE_EXECUTION
+contract: external_baseline/p2_35j_current_rulepack_replay_contract.yaml
+contract_main_commit: 26f9558b1381d9a42187a249bba4a1e144849e1a
+reason: RUNNER_PRODUCT_REPO_COMMIT_BINDING_UNUSABLE_AFTER_PREREG_MERGE
+details:
+  frozen_product_repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  preregistration_merge_commit: 26f9558b1381d9a42187a249bba4a1e144849e1a
+  runner_uses_own_repo_as_product_repo: true
+  runner_requires_product_repo_head_equal_frozen_commit: true
+  contradiction: merged runner exists only in a repository HEAD later than the frozen product commit, so the exact merged preregistration state cannot satisfy its own product commit check
+execution:
+  canonical_execution_started: false
+  global_lock_created: false
+  output_created: false
+  source_identity_verification_started: false
+  source_records_parsed: false
+  detector_executed: false
+  duplicate_execution_performed: false
+protocol:
+  result_replacement_attempted: false
+  product_or_rules_modified: false
+  p2_35i_artifacts_modified: false
+  same_analysis_id_reuse_allowed: false
+next_step:
+  id: P2-35K
+  requirement: new analysis id with runner repo separated from a --product-repo worktree pinned at the frozen P2-35I detector commit; preserve the same exact replay sources, scoring, and claim boundaries
+claim_boundary:
+  attack_replay_result: NOT_MEASURED
+  benign_replay_result: NOT_MEASURED
+  fresh_external_validation: NOT_RUN
+  production_accuracy: NOT_CLAIMED

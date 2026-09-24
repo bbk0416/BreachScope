@@ -1,0 +1,198 @@
+schema: breachscope.p2_35k_current_rulepack_postchange_replay_contract.v1
+analysis_id: p2-35k-current-rulepack-postchange-replay-v1
+status: PREREGISTERED_AFTER_P2_35J_PREEXECUTION_ABORT
+analysis_class: POST_CHANGE_REGRESSION_REPLAY_WITH_SEPARATE_FROZEN_PRODUCT_WORKTREE
+purpose: repeat the P2-35J post-change regression replay under a new analysis id while separating the merged evaluator repository
+  from a --product-repo worktree pinned exactly at the P2-35I detector commit; reuse the same exact previously observed P2-25
+  attack and P2-26C benign bytes and preserve all scoring and claim boundaries
+predecessor:
+  p2_35i_contract: external_baseline/p2_35i_masquerading_candidate_contract.yaml
+  p2_35i_contract_main_commit: d7cfe656bd2fce2518a1a1435ffd6878e4b3e248
+  p2_35i_remediation_main_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  current_evidence: external_baseline/current_detection_evidence.yaml
+  current_evidence_id: p2-35i-masquerading-current-detection-evidence
+  fresh_attack_revalidation_after_current_rule_change: NOT_RUN
+  fresh_benign_revalidation_after_current_rule_change: NOT_RUN
+  p2_35j_contract: external_baseline/p2_35j_current_rulepack_replay_contract.yaml
+  p2_35j_contract_main_commit: 26f9558b1381d9a42187a249bba4a1e144849e1a
+  p2_35j_abort: external_baseline/p2_35j_current_rulepack_replay_abort.yaml
+  p2_35j_execution_started: false
+frozen_product:
+  repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  rule_count: 69
+  rule_file_count: 5
+  parent_remediation: p2-35i-original-filename-masquerading-remediation
+runner:
+  path: scripts/p2_35k_current_rulepack_replay.py
+  sha256: ebaa30dcce665e0efc6ba52bcaeeda37de9aba2d245ca227fc11040fcc69e35d
+  product_repo_argument: --product-repo
+  product_repo_mode: SEPARATE_FROZEN_GIT_WORKTREE
+  product_python_modules_must_resolve_under_product_repo: true
+  analysis_id_global_lock: ~/.breachscope/canonical_locks/P2_35K_CURRENT_RULEPACK_REPLAY.lock
+  permanent_exclusive_lock: true
+  lock_acquired_before_product_or_source_observation: true
+attack_replay:
+  source_class: PREVIOUSLY_OBSERVED_P2_25_EXACT_ATTACK_FIXTURES
+  source_repository: sans-blue-team/DeepBlueCLI
+  pinned_commit: 2eecc65698e8666408ece67525577c895676d579
+  original_contract: external_baseline/p2_25_deepblue_attack_one_pass_contract.yaml
+  original_result: external_baseline/results/p2_25_e712fc7/result.json
+  source_bytes_previously_parsed: true
+  source_detector_output_previously_observed: true
+  fresh_external_source: false
+  datasets:
+  - dataset_id: obfuscation-encoding
+    scenario_label: Obfuscation (encoding)
+    filename: Powershell-Invoke-Obfuscation-encoding-menu.evtx
+    size_bytes: 1118208
+    git_blob_sha1: 015795a0164f24be5eb91ea539cf154b1bcc3e65
+    sha256: b1d7c3411053a4190c93657265679958228b4bdb97652984c1564a67fcfab167
+  - dataset_id: metasploit-psexec-powershell-security
+    scenario_label: Metasploit PowerShell target (security)
+    filename: metasploit-psexec-powershell-target-security.evtx
+    size_bytes: 69632
+    git_blob_sha1: 033aebcc0bdda1d498f7443dfece4b849891cb73
+    sha256: 84a086d6d4afc2a0de2040518757ee99eb83550156b95719c936a16130c7e9fb
+  - dataset_id: mimikatz-lsadump-sam
+    scenario_label: Mimikatz lsadump::sam
+    filename: mimikatz-privesc-hashdump.evtx
+    size_bytes: 69632
+    git_blob_sha1: f82f01d16bc8cae33d20f96d0ea31519c08e2989
+    sha256: ee2278c513a42eb58b896e3696fabb5b2ee84c7a12cfc323993b1dbd74c75f3b
+  - dataset_id: password-spray
+    scenario_label: Password spraying
+    filename: password-spray.evtx
+    size_bytes: 1118208
+    git_blob_sha1: ca8929494da8bbaf12ef2f643c69d5cc4b141bf7
+    sha256: de910e6c86476db2898d8b5f22201c7505a52c90d6a3b03f9362eebe8f242029
+  - dataset_id: powersploit-security
+    scenario_label: PowerSploit (security)
+    filename: powersploit-security.evtx
+    size_bytes: 69632
+    git_blob_sha1: b32df5b1f6c7a792acfef52e50a33b64c683eee2
+    sha256: b9d805537ca768fcbed1ed765e61bee56e16d3c1baec65b12567e73d865fb8ae
+  - dataset_id: psattack-security
+    scenario_label: PSAttack
+    filename: psattack-security.evtx
+    size_bytes: 69632
+    git_blob_sha1: 6e7a711936305919c2a021700280d1d41065b47a
+    sha256: 2207cef54b911475c03ee268125b6290beedddae86bbd59ebca700cbb293f7c7
+  - dataset_id: new-user-security
+    scenario_label: New user creation
+    filename: new-user-security.evtx
+    size_bytes: 69632
+    git_blob_sha1: ae8553affd793e7b266972bf2b992daf0947cb13
+    sha256: 6f9fe51d0a5dec63dc68f819e23bc14da5db0b75db4a68dfdf6b39f02868a379
+  - dataset_id: eventlog-manipulation
+    scenario_label: Event log manipulation
+    filename: disablestop-eventlog.evtx
+    size_bytes: 69632
+    git_blob_sha1: 5e7ce922ee681277c8c8d82413bb9ba944caef54
+    sha256: 7645e96c6d778f96d60ce2a6f209cc4202385c9d87cc077139921270a8e9bb23
+  scoring:
+    unit: fixture
+    hit: one or more findings after at least one parsed event
+    miss: zero findings after at least one parsed event
+    error: zero parsed events or runtime failure
+    aggregate: fixture_hits / 8
+    event_level_recall: NOT_MEASURED
+    technique_recall: NOT_MEASURED
+benign_replay:
+  source_class: PREVIOUSLY_OBSERVED_P2_26C_EXACT_SOURCE_INTENT_BENIGN_ARTIFACT
+  original_binding: external_baseline/p2_26c_gha_windows_benign_binding.yaml
+  original_contract: external_baseline/p2_26c_gha_windows_benign_one_pass_contract.yaml
+  original_result: external_baseline/results/p2_26c_81b839d/result.json
+  workflow_run_id: 35492508210
+  artifact_id: 10599666432
+  artifact_name: p2-26c-benign-source-35492508210
+  artifact_digest: sha256:cd733c028bacef530ed95ccc094a81cbe50f0c7386ba1ea107745a2730e0e719
+  source_bytes_previously_parsed: true
+  source_detector_output_previously_observed: true
+  fresh_external_source: false
+  files:
+  - channel: Security
+    filename: Security.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: d07ecab6b9782c9196bf21548ff6fe8ce88311f939456ec66a05586dc2fe0806
+  - channel: System
+    filename: System.evtx
+    required: true
+    available: true
+    size_bytes: 1118208
+    sha256: 3a3afebd5319f6ef373a9dab97783cb37bea2012bcb820ec80c7e7f2d02da741
+  - channel: Application
+    filename: Application.evtx
+    required: true
+    available: true
+    size_bytes: 69632
+    sha256: 8b0d5010af14d6b973a5421e1520da4141c0f662a1a7411408f539bb6ac32864
+  - channel: Windows PowerShell
+    filename: Windows_PowerShell.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+  - channel: Microsoft-Windows-PowerShell/Operational
+    filename: Microsoft-Windows-PowerShell_Operational.evtx
+    required: false
+    available: true
+    size_bytes: 69632
+    sha256: f5f9e97a6b1ec8d46a9bd5b9d4ccae96521b85517b0337b248814d2e974a968b
+  scoring:
+    denominator: all successfully parsed events from every available exact bound EVTX file
+    flagged_event_definition: parsed event producing one or more findings
+    aggregate: unique_flagged_events / parsed_events
+    metric_name: observed_source_intent_benign_flagged_event_fraction
+    confirmed_false_positive_rate: NOT_MEASURED
+protocol:
+  contract_must_merge_before_current_detector_execution_on_replay_sources: true
+  source_identity_reverified_before_parse: true
+  permanent_analysis_id_global_lock_required: true
+  duplicate_execution_allowed: false
+  first_completed_or_failed_execution_is_canonical: true
+  replace_result_for_better_outcome: false
+  product_or_rules_tuning_after_contract_before_result: false
+  p2_25_canonical_result_modified: false
+  p2_26c_canonical_result_modified: false
+  p2_35i_artifacts_modified: false
+  replay_result_can_satisfy_fresh_external_validation_requirement: false
+  product_repo_must_be_separate_frozen_worktree: true
+  product_repo_head_must_equal_frozen_product_repo_commit: true
+  product_python_modules_must_resolve_under_product_repo: true
+  p2_35j_analysis_id_must_not_be_reused: true
+  p2_35j_artifacts_modified: false
+expected_comparison:
+  historical_p2_25_attack:
+    rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+    rule_count: 68
+    fixture_count: 8
+    hits: 6
+    misses: 2
+    errors: 0
+    fixture_hit_rate: 0.75
+  historical_p2_26c_benign:
+    rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
+    rule_count: 68
+    parsed_events: 1643
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+    observed_source_intent_benign_flagged_event_fraction: 0.0006086427267194157
+  comparison_is_regression_diagnostic_only: true
+  unchanged_numbers_required_for_pass: false
+claim_boundary:
+  fresh_external_source: false
+  independent_holdout: false
+  fresh_current_rulepack_performance: NOT_CLAIMED
+  event_level_attack_ground_truth: NOT_AVAILABLE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  attack_level_recall: NOT_EVALUATED
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
