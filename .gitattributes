@@ -11,3 +11,5 @@ external_baseline/results/p2_35d_bea0012/P2_35D_ONE_PASS.lock -text -whitespace
 external_baseline/locks/P2_35E_ONE_PASS.lock -text -whitespace
 external_baseline/locks/P2_35F_ONE_PASS.lock -text -whitespace
 external_baseline/locks/P2_35G_ONE_PASS.lock -text -whitespace
+external_baseline/locks/P2_35K_CURRENT_RULEPACK_REPLAY.lock -text -whitespace
+external_baseline/results/p2_35k_33f23bc/result.json -text -eol -whitespace
