@@ -21,9 +21,17 @@ preregistration:
   attack_source_tree_metadata_inspected_before_contract_merge: true
   attack_exact_bytes_downloaded_for_hash_binding_before_contract_merge: true
   attack_event_contents_parsed_before_contract_merge: false
-  benign_archive_downloaded_before_contract_merge: false
-  benign_archive_inventory_before_contract_merge: false
-  benign_evtx_contents_parsed_before_contract_merge: false
+  benign_archive_downloaded_before_initial_preregistration_merge: false
+  benign_archive_downloaded_before_pre_execution_correction_merge: true
+  benign_archive_identity_verified_before_pre_execution_correction_merge: true
+  benign_archive_inventory_before_pre_execution_correction_merge: false
+  benign_evtx_contents_parsed_before_pre_execution_correction_merge: false
+  initial_preregistration_merge_commit: 3c49ee44fecadd607d6b634258037ab6496af02b
+  pre_execution_correction_reason: README_GIT_TREE_BLOB_VS_WINDOWS_WORKTREE_CRLF_IDENTITY
+  pre_execution_correction_changes_source_selection: false
+  pre_execution_correction_changes_detector_semantics: false
+  pre_execution_correction_changes_analysis_id: false
+  canonical_execution_started_before_correction: false
 
 frozen_product:
   repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
@@ -33,7 +41,7 @@ frozen_product:
 
 runner:
   path: scripts/p2_35m_current_rulepack_fresh_source_revalidation.py
-  sha256: f480f65089d1470f157e9e733514c2caf49df9acd3a452f490596cbd1420d253
+  sha256: c50c2b7abb06ff9e8406443767a0ff7701b3a76c4abf7187cd4d487dae2b9427
   product_repo_mode: SEPARATE_FROZEN_GIT_WORKTREE
   product_python_modules_must_resolve_under_product_repo: true
   global_lock_path: ~/.breachscope/canonical_locks/P2_35M_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
@@ -43,6 +51,8 @@ runner:
   atomic_replace_retry_exception: PermissionError
   atomic_replace_retry_delays_seconds: [0.05, 0.1, 0.2, 0.4, 0.8, 1.6]
   atomic_replace_retry_is_evaluator_only: true
+  readme_git_identity_source: PINNED_GIT_TREE_BLOB_VIA_REV_PARSE
+  readme_worktree_identity_source: RAW_WORKTREE_SIZE_AND_SHA256
   detector_semantics_changed_by_retry: false
   same_analysis_id_retry_allowed: false
   replace_result_for_better_outcome: false
@@ -172,9 +182,11 @@ benign_revalidation:
     selected_archive_previously_detector_evaluated: false
     selected_asset_name_or_sha_present_in_pre_m_breachscope_evidence: 0
     current_p2_35i_rule_development_used_selected_archive: false
-    archive_downloaded_before_contract_merge: false
-    archive_inventory_before_contract_merge: false
-    event_contents_parsed_before_contract_merge: false
+    archive_downloaded_before_initial_preregistration_merge: false
+    archive_downloaded_before_pre_execution_correction_merge: true
+    archive_identity_verified_before_pre_execution_correction_merge: true
+    archive_inventory_before_pre_execution_correction_merge: false
+    event_contents_parsed_before_pre_execution_correction_merge: false
     independent_source_family: false
   archive:
     asset_name: win2022-ad.tgz

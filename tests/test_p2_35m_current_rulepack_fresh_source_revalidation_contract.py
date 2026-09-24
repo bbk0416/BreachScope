@@ -34,6 +34,11 @@ def test_p2_35m_identity_predecessor_and_product() -> None:
     assert row["preregistration"]["p2_35l_same_analysis_id_retry_forbidden"] is True
     assert row["preregistration"]["predecessor_failure_record_in_same_pr"] is False
     assert row["preregistration"]["predecessor_failure_main_commit"] == "a84e535a3382a414bdbb2eb4c00dd99a2c387060"
+    assert row["preregistration"]["initial_preregistration_merge_commit"] == "3c49ee44fecadd607d6b634258037ab6496af02b"
+    assert row["preregistration"]["pre_execution_correction_reason"] == "README_GIT_TREE_BLOB_VS_WINDOWS_WORKTREE_CRLF_IDENTITY"
+    assert row["preregistration"]["pre_execution_correction_changes_source_selection"] is False
+    assert row["preregistration"]["pre_execution_correction_changes_detector_semantics"] is False
+    assert row["preregistration"]["canonical_execution_started_before_correction"] is False
     assert row["preregistration"]["predecessor_failure"].endswith(
         "p2_35l_current_rulepack_fresh_exact_bytes_failure.yaml"
     )
@@ -52,7 +57,7 @@ def test_p2_35m_runner_hash_and_output_retry_are_fixed() -> None:
     ).hexdigest()
     assert row["sha256"] == digest
     assert row["sha256"] == (
-        "f480f65089d1470f157e9e733514c2caf49df9acd3a452f490596cbd1420d253"
+        "c50c2b7abb06ff9e8406443767a0ff7701b3a76c4abf7187cd4d487dae2b9427"
     )
     assert row["product_repo_mode"] == "SEPARATE_FROZEN_GIT_WORKTREE"
     assert row["atomic_output_strategy"] == (
@@ -68,6 +73,8 @@ def test_p2_35m_runner_hash_and_output_retry_are_fixed() -> None:
         1.6,
     ]
     assert row["detector_semantics_changed_by_retry"] is False
+    assert row["readme_git_identity_source"] == "PINNED_GIT_TREE_BLOB_VIA_REV_PARSE"
+    assert row["readme_worktree_identity_source"] == "RAW_WORKTREE_SIZE_AND_SHA256"
 
 
 def test_p2_35m_attack_source_is_unused_yamato_original_bundle() -> None:
@@ -131,9 +138,11 @@ def test_p2_35m_benign_archive_is_unused_and_not_downloaded_premerge() -> None:
     }
     fresh = row["freshness"]
     assert fresh["selected_archive_previously_detector_evaluated"] is False
-    assert fresh["archive_downloaded_before_contract_merge"] is False
-    assert fresh["archive_inventory_before_contract_merge"] is False
-    assert fresh["event_contents_parsed_before_contract_merge"] is False
+    assert fresh["archive_downloaded_before_initial_preregistration_merge"] is False
+    assert fresh["archive_downloaded_before_pre_execution_correction_merge"] is True
+    assert fresh["archive_identity_verified_before_pre_execution_correction_merge"] is True
+    assert fresh["archive_inventory_before_pre_execution_correction_merge"] is False
+    assert fresh["event_contents_parsed_before_pre_execution_correction_merge"] is False
     assert (
         row["member_selection_policy"]["post_inventory_member_dropping_allowed"]
         is False
@@ -226,6 +235,12 @@ for value in [
     assert completed.returncode == 0, completed.stderr
     for line in completed.stdout.splitlines():
         assert Path(line).resolve().is_relative_to(fake.resolve())
+
+
+def test_p2_35m_readme_git_identity_uses_tree_blob_not_worktree_blob() -> None:
+    source = RUNNER.read_text(encoding="utf-8")
+    assert 'f"HEAD:{source_meta[\'readme_path\']}"' in source
+    assert '"git_blob_sha1": git_blob_sha1(readme)' not in source
 
 
 def test_p2_35m_execution_not_started() -> None:

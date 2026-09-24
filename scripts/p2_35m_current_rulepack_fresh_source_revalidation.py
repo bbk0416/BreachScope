@@ -267,7 +267,11 @@ def verify_attack_repo(
     readme_row = {
         "path": source_meta["readme_path"],
         "size_bytes": readme.stat().st_size,
-        "git_blob_sha1": git_blob_sha1(readme),
+        "git_blob_sha1": git(
+            attack_repo,
+            "rev-parse",
+            f"HEAD:{source_meta['readme_path']}",
+        ),
         "sha256": sha256(readme),
     }
     readme_row["size_match"] = (
