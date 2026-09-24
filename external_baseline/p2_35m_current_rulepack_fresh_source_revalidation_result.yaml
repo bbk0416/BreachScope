@@ -1,0 +1,186 @@
+schema: breachscope.p2_35m_current_rulepack_fresh_source_revalidation_result.v1
+analysis_id: p2-35m-current-rulepack-fresh-source-revalidation-v1
+status: COMPLETED
+analysis_class: FRESH_ATTACK_SOURCE_FAMILY_AND_FRESH_BENIGN_EXACT_BYTES_CURRENT_RULEPACK_REVALIDATION
+contract: external_baseline/p2_35m_current_rulepack_fresh_source_revalidation_contract.yaml
+contract_merge_commit: 4aa6a1d1cb8122a4c209891d8567c95e1584903e
+evaluator_repo_commit: 4aa6a1d1cb8122a4c209891d8567c95e1584903e
+frozen_product:
+  repo_commit: 2401f8b9b6a569b8b932451f0a0ae20ffa26abbc
+  rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  rule_count: 69
+  rule_file_count: 5
+runner:
+  sha256: c50c2b7abb06ff9e8406443767a0ff7701b3a76c4abf7187cd4d487dae2b9427
+  contract_sha256: 0636d07c4ab3ea15b790c7f872d86aadcc999810db2cfaea78e9ddff44824b2a
+  product_repo_mode: SEPARATE_FROZEN_GIT_WORKTREE
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_35m_4aa6a1d/result.json
+    size_bytes: 169648
+    sha256: 14a3143f5b674c97685910ff1040ba92f3bd7bd80e262598adeb71f59bcce9e0
+  permanent_global_lock:
+    path: external_baseline/locks/P2_35M_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+    size_bytes: 122
+    sha256: e374b17549707b97173c42aa852abb51e611d2c5d1c774a7e54ecbcc0c2a0f0f
+    analysis_id: p2-35m-current-rulepack-fresh-source-revalidation-v1
+source_verification:
+  attack:
+    repository: Yamato-Security/hayabusa-sample-evtx
+    repo_commit: 0845333ecb4afcf64c55c6e10946383f168f308c
+    selected_fixture_count: 10
+    all_selected_source_identities_match: true
+  benign_archive:
+    filename: win2022-ad.tgz
+    size_bytes: 65991035
+    sha256: dde89557c8dd19756d1fb4797f566aaa94509847c2740968bf04b5bea0b34ec1
+    filename_match: true
+    size_match: true
+    sha256_match: true
+attack_revalidation:
+  summary:
+    fixture_count: 10
+    hits: 6
+    misses: 4
+    errors: 0
+    fixture_hit_rate: 0.6
+    expected_technique_matches: 1
+    expected_technique_nonmatches: 9
+    expected_technique_errors: 0
+    expected_technique_match_fraction_of_all_fixtures: 0.1
+    expected_technique_match_fraction_of_evaluable_fixtures: 0.1
+  datasets:
+  - dataset_id: t1558_003_kerberoasting_security
+    expected_technique: T1558.003
+    fixture_status: HIT
+    expected_technique_match: false
+    parsed_events: 6
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1558_004_asrep_roasting_security
+    expected_technique: T1558.004
+    fixture_status: HIT
+    expected_technique_match: false
+    parsed_events: 43
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1027_004_compile_after_delivery_sysmon
+    expected_technique: T1027.004
+    fixture_status: HIT
+    expected_technique_match: false
+    parsed_events: 9
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1218_004_installutil_sysmon
+    expected_technique: T1218.004
+    fixture_status: HIT
+    expected_technique_match: true
+    parsed_events: 7
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1562_010_downgrade_attack_powershell
+    expected_technique: T1562.010
+    fixture_status: MISS
+    expected_technique_match: false
+    parsed_events: 26
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+  - dataset_id: t1210_zerologon_sysmon
+    expected_technique: T1210
+    fixture_status: MISS
+    expected_technique_match: false
+    parsed_events: 22
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+  - dataset_id: t1210_zerologon_windows_default
+    expected_technique: T1210
+    fixture_status: HIT
+    expected_technique_match: false
+    parsed_events: 35
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1210_zerologon_windows_extra
+    expected_technique: T1210
+    fixture_status: HIT
+    expected_technique_match: false
+    parsed_events: 14
+    parse_errors: 0
+    findings: 1
+    flagged_events: 1
+  - dataset_id: t1563_002_rdp_hijacking_security
+    expected_technique: T1563.002
+    fixture_status: MISS
+    expected_technique_match: false
+    parsed_events: 4
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+  - dataset_id: t1197_bitsclient
+    expected_technique: T1197
+    fixture_status: MISS
+    expected_technique_match: false
+    parsed_events: 7
+    parse_errors: 0
+    findings: 0
+    flagged_events: 0
+benign_revalidation:
+  summary:
+    evtx_member_count: 337
+    raw_records: 425986
+    parsed_events: 425974
+    parse_errors: 12
+    findings: 4
+    flagged_events: 4
+    observed_source_intent_benign_flagged_event_fraction: 9.390244475014907e-06
+    observed_source_intent_benign_flagged_event_percent: 0.0009390244475014907
+    findings_by_rule:
+      R-WMI-WMIPRVSE-CHILD-4688: 4
+    findings_by_source:
+      Microsoft-Windows-Security-Auditing: 4
+  flagged_members:
+  - name: Win2022-AD/Security.evtx
+    parsed_events: 2297
+    parse_errors: 0
+    findings: 4
+    flagged_events: 4
+    findings_by_rule:
+      R-WMI-WMIPRVSE-CHILD-4688: 4
+    findings_by_source:
+      Microsoft-Windows-Security-Auditing: 4
+protocol:
+  canonical_execution_status: COMPLETED
+  one_canonical_execution_only: true
+  permanent_analysis_id_global_lock_used: true
+  same_analysis_id_retry_allowed: false
+  replace_result_for_better_outcome: false
+  frozen_product_or_rules_modified: false
+decision:
+  fresh_attack_revalidation_after_current_rule_change: COMPLETED
+  fresh_benign_revalidation_after_current_rule_change: COMPLETED
+  fresh_current_rulepack_performance_available: true
+  combined_independent_source_family_holdout: false
+claim_boundary:
+  source_class: FRESH_EXACT_BYTES_CURRENT_RULEPACK_REVALIDATION
+  attack_exact_bytes_previously_detector_evaluated: false
+  benign_archive_exact_bytes_previously_detector_evaluated: false
+  attack_source_family_previously_used_by_breachscope: false
+  same_benign_source_family_as_historical_baselines: true
+  attack_source_path_technique_match_is_event_level_recall: false
+  independent_source_family_holdout: false
+  attack_fixture_hit_rate_is_event_level_recall: false
+  event_level_attack_ground_truth: NOT_AVAILABLE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  flagged_benign_events_are_confirmed_false_positives: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED

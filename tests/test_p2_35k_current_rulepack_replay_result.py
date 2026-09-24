@@ -156,12 +156,16 @@ def test_p2_35k_replay_does_not_satisfy_fresh_revalidation() -> None:
     assert claim["production_accuracy"] == "NOT_CLAIMED"
 
 
-def test_p2_35k_current_detection_evidence_still_marks_fresh_revalidation_not_run() -> None:
-    text = CURRENT.read_text(encoding="utf-8")
-    assert (
-        "fresh attack and benign revalidation after P2-35I are NOT_RUN."
-        in text
-    )
+def test_p2_35k_historical_replay_stays_not_fresh_after_p2_35m() -> None:
+    row = _load_yaml(SUMMARY)
+    assert row["decision"]["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert row["decision"]["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+
+    current = _load_yaml(CURRENT)
+    validation = current["current_rulepack_validation"]
+    assert validation["current_revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
 
 
 def test_p2_35k_lock_is_configured_for_byte_exact_git_storage() -> None:

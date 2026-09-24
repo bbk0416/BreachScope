@@ -10,7 +10,7 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-35i-masquerading-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4",
         "rules_tree_sha256": "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7",
@@ -49,7 +49,8 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     assert benign["adjudication"]["confirmed_false_positives"] == "NOT_CLAIMED"
 
     revalidation = data["post_remediation_revalidations"]
-    assert revalidation == [
+    assert len(revalidation) == 3
+    assert revalidation[:2] == [
         {
             "revalidation_id": "p2-25-deepbluecli-fresh-attack",
             "class": "fresh_external_attack_fixture_revalidation",
@@ -87,6 +88,20 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
             "production_false_positive_rate": "NOT_CLAIMED",
         }
     ]
+
+    m = revalidation[2]
+    assert m["revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
+    assert m["detector_rules_tree_sha256"] == data["current_frozen_detector"]["rules_tree_sha256"]
+    assert m["fixture_count"] == 10
+    assert m["hits"] == 6
+    assert m["misses"] == 4
+    assert m["expected_technique_matches"] == 1
+    assert m["benign_parsed_events"] == 425974
+    assert m["benign_parse_errors"] == 12
+    assert m["benign_flagged_events"] == 4
+    assert m["fresh_attack_revalidation"] == "COMPLETED"
+    assert m["fresh_benign_revalidation"] == "COMPLETED"
+    assert m["independent_source_family_holdout"] is False
 
     boundary = data["claim_boundary"]
     for key in (
