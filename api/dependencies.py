@@ -3,9 +3,10 @@ FastAPI 의존성 주입
 """
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
+from breachscope.runtime_paths import default_templates_dir
 
 # 템플릿 환경 설정
-templates_dir = Path(__file__).parent.parent / "templates"
+templates_dir = default_templates_dir()
 jinja_env = Environment(loader=FileSystemLoader(str(templates_dir)))
 
 def get_templates_env() -> Environment:

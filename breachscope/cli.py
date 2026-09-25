@@ -12,6 +12,7 @@ from .rulepack import summarize_rules
 from .demo_scenarios import list_demo_scenarios, write_demo_scenario, write_all_demo_scenarios
 from .ingest import convert_evtx_dir, collect_windows_logs
 from .validator import validate_input
+from .runtime_paths import resolve_rules_dir
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,7 @@ def main():
         return
 
     if args.validate_rules:
-        rules = load_rules(Path(arg_or_cfg(args.rules, "rules") or args.rules))
+        rules = load_rules(resolve_rules_dir(arg_or_cfg(args.rules, "rules") or "rules"))
         coverage = summarize_rules(rules)
         print(f"규칙 개수: {len(rules)}")
         print(f"고유 ATT&CK 기법: {coverage['unique_techniques']}")
@@ -201,7 +202,7 @@ def main():
             print(f"✓ EVTX 변환 완료: {input_dir}")
 
     # 설정 파일에서 기본값 가져오기
-    rules_dir = Path(arg_or_cfg(args.rules, "rules") or "rules")
+    rules_dir = resolve_rules_dir(arg_or_cfg(args.rules, "rules") or "rules")
     out_prefix = Path(arg_or_cfg(args.out, "out") or "out/report")
     out_prefix.parent.mkdir(parents=True, exist_ok=True)
 

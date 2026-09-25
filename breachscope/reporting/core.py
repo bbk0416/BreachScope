@@ -13,6 +13,7 @@ from ..schemas import Report, Finding, Event
 from ..utils import parse_timestamp as _parse_ts
 from ..attack import get_mitre_name, get_mitre_tactic
 from .nlg import NLGTemplate
+from breachscope.runtime_paths import default_templates_dir
 from .integrity import (
     generate_evidence_hash_list,
     generate_report_hash,
@@ -506,7 +507,7 @@ def render_html(
         out_html.write_text(html, encoding="utf-8")
         return
 
-    tmpl_dir = Path(__file__).parent.parent.parent / "templates"
+    tmpl_dir = default_templates_dir()
     env = Environment(
         loader=FileSystemLoader(str(tmpl_dir)),
         autoescape=select_autoescape(["html", "xml"]),

@@ -1,0 +1,31 @@
+- id: R-WINRS-REMOTE-TARGET
+  name: WinRS Explicit Remote Target
+  description: Sysmon process creation showing winrs with an explicit remote target
+  field: command_line
+  operator: regex
+  pattern: '(?i)\bwinrs(?:\.exe)?\s+-r:\S+'
+  severity: medium
+  mitre_technique: T1021.006
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+
+- id: R-DOMAIN-ACCOUNT-DISCOVERY-CMD
+  name: Domain Account Discovery Command
+  description: Sysmon process creation using common domain-account discovery commands
+  field: command_line
+  operator: regex
+  pattern: '(?i)(?:\bnet(?:1)?(?:\.exe)?\s+users?\s+/domain\b|\bdsquery(?:\.exe)?\s+user\b|\bget-aduser\b|\bget-domainuser\b|\bwmic(?:\.exe)?\b.*?root\\directory\\ldap.*?\bds_user\b|\bget-wmiobject\b.*?\bds_user\b.*?root\\directory\\ldap)'
+  severity: low
+  mitre_technique: T1087.002
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
