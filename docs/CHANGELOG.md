@@ -1,6 +1,6 @@
 # BreachScope 변경 이력
 
-## Unreleased
+## 2.1.1 - Unreleased
 
 - Prevent generated runtime secret files such as `.env` and `.env.*` from being accidentally committed while keeping `.env.example` trackable.
 - Default Docker Compose host publishing to loopback and make the host bind address/port explicitly configurable.
