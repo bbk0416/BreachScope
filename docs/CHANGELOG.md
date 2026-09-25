@@ -1,5 +1,11 @@
 # BreachScope 변경 이력
 
+## Unreleased
+
+- Add a documented-schema-only MITRE BRAWL adapter for Sysmon and Windows Event records without inspecting the released raw archive.
+- Preserve CALDERA BSF step/ATT&CK references as attack-side ground truth without inventing event-level malicious/benign labels.
+- Freeze the adapter SHA-256 and BRAWL source commit/blob/size in a pre-raw-inspection contract; raw corpus access remains blocked until a separate scoring preregistration is merged.
+
 ## 2.1.2 - Released 2026-09-25
 
 - Published Git tag and GitHub Release `v2.1.2` from commit `cedfca77130164a0bb12acdd9e7e8f729b42b4dd`.

@@ -1,0 +1,62 @@
+schema: breachscope.brawl_documented_schema_adapter_contract.v1
+status: PRE_RAW_INSPECTION_FROZEN
+created_date: 2026-09-25
+purpose: freeze a documented-schema-only BRAWL adapter before any released raw event archive is opened
+
+source:
+  repository: mitre/brawl-public-game-001
+  branch: master
+  commit: 7ec51fac8fc05ea01da210f604b821ef52818173
+  archive_path: brawl-public-game-001.zip
+  archive_git_blob_sha1: 257a4ed9dcba427f75cc11da286f44004ed6c7c0
+  archive_size_bytes: 4967769
+  license: CC-BY-4.0
+  raw_archive_downloaded_before_contract: false
+  raw_archive_contents_inspected_before_contract: false
+  breachscope_repository_search_hits_before_candidate_note: 0
+
+upstream_documented_schema:
+  host_record_types:
+    - sysmon
+    - win_event
+  ground_truth_record_type: bsf_events
+  sysmon_fields_container: data_model.fields
+  win_event_evidence: raw Windows Event XML
+  bsf_step_attack_annotation: attack_info
+  bsf_step_event_references: events
+
+adapter:
+  path: breachscope/brawl.py
+  sha256: 5f649949dc7cbca9289db2c6ac2324f00efbf9eeebb6d3579dcec18a8fe3ae54
+  implementation_basis: public upstream README/schema description only
+  raw_data_used_for_implementation: false
+  automatic_general_jsonl_interpretation: false
+  supported_operations:
+    - normalize documented BRAWL Sysmon records to BreachScope Event
+    - normalize documented BRAWL win_event raw XML to BreachScope Event
+    - extract BSF step ATT&CK annotations and referenced red-bot events without inventing event-level labels
+
+sysmon_event_id_mapping:
+  process/create: "1"
+  file/attr_modify: "2"
+  flow/start: "3"
+  process/terminate: "5"
+  driver/load: "6"
+  module/load: "7"
+  thread/create: "8"
+  threat/remote_create: "8"
+
+claim_boundaries:
+  - this contract is not an evaluation result
+  - BSF red-bot actions are an attack-side oracle, not a complete malicious/benign event label set
+  - the public game has no Grey bot and is not accepted as a production benign-FPR corpus
+  - no production accuracy, recall, precision, or false-positive rate may be claimed from this adapter contract
+  - current P2-35M evidence and claim boundaries remain unchanged
+
+pre_raw_inspection_gate:
+  - merge this adapter and contract before opening the raw archive
+  - focused adapter tests must pass
+  - full repository test suite must pass
+  - current detection evidence verifier must pass
+  - a separate scoring preregistration must freeze BSF-step selection, ATT&CK crosswalk, host/time matching, and hit/miss semantics
+  - only after that scoring preregistration is merged may the raw BRAWL archive be downloaded and inspected
