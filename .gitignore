@@ -60,6 +60,11 @@ performance.log
 Thumbs.db
 desktop.ini
 
+# 환경 변수 / 비밀값
+.env
+.env.*
+!.env.example
+
 # 설정 파일 (선택적)
 breachscope.yaml
 breachscope.db
