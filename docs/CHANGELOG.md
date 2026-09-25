@@ -1,7 +1,9 @@
 # BreachScope 변경 이력
 
-## 2.1.0 - Unreleased
+## 2.1.0 - Released 2026-09-25
 
+- Published Git tag and GitHub Release `v2.1.0` from commit `93effaa62a982dc59cc7bd982c16bef2270fb21c`.
+- Published verified release assets: wheel, sdist, source ZIP, `SHA256SUMS.txt`, and `release_manifest.json`.
 - Prepare the next minor release from the post-v2.0.1 development line; the published v2.0.1 tag and assets remain unchanged.
 - Add evidence-backed remote-execution and remote-service correlation/scenario support, including stricter endpoint/session scoping and Windows record normalization.
 - Improve EVTX ingestion/reporting performance work while preserving the recorded benchmark and evaluation evidence instead of rewriting historical results.
