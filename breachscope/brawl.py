@@ -97,11 +97,16 @@ def event_from_brawl_sysmon(record: Mapping[str, Any]) -> Event:
     data_model = _as_mapping(record.get("data_model"))
     object_name = str(data_model.get("object") or "")
     actions = _as_actions(data_model.get("action"))
-    fields = _normalized_sysmon_fields(_as_mapping(data_model.get("fields")))
+    source_fields = _as_mapping(data_model.get("fields"))
+    fields = _normalized_sysmon_fields(source_fields)
+    folded_fields = {str(key).casefold(): value for key, value in source_fields.items()}
 
     event_id = _sysmon_event_id(object_name, actions)
     command_line = fields.get("CommandLine")
     user = fields.get("User")
+    utc_time = folded_fields.get("utc_time")
+    timestamp = utc_time if utc_time not in (None, "") else record.get("@timestamp")
+    timestamp_source = "data_model.fields.utc_time" if utc_time not in (None, "") else "@timestamp"
 
     raw = dict(record)
     raw["event_data"] = dict(fields)
@@ -112,10 +117,11 @@ def event_from_brawl_sysmon(record: Mapping[str, Any]) -> Event:
         "object": object_name,
         "actions": actions,
         "event_id_mapping": event_id or None,
+        "timestamp_source": timestamp_source,
     }
 
     candidate = {
-        "timestamp": str(record.get("@timestamp") or ""),
+        "timestamp": str(timestamp or ""),
         "host": str(record.get("host") or "unknown"),
         "source": "Microsoft-Windows-Sysmon",
         "event_id": event_id,

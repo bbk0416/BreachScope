@@ -21,13 +21,15 @@ upstream_documented_schema:
     - win_event
   ground_truth_record_type: bsf_events
   sysmon_fields_container: data_model.fields
+  sysmon_primary_timestamp: data_model.fields.utc_time
+  sysmon_timestamp_fallback: '@timestamp'
   win_event_evidence: raw Windows Event XML
   bsf_step_attack_annotation: attack_info
   bsf_step_event_references: events
 
 adapter:
   path: breachscope/brawl.py
-  sha256: 5f649949dc7cbca9289db2c6ac2324f00efbf9eeebb6d3579dcec18a8fe3ae54
+  sha256: e2a75b97960f3dde71d512a6082d29a4cbfd1e71cd3e1d8855adbcbf07569290
   implementation_basis: public upstream README/schema description only
   raw_data_used_for_implementation: false
   automatic_general_jsonl_interpretation: false

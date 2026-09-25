@@ -1,0 +1,212 @@
+schema: breachscope.brawl_attack_step_scoring_preregistration.v2
+analysis_id: brawl-independent-attack-step-technique-holdout-v1
+status: PREREGISTERED_NOT_RUN
+created_date: 2026-09-25
+purpose: freeze attack step-technique scoring semantics before the MITRE BRAWL raw archive is downloaded or inspected
+
+preregistration_base:
+  repository_commit: 2e7766b8560a6503cf292cf3f3b5afcab02b760c
+  current_rules_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  current_public_release: v2.1.2
+
+source:
+  repository: mitre/brawl-public-game-001
+  branch: master
+  commit: 7ec51fac8fc05ea01da210f604b821ef52818173
+  archive_path: brawl-public-game-001.zip
+  archive_git_blob_sha1: 257a4ed9dcba427f75cc11da286f44004ed6c7c0
+  archive_size_bytes: 4967769
+  license: CC-BY-4.0
+  raw_archive_downloaded_before_preregistration: false
+  raw_archive_contents_inspected_before_preregistration: false
+
+adapter:
+  path: breachscope/brawl.py
+  sha256: e2a75b97960f3dde71d512a6082d29a4cbfd1e71cd3e1d8855adbcbf07569290
+  contract: external_baseline/brawl_documented_schema_adapter_contract.yaml
+  contract_sha256: 31a617755af06a5ddf0d08ffe33644985f3deec6e21aa29c7c3cc58a9f65fb09
+  raw_data_used_for_implementation: false
+  sysmon_timestamp_policy:
+    primary: data_model.fields.utc_time
+    fallback: "@timestamp"
+
+scorer:
+  path: breachscope/brawl_score.py
+  sha256: 3673001dc3c16404555d5134014883f2ec740983c59276ce2a235ed9711b9e0a
+  implementation_basis:
+    - public BRAWL README/schema only
+    - synthetic fixtures only
+    - current MITRE ATT&CK technique pages checked 2026-09-25
+  raw_data_used_for_implementation: false
+
+evaluator:
+  path: scripts/brawl_attack_holdout_one_pass.py
+  sha256: dc184786be497f3ed9d58bfe07dacefcf1912c274c81f4b1d7920182bdf4671e
+  raw_data_used_for_implementation: false
+  source_download_capability: false
+  archive_identity_checks:
+    - archive_size_bytes
+    - Git blob SHA-1
+  permanent_lock: ~/.breachscope/canonical_locks/BRAWL_ATTACK_STEP_TECHNIQUE_HOLDOUT_V1.lock
+  lock_timing: after immutable archive/code/rules verification and immediately before raw ZIP contents are opened
+
+scope:
+  primary_unit: BSF step x unique upstream ATT&CK technique pair
+  primary_metric: brawl_attack_step_technique_hit_fraction
+  eligible_step:
+    - nodetype is step
+    - attack_info contains at least one non-empty technique_id
+    - events references at least one BSF event node
+  pair_selection_rule:
+    - include every eligible CALDERA red-bot BSF step
+    - create one pair for every unique non-empty attack_info technique_id on that step
+    - no post-hoc step or technique selection
+  excluded_claims:
+    - event-level recall
+    - event-level precision
+    - false-positive rate
+    - production accuracy
+    - production recall
+    - production false-positive rate
+
+attack_id_crosswalk:
+  source_vintage_note: public BRAWL README uses ATT&CK identifiers current at the 2017 game
+  mapping:
+    T1087: T1087
+    T1003: T1003
+    T1016: T1016
+    T1069: T1069
+    T1086: T1059.001
+    T1060: T1547.001
+    T1105: T1105
+    T1018: T1018
+    T1077: T1021.002
+    T1047: T1047
+  current_reference_urls:
+    T1059.001: https://attack.mitre.org/techniques/T1059/001/
+    T1547.001: https://attack.mitre.org/techniques/T1547/001/
+    T1021.002: https://attack.mitre.org/techniques/T1021/002/
+    T1105: https://attack.mitre.org/techniques/T1105/
+    T1087: https://attack.mitre.org/techniques/T1087/
+    T1003: https://attack.mitre.org/techniques/T1003/
+    T1016: https://attack.mitre.org/techniques/T1016/
+    T1069: https://attack.mitre.org/techniques/T1069/
+    T1018: https://attack.mitre.org/techniques/T1018/
+    T1047: https://attack.mitre.org/techniques/T1047/
+  parent_matching_rule: if the expected current identifier has no dot, an observed finding on the exact parent or one of its sub-techniques satisfies the technique dimension; a parent finding never satisfies an expected sub-technique
+
+host_matching:
+  normalization:
+    - compare ordinary case-folded text only
+    - strip surrounding whitespace
+    - strip trailing dot
+  equivalence:
+    - normalized exact match
+    - short-host/FQDN match only when their first DNS label is identical and exactly one side is an FQDN
+    - two different FQDNs never match solely because their first label is equal
+
+time_matching:
+  timezone: UTC
+  inclusive_bounds: true
+  exact_time:
+    source_field: time
+    tolerance_seconds_before: 1
+    tolerance_seconds_after: 1
+  explicit_interval:
+    lower_field: happened_after
+    upper_field: happened_before
+    expansion_seconds: 0
+  one_sided_interval:
+    missing_side_tolerance_seconds: 1
+  referenced_event_policy:
+    - every referenced BSF event must have a usable host
+    - every referenced BSF event must have time or happened_after/happened_before
+    - malformed referenced events make the step ERROR
+  anti_cross_join_rule: host and time must match the same referenced BSF event; host from one event may not be combined with the time window of another event
+  outer_step_window: diagnostic only; never used for HIT matching
+  invalid_or_missing_time: ERROR, not MISS
+
+pair_hit_semantics:
+  HIT:
+    - expected current ATT&CK technique is present in the frozen crosswalk
+    - at least one BreachScope Finding technique satisfies the frozen ATT&CK matching rule
+    - the same Finding host matches one referenced BSF event host
+    - the same Finding timestamp falls inside that same referenced BSF event time window
+  MISS:
+    - pair is valid and evaluable but no Finding satisfies all HIT dimensions
+  ERROR:
+    - missing step id
+    - missing ATT&CK technique
+    - upstream ATT&CK id absent from the frozen crosswalk
+    - referenced BSF event is not an object
+    - referenced BSF event has no usable host
+    - referenced BSF event has missing or invalid time
+    - malformed interval with happened_after later than happened_before
+  error_policy: ERROR is never converted to MISS
+
+step_status:
+  HIT: every pair on the step is HIT
+  PARTIAL: at least one pair is HIT and at least one pair is MISS
+  MISS: every evaluable pair on the step is MISS
+  ERROR: one or more pairs or referenced-event prerequisites are ERROR
+  note: step status is secondary; primary metric denominator is step-technique pairs
+
+aggregation:
+  report_counts:
+    - total_step_technique_pairs
+    - pair_hits
+    - pair_misses
+    - pair_errors
+    - evaluable_pairs
+    - total_steps
+    - fully_hit_steps
+    - partial_steps
+    - missed_steps
+    - error_steps
+    - evaluable_steps
+  report_fractions:
+    - step_technique_hit_fraction_of_all_pairs
+    - step_technique_hit_fraction_of_evaluable_pairs
+    - fully_hit_step_fraction_of_evaluable_steps
+  prohibited_metric_names:
+    - recall
+    - precision
+    - false_positive_rate
+    - accuracy
+
+benign_boundary:
+  public_game_has_grey_bot: false
+  use_for_production_fpr: false
+  reason: the public game is an attack-side holdout with limited normal-user background and is not a representative benign population
+
+execution_gate:
+  retry_allowed: false
+  canonical_execution_count: 1
+  before_raw_download:
+    - this preregistration and scorer must be merged
+    - scorer SHA-256 must match this contract
+    - evaluator SHA-256 must match this contract
+    - adapter SHA-256 must match this contract
+    - adapter contract SHA-256 must match this contract
+    - focused synthetic tests must pass
+    - full repository test suite must pass
+    - project readiness and quality gate must pass
+    - current detection evidence verifier must pass
+  raw_format_policy:
+    - raw archive framing may be validated after download before detector execution
+    - only record types and fields documented by upstream may be consumed
+    - if raw framing cannot be parsed without changing frozen adapter/scorer semantics, record an analysis failure and do not silently alter this analysis
+  after_raw_inspection:
+    - no detector or rule changes are allowed before the canonical score
+    - no adapter or scorer changes are allowed before the canonical score
+    - no ATT&CK crosswalk, pair selection, host matching, time matching, or HIT/MISS semantics may change
+    - any future changed evaluator must use a new analysis_id and cannot replace this preregistration
+
+claim_boundaries:
+  event_level_attack_ground_truth: NOT_AVAILABLE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  step_level_red_bot_attack_oracle: AVAILABLE
+  step_technique_pair_oracle: AVAILABLE
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
