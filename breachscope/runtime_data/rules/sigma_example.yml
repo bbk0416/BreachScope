@@ -1,0 +1,15 @@
+title: EncodedCommand Generic (Safe)
+id: 2d4d3f79-4af2-4bc6-9fe8-6e2317be5511
+tags:
+  - attack.t1059.001
+status: test
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    CommandLine|contains:
+      - "-encodedcommand"
+      - " -enc "
+  condition: selection
+level: medium

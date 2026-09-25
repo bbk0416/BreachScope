@@ -16,6 +16,7 @@ from breachscope.demo_scenarios import list_demo_scenarios
 from breachscope.showcase import build_showcase
 from breachscope.rulepack import summarize_rules
 from breachscope.rules import load_rules
+from breachscope.runtime_paths import default_rules_dir
 from pathlib import Path
 
 router = APIRouter()
@@ -106,7 +107,7 @@ async def go_live_check(deployment_mode: str | None = Query(None, pattern="^(loc
 async def demo_pack_preview():
     """Return a lightweight preview of the public demo/handoff package contents."""
     scenarios = list_demo_scenarios()
-    rules = load_rules(Path("rules"))
+    rules = load_rules(default_rules_dir())
     rulepack = summarize_rules(rules)
     return {
         "success": True,
@@ -145,7 +146,7 @@ async def demo_pack_preview():
 async def showcase_preview():
     """Return a lightweight preview of the static GitHub Pages showcase."""
     scenarios = list_demo_scenarios()
-    rules = load_rules(Path("rules"))
+    rules = load_rules(default_rules_dir())
     rulepack = summarize_rules(rules)
     return {
         "success": True,
@@ -176,7 +177,7 @@ async def showcase_preview():
 async def publish_prep_preview():
     """Return a lightweight preview of the final public launch package."""
     scenarios = list_demo_scenarios()
-    rules = load_rules(Path("rules"))
+    rules = load_rules(default_rules_dir())
     rulepack = summarize_rules(rules)
     return {
         "success": True,

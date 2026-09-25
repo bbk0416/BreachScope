@@ -19,6 +19,7 @@ import json
 from breachscope.pipeline import Pipeline
 from breachscope.ingest import convert_evtx_dir, collect_windows_logs
 from breachscope.config import Config
+from breachscope.runtime_paths import default_rules_dir
 from api.services.workdir_service import WorkDirectoryService
 from api.services.report_preview import build_preview
 from api.services.case_history import CaseHistoryService
@@ -220,7 +221,7 @@ class AnalysisService:
 
             # 규칙 디렉토리 설정
             if use_repo_rules:
-                rules_dir = Path("rules").resolve()
+                rules_dir = default_rules_dir().resolve()
             else:
                 rules_dir = work / "rules"
                 rules_dir.mkdir(parents=True, exist_ok=True)

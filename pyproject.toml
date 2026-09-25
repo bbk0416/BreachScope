@@ -50,3 +50,4 @@ include = ["breachscope*", "api*"]
 
 [tool.setuptools.package-data]
 "*" = ["*.yml", "*.yaml", "*.txt", "*.html", "*.j2"]
+"breachscope.runtime_data" = ["rules/*.yml", "rules/*.yaml", "rules/*.txt", "templates/*.html", "templates/*.j2"]

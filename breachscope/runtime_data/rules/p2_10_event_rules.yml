@@ -1,0 +1,158 @@
+- id: R-SCHTASK-4698
+  name: Scheduled Task Creation Event
+  description: Windows Security 4698 scheduled task creation event
+  field: event_id
+  operator: equals
+  pattern: "4698"
+  severity: low
+  mitre_technique: T1053.005
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
+
+- id: R-WMI-XSL-Remote
+  name: WMIC Remote XSL Execution
+  description: Sysmon process creation showing WMIC loading a remote XSL through /format
+  field: command_line
+  operator: contains
+  pattern: wmic
+  severity: low
+  mitre_technique: T1047
+  all_of:
+    - field: command_line
+      operator: contains
+      pattern: '/format:"http'
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+
+- id: R-DOMAIN-ADMINS-4661
+  name: Domain Admins SAM Group Access
+  description: Windows Security 4661 access to a SAM group object whose SID ends in the Domain Admins RID 512
+  field: ObjectName
+  operator: regex
+  pattern: '-512$'
+  severity: low
+  mitre_technique: T1087.002
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "4661"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
+    - field: ObjectType
+      operator: equals
+      pattern: SAM_GROUP
+    - field: ObjectServer
+      operator: equals
+      pattern: Security Account Manager
+
+- id: R-LSASS-ACCESS-1010
+  name: LSASS Process Access 0x1010
+  description: Sysmon process access to LSASS with access mask 0x1010 observed in the credential-access sample
+  field: TargetImage
+  operator: endswith
+  pattern: '\lsass.exe'
+  severity: medium
+  mitre_technique: T1003.001
+  all_of:
+    - field: GrantedAccess
+      operator: regex
+      pattern: '^0x0*1010$'
+    - field: event_id
+      operator: equals
+      pattern: "10"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+- id: R-WINRM-WSMPROVHOST-CHILD
+  name: PowerShell Remoting Child Process
+  description: Sysmon process creation where wsmprovhost.exe is the parent, consistent with PowerShell remoting over WinRM
+  field: ParentImage
+  operator: endswith
+  pattern: '\wsmprovhost.exe'
+  severity: medium
+  mitre_technique: T1021.006
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+
+- id: R-SERVICE-PATHLESS-7045
+  name: Suspicious Pathless Service Executable
+  description: Service Control Manager 7045 service installation whose ImagePath begins with a pathless executable name
+  field: ImagePath
+  operator: regex
+  pattern: '^\s*(?:\x22[^\x22\\/:]+\.exe\x22|[^\\/: \t]+\.exe)(?:\s+.*)?$'
+  severity: medium
+  mitre_technique: T1569.002
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "7045"
+    - field: source
+      operator: equals
+      pattern: Service Control Manager
+
+- id: R-RUNKEY-UNNAMED-13
+  name: Hidden Run/RunOnce Registry Value
+  description: Sysmon registry SetValue where TargetObject ends at a Run or RunOnce key, consistent with an unnamed startup value
+  field: TargetObject
+  operator: regex
+  pattern: '\\software\\microsoft\\windows\\currentversion\\run(?:once)?\\$'
+  severity: medium
+  mitre_technique: T1547.001
+  all_of:
+    - field: EventType
+      operator: equals
+      pattern: SetValue
+    - field: event_id
+      operator: equals
+      pattern: "13"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+- id: R-WMI-WMIPRVSE-CHILD-4688
+  name: WMI Provider Host Child Process
+  description: Security 4688 child process whose recent same-host parent PID resolves to the Windows WMI provider host
+  field: _breachscope.resolved_security_4688_parent_process_name
+  operator: endswith
+  pattern: '\wbem\WmiPrvSE.exe'
+  severity: medium
+  mitre_technique: T1047
+  all_of:
+    - field: event_id
+      operator: equals
+      pattern: "4688"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Security-Auditing
+- id: R-MASQUERADE-ORIGINAL-NAME-MISMATCH
+  name: Suspicious Process Original Filename Mismatch
+  description: Sysmon process creation from a suspicious user-writable or Windows-root location whose executable basename differs from the embedded OriginalFileName and whose parent is cmd.exe or Windows PowerShell
+  field: canonical.process.executable
+  operator: regex
+  pattern: '(?i)^(?:[a-z]:\\[^\\]+\.exe|[a-z]:\\windows\\[^\\]+\.exe|[a-z]:\\windows\\temp\\.+\.exe|[a-z]:\\users\\[^\\]+\\appdata\\(?:roaming|local\\temp)\\.+\.exe)$'
+  severity: medium
+  mitre_technique: T1036.003
+  all_of:
+    - field: canonical.process.executable
+      operator: basename_not_equals_field
+      pattern: OriginalFileName
+    - field: canonical.process.parent_executable
+      operator: regex
+      pattern: '(?i)^c:\\windows\\system32\\(?:cmd\.exe|windowspowershell\\v1\.0\\powershell\.exe)$'
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon

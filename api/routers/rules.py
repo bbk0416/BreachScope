@@ -7,6 +7,7 @@ from pathlib import Path
 import logging
 
 from breachscope.rules import load_rules
+from breachscope.runtime_paths import default_rules_dir
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ async def get_rules():
     사용 가능한 탐지 규칙 목록 조회
     """
     try:
-        rules_dir = Path("rules")
+        rules_dir = default_rules_dir()
         if not rules_dir.exists():
             raise HTTPException(status_code=404, detail="규칙 디렉토리를 찾을 수 없습니다.")
 
