@@ -1,7 +1,9 @@
 # BreachScope 변경 이력
 
-## 2.1.2 - Unreleased
+## 2.1.2 - Released 2026-09-25
 
+- Published Git tag and GitHub Release `v2.1.2` from commit `cedfca77130164a0bb12acdd9e7e8f729b42b4dd`.
+- Published verified release assets: wheel, sdist, source ZIP, `SHA256SUMS.txt`, and `release_manifest.json`.
 - Fix installed wheel runtime assets so report/web templates and the default detection rulepack are available outside a source checkout.
 - Keep the top-level `rules/` tree canonical for evaluation evidence; packaged runtime copies are byte-checked against it by tests.
 - Add consumer-style wheel regression coverage for `python -m breachscope.cli --demo` from an empty working directory.
