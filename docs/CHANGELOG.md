@@ -1,5 +1,17 @@
 # BreachScope 변경 이력
 
+## 2.1.0 - Unreleased
+
+- Prepare the next minor release from the post-v2.0.1 development line; the published v2.0.1 tag and assets remain unchanged.
+- Add evidence-backed remote-execution and remote-service correlation/scenario support, including stricter endpoint/session scoping and Windows record normalization.
+- Improve EVTX ingestion/reporting performance work while preserving the recorded benchmark and evaluation evidence instead of rewriting historical results.
+- Advance the current rule pack to 69 rules and preserve the current detection-evidence chain through the sealed P2-35M fresh-source revalidation.
+- P2-35M observed 10 attack fixtures (6 HIT / 4 MISS / 0 ERROR) and 337 benign EVTX members with 425,974 parsed events, 12 parse errors, and 4 flagged events.
+- Keep P2-35M claims bounded: fixture hit rate and expected-technique matching are not event-level recall; the observed benign flagged-event fraction is not a confirmed or production false-positive rate; production accuracy/recall/FPR remain NOT_CLAIMED.
+- Refresh immutable GitHub Actions pins for the Node 24 generation while keeping the repository supply-chain pin contract explicit.
+- Modernize Python package license metadata to SPDX/PEP 639 form and require setuptools 77+ for that build metadata.
+- No sealed canonical evaluation is rerun as part of this release preparation.
+
 ## 2.0.1 - Released 2026-09-16
 
 - Published Git tag and GitHub Release `v2.0.1` from commit `adac36a3ae881837fac56f9dc05852ca37766d82`.
