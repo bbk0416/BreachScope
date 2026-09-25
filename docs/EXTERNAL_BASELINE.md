@@ -203,9 +203,30 @@ P2-35M 이후에는 새 canonical 평가 번호를 자동으로 만들지 않습
 - 그러나 dataset 자체가 Linux 기반이고 benign user behavior simulation이 활성화되지 않은 attack-manifestation corpus입니다.
 - 따라서 현재 Windows 중심 BreachScope detector의 production recall/FPR 평가 후보로 사용하지 않습니다.
 
+### MITRE BRAWL Public Game 001
+
+- source: `mitre/brawl-public-game-001`
+- upstream master commit: `7ec51fac8fc05ea01da210f604b821ef52818173`
+- archive path: `brawl-public-game-001.zip`
+- archive Git blob SHA-1: `257a4ed9dcba427f75cc11da286f44004ed6c7c0`
+- archive size: `4,967,769` bytes
+- license: CC-BY-4.0
+- BreachScope repository search hit before this note: 0
+- raw archive/event contents inspected before this note: NO
+- environment: Windows 8.1 workstations 16대 + Windows Server 2012 R2 domain controller 1대
+- telemetry: Sysmon, Windows Event Logs, computer properties
+- attack oracle: CALDERA red bot이 별도 BSF(BRAWL Shared Format)로 실제 공격 행동을 기록하며, BSF step은 ATT&CK technique ID와 관련 event를 묶을 수 있습니다.
+- upstream은 Sysmon/Windows Event와 BSF의 시간 의미를 별도로 설명하며, BSF에는 `time`, `happened_after`, `happened_before` 같은 attack-side 시간 정보가 있습니다.
+- 장점: 탐지 규칙이 만든 라벨이 아니라 red bot 자체의 실행 기록이므로, 현재까지 검토한 후보 중 공격 행동 ground truth 독립성이 가장 강합니다.
+- 제한: 이 공개 game에는 CALDERA red bot만 참여했고 Grey bot이 없었습니다. upstream도 자격 증명 관점에서 Game Board가 sterile하다고 설명합니다. 따라서 realistic benign background나 production FPR 평가용 corpus로 취급하지 않습니다.
+- 제한: 현재 BreachScope JSONL collector는 BRAWL의 `data_model.fields.*` 구조를 직접 정규화하지 않습니다. raw corpus를 열기 전에 documented schema만으로 adapter를 구현하고 synthetic fixture로 고정해야 합니다.
+- 현재 상태: independent attack-ground-truth holdout 후보 1순위. raw ZIP은 preregistration/adapter freeze 전까지 열지 않습니다.
+
+이 후보를 사용할 경우 첫 평가는 attack-side BSF step/technique coverage만 대상으로 하고, benign FPR이나 production recall을 함께 주장하지 않습니다. BSF step과 telemetry event 사이의 matching rule, 허용 time window, host/command-line/object-action 매칭 우선순위를 detector 실행 전에 고정해야 합니다.
+
 ### 현재 결정
 
-위 세 후보만으로 새 P2 canonical one-pass evaluation을 시작하지 않습니다.
+위 네 후보를 검토했지만 새 P2 canonical one-pass evaluation은 아직 시작하지 않습니다. BRAWL은 공격 ground truth 후보 1순위로 보존하되, raw corpus 미열람 상태를 유지하고 documented schema 기반 adapter와 scoring contract를 먼저 고정합니다.
 
 다음 canonical 평가를 시작하려면 최소한 다음 조건을 모두 만족해야 합니다.
 
