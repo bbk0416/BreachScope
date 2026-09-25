@@ -29,6 +29,9 @@ def test_brawl_adapter_contract_freezes_pre_raw_source_and_adapter():
     assert actual == adapter["sha256"]
     assert adapter["raw_data_used_for_implementation"] is False
     assert adapter["automatic_general_jsonl_interpretation"] is False
+    documented = contract["upstream_documented_schema"]
+    assert documented["sysmon_primary_timestamp"] == "data_model.fields.utc_time"
+    assert documented["sysmon_timestamp_fallback"] == "@timestamp"
 
 
 def test_brawl_adapter_contract_does_not_relax_claim_boundaries():

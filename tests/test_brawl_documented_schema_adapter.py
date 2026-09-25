@@ -18,6 +18,7 @@ def test_brawl_sysmon_process_create_documented_schema():
             "object": "process",
             "action": ["create"],
             "fields": {
+                "utc_time": "2017-02-22T18:38:13.999000Z",
                 "command_line": "powershell.exe -nop -enc AAAA",
                 "image_path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
                 "parent_image_path": "C:\\Windows\\explorer.exe",
@@ -31,7 +32,8 @@ def test_brawl_sysmon_process_create_documented_schema():
 
     event = event_from_brawl_sysmon(record)
 
-    assert event.timestamp == record["@timestamp"]
+    assert event.timestamp == "2017-02-22T18:38:13.999000Z"
+    assert event.raw["brawl_adapter"]["timestamp_source"] == "data_model.fields.utc_time"
     assert event.host == "beane-pc.brawlco.com"
     assert event.source == "Microsoft-Windows-Sysmon"
     assert event.event_id == "1"
