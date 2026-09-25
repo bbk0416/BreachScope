@@ -1,5 +1,20 @@
 # BreachScope 빠른 시작 가이드
 
+## 설치 경로 선택
+
+### 공개 Release wheel
+
+GitHub Releases에서 `breachscope-2.1.2-py3-none-any.whl`을 내려받은 뒤 설치합니다. 이 방식은 저장소의 `scripts/`, `rules/`, `templates/`를 별도로 checkout하지 않아도 됩니다.
+
+```bash
+python -m pip install breachscope-2.1.2-py3-none-any.whl
+python -m breachscope.cli --demo
+```
+
+### 소스 checkout
+
+아래의 `run.bat`, `run.sh`, `scripts/run.py` 예시는 저장소를 clone한 경우에 사용합니다.
+
 ## 🚀 가장 간단한 실행 방법
 
 ### 방법 1: 간편 스크립트 사용 (가장 간단!)

@@ -43,6 +43,15 @@
 
 ### 설치
 
+공개 Release wheel을 사용할 경우 소스 checkout 없이 실행할 수 있습니다. GitHub Releases에서 `breachscope-2.1.2-py3-none-any.whl`을 내려받은 뒤:
+
+```bash
+python -m pip install breachscope-2.1.2-py3-none-any.whl
+python -m breachscope.cli --demo --export-json --export-csv
+```
+
+소스 checkout으로 실행하려면:
+
 ```bash
 git clone https://github.com/bbk0416/BreachScope.git
 cd BreachScope
