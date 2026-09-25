@@ -37,6 +37,8 @@ GET /api/ops/go-live?deployment_mode=production
 
 The checker covers:
 
+> In a source checkout, Go-Live also evaluates the repository quality gate and project-readiness gate. The production Docker image is intentionally smaller and omits repository-only files such as `.github/` and `tests/`; inside that runtime image those two source-repository checks are reported separately as `repository_checks.status=not_applicable`. They must pass before the image is built.
+
 - Runtime authentication is enabled.
 - Placeholder secrets are not still in use.
 - Browser session secret is long and separate.

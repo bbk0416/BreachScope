@@ -13,6 +13,7 @@ LABEL org.opencontainers.image.title="BreachScope" \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    BS_RUNTIME_IMAGE=1 \
     BS_CASES_ROOT=/data/cases \
     BS_CASE_HISTORY_PATH=/data/case_history.json \
     BS_AUDIT_LOG_PATH=/data/audit.jsonl \

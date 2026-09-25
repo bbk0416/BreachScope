@@ -20,6 +20,14 @@ cp .env.example .env
 docker compose up --build
 ```
 
+By default Compose publishes BreachScope only on `127.0.0.1:8000`. If port 8000 is unavailable, choose another host port without changing the container port:
+
+```bash
+BS_HOST_PORT=18000 docker compose up --build
+```
+
+For an intentionally shared deployment behind HTTPS, a VPN, or a reverse proxy, set `BS_BIND_ADDRESS=0.0.0.0` (or a specific host interface) explicitly. Do not expose the plain HTTP container port directly to the internet.
+
 Case history and generated reports are stored in the `breachscope-data` Docker volume.
 
 ## 3. Production checklist
@@ -39,6 +47,8 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 
 | Variable | Purpose | Default |
 |---|---|---|
+| `BS_BIND_ADDRESS` | Docker Compose host bind address | `127.0.0.1` |
+| `BS_HOST_PORT` | Docker Compose published host port | `8000` |
 | `BS_API_KEY` | Optional API key for protected API routes and integrations | unset |
 | `BS_ADMIN_PASSWORD` | Optional web-console password. Enables HttpOnly session login. | unset |
 | `BS_SESSION_SECRET` | Secret used to sign browser session cookies. | falls back to API key/password |

@@ -17,7 +17,7 @@ services:
       BS_AUTH_RATE_LIMIT_PATH: /data/auth_rate_limit.json
       BS_BACKUP_ROOT: /data/backups
     ports:
-      - "8000:8000"
+      - "${BS_BIND_ADDRESS:-127.0.0.1}:${BS_HOST_PORT:-8000}:8000"
     volumes:
       - breachscope-data:/data
 
