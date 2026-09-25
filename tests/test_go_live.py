@@ -74,6 +74,23 @@ def test_go_live_check_passes_with_production_env(tmp_path, monkeypatch):
     assert "Go-Live Readiness" in markdown
 
 
+def test_go_live_runtime_image_skips_repository_only_checks(tmp_path, monkeypatch):
+    env = _good_env(tmp_path)
+    env["BS_RUNTIME_IMAGE"] = "1"
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(tmp_path, env=env, deployment_mode="production")
+
+    assert result["status"] == "pass"
+    assert result["score"] == 100
+    names = {check["name"] for check in result["checks"]}
+    assert "quality_gate" not in names
+    assert "project_readiness" not in names
+    assert result["repository_checks"]["status"] == "not_applicable"
+    assert "source checkout" in result["next_steps"][0].lower()
+
+
 def test_go_live_check_fails_placeholder_env(tmp_path, monkeypatch):
     env = _good_env(tmp_path)
     env["BS_API_KEY"] = "change-me-long-random-value"
@@ -84,6 +101,20 @@ def test_go_live_check_fails_placeholder_env(tmp_path, monkeypatch):
     assert result["status"] == "fail"
     assert result["summary"]["failed"] >= 1
     assert any(check["name"] == "placeholder_secrets" and check["status"] == "fail" for check in result["checks"])
+
+
+def test_repository_gate_api_endpoints_are_not_applicable_in_runtime_image(monkeypatch):
+    monkeypatch.setenv("BS_RUNTIME_IMAGE", "1")
+
+    for path in ("/api/ops/project-check", "/api/ops/quality-gate"):
+        response = client.get(path)
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["success"] is True
+        assert payload["status"] == "not_applicable"
+        assert payload["score"] is None
+        assert payload["runtime_image"] is True
+        assert payload["checks"] == []
 
 
 def test_go_live_api_endpoint(tmp_path, monkeypatch):

@@ -1,6 +1,8 @@
 """Operational diagnostics, metrics, and self-test API."""
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
@@ -17,6 +19,22 @@ from breachscope.rules import load_rules
 from pathlib import Path
 
 router = APIRouter()
+
+
+def _runtime_image() -> bool:
+    return os.getenv("BS_RUNTIME_IMAGE", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _repository_check_not_applicable(name: str) -> dict:
+    return {
+        "success": True,
+        "status": "not_applicable",
+        "score": None,
+        "summary": {"checks": 0, "passed": 0, "warnings": 0, "failed": 0},
+        "checks": [],
+        "runtime_image": True,
+        "message": f"{name} is a source-repository check and is not evaluated inside the runtime image.",
+    }
 
 
 @router.get("/metrics", response_class=PlainTextResponse)
@@ -65,12 +83,16 @@ async def release_info():
 @router.get("/ops/project-check", response_class=JSONResponse)
 async def project_check():
     """Return lightweight repository/product readiness checks for release reviews."""
+    if _runtime_image():
+        return _repository_check_not_applicable("Project readiness")
     return run_project_readiness(".")
 
 
 @router.get("/ops/quality-gate", response_class=JSONResponse)
 async def quality_gate():
     """Return pre-publication quality/security gate results."""
+    if _runtime_image():
+        return _repository_check_not_applicable("Quality gate")
     return run_quality_gate(".")
 
 @router.get("/ops/go-live", response_class=JSONResponse)

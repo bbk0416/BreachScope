@@ -254,7 +254,20 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
         _check_audit(),
     ]
     checks.extend(_check_docs_and_cookies(env_map, mode))
-    checks.extend(_check_quality_and_repo(root_path))
+
+    runtime_image = _env_bool(env_map, "BS_RUNTIME_IMAGE", os.getenv("BS_RUNTIME_IMAGE", "0"))
+    if runtime_image:
+        repository_checks = {
+            "status": "not_applicable",
+            "reason": "Repository-only quality/readiness checks must be evaluated in the source checkout before publishing this runtime image.",
+        }
+    else:
+        checks.extend(_check_quality_and_repo(root_path))
+        repository_checks = {
+            "status": "evaluated",
+            "root": str(root_path),
+            "checks": ["quality_gate", "project_readiness"],
+        }
 
     summary = _summary(checks)
     score = _score(checks)
@@ -266,7 +279,12 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
         "deployment_mode": mode,
         "summary": summary,
         "checks": [c.as_dict() for c in checks],
-        "next_steps": _next_steps(checks),
+        "repository_checks": repository_checks,
+        "next_steps": (
+            ["Confirm the source checkout passed CI/quality gates for this build SHA, then create one test backup and verify its SHA-256 before publishing the service URL."]
+            if runtime_image and not any(c.status in {"fail", "warn"} for c in checks)
+            else _next_steps(checks)
+        ),
     }
 
 

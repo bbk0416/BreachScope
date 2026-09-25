@@ -1,5 +1,12 @@
 # BreachScope 변경 이력
 
+## Unreleased
+
+- Prevent generated runtime secret files such as `.env` and `.env.*` from being accidentally committed while keeping `.env.example` trackable.
+- Default Docker Compose host publishing to loopback and make the host bind address/port explicitly configurable.
+- Distinguish source-repository quality/readiness gates from runtime-container go-live checks so minimal production images report repository-only checks as not applicable instead of false failures.
+- Preserve production claim boundaries and sealed evaluation evidence; no canonical evaluation is rerun by these post-release hardening changes.
+
 ## 2.1.0 - Released 2026-09-25
 
 - Published Git tag and GitHub Release `v2.1.0` from commit `93effaa62a982dc59cc7bd982c16bef2270fb21c`.

@@ -762,10 +762,13 @@
 
     function renderQualityGate(payload) {
       const checks = payload.checks || [];
-      const statusClass = payload.status === 'pass' ? 'risk-low' : payload.status === 'warn' ? 'risk-medium' : 'risk-critical';
+      const notApplicable = payload.status === 'not_applicable';
+      const scoreText = notApplicable ? 'N/A' : String(escapeHtml(payload.score || 0)) + '/100';
+      const summaryText = notApplicable ? escapeHtml(payload.message || 'source repository only') : 'pass ' + escapeHtml((payload.summary || {}).passed || 0) + ' · warn ' + escapeHtml((payload.summary || {}).warnings || 0) + ' · fail ' + escapeHtml((payload.summary || {}).failed || 0) + ' · scanned ' + escapeHtml(payload.scanned_files || 0);
+      const statusClass = payload.status === 'pass' ? 'risk-low' : (payload.status === 'warn' || notApplicable) ? 'risk-medium' : 'risk-critical';
       opsDiagnostics.innerHTML = `<div class="audit-item">
-        <div class="audit-title"><span>품질 게이트</span><span class="${statusClass}">${escapeHtml(payload.status || '-')} · ${escapeHtml(payload.score || 0)}/100</span></div>
-        <div class="audit-meta mono">pass ${escapeHtml((payload.summary || {}).passed || 0)} · warn ${escapeHtml((payload.summary || {}).warnings || 0)} · fail ${escapeHtml((payload.summary || {}).failed || 0)} · scanned ${escapeHtml(payload.scanned_files || 0)}</div>
+        <div class="audit-title"><span>품질 게이트</span><span class="${statusClass}">${escapeHtml(payload.status || '-')} · ${scoreText}</span></div>
+        <div class="audit-meta mono">${summaryText}</div>
       </div>` + checks.map(c => {
         const cls = c.status === 'pass' ? 'risk-low' : c.status === 'warn' ? 'risk-medium' : 'risk-critical';
         return `<div class="audit-item"><div class="audit-title"><span>${escapeHtml(c.name)}</span><span class="${cls}">${escapeHtml(c.status)}</span></div><div class="audit-meta">${escapeHtml(c.message)}</div></div>`;
@@ -788,11 +791,12 @@
 
     function renderGoLive(payload) {
       const checks = payload.checks || [];
+      const repositoryChecks = (payload.repository_checks || {}).status || 'unknown';
       const statusClass = payload.status === 'pass' ? 'risk-low' : payload.status === 'warn' ? 'risk-medium' : 'risk-critical';
       const next = (payload.next_steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join('');
       opsDiagnostics.innerHTML = `<div class="audit-item">
         <div class="audit-title"><span>Go-Live 점검</span><span class="${statusClass}">${escapeHtml(payload.status || '-')} · ${escapeHtml(payload.score || 0)}/100</span></div>
-        <div class="audit-meta mono">mode ${escapeHtml(payload.deployment_mode || 'local')} · pass ${escapeHtml((payload.summary || {}).passed || 0)} · warn ${escapeHtml((payload.summary || {}).warnings || 0)} · fail ${escapeHtml((payload.summary || {}).failed || 0)}</div>
+        <div class="audit-meta mono">mode ${escapeHtml(payload.deployment_mode || 'local')} · repo ${escapeHtml(repositoryChecks)} · pass ${escapeHtml((payload.summary || {}).passed || 0)} · warn ${escapeHtml((payload.summary || {}).warnings || 0)} · fail ${escapeHtml((payload.summary || {}).failed || 0)}</div>
         <ul class="list">${next}</ul>
       </div>` + checks.map(c => {
         const cls = c.status === 'pass' ? 'risk-low' : c.status === 'warn' ? 'risk-medium' : 'risk-critical';
