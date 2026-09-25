@@ -1,7 +1,9 @@
 # BreachScope 변경 이력
 
-## 2.1.1 - Unreleased
+## 2.1.1 - Released 2026-09-25
 
+- Published Git tag and GitHub Release `v2.1.1` from commit `5a13ee0edfd967e2e7ffbf429a20e33ea2d98099`.
+- Published verified release assets: wheel, sdist, source ZIP, `SHA256SUMS.txt`, and `release_manifest.json`.
 - Prevent generated runtime secret files such as `.env` and `.env.*` from being accidentally committed while keeping `.env.example` trackable.
 - Default Docker Compose host publishing to loopback and make the host bind address/port explicitly configurable.
 - Distinguish source-repository quality/readiness gates from runtime-container go-live checks so minimal production images report repository-only checks as not applicable instead of false failures.
