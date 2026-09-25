@@ -165,3 +165,55 @@ merged main commit `2a1631f6633ee40dcc47524675dc9dbda541e01d`에서 고정된 10
 - `external_baseline/results/p2_09c_main_2a1631f/telemetry.yaml`
 
 8개 MISS의 주된 원인은 해당 ATT&CK technique ID 자체가 없는 것이 아니라, 현재 native rules가 `command_line` 패턴에 많이 의존해 Event ID와 이벤트별 필드가 핵심 증거인 외부 EVTX를 놓치는 구조였습니다. P2-09C에서는 이 결과를 근거로 rule을 수정하지 않고 그대로 보존합니다.
+
+## 2026-09-25 후속 독립 데이터셋 후보 검토
+
+P2-35M 이후에는 새 canonical 평가 번호를 자동으로 만들지 않습니다. 다음 평가 후보는 현재 BreachScope가 사용하지 않은 source family이면서, Windows telemetry와 공격/정상 ground truth를 현재 detector와 독립적인 방식으로 제공해야 합니다. 2026-09-25 기준 공개 후보를 검토한 결과는 다음과 같습니다.
+
+### Windows-APT 2025
+
+- source: Mendeley Data `Windows-APT 2025`, version 4
+- DOI: `10.17632/b8fmtzvpy8.4`
+- URL: https://data.mendeley.com/datasets/b8fmtzvpy8/4
+- BreachScope repository search hit before this note: 0
+- Windows 10 환경에서 Caldera로 36개 APT-inspired scenario를 실행하고 Wazuh/Sysmon telemetry를 수집합니다.
+- 공개 논문은 약 102,000개 log record, 38,393 general log, 63,620 malicious log를 보고합니다.
+- `scenario_manifest.csv`와 `validation_summary.csv`가 있고, 각 scenario를 반복 실행하며 Caldera operation status와 Wazuh logs를 사람이 확인했다고 설명합니다.
+- 장점: 기존 BreachScope source family와 겹치지 않고, Windows host telemetry, 정상/공격 데이터, scenario intent, validation metadata를 함께 제공합니다.
+- 제한: 개별 log의 MITRE mapping은 Wazuh/Sysmon rule mapping 영향을 받으며 정상 activity에도 MITRE-tagged event가 존재할 수 있다고 upstream이 명시합니다.
+- 따라서 이 데이터만으로 event-level production recall/FPR을 주장하지 않습니다. 사용할 경우 먼저 label provenance와 scenario/time-window ground truth를 별도로 고정해야 합니다.
+
+### COMISET
+
+- source: Zenodo `COMISET: Dataset for the analysis of malicious events in Windows systems`
+- DOI: `10.5281/zenodo.15375146`
+- URL: https://zenodo.org/records/15375146
+- BreachScope repository search hit before this note: 0
+- Windows LAB/REAL 두 환경에서 약 250 million event를 제공하고 MITRE ATT&CK label을 포함합니다.
+- 공개 데이터는 JSON/CSV event 형태이며 raw EVTX corpus가 아닙니다.
+- upstream 논문은 EBDS가 rule pattern과 event를 match해 MITRE label을 실시간 부여했다고 설명합니다.
+- 따라서 COMISET의 label을 BreachScope detector의 독립적인 event-level oracle로 취급하지 않습니다. source-family 일반화나 JSON normalization 연구에는 후보가 될 수 있지만 production recall/FPR ground truth로는 부족합니다.
+
+### CAM-LDS
+
+- source: Zenodo `Cyber Attack Manifestations - Log Data Set (CAM-LDS)`
+- DOI: `10.5281/zenodo.18861762`
+- URL: https://zenodo.org/records/18861762
+- attack execution log와 time-based technique ground truth를 제공하는 점은 강합니다.
+- 그러나 dataset 자체가 Linux 기반이고 benign user behavior simulation이 활성화되지 않은 attack-manifestation corpus입니다.
+- 따라서 현재 Windows 중심 BreachScope detector의 production recall/FPR 평가 후보로 사용하지 않습니다.
+
+### 현재 결정
+
+위 세 후보만으로 새 P2 canonical one-pass evaluation을 시작하지 않습니다.
+
+다음 canonical 평가를 시작하려면 최소한 다음 조건을 모두 만족해야 합니다.
+
+1. 현재 BreachScope가 아직 사용하지 않은 독립 source family
+2. Windows host telemetry 또는 BreachScope가 의미 손실 없이 정규화할 수 있는 원본 event
+3. detector rule과 독립적인 attack execution oracle 또는 event-level malicious/benign ground truth
+4. benign label provenance가 명시되어 있고 단순히 "탐지 룰이 울리지 않음"을 benign으로 정의하지 않을 것
+5. source version/bytes/hash와 selection rule을 detector 실행 전에 고정할 수 있을 것
+6. event-level ground truth가 없는 경우 scenario hit rate와 observed flagged-event fraction만 보고 production accuracy/recall/FPR은 계속 `NOT_CLAIMED`
+
+이 조건을 만족하는 corpus가 확보되기 전까지 P2-35M을 현재 rulepack의 마지막 sealed fresh-source revalidation으로 유지합니다.
