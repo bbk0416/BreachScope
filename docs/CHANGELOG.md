@@ -1,6 +1,6 @@
 # BreachScope 변경 이력
 
-## Unreleased
+## 2.1.2 - Unreleased
 
 - Fix installed wheel runtime assets so report/web templates and the default detection rulepack are available outside a source checkout.
 - Keep the top-level `rules/` tree canonical for evaluation evidence; packaged runtime copies are byte-checked against it by tests.
