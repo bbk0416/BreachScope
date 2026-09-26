@@ -72,20 +72,22 @@ def test_p2_35i_development_rechecks_do_not_claim_accuracy() -> None:
 
 def test_p2_35i_current_chain_marks_prior_revalidations_non_current() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
-    assert chain["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+    assert chain["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
     assert chain["current_frozen_detector"] == {
-        "repo_commit": P35I_COMMIT,
-        "rules_tree_sha256": NEW_HASH,
-        "rule_count": 69,
+        "repo_commit": "bad0c88037d489f5b375c120002be74ac6082ffa",
+        "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
+        "rule_count": 73,
         "rule_file_count": 5,
     }
     assert [row["remediation_id"] for row in chain["posthoc_remediations"]] == [
         "p2-24d-rule-noise-remediation",
         "p2-35i-original-filename-masquerading-remediation",
+        "independent-command-coverage-remediation-v1",
     ]
     current = chain["current_rulepack_validation"]
-    assert current["current_revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
-    assert current["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
-    assert current["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert current["current_revalidation_id"] == "NOT_RUN"
+    assert current["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert current["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     assert current["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
-    assert current["fresh_current_rulepack_performance_available"] is True
+    assert current["prior_p2_35m_revalidation_applies_to_current_rulepack"] is False
+    assert current["fresh_current_rulepack_performance_available"] is False

@@ -50,7 +50,7 @@ def test_historical_p2_09e_verifier_fails_closed_after_rule_drift() -> None:
     assert proc.returncode == 1
     assert "current rule tree hash" in proc.stdout
     assert "543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce" in proc.stdout
-    assert "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7" in proc.stdout
+    assert "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88" in proc.stdout
 
 
 def test_current_detection_evidence_chain_verifies_without_network() -> None:
@@ -64,18 +64,18 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v12"
-    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v13"
+    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == (
-        "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+        "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88"
     )
     assert data["rule_file_count"] == 5
     assert data["base_attack_scenario_hits"] == 2
     assert data["current_attack_scenario_hits"] == 10
     assert data["current_attack_scenario_hits_applies_to_current_rulepack"] is False
     assert data["attack_scenario_total"] == 10
-    assert data["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
-    assert data["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert data["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     assert data["prior_revalidations_apply_to_current_rulepack"] is False
 
     assert data["prior_attack_fixture_hits"] == 6
@@ -107,7 +107,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p20["dataset_hits_after"] == 5
     assert p20["dataset_total"] == 5
 
-    assert len(data["posthoc_remediations"]) == 2
+    assert len(data["posthoc_remediations"]) == 3
     p24d = data["posthoc_remediations"][0]
     assert p24d["remediation_id"] == "p2-24d-rule-noise-remediation"
     assert p24d["from_rules_tree_sha256"] == p20["to_rules_tree_sha256"]
@@ -120,7 +120,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     p35i = data["posthoc_remediations"][1]
     assert p35i["remediation_id"] == "p2-35i-original-filename-masquerading-remediation"
     assert p35i["from_rules_tree_sha256"] == p24d["to_rules_tree_sha256"]
-    assert p35i["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p35i["to_rules_tree_sha256"] == "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
     assert p35i["rule_count_before"] == 68
     assert p35i["rule_count_after"] == 69
     assert p35i["socbed_known_gap_findings"] == 1
@@ -128,6 +128,15 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p35i["nextron_refined_predicate_hits"] == 0
     assert p35i["fresh_attack_revalidation"] == "NOT_RUN"
     assert p35i["fresh_benign_revalidation"] == "NOT_RUN"
+
+    cmdgap = data["posthoc_remediations"][2]
+    assert cmdgap["remediation_id"] == "independent-command-coverage-remediation-v1"
+    assert cmdgap["from_rules_tree_sha256"] == "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+    assert cmdgap["to_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert cmdgap["rule_count_before"] == 69
+    assert cmdgap["rule_count_after"] == 73
+    assert cmdgap["fresh_attack_revalidation"] == "NOT_RUN"
+    assert cmdgap["fresh_benign_revalidation"] == "NOT_RUN"
 
     assert len(data["post_remediation_revalidations"]) == 3
     p25 = data["post_remediation_revalidations"][0]
@@ -155,7 +164,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
 
     p35m = data["post_remediation_revalidations"][2]
     assert p35m["revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
-    assert p35m["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p35m["detector_rules_tree_sha256"] == "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+    assert p35m["detector_rules_tree_sha256"] != data["current_rules_tree_sha256"]
     assert p35m["fixture_count"] == 10
     assert p35m["hits"] == 6
     assert p35m["misses"] == 4
@@ -181,21 +191,22 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p29["rules_tree_changed"] is False
 
     validation = data["current_rulepack_validation"]
-    assert validation["rule_change_id"] == "p2-35i-original-filename-masquerading-remediation"
-    assert validation["current_revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["rule_change_id"] == "independent-command-coverage-remediation-v1"
+    assert validation["current_revalidation_id"] == "NOT_RUN"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
     assert validation["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
-    assert validation["fresh_current_rulepack_performance_available"] is True
+    assert validation["prior_p2_35m_revalidation_applies_to_current_rulepack"] is False
+    assert validation["fresh_current_rulepack_performance_available"] is False
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
-        "repo_commit": "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4",
-        "rules_tree_sha256": "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7",
-        "rule_count": 69,
+        "repo_commit": "bad0c88037d489f5b375c120002be74ac6082ffa",
+        "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
+        "rule_count": 73,
         "rule_file_count": 5,
     }
     assert [row["calibration_id"] for row in data["calibrations"]] == [
@@ -210,6 +221,7 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     assert [row["remediation_id"] for row in data["posthoc_remediations"]] == [
         "p2-24d-rule-noise-remediation",
         "p2-35i-original-filename-masquerading-remediation",
+        "independent-command-coverage-remediation-v1",
     ]
     assert data["posthoc_remediations"][0]["to_rules_tree_sha256"] == (
         "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
@@ -227,12 +239,13 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
         "ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326"
     )
     assert data["current_rulepack_validation"] == {
-        "rule_change_id": "p2-35i-original-filename-masquerading-remediation",
-        "current_revalidation_id": "p2-35m-current-rulepack-fresh-source-revalidation",
-        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
-        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
+        "rule_change_id": "independent-command-coverage-remediation-v1",
+        "current_revalidation_id": "NOT_RUN",
+        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
         "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
-        "fresh_current_rulepack_performance_available": True,
+        "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
+        "fresh_current_rulepack_performance_available": False,
     }
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"

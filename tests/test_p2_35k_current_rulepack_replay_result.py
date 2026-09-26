@@ -163,9 +163,11 @@ def test_p2_35k_historical_replay_stays_not_fresh_after_p2_35m() -> None:
 
     current = _load_yaml(CURRENT)
     validation = current["current_rulepack_validation"]
-    assert validation["current_revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["current_revalidation_id"] == "NOT_RUN"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert validation["prior_p2_35m_revalidation_applies_to_current_rulepack"] is False
+    assert validation["fresh_current_rulepack_performance_available"] is False
 
 
 def test_p2_35k_lock_is_configured_for_byte_exact_git_storage() -> None:

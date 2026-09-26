@@ -25,7 +25,7 @@ def test_packaged_rulepack_loads_current_rules():
     packaged_rules = root / "breachscope" / "runtime_data" / "rules"
     source_rules = root / "rules"
 
-    assert len(load_rules(packaged_rules)) == len(load_rules(source_rules)) == 69
+    assert len(load_rules(packaged_rules)) == len(load_rules(source_rules)) == 73
 
 
 def test_source_checkout_prefers_canonical_runtime_directories():

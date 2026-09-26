@@ -1,0 +1,148 @@
+schema: breachscope.independent_command_coverage_remediation.v1
+analysis_id: independent-command-coverage-remediation-v1
+status: IMPLEMENTED_POSTHOC_PENDING_FRESH_REVALIDATION
+analysis_class: POSTHOC_DEVELOPMENT_REMEDIATION_NOT_FRESH_VALIDATION
+
+basis:
+  posthoc_gap_discovery_record: docs/BRAWL_POSTHOC_MISS_DIAGNOSIS.md
+  sealed_brawl_result: external_baseline/results/brawl_de4d7da/result.json
+  brawl_canonical_result_modified: false
+  brawl_canonical_rerun: false
+  rule_semantics_basis: INDEPENDENT_PUBLIC_DOCUMENTATION_AND_SYNTHETIC_FIXTURES
+  brawl_score_optimization_target: false
+
+independent_references:
+  - technique: T1016
+    source: MITRE ATT&CK System Network Configuration Discovery
+    url: https://attack.mitre.org/techniques/T1016/
+    support: nbtstat is an ATT&CK-listed Windows network-configuration discovery utility
+  - technique: T1016
+    source: Atomic Red Team T1016
+    url: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1016/T1016.md
+    support: Windows atomic test includes nbtstat -n
+  - technique: T1016
+    source: Microsoft nbtstat documentation
+    url: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nbtstat
+    support: documents nbtstat query switches and case-sensitive cache-refresh switches
+  - technique: T1069.001
+    source: MITRE ATT&CK Permission Groups Discovery Local Groups
+    url: https://attack.mitre.org/techniques/T1069/001/
+    support: net localgroup is a documented local-group discovery command
+  - technique: T1069.002
+    source: MITRE ATT&CK Permission Groups Discovery Domain Groups
+    url: https://attack.mitre.org/techniques/T1069/002/
+    support: net group /domain is a documented domain-group discovery command
+  - technique: T1021.002
+    source: MITRE ATT&CK Net software procedure mapping
+    url: https://attack.mitre.org/software/S0039/
+    support: net use is documented for SMB/Windows Admin Shares lateral movement
+  - technique: T1021.002
+    source: MITRE ATT&CK SMB Admin Share detection strategy
+    url: https://attack.mitre.org/detectionstrategies/DET0530/
+    support: identifies C$, ADMIN$, and IPC$ as Windows administrative shares
+  - technique: T1547.001
+    source: MITRE ATT&CK Registry Run Keys / Startup Folder
+    url: https://attack.mitre.org/techniques/T1547/001/
+    support: documents both HKCU and HKLM Run and RunOnce keys
+  - technique: T1047
+    source: MITRE ATT&CK Windows Management Instrumentation
+    url: https://attack.mitre.org/techniques/T1047/
+    support: documents WMI local and remote execution and wmic process call create
+  - technique: T1105
+    source: MITRE ATT&CK Ingress Tool Transfer
+    url: https://attack.mitre.org/techniques/T1105/
+    support: reviewed but deliberately not changed because SMB transfer semantics overlap other techniques and post-hoc expansion would risk overfitting
+
+remediation:
+  remediation_id: independent-command-coverage-remediation-v1
+  change_class: posthoc_gap_remediation_with_independent_semantic_support
+  detector_repo_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  from_rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  to_rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count_before: 69
+  rule_count_after: 73
+  rule_file_count: 5
+  changed_rule_files:
+    - path: rules/example_safe.yml
+      git_blob_sha1: 554f7bf200b31f85bb6fa3df9ff4651d8fe0eb6c
+    - path: rules/p2_20_postholdout_rules.yml
+      git_blob_sha1: 787a510c233d7ccedc38bd88a2de2f7cbb34ac6b
+  modified_rule_ids:
+    - R-WMI-Create
+    - R-REG-RunKey
+  added_rule_ids:
+    - R-NETWORK-CONFIG-NBTSTAT
+    - R-PERMISSION-GROUPS-LOCAL-NET
+    - R-PERMISSION-GROUPS-DOMAIN-NET
+    - R-SMB-ADMIN-SHARE-NET-USE
+  intentionally_not_changed:
+    - technique: T1105
+      reason: current ATT&CK semantics span multiple transfer contexts and the observed SMB copy shape is too close to the already-seen BRAWL corpus to justify a post-hoc rule expansion
+  fresh_attack_revalidation: NOT_RUN
+  fresh_benign_revalidation: NOT_RUN
+
+development_validation:
+  independent_synthetic_tests:
+    status: PASS
+    passed: 10
+    failed: 0
+    test_file: tests/test_independent_command_gap_remediation.py
+  related_regression:
+    status: PASS
+    passed: 47
+    failed: 0
+  brawl_posthoc_development_recheck:
+    class: POSTHOC_DEVELOPMENT_ONLY_NOT_FRESH_VALIDATION
+    rules_frozen_before_recheck: true
+    source_already_observed: true
+    canonical_result_recomputed: false
+    canonical_result_replaced: false
+    prior_findings: 44
+    post_remediation_findings: 89
+    post_findings_by_rule:
+      R-SMB-ADMIN-SHARE-NET-USE: 30
+      R-MSBUILD-InlineTask: 29
+      R-WMI-Create: 15
+      R-NET-View-Share: 15
+    post_pair_diagnostic:
+      frozen_pair_count: 133
+      would_meet_frozen_hit_dimensions: 1
+      expected_technique_same_host_outside_window: 23
+      telemetry_present_no_expected_technique_finding: 100
+      no_normalized_telemetry_in_frozen_window: 9
+    interpretation: development-only evidence; not a replacement BRAWL score, fresh holdout, recall, or current production performance
+  full_regression:
+    status: PASS
+    passed: 1321
+    failed: 0
+  project_readiness:
+    status: PASS
+    score: 100
+    max_score: 100
+    checks_passed: 16
+    warnings: 0
+    failures: 0
+  quality_gate:
+    status: PASS
+    score: 100
+    max_score: 100
+    checks_passed: 6
+    warnings: 0
+    failures: 0
+  current_evidence_verifier:
+    status: PASS
+    schema: breachscope.current_detection_evidence_verification.v13
+    current_rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+    fresh_attack_revalidation_after_current_rule_change: NOT_RUN
+    fresh_benign_revalidation_after_current_rule_change: NOT_RUN
+
+claim_boundary:
+  posthoc_development_change: true
+  fresh_validation: false
+  prior_p2_35m_revalidation_applies_to_current_rulepack: false
+  event_level_precision: NOT_EVALUATED
+  event_level_recall: NOT_EVALUATED
+  attack_level_recall: NOT_EVALUATED
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED

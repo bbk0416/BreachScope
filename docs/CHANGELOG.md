@@ -10,6 +10,8 @@
 - Freeze the BRAWL scorer and one-pass evaluator hashes before raw archive access; the evaluator uses exact archive size/Git-blob identity and a permanent canonical lock.
 - Seal the one-pass BRAWL result at 0/133 step-technique HITs, then record a separate post-hoc diagnosis: 34 pairs lack current rule coverage, 96 have in-window telemetry but no expected-technique finding, and 3 T1105 pairs lack normalized telemetry in the frozen window.
 - Preserve the sealed BRAWL result unchanged and redact credential-like arguments from stored post-hoc command evidence.
+- Add independently documented command-coverage remediation for T1016, T1069.001/T1069.002, and T1021.002; broaden existing T1547.001 Run-key and T1047 WMIC process-create patterns with synthetic regression coverage, while deliberately leaving T1105 unchanged to avoid BRAWL-specific overfitting.
+- Advance the live detector from 69 to 73 rules and move P2-35M to historical evidence for the prior rulepack; fresh attack and benign revalidation for the 73-rule detector remain `NOT_RUN`, and production accuracy/recall/FPR remain `NOT_CLAIMED`.
 
 ## 2.1.2 - Released 2026-09-25
 

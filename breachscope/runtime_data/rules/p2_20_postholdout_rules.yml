@@ -29,3 +29,66 @@
     - field: source
       operator: equals
       pattern: Microsoft-Windows-Sysmon
+- id: R-NETWORK-CONFIG-NBTSTAT
+  name: Network Configuration Discovery via NBTStat
+  description: Sysmon process creation using nbtstat discovery switches to enumerate local or remote NetBIOS/network configuration
+  field: command_line
+  operator: regex
+  pattern: '\bnbtstat(?:\.exe)?\s+[-/](?:n|c|s|a)\b'
+  severity: low
+  mitre_technique: T1016
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+
+- id: R-PERMISSION-GROUPS-LOCAL-NET
+  name: Local Permission Group Discovery via Net
+  description: Sysmon process creation enumerating local groups with net/net1 localgroup while excluding group modification commands
+  field: command_line
+  operator: regex
+  pattern: '(?i)\bnet1?(?:\.exe)?\s+localgroup\b(?!.*\s/(?:add|delete)\b)'
+  severity: low
+  mitre_technique: T1069.001
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+
+- id: R-PERMISSION-GROUPS-DOMAIN-NET
+  name: Domain Permission Group Discovery via Net
+  description: Sysmon process creation enumerating domain groups with net/net1 group and /domain or /dom while excluding modifications
+  field: command_line
+  operator: regex
+  pattern: '(?i)\bnet1?(?:\.exe)?\s+group\b(?=.*\s/(?:domain|dom)\b)(?!.*\s/(?:add|delete)\b)'
+  severity: low
+  mitre_technique: T1069.002
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+
+- id: R-SMB-ADMIN-SHARE-NET-USE
+  name: SMB Windows Admin Share Connection via Net Use
+  description: Sysmon process creation using net/net1 use to connect to Windows administrative shares such as C$, ADMIN$, or IPC$
+  field: command_line
+  operator: regex
+  pattern: '(?i)\bnet1?(?:\.exe)?\s+use\s+(?:[A-Za-z]:\s+)?\\\\[^\\\s]+\\(?:ADMIN\$|[A-Za-z]\$|IPC\$)(?=\s|$)'
+  severity: medium
+  mitre_technique: T1021.002
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
