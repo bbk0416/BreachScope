@@ -1,0 +1,146 @@
+schema: breachscope.windows_apt_2025_source_preregistration.v1
+analysis_id: windows-apt-2025-v3-fresh-source-revalidation-v1
+status: PREREGISTERED_PRE_RAW_ACCESS
+created_date: 2026-09-26
+purpose: freeze the fresh source-family and pre-semantic inspection boundary for the current 73-rule detector before downloading Windows-APT 2025 data
+
+current_detector:
+  repo_commit: 277e1c7cd8460e9db4f83f49e02bf4e03d7cf310
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  remediation_id: independent-command-coverage-remediation-v1
+
+source:
+  family: Windows-APT 2025
+  provider: Mendeley Data
+  dataset_id: b8fmtzvpy8
+  selected_version: 3
+  doi: 10.17632/b8fmtzvpy8.3
+  url: https://data.mendeley.com/datasets/b8fmtzvpy8/3
+  published_date: 2025-12-17
+  license: CC BY 4.0
+  later_known_version: 4
+  later_version_doi: 10.17632/b8fmtzvpy8.4
+  version_selection_reason: peer-reviewed Data in Brief article explicitly binds its data-access statement, 19-CSV package description, and checksums.sha256 integrity mechanism to version 3; version 4 exists but its byte/content delta was not established before preregistration
+  previously_detector_evaluated_by_breachscope: false
+  raw_package_downloaded_before_preregistration: false
+  raw_log_rows_inspected_before_preregistration: false
+
+upstream_documented_properties:
+  environment: Windows 10
+  adversary_emulation: MITRE Caldera 5.0.0
+  collection: Wazuh 4.5.2 with Windows Event Logs and Sysmon
+  scenario_count: 36
+  repetitions_per_scenario: 10
+  log_record_count_approx: 102000
+  general_log_count_reported: 38393
+  malicious_log_count_reported: 63620
+  observed_attack_technique_count: 45
+  observed_enterprise_tactic_count: 9
+  package:
+    log_csv_files: 17
+    per_period_log_csv_files: 16
+    combined_log_csv_files: 1
+    supplementary_csv_files:
+      - scenario_manifest.csv
+      - validation_summary.csv
+    integrity_file: checksums.sha256
+  documented_fields:
+    - Timestamp
+    - Agent-Name
+    - Full-log
+    - Rule Description
+    - MITRE Tactic and Associated IDs
+    - MITRE Technique
+    - File Hash (MD5)
+    - File Hash (SHA256)
+    - Source-OS
+    - Path
+    - Source Datatype
+    - Filename
+    - Source-log
+    - EventID
+    - Image
+    - TargetFilename
+
+freshness_boundary:
+  source_family_used_by_prior_breachscope_detector_evaluation: false
+  source_family_seen_only_as_public_metadata_candidate_before_this_preregistration: true
+  raw_rows_seen_before_detector_freeze: false
+  detector_rules_may_change_after_this_preregistration: false
+  note: public article metadata and schema descriptions are allowed; event/log row values remain unseen until the phase-2 adapter/scoring contract is merged
+
+phase_1_after_merge:
+  allowed_operations:
+    - download the exact Mendeley version-3 package without opening semantic log rows
+    - record package byte size and SHA-256
+    - list archive member names and sizes
+    - verify bundled checksums.sha256 against package CSV files
+    - inspect bundled README, configuration, and example-code text
+    - inspect only CSV header rows and encoding/dialect
+    - count physical data rows without parsing semantic field values
+  prohibited_operations:
+    - inspect or print any log data row values
+    - inspect scenario_manifest.csv data rows
+    - inspect validation_summary.csv data rows
+    - run BreachScope rules against any Windows-APT row
+    - modify detector rules based on package contents
+    - select favorable files, scenarios, techniques, hosts, dates, or labels after seeing results
+  required_output:
+    - exact package/source bytes identity
+    - complete member inventory
+    - checksum verification status
+    - exact CSV header schemas
+    - exact deterministic file-selection rule
+    - label provenance decision or fail-closed result
+
+phase_2_gate_before_semantic_rows:
+  requirements:
+    - exact event-file selection must be frozen
+    - duplicate combined/per-period representation policy must be frozen
+    - CSV-to-BreachScope Event adapter must be implemented from documented schema/header information only
+    - adapter SHA-256 must be frozen
+    - source-intent malicious/general classification must use an explicit upstream-provided class field or an upstream-documented deterministic partition
+    - ATT&CK/Wazuh technique tags must not be used as the malicious-versus-general oracle
+    - scoring semantics and claim boundaries must be frozen
+    - one-pass evaluator and permanent lock policy must be frozen
+    - synthetic adapter/scorer tests and full repository regression must pass
+  fail_closed:
+    - if no explicit upstream-provided source-intent class can be identified without semantic row inspection, do not infer benign/malicious from MITRE tags or detector behavior
+    - if the package layout cannot be deterministically mapped to the documented 16 per-period plus one combined log structure, stop and record source-format failure
+    - if bundled checksums are absent or fail, stop before semantic row inspection
+
+planned_selection:
+  event_rows: all 16 per-period log CSVs
+  excluded_event_rows:
+    - the single combined/consolidated log CSV because it duplicates per-period rows
+    - scenario_manifest.csv
+    - validation_summary.csv
+  supplementary_metadata_use: phase-2 scoring may use scenario_manifest and validation_summary only after their role is frozen in the phase-2 contract
+  no_posthoc_subsetting: true
+
+planned_metrics:
+  attack:
+    primary: source-intent malicious row flagged fraction
+    technique_alignment: descriptive_only_if_upstream_label_provenance_is_explicit
+    prohibited_name: recall
+  benign:
+    primary: source-intent general row flagged fraction
+    prohibited_name: confirmed_false_positive_rate
+  all:
+    report_parse_or_normalization_errors: true
+    report_findings_by_rule: true
+    report_flagged_rows: true
+    no_production_metric_claim: true
+
+claim_boundaries:
+  event_level_attack_ground_truth: NOT_ESTABLISHED
+  event_level_benign_ground_truth: NOT_ESTABLISHED
+  upstream_wazuh_mitre_mapping_is_independent_oracle: false
+  source_intent_attack_general_partition: TO_BE_CONFIRMED_IN_PHASE_1
+  confirmed_false_positive_rate: NOT_CLAIMED
+  event_level_recall: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
