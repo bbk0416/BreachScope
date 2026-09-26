@@ -50,6 +50,7 @@ def test_api_info_remains_available_to_authenticated_operator(monkeypatch) -> No
     assert payload["backup_root"] == r"C:\private\backups"
     assert payload["rbac_enabled"] is False
     assert payload["configured_roles"] == []
+    assert payload["artifact_encryption_enabled"] is False
 
 
 def test_health_remains_public_when_auth_is_enabled(monkeypatch) -> None:

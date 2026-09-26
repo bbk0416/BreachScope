@@ -16,6 +16,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .artifact_encryption import artifact_exists
 from .case_history_concurrency import case_history_locked
 from .case_history_integrity import read_index_fail_closed
 from .path_boundary import is_safe_managed_delete, validate_managed_work_dir
@@ -102,14 +103,14 @@ class CaseHistoryService:
     def _artifact_flags(work_dir: Path) -> Dict[str, bool]:
         prefix = work_dir / "out" / "report"
         return {
-            "html": prefix.with_suffix(".html").exists(),
-            "json": prefix.with_suffix(".json").exists(),
-            "csv": prefix.with_suffix(".csv").exists(),
-            "iocs": prefix.with_suffix(".iocs.csv").exists(),
-            "rules": prefix.with_suffix(".rules.csv").exists(),
-            "manifest": prefix.with_suffix(".manifest.json").exists(),
-            "zip": prefix.with_suffix(".zip").exists(),
-            "pdf": prefix.with_suffix(".pdf").exists(),
+            "html": artifact_exists(prefix.with_suffix(".html")),
+            "json": artifact_exists(prefix.with_suffix(".json")),
+            "csv": artifact_exists(prefix.with_suffix(".csv")),
+            "iocs": artifact_exists(prefix.with_suffix(".iocs.csv")),
+            "rules": artifact_exists(prefix.with_suffix(".rules.csv")),
+            "manifest": artifact_exists(prefix.with_suffix(".manifest.json")),
+            "zip": artifact_exists(prefix.with_suffix(".zip")),
+            "pdf": artifact_exists(prefix.with_suffix(".pdf")),
         }
 
     @staticmethod

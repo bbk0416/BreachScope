@@ -2,11 +2,17 @@
 리포트 API 라우터
 """
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pathlib import Path
 import logging
 
 from api.services.report_preview import load_preview
+from api.services.artifact_encryption import (
+    ArtifactEncryptionError,
+    artifact_exists,
+    iter_artifact_chunks,
+    verify_artifact,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -21,6 +27,11 @@ async def get_report_preview(work_dir: str):
         return load_preview(work_dir)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="미리보기용 report.json을 찾을 수 없습니다.")
+    except ArtifactEncryptionError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="암호화된 리포트를 현재 키로 복호화할 수 없습니다.",
+        ) from exc
     except Exception as e:
         # BREACHSCOPE_P2_06I_SANITIZED_INTERNAL_ERRORS_V1
         logger.error(f"리포트 미리보기 오류: {e}", exc_info=True)
@@ -81,6 +92,25 @@ async def get_report(
                 path=str(file_path),
                 filename=file_path.name,
                 media_type=media_map.get(file_type, "application/octet-stream")
+            )
+        if artifact_exists(file_path):
+            try:
+                verify_artifact(file_path, work_path)
+            except ArtifactEncryptionError as exc:
+                raise HTTPException(
+                    status_code=503,
+                    detail="암호화된 리포트를 현재 키로 복호화할 수 없습니다.",
+                ) from exc
+            return StreamingResponse(
+                iter_artifact_chunks(file_path, work_path),
+                media_type=media_map.get(
+                    file_type, "application/octet-stream"
+                ),
+                headers={
+                    "Content-Disposition": (
+                        f'attachment; filename="{file_path.name}"'
+                    )
+                },
             )
         raise HTTPException(status_code=404, detail=f"{file_type.upper()} 리포트를 찾을 수 없습니다.")
     except HTTPException:

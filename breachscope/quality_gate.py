@@ -92,7 +92,7 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "dotenv_secret_assignment",
         re.compile(
-            r"\b(?:BS_API_KEY|BS_ADMIN_PASSWORD|BS_AUTHOR_PASSWORD|BS_REVIEWER_PASSWORD|BS_OPERATOR_PASSWORD|BS_SESSION_SECRET|BS_AUDIT_CHAIN_SECRET|API_KEY|SECRET|TOKEN|PASSWORD)\b\s*=\s*[\"']?([A-Za-z0-9_./+=:@!#$%^&*~-]{24,})"
+            r"\b(?:BS_API_KEY|BS_ADMIN_PASSWORD|BS_AUTHOR_PASSWORD|BS_REVIEWER_PASSWORD|BS_OPERATOR_PASSWORD|BS_SESSION_SECRET|BS_AUDIT_CHAIN_SECRET|BS_ARTIFACT_ENCRYPTION_KEY|API_KEY|SECRET|TOKEN|PASSWORD)\b\s*=\s*[\"']?([A-Za-z0-9_./+=:@!#$%^&*~-]{24,})"
         ),
     ),
 )
@@ -327,7 +327,7 @@ def _release_exclusion_check(root: Path) -> QualityCheck:
 def _required_security_docs_check(root: Path) -> QualityCheck:
     expected = {
         "SECURITY.md": ["report", "vulnerability"],
-        "docs/DEPLOYMENT.md": ["BS_API_KEY", "BS_ADMIN_PASSWORD", "BS_AUTHOR_PASSWORD", "BS_REVIEWER_PASSWORD", "BS_OPERATOR_PASSWORD", "BS_SESSION_SECRET"],
+        "docs/DEPLOYMENT.md": ["BS_API_KEY", "BS_ADMIN_PASSWORD", "BS_AUTHOR_PASSWORD", "BS_REVIEWER_PASSWORD", "BS_OPERATOR_PASSWORD", "BS_SESSION_SECRET", "BS_ARTIFACT_ENCRYPTION_KEY"],
         "docs/CI_CD.md": ["GitHub Actions", "pytest"],
         "docs/RELEASE.md": ["SHA256", "release_manifest"],
     }

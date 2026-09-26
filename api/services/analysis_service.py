@@ -23,6 +23,12 @@ from breachscope.runtime_paths import default_rules_dir
 from api.services.workdir_service import WorkDirectoryService
 from api.services.report_preview import build_preview
 from api.services.case_history import CaseHistoryService
+from api.services.artifact_encryption import (
+    artifact_encryption_enabled,
+    encrypt_tree,
+    encrypted_path,
+    validate_artifact_encryption_key,
+)
 from api.services.rule_activation import RuleActivationService
 
 logger = logging.getLogger(__name__)
@@ -257,6 +263,9 @@ class AnalysisService:
             config = Config.from_env()
             max_events = config.max_events
 
+            if artifact_encryption_enabled():
+                validate_artifact_encryption_key()
+
             additional_rules = []
             custom_rule_provenance = []
             if use_custom_rules:
@@ -317,6 +326,13 @@ class AnalysisService:
             if cleanup_after_analysis:
                 cleanup_succeeded = _cleanup_successful_analysis(work)
 
+            encrypted_artifact_count = 0
+            artifacts_encrypted = False
+            if not cleanup_succeeded and artifact_encryption_enabled():
+                encrypted_files = encrypt_tree(work)
+                encrypted_artifact_count = len(encrypted_files)
+                artifacts_encrypted = True
+
             if report_data is not None and not cleanup_succeeded:
                 try:
                     case_record = CaseHistoryService().register_case(work, report_data)
@@ -324,6 +340,12 @@ class AnalysisService:
                     logger.warning(f"케이스 이력 저장 실패: {e}")
 
             retain_artifact_paths = not cleanup_succeeded
+            def retained_path(path: Path | None) -> str | None:
+                if not retain_artifact_paths or path is None:
+                    return None
+                candidate = encrypted_path(path) if artifacts_encrypted else path
+                return str(candidate) if candidate.exists() else None
+
             return {
                 "success": True,
                 "count": count,
@@ -338,14 +360,20 @@ class AnalysisService:
                         "custom_rule_activation", {}
                     )
                 ),
-                "html_path": str(html_path) if retain_artifact_paths and Path(html_path).exists() else None,
-                "json_path": str(json_path) if retain_artifact_paths and json_path.exists() else None,
-                "csv_path": str(csv_path) if retain_artifact_paths and csv_path.exists() else None,
-                "iocs_path": str(iocs_path) if retain_artifact_paths and iocs_path.exists() else None,
-                "rule_catalog_path": str(rule_catalog_path) if retain_artifact_paths and rule_catalog_path.exists() else None,
-                "pdf_path": str(pdf_path) if retain_artifact_paths and pdf_path and pdf_path.exists() else None,
-                "manifest_path": str(manifest_path) if retain_artifact_paths and manifest_path.exists() else None,
-                "package_path": str(package_path) if retain_artifact_paths and package_path.exists() else None,
+                "artifact_encryption": {
+                    "enabled": artifacts_encrypted,
+                    "encrypted_file_count": encrypted_artifact_count,
+                    "algorithm": "AES-256-GCM" if artifacts_encrypted else None,
+                    "plaintext_retained": False if artifacts_encrypted else None,
+                },
+                "html_path": retained_path(Path(html_path)),
+                "json_path": retained_path(json_path),
+                "csv_path": retained_path(csv_path),
+                "iocs_path": retained_path(iocs_path),
+                "rule_catalog_path": retained_path(rule_catalog_path),
+                "pdf_path": retained_path(pdf_path),
+                "manifest_path": retained_path(manifest_path),
+                "package_path": retained_path(package_path),
                 "work_dir": str(work) if retain_artifact_paths and work.exists() else None,
             }
         except UploadLimitError:

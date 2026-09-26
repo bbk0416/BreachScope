@@ -59,6 +59,12 @@
     "effective_custom_rule_ids": [],
     "canonical_rulepack_modified": false
   },
+  "artifact_encryption": {
+    "enabled": false,
+    "encrypted_file_count": 0,
+    "algorithm": null,
+    "plaintext_retained": null
+  },
   "html_path": "/path/to/report.html",
   "json_path": "/path/to/report.json",
   "csv_path": "/path/to/report.csv",
@@ -66,6 +72,8 @@
   "work_dir": "/path/to/work/directory"
 }
 ```
+
+`BS_ARTIFACT_ENCRYPTION_KEY`를 설정하면 retained case의 업로드 입력과 `report.*` 산출물은 분석 완료 후 AES-256-GCM으로 암호화되어 `.enc` 파일로 저장됩니다. 응답의 artifact path는 암호화가 활성화된 경우 `.enc` 경로를 가리킵니다. 웹 preview와 report 다운로드는 디스크에 평문을 다시 저장하지 않고 메모리에서 복호화합니다. 키가 없거나 잘못되면 암호화된 케이스 preview/download는 HTTP 503으로 fail-closed 합니다.
 
 **에러 응답**:
 ```json
@@ -86,6 +94,8 @@
 - `file_type` (str, 기본값: "html"): 파일 타입 (html, json, csv, iocs, rules, manifest, zip, pdf)
 
 **응답**: 파일 다운로드
+
+암호화된 retained case에서도 같은 파일명을 유지해 복호화된 바이트를 반환합니다. `BS_ARTIFACT_ENCRYPTION_KEY`가 현재 저장 시점 키와 다르면 HTTP 503을 반환합니다.
 
 ---
 

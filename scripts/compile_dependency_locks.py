@@ -33,7 +33,7 @@ def compile_locks(uv_exe: str | None = None) -> None:
     uv = uv_exe or find_uv()
 
     for suffix, python_version in TARGETS.items():
-        output = ROOT / f"requirements-lock-py{suffix}.txt"
+        output_name = f"requirements-lock-py{suffix}.txt"
         cmd = [
             uv,
             "pip",
@@ -49,7 +49,7 @@ def compile_locks(uv_exe: str | None = None) -> None:
             "--exclude-newer",
             EXCLUDE_NEWER,
             "--output-file",
-            str(output),
+            output_name,
         ]
         print("> " + " ".join(cmd))
         subprocess.run(cmd, check=True, cwd=ROOT)

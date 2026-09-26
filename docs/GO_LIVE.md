@@ -24,6 +24,12 @@ Review the generated `.env` before starting the service.
 
 The bootstrap command intentionally keeps optional rule-lifecycle RBAC accounts disabled. To enable them, manually set one or more of `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD` to long random values. The admin account remains the default first-run login.
 
+At-rest case artifact encryption is also opt-in. To enable it, generate 32 random bytes and store them as URL-safe base64 in `BS_ARTIFACT_ENCRYPTION_KEY`. Keep this key outside backups of the encrypted case directory; losing or changing it makes retained encrypted cases unreadable.
+
+```bash
+python -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip('='))"
+```
+
 ## Run the go-live checker
 
 ```bash
@@ -43,6 +49,7 @@ The checker covers:
 
 - Runtime authentication is enabled.
 - Placeholder secrets are not still in use.
+- Optional artifact-encryption key is valid when configured.
 - Browser session secret is long and separate.
 - API documentation is disabled for production.
 - Secure cookies are enabled for HTTPS deployments.

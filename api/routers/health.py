@@ -35,4 +35,8 @@ async def liveness_check():
 @router.get("/health/ready", response_class=JSONResponse)
 async def readiness_check():
     """Readiness probe that verifies writable storage and rule/template availability."""
-    return readiness_status()
+    result = readiness_status()
+    return JSONResponse(
+        status_code=200 if result.get("status") == "ready" else 503,
+        content=result,
+    )

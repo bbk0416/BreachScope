@@ -13,6 +13,10 @@ from typing import Any, Mapping
 
 from api.services.audit_log import audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
+from api.services.artifact_encryption import (
+    ArtifactEncryptionError,
+    validate_artifact_encryption_key_value,
+)
 from api.services.case_history import CaseHistoryService
 from api.security import configured_admin_password, configured_api_key, configured_role_passwords, session_ttl_seconds
 from api.services.ops_status import _path_info  # lightweight helper already used by readiness checks
@@ -28,6 +32,7 @@ SECRET_ENV_KEYS = (
     "BS_OPERATOR_PASSWORD",
     "BS_SESSION_SECRET",
     "BS_AUDIT_CHAIN_SECRET",
+    "BS_ARTIFACT_ENCRYPTION_KEY",
 )
 
 
@@ -130,6 +135,32 @@ def _check_placeholders(env: Mapping[str, str]) -> GoLiveCheck:
         "fail" if bad else "pass",
         "No placeholder runtime secrets detected." if not bad else f"Replace placeholder value(s): {', '.join(bad)}.",
         {"placeholder_keys": bad},
+    )
+
+
+def _check_artifact_encryption(env: Mapping[str, str]) -> GoLiveCheck:
+    value = _env_value(env, "BS_ARTIFACT_ENCRYPTION_KEY")
+    if not value:
+        return GoLiveCheck(
+            "artifact_encryption",
+            "pass",
+            "Artifact encryption is optional and disabled.",
+            {"enabled": False},
+        )
+    try:
+        validate_artifact_encryption_key_value(value)
+    except ArtifactEncryptionError as exc:
+        return GoLiveCheck(
+            "artifact_encryption",
+            "fail",
+            str(exc),
+            {"enabled": True, "valid": False},
+        )
+    return GoLiveCheck(
+        "artifact_encryption",
+        "pass",
+        "AES-256-GCM artifact encryption key is valid.",
+        {"enabled": True, "valid": True},
     )
 
 
@@ -258,6 +289,8 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
             steps.append("Set BS_DISABLE_DOCS=1 for shared or production deployments.")
         elif check.name == "secure_cookie":
             steps.append("Set BS_COOKIE_SECURE=1 when the console is served through HTTPS.")
+        elif check.name == "artifact_encryption":
+            steps.append("Set BS_ARTIFACT_ENCRYPTION_KEY to URL-safe base64 that decodes to exactly 32 random bytes, or leave it unset to disable at-rest encryption.")
         elif check.name == "audit_trail":
             steps.append("Keep BS_AUDIT_ENABLED=1 and back up the audit JSONL regularly.")
         elif check.name == "persistent_data_paths":
@@ -276,6 +309,7 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
         _check_auth(env_map),
         _check_session_secret(env_map),
         _check_placeholders(env_map),
+        _check_artifact_encryption(env_map),
         _check_session_ttl(),
         _check_data_paths(),
         _check_audit(),

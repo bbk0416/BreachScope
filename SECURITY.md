@@ -7,6 +7,7 @@ BreachScope processes sensitive security logs. Treat deployments as internal too
 - Set a long random `BS_API_KEY` for API clients and at least one browser-login password (`BS_ADMIN_PASSWORD` and/or optional role passwords) plus `BS_SESSION_SECRET` before exposing the web console.
 - Put the service behind HTTPS, for example Nginx, Caddy, Cloudflare Tunnel, or a private VPN.
 - Keep case data under a dedicated data volume such as `/data`.
+- For retained local cases, optionally set `BS_ARTIFACT_ENCRYPTION_KEY` to URL-safe base64 encoding of exactly 32 random bytes. BreachScope then stores case inputs/reports as AES-256-GCM ciphertext and decrypts downloads/previews in memory.
 - Disable public API docs in production with `BS_DISABLE_DOCS=1`.
 - Do not upload real customer logs to public demo instances.
 - Review generated IOC and findings before using them for blocking decisions.

@@ -9,6 +9,7 @@ from api.services.upload_policy import UploadLimitError
 
 from api.rbac import ROLE_OPERATOR, require_roles
 from api.services.analysis_service import AnalysisService
+from api.services.artifact_encryption import ArtifactEncryptionError
 from api.services.audit_log import AuditLogService
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,16 @@ async def analyze(
                         "loaded_custom_rule_count", 0
                     )
                 ),
+                "artifact_encryption_enabled": (
+                    result.get("artifact_encryption", {}).get(
+                        "enabled", False
+                    )
+                ),
+                "encrypted_artifact_count": (
+                    result.get("artifact_encryption", {}).get(
+                        "encrypted_file_count", 0
+                    )
+                ),
             },
         )
         return result
@@ -98,6 +109,25 @@ async def analyze(
                 "message": str(exc),
             },
         ) from exc
+    except ArtifactEncryptionError as exc:
+        AuditLogService().record(
+            "analysis.run",
+            request=request,
+            status="failure",
+            details={
+                "type": "ArtifactEncryptionError",
+                "reason": "artifact_encryption_unavailable",
+            },
+        )
+        logger.error("아티팩트 암호화 오류: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "아티팩트 암호화 설정 또는 저장 상태를 확인할 수 없어 "
+                "분석 결과를 보존하지 않았습니다."
+            ),
+        ) from exc
+
     except PermissionError as e:
         # BREACHSCOPE_P2_06O_SANITIZED_PERMISSION_ERRORS_V1
         AuditLogService().record("analysis.run", request=request, status="failure", details={"error": str(e), "type": "PermissionError"})
