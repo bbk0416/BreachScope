@@ -1,0 +1,160 @@
+schema: breachscope.windows_apt_2025_source_intake_summary.v1
+analysis_id: windows-apt-2025-v3-source-intake-v1
+status: COMPLETED_FAIL_CLOSED_LABEL_PROVENANCE
+created_date: 2026-09-26
+
+preregistration:
+  path: external_baseline/windows_apt_2025_source_preregistration.yaml
+  merge_commit: 5fcc48dfbab2138cfe02c4fe64184d37e65abe3a
+  detector_repo_commit: 277e1c7cd8460e9db4f83f49e02bf4e03d7cf310
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+
+source:
+  family: Windows-APT 2025
+  provider: Mendeley Data
+  dataset_id: b8fmtzvpy8
+  selected_version: 3
+  doi: 10.17632/b8fmtzvpy8.3
+  stable_page: https://data.mendeley.com/datasets/b8fmtzvpy8/3
+  download_endpoint: https://data.mendeley.com/public-api/zip/b8fmtzvpy8/download/3
+  archive_metadata:
+    status: FINISH
+    size_bytes: 54966714
+    sha256: 0dfd0270ea41788fb5e9d24045f4314fe2682cc327d9d6da537b2d908d29c5c5
+  downloaded_archive:
+    size_bytes: 54966714
+    sha256: 0dfd0270ea41788fb5e9d24045f4314fe2682cc327d9d6da537b2d908d29c5c5
+    metadata_match: true
+    committed_to_repository: false
+
+intake_runner:
+  path: scripts/windows_apt_2025_source_intake.py
+  sha256: c0ed39f4843ebd53cc71ecd11c433466e910e34ea7f2755ee40102b65fe6a0cf
+  access_boundary:
+    semantic_data_rows_decoded_or_printed: false
+    semantic_data_rows_parsed_as_csv_records: false
+    detector_rules_executed_against_source: false
+    csv_access: header_line_plus_opaque_hash_and_physical_newline_streaming
+
+raw_metadata_result:
+  path: external_baseline/results/windows_apt_2025_v3_source_intake/result.json
+  size_bytes: 319994
+  sha256: 9bd597ba47a83aae67b45a7f620c6289bb6f96b0463bd517cc5ff295efacb713
+  status: COMPLETED_METADATA_ONLY
+  exact_headers_stored: true
+  semantic_row_values_stored: false
+
+package:
+  member_count: 23
+  csv_count: 19
+  per_period_log_csv_count: 16
+  combined_log_csv_count: 1
+  supplementary_csv_count: 2
+  other_members:
+    - checksums.sha256
+    - README.md
+    - scripts/load_and_merge_logs.py
+    - scripts/parse_attack_mapping_and_filter.py
+  total_uncompressed_bytes: 480866795
+  total_compressed_member_bytes: 54961348
+  exact_member_inventory_stored_in_raw_result: true
+
+integrity:
+  bundled_checksum_entry_count: 19
+  csv_checksum_matches: 19
+  csv_checksum_mismatches: 0
+  all_csv_checksums_match: true
+  checksum_path_note: bundled checksums use original absolute Windows paths; intake normalizes only the basename before matching archive members
+
+csv_format:
+  delimiter: comma
+  utf8_without_bom_files: 18
+  utf8_with_bom_files:
+    - combined.csv
+  exact_header_strings_and_columns_stored_in_raw_result: true
+  physical_line_counts_stored_in_raw_result: true
+  physical_line_counts_are_logical_csv_record_counts: false
+
+selection:
+  rule: all CSV members except combined.csv, scenario_manifest.csv, and validation_summary.csv
+  selected_event_files:
+    - 01-03-December.csv
+    - 03-04-December.csv
+    - 04-07-December.csv
+    - 07-10-December.csv
+    - 1-11-November.csv
+    - 10-December-P1.csv
+    - 10-December-P2.csv
+    - 11-12-December.csv
+    - 11-16-November.csv
+    - 12-13-December.csv
+    - 13-14-December.csv
+    - 14-17-December.csv
+    - 22-December.csv
+    - 23-30-November.csv
+    - 28-October-01-November.csv
+    - 30-November.csv
+  excluded_duplicate:
+    - combined.csv
+  excluded_supplementary:
+    - scenario_manifest.csv
+    - validation_summary.csv
+  no_posthoc_subsetting: true
+
+allowed_documentation_review:
+  README.md:
+    size_bytes: 5780
+    sha256: 0ed29fc5948d79e8007bd5911c0cf271e5c065f3c8762a9fe4a81940dac150b2
+    observation: describes per-period logs, combined.csv, scenario metadata, validation metadata, ATT&CK-driven filtering, and helper workflows; it does not define an explicit malicious-versus-general source-intent field or deterministic partition
+  scripts/load_and_merge_logs.py:
+    size_bytes: 3901
+    sha256: fea4a56a4cbfebb1e9998309a64bb79429adb3e63aace995dd5acade406e088c
+    observation: merges per-period CSVs and excludes combined/metadata files by default; it does not define an attack-versus-general oracle
+  scripts/parse_attack_mapping_and_filter.py:
+    size_bytes: 5968
+    sha256: 61d2cd0385e8abaf687b8118ec5d24e36908b461d9a7018f48b7ef06f974358a
+    observation: filters scenarios by ATT&CK tactic, technique, group, or scenario identifier; these mappings are not permitted as the malicious-versus-general oracle by the preregistration contract
+
+label_provenance:
+  explicit_source_intent_header_candidate_count: 0
+  seventeen_log_csvs_have_explicit_label_class_malicious_benign_intent_fields: false
+  scenario_manifest_header_candidate:
+    - Scenario_Name
+  validation_summary_header_candidate:
+    - Scenario_Name
+  scenario_name_is_source_intent_class: false
+  attack_or_general_partition_identified_without_semantic_rows: false
+  ATTACK_or_Wazuh_mitre_mapping_as_independent_oracle: false
+  result: NOT_IDENTIFIED_FAIL_CLOSED
+
+decision:
+  phase_1_source_identity: PASS
+  phase_1_package_layout: PASS
+  phase_1_integrity: PASS
+  phase_1_deterministic_selection: PASS
+  phase_1_label_provenance: FAIL_CLOSED
+  phase_2_semantic_row_access_authorized: false
+  phase_2_adapter_execution_authorized: false
+  detector_execution_against_windows_apt_authorized: false
+  reason: preregistration requires an explicit upstream source-intent class field or an upstream-documented deterministic attack/general partition before semantic row access; allowed Phase 1 materials provide neither
+  allowed_next_steps:
+    - obtain explicit upstream documentation defining a deterministic attack/general partition without inspecting semantic event rows
+    - obtain an upstream-provided label source that is independent of ATT&CK/Wazuh detector mappings
+    - otherwise keep this dataset metadata-only and do not use it for attack/general performance claims
+  prohibited_next_steps:
+    - inspect semantic event rows to reverse-engineer an attack/general partition
+    - infer malicious/general from ATT&CK tactic, technique, or Wazuh MITRE tags
+    - select favorable files, scenarios, techniques, hosts, dates, or labels after seeing detector results
+    - run BreachScope rules against Windows-APT rows under this analysis id
+
+claim_boundary:
+  fresh_attack_revalidation: NOT_RUN
+  fresh_benign_revalidation: NOT_RUN
+  event_level_attack_ground_truth: NOT_ESTABLISHED
+  event_level_benign_ground_truth: NOT_ESTABLISHED
+  event_level_recall: NOT_CLAIMED
+  confirmed_false_positive_rate: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
