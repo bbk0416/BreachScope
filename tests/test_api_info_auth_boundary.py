@@ -25,6 +25,7 @@ def test_api_info_remains_available_to_authenticated_operator(monkeypatch) -> No
     monkeypatch.setenv("BS_CASE_HISTORY_PATH", r"C:\private\case_history.json")
     monkeypatch.setenv("BS_CASES_ROOT", r"C:\private\cases")
     monkeypatch.setenv("BS_AUDIT_LOG_PATH", r"C:\private\audit.jsonl")
+    monkeypatch.setenv("BS_RULE_TUNING_PATH", r"C:\private\rule_tuning_profiles.json")
     monkeypatch.setenv("BS_BACKUP_ROOT", r"C:\private\backups")
 
     client = TestClient(app)
@@ -38,6 +39,7 @@ def test_api_info_remains_available_to_authenticated_operator(monkeypatch) -> No
     assert payload["case_history_path"] == r"C:\private\case_history.json"
     assert payload["cases_root"] == r"C:\private\cases"
     assert payload["audit_log_path"] == r"C:\private\audit.jsonl"
+    assert payload["rule_tuning_path"] == r"C:\private\rule_tuning_profiles.json"
     assert payload["backup_root"] == r"C:\private\backups"
 
 

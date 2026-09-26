@@ -139,6 +139,25 @@
 
 ---
 
+### GET `/api/rules/profiles`
+저장된 룰 튜닝 프로필 목록을 조회합니다. 목록 응답에는 현재 버전과 revision 수가 포함되며 전체 revision 본문은 포함하지 않습니다.
+
+### GET `/api/rules/profiles/{profile_id}`
+단일 프로필과 저장된 revision 이력을 조회합니다.
+
+### POST `/api/rules/profiles`
+분석 단위 룰 include/exclude 조합을 새 프로필로 저장합니다. 존재하지 않는 룰 ID 또는 include/exclude 중복은 400으로 거부합니다.
+
+요청 필드: name, description, rule_include, rule_exclude.
+
+### PUT `/api/rules/profiles/{profile_id}`
+프로필을 새 버전으로 갱신합니다. `expected_version`이 현재 버전과 다르면 409를 반환합니다.
+
+### DELETE `/api/rules/profiles/{profile_id}?expected_version=N`
+현재 버전이 일치할 때만 프로필을 삭제합니다. 생성/수정/삭제는 감사 로그에 기록됩니다.
+
+---
+
 ### GET `/api/health`
 서비스 상태를 확인합니다.
 

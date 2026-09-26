@@ -17,6 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     BS_CASES_ROOT=/data/cases \
     BS_CASE_HISTORY_PATH=/data/case_history.json \
     BS_AUDIT_LOG_PATH=/data/audit.jsonl \
+    BS_RULE_TUNING_PATH=/data/rule_tuning_profiles.json \
     BS_BUILD_VERSION=$VERSION \
     BS_BUILD_SHA=$VCS_REF \
     BS_BUILD_TIME=$BUILD_DATE
