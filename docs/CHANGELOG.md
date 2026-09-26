@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add custom-rule authoring workflow (draft → runtime validate → approve → publish) with versioned YAML artifacts, audit logs, backup inclusion, and no automatic activation into the canonical detector.
 - Add persistent, versioned rule-tuning profiles with optimistic concurrency, audit logging, web save/load/history/delete controls, and Docker-persistent storage without modifying canonical rule YAML.
 - Add per-analysis rule include/exclude tuning across CLI, API, config, reports, and the web rule catalog without modifying the canonical YAML rulepack.
 - Add a documented-schema-only MITRE BRAWL adapter for Sysmon and Windows Event records without inspecting the released raw archive.

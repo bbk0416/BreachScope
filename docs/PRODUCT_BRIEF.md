@@ -35,5 +35,5 @@ BreachScope turns Windows-oriented security logs into an incident triage package
 - More real-world EVTX fixture testing.
 - RBAC/SSO and per-organization permissions beyond the built-in single-admin login.
 - Encrypted object storage for reports and uploads.
-- Persistent rule authoring/versioning beyond saved, versioned per-analysis tuning profiles; canonical detector YAML editing remains intentionally separate.
+- Controlled activation/rollback of published custom rules and reviewer separation via RBAC remain future work; authoring now supports draft → validate → approve → publish without changing canonical detector YAML.
 - Signed release artifacts and CI/CD.

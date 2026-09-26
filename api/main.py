@@ -65,6 +65,7 @@ async def api_info():
         "cases_root": os.getenv("BS_CASES_ROOT", "~/.breachscope/cases"),
         "audit_log_path": os.getenv("BS_AUDIT_LOG_PATH", "~/.breachscope/audit.jsonl"),
         "rule_tuning_path": os.getenv("BS_RULE_TUNING_PATH", "~/.breachscope/rule_tuning_profiles.json"),
+        "rule_authoring_root": os.getenv("BS_RULE_AUTHORING_ROOT", "~/.breachscope/rule_authoring"),
         "audit_enabled": os.getenv("BS_AUDIT_ENABLED", "1").strip().lower() not in {"0", "false", "no", "off"},
         "auth_lockout": {
             "max_failures": int(os.getenv("BS_AUTH_MAX_FAILURES", "5") or "5"),

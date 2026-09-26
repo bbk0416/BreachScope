@@ -158,6 +158,23 @@
 
 ---
 
+### GET `/api/rules/authoring/drafts`
+커스텀 룰 draft 목록을 조회합니다. 이 저장소는 canonical `rules/`와 분리됩니다.
+
+### POST `/api/rules/authoring/drafts`
+새 룰 draft를 저장합니다. 단순 저장 단계에서는 runtime regex 검증이나 canonical ID 충돌 검사를 아직 통과할 필요가 없습니다.
+
+### POST `/api/rules/authoring/drafts/{draft_id}/validate`
+현재 버전을 실제 BreachScope runtime loader로 검증합니다. 잘못된 regex, loader 오류, canonical rule ID 충돌은 400으로 거부합니다.
+
+### POST `/api/rules/authoring/drafts/{draft_id}/approve`
+validation PASS인 현재 버전에 검토 메모와 승인자를 기록합니다. 내용이 수정되면 validation/approval은 초기화됩니다.
+
+### POST `/api/rules/authoring/drafts/{draft_id}/publish`
+승인된 현재 버전을 별도 versioned YAML artifact로 publish합니다. publish artifact의 `activated_in_detector`는 false이며 canonical 73-rule detector에 자동 합류하지 않습니다.
+
+---
+
 ### GET `/api/health`
 서비스 상태를 확인합니다.
 
