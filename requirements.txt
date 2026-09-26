@@ -6,4 +6,5 @@ uvicorn[standard]>=0.24
 python-multipart>=0.0.6
 reportlab>=4
 python-evtx>=0.6
+cryptography>=42
 tomli>=2.0; python_version < "3.11"

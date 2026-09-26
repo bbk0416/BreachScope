@@ -150,3 +150,39 @@ def test_go_live_accepts_role_only_browser_auth(tmp_path, monkeypatch):
     assert auth["details"]["password_login_enabled"] is True
     assert auth["details"]["rbac_roles"] == ["author", "operator", "reviewer"]
     assert result["status"] == "pass"
+
+
+def test_go_live_rejects_invalid_artifact_encryption_key(tmp_path, monkeypatch):
+    env = _good_env(tmp_path)
+    env["BS_ARTIFACT_ENCRYPTION_KEY"] = "invalid-key"
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "artifact_encryption"
+    )
+    assert check["status"] == "fail"
+    assert result["status"] == "fail"
+
+
+def test_go_live_accepts_valid_artifact_encryption_key(tmp_path, monkeypatch):
+    import base64
+
+    env = _good_env(tmp_path)
+    env["BS_ARTIFACT_ENCRYPTION_KEY"] = (
+        base64.urlsafe_b64encode(bytes(range(32)))
+        .decode("ascii")
+        .rstrip("=")
+    )
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "artifact_encryption"
+    )
+    assert check["status"] == "pass"
+    assert check["details"]["enabled"] is True

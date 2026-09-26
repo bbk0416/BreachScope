@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 import json
 
+from .artifact_encryption import artifact_exists, read_artifact_bytes
 from .path_boundary import WorkDirBoundaryError, validate_managed_work_dir
 
 
@@ -125,7 +126,9 @@ def load_preview(work_dir: str | Path) -> Dict[str, Any]:
         ) from exc
 
     report_json = work_path / "out" / "report.json"
-    if not report_json.exists():
+    if not artifact_exists(report_json):
         raise FileNotFoundError(f"report.json not found: {report_json}")
-    data = json.loads(report_json.read_text(encoding="utf-8"))
+    data = json.loads(
+        read_artifact_bytes(report_json, work_path).decode("utf-8")
+    )
     return build_preview(data)

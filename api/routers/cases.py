@@ -4,9 +4,16 @@ from __future__ import annotations
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
 from api.services.case_history import CaseHistoryService
+from api.services.artifact_encryption import (
+    ArtifactEncryptionError,
+    artifact_exists,
+    encrypted_path,
+    iter_artifact_chunks,
+    verify_artifact,
+)
 from api.services.audit_log import AuditLogService, actor_from_request
 from api.services.report_preview import load_preview
 
@@ -127,6 +134,11 @@ async def get_case(case_id: str, request: Request):
             preview = load_preview(case["work_dir"])
         except FileNotFoundError:
             preview = None
+        except ArtifactEncryptionError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="암호화된 케이스를 현재 키로 복호화할 수 없습니다.",
+            ) from exc
     AuditLogService().record("case.view", request=request, status="success", case_id=case_id, details={"exists": case.get("exists")})
     return {"success": True, "case": case, "preview": preview}
 
@@ -174,10 +186,55 @@ async def get_case_report(
         "zip": "application/zip",
     }
     file_path = report_prefix.with_suffix(suffix_map[file_type])
-    if not file_path.exists():
+    if not artifact_exists(file_path):
         raise HTTPException(status_code=404, detail=f"{file_type.upper()} 산출물을 찾을 수 없습니다.")
-    AuditLogService().record("case.download", request=request, status="success", case_id=case_id, target=file_path.name, details={"file_type": file_type})
-    return FileResponse(path=str(file_path), filename=file_path.name, media_type=media_map[file_type])
+
+    if file_path.exists():
+        AuditLogService().record(
+            "case.download",
+            request=request,
+            status="success",
+            case_id=case_id,
+            target=file_path.name,
+            details={"file_type": file_type, "encrypted_at_rest": False},
+        )
+        return FileResponse(
+            path=str(file_path),
+            filename=file_path.name,
+            media_type=media_map[file_type],
+        )
+
+    try:
+        verify_artifact(file_path, work_path)
+    except ArtifactEncryptionError as exc:
+        AuditLogService().record(
+            "case.download",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            target=encrypted_path(file_path).name,
+            details={"file_type": file_type, "reason": "decrypt_failed"},
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="암호화된 산출물을 현재 키로 복호화할 수 없습니다.",
+        ) from exc
+
+    AuditLogService().record(
+        "case.download",
+        request=request,
+        status="success",
+        case_id=case_id,
+        target=file_path.name,
+        details={"file_type": file_type, "encrypted_at_rest": True},
+    )
+    return StreamingResponse(
+        iter_artifact_chunks(file_path, work_path),
+        media_type=media_map[file_type],
+        headers={
+            "Content-Disposition": f'attachment; filename="{file_path.name}"'
+        },
+    )
 
 
 @router.delete("/cases/{case_id}", response_class=JSONResponse)

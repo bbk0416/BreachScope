@@ -14,6 +14,7 @@ from breachscope.exceptions import BreachScopeError
 from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
 from api.middleware import setup_middleware
 from api.security import auth_is_enabled, configured_role_passwords, password_login_is_enabled
+from api.services.artifact_encryption import artifact_encryption_enabled
 from breachscope.release import runtime_build_info
 from breachscope.version import get_project_version
 
@@ -64,6 +65,7 @@ async def api_info():
         "password_login_enabled": password_login_is_enabled(),
         "rbac_enabled": bool(configured_role_passwords()),
         "configured_roles": sorted(configured_role_passwords()),
+        "artifact_encryption_enabled": artifact_encryption_enabled(),
         "case_history_path": os.getenv("BS_CASE_HISTORY_PATH", "~/.breachscope/case_history.json"),
         "cases_root": os.getenv("BS_CASES_ROOT", "~/.breachscope/cases"),
         "audit_log_path": os.getenv("BS_AUDIT_LOG_PATH", "~/.breachscope/audit.jsonl"),

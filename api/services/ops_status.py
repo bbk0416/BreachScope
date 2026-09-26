@@ -17,6 +17,11 @@ from api.services.audit_log import AuditLogService, audit_is_enabled, audit_log_
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
 from api.security import auth_is_enabled, configured_admin_password, configured_api_key, configured_role_passwords, password_login_is_enabled, session_ttl_seconds
+from api.services.artifact_encryption import (
+    ArtifactEncryptionError,
+    artifact_encryption_enabled,
+    validate_artifact_encryption_key,
+)
 from breachscope.demo_scenarios import SCENARIOS, write_demo_scenario
 from breachscope.pipeline import Pipeline
 from breachscope.rulepack import summarize_rules
@@ -115,6 +120,33 @@ def live_status() -> dict[str, Any]:
 
 def readiness_status() -> dict[str, Any]:
     checks = []
+    if artifact_encryption_enabled():
+        try:
+            validate_artifact_encryption_key()
+            checks.append(
+                Check(
+                    "artifact_encryption",
+                    "pass",
+                    "AES-256-GCM artifact encryption key is configured.",
+                )
+            )
+        except ArtifactEncryptionError as exc:
+            checks.append(
+                Check(
+                    "artifact_encryption",
+                    "fail",
+                    str(exc),
+                )
+            )
+    else:
+        checks.append(
+            Check(
+                "artifact_encryption",
+                "pass",
+                "Artifact encryption is optional and currently disabled.",
+            )
+        )
+
     checks.append(_check_path("cases_root", CaseHistoryService.default_root(), create_dir=True))
     checks.append(_check_path("case_history", CaseHistoryService.default_index_path(), create_dir=True, file_path=True))
     checks.append(_check_path("audit_log", audit_log_path(), create_dir=True, file_path=True))

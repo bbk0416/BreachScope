@@ -67,6 +67,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_RULE_TUNING_PATH` | Versioned rule-tuning profile JSON path | `~/.breachscope/rule_tuning_profiles.json` |
 | `BS_RULE_AUTHORING_ROOT` | Draft/review/published custom-rule root | `~/.breachscope/rule_authoring` |
 | `BS_RULE_ACTIVATION_PATH` | Versioned custom-rule activation manifest | `~/.breachscope/rule_activation.json` |
+| `BS_ARTIFACT_ENCRYPTION_KEY` | Optional URL-safe base64 32-byte key for AES-256-GCM encryption of retained case inputs/reports | unset |
 | `BS_AUDIT_CHAIN_SECRET` | Optional HMAC key for audit integrity checks | unset |
 | `BS_WEB_CLEANUP_AFTER_ANALYSIS` | Delete web workdir after analysis when `1` | `0` |
 | `BS_PDF_FONT_REGULAR` | Override Korean PDF regular font | auto-detect |
