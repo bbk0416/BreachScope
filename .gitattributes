@@ -19,3 +19,4 @@ external_baseline/locks/P2_35M_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock -
 external_baseline/results/p2_35m_4aa6a1d/result.json -text -eol -whitespace
 external_baseline/locks/BRAWL_ATTACK_STEP_TECHNIQUE_HOLDOUT_V1.lock -text -whitespace
 external_baseline/results/brawl_posthoc_b306aa7/result.json -text -eol -whitespace
+external_baseline/results/windows_apt_2025_v3_source_intake/result.json -text -eol -whitespace
