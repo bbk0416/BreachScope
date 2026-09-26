@@ -9,6 +9,9 @@ def _enable_api_key(monkeypatch) -> None:
     monkeypatch.setenv("BS_DEPLOYMENT_MODE", "production")
     monkeypatch.setenv("BS_API_KEY", "info-boundary-secret")
     monkeypatch.delenv("BS_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_AUTHOR_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_REVIEWER_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_OPERATOR_PASSWORD", raising=False)
 
 
 def test_api_info_requires_auth_when_auth_is_enabled(monkeypatch) -> None:
@@ -45,6 +48,8 @@ def test_api_info_remains_available_to_authenticated_operator(monkeypatch) -> No
     assert payload["rule_authoring_root"] == r"C:\private\rule_authoring"
     assert payload["rule_activation_path"] == r"C:\private\rule_activation.json"
     assert payload["backup_root"] == r"C:\private\backups"
+    assert payload["rbac_enabled"] is False
+    assert payload["configured_roles"] == []
 
 
 def test_health_remains_public_when_auth_is_enabled(monkeypatch) -> None:
@@ -59,6 +64,9 @@ def test_local_no_auth_api_info_compatibility_is_preserved(monkeypatch) -> None:
     monkeypatch.setenv("BS_DEPLOYMENT_MODE", "local")
     monkeypatch.delenv("BS_API_KEY", raising=False)
     monkeypatch.delenv("BS_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_AUTHOR_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_REVIEWER_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_OPERATOR_PASSWORD", raising=False)
 
     client = TestClient(app)
     response = client.get("/api/info")

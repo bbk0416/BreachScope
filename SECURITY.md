@@ -4,7 +4,7 @@ BreachScope processes sensitive security logs. Treat deployments as internal too
 
 ## Recommended deployment defaults
 
-- Set a long random `BS_API_KEY` for API clients and `BS_ADMIN_PASSWORD` + `BS_SESSION_SECRET` for browser console users before exposing the web console.
+- Set a long random `BS_API_KEY` for API clients and at least one browser-login password (`BS_ADMIN_PASSWORD` and/or optional role passwords) plus `BS_SESSION_SECRET` before exposing the web console.
 - Put the service behind HTTPS, for example Nginx, Caddy, Cloudflare Tunnel, or a private VPN.
 - Keep case data under a dedicated data volume such as `/data`.
 - Disable public API docs in production with `BS_DISABLE_DOCS=1`.
@@ -14,7 +14,7 @@ BreachScope processes sensitive security logs. Treat deployments as internal too
 
 ## Authentication behavior
 
-When both `BS_API_KEY` and `BS_ADMIN_PASSWORD` are unset, authentication is disabled for local demos.
+When `BS_API_KEY`, `BS_ADMIN_PASSWORD`, `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD` are all unset, authentication is disabled for local demos.
 
 When `BS_API_KEY` is set, protected API calls accept one of the following:
 
@@ -27,7 +27,9 @@ Authorization: Bearer <key>
 
 Starting with source version `2.0.0`, query-string API-key authentication (`?api_key=...`) is no longer accepted. Existing clients must send the key in the `X-API-Key` header or `Authorization: Bearer` header. Also, `/api/info` is protected whenever runtime authentication is enabled; it is no longer an authentication-exempt endpoint as it was in `v1.0.0`.
 
-When `BS_ADMIN_PASSWORD` is set, browser users can sign in through `/api/auth/login`. Successful login sets an HttpOnly `bs_session` cookie signed with `BS_SESSION_SECRET` when available. Use `BS_COOKIE_SECURE=1` behind HTTPS to force Secure cookies.
+When `BS_ADMIN_PASSWORD` is set, browser users can sign in as `admin` through `/api/auth/login`. Optional fixed identities `author`, `reviewer`, and `operator` are enabled by `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD`. Successful login sets an HttpOnly `bs_session` cookie with the fixed subject/role, signed with `BS_SESSION_SECRET` when available. Unknown usernames cannot create arbitrary identities; they fall back to the fixed admin identity path. Use `BS_COOKIE_SECURE=1` behind HTTPS to force Secure cookies.
+
+Rule-lifecycle authorization is server-enforced: author can create/update/validate tuning profiles and rule drafts; reviewer can approve/publish; operator can activate/deactivate/rollback published custom rules and run analyses with `use_custom_rules=true`; admin and the single API key retain full access. When no role-specific password is configured, legacy single-admin behavior is preserved. A non-admin reviewer cannot approve a current draft version whose latest writer is the same subject.
 
 ## Vulnerability reporting
 

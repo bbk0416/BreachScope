@@ -34,6 +34,8 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 
 - Set `BS_API_KEY` to a long random value for automation/API clients.
 - Set `BS_ADMIN_PASSWORD` and `BS_SESSION_SECRET` for browser console login. Browser sessions are signed and stored in an HttpOnly cookie.
+- Optional rule-lifecycle RBAC: set `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and/or `BS_OPERATOR_PASSWORD`. If none are set, the existing single-admin behavior is preserved.
+- RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback and custom-rule opt-in analysis; admin and the API key retain full access.
 - Set `BS_DISABLE_DOCS=1` if API docs should not be public.
 - Keep `BS_AUDIT_ENABLED=1` for shared deployments so login, analysis, download, and deletion events are retained.
 - Serve behind HTTPS or a VPN.
@@ -50,7 +52,10 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_BIND_ADDRESS` | Docker Compose host bind address | `127.0.0.1` |
 | `BS_HOST_PORT` | Docker Compose published host port | `8000` |
 | `BS_API_KEY` | Optional API key for protected API routes and integrations | unset |
-| `BS_ADMIN_PASSWORD` | Optional web-console password. Enables HttpOnly session login. | unset |
+| `BS_ADMIN_PASSWORD` | Optional admin web-console password. Admin can perform all operations. | unset |
+| `BS_AUTHOR_PASSWORD` | Optional author account password for tuning/draft create-update-validate. | unset |
+| `BS_REVIEWER_PASSWORD` | Optional reviewer account password for approve/publish. | unset |
+| `BS_OPERATOR_PASSWORD` | Optional operator account password for activation/rollback and custom-rule opt-in analysis. | unset |
 | `BS_SESSION_SECRET` | Secret used to sign browser session cookies. | falls back to API key/password |
 | `BS_SESSION_TTL_SECONDS` | Browser session lifetime in seconds. Minimum 300. | 28800 |
 | `BS_COOKIE_SECURE` | Force Secure cookies. Use `1` behind HTTPS. | auto |
@@ -98,13 +103,13 @@ POST /api/ops/self-test
 - `config-check`: 인증/세션/쿠키/API 문서/저장 경로/룰팩 진단
 - `self-test`: 합성 로그로 분석 파이프라인과 산출물 생성 end-to-end 확인
 
-공유 배포에서 `BS_API_KEY` 또는 `BS_ADMIN_PASSWORD`를 설정하면 메트릭/진단/셀프테스트 API도 보호됩니다. health probe 엔드포인트는 오케스트레이터가 접근할 수 있도록 공개 상태를 유지합니다.
+공유 배포에서 `BS_API_KEY` 또는 admin/author/reviewer/operator 브라우저 로그인 비밀번호 중 하나라도 설정하면 메트릭/진단/셀프테스트 API도 보호됩니다. health probe 엔드포인트는 오케스트레이터가 접근할 수 있도록 공개 상태를 유지합니다.
 
 ## 운영 안정성 옵션
 
 ### 로그인 실패 잠금
 
-브라우저 관리자 로그인은 로컬 JSON 파일 기반으로 실패 횟수를 추적합니다.
+브라우저 로그인은 고정 identity별로 로컬 JSON 파일 기반 실패 횟수를 추적합니다.
 
 ```bash
 BS_AUTH_MAX_FAILURES=5

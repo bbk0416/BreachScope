@@ -14,7 +14,7 @@ from typing import Any, Mapping
 from api.services.audit_log import audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
-from api.security import configured_admin_password, configured_api_key, session_ttl_seconds
+from api.security import configured_admin_password, configured_api_key, configured_role_passwords, session_ttl_seconds
 from api.services.ops_status import _path_info  # lightweight helper already used by readiness checks
 from breachscope.project_readiness import run_project_readiness
 from breachscope.quality_gate import run_quality_gate
@@ -23,6 +23,9 @@ PLACEHOLDER_PREFIXES = ("change-me", "changeme", "example", "placeholder", "your
 SECRET_ENV_KEYS = (
     "BS_API_KEY",
     "BS_ADMIN_PASSWORD",
+    "BS_AUTHOR_PASSWORD",
+    "BS_REVIEWER_PASSWORD",
+    "BS_OPERATOR_PASSWORD",
     "BS_SESSION_SECRET",
     "BS_AUDIT_CHAIN_SECRET",
 )
@@ -57,30 +60,54 @@ def _looks_placeholder(value: str) -> bool:
 def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
     api_key = _env_value(env, "BS_API_KEY") or configured_api_key()
     admin = _env_value(env, "BS_ADMIN_PASSWORD") or configured_admin_password()
-    if not api_key and not admin:
+    role_passwords = {
+        role: _env_value(env, f"BS_{role.upper()}_PASSWORD") or configured
+        for role, configured in configured_role_passwords().items()
+    }
+    for role in ("author", "reviewer", "operator"):
+        value = _env_value(env, f"BS_{role.upper()}_PASSWORD")
+        if value:
+            role_passwords[role] = value
+    role_passwords = {k: v for k, v in role_passwords.items() if v}
+    if not api_key and not admin and not role_passwords:
         return GoLiveCheck(
             "runtime_authentication",
             "fail",
-            "BS_API_KEY or BS_ADMIN_PASSWORD must be configured before shared use.",
-            {"api_key_enabled": False, "password_login_enabled": False},
+            "BS_API_KEY or at least one browser-login password must be configured before shared use.",
+            {"api_key_enabled": False, "password_login_enabled": False, "rbac_roles": []},
         )
     warnings = []
     if api_key and (len(api_key) < 24 or _looks_placeholder(api_key)):
         warnings.append("BS_API_KEY should be 24+ random characters and not a placeholder.")
     if admin and (len(admin) < 12 or _looks_placeholder(admin)):
         warnings.append("BS_ADMIN_PASSWORD should be 12+ random characters and not a placeholder.")
+    for role, password in sorted(role_passwords.items()):
+        if len(password) < 12 or _looks_placeholder(password):
+            warnings.append(
+                f"BS_{role.upper()}_PASSWORD should be 12+ random characters and not a placeholder."
+            )
     return GoLiveCheck(
         "runtime_authentication",
         "warn" if warnings else "pass",
         "; ".join(warnings) if warnings else "Runtime authentication is configured.",
-        {"api_key_enabled": bool(api_key), "password_login_enabled": bool(admin)},
+        {
+            "api_key_enabled": bool(api_key),
+            "password_login_enabled": bool(admin or role_passwords),
+            "rbac_roles": sorted(role_passwords),
+        },
     )
 
 
 def _check_session_secret(env: Mapping[str, str]) -> GoLiveCheck:
     admin = _env_value(env, "BS_ADMIN_PASSWORD") or configured_admin_password()
+    role_passwords = [
+        _env_value(env, f"BS_{role.upper()}_PASSWORD")
+        for role in ("author", "reviewer", "operator")
+    ]
+    if not any(role_passwords):
+        role_passwords = list(configured_role_passwords().values())
     secret = _env_value(env, "BS_SESSION_SECRET")
-    if not admin:
+    if not admin and not any(role_passwords):
         return GoLiveCheck("session_secret", "pass", "Browser login is disabled, so session secret is not required.", {})
     if not secret or len(secret) < 32 or _looks_placeholder(secret):
         return GoLiveCheck(

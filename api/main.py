@@ -13,6 +13,7 @@ setup_path()
 from breachscope.exceptions import BreachScopeError
 from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
 from api.middleware import setup_middleware
+from api.security import auth_is_enabled, configured_role_passwords, password_login_is_enabled
 from breachscope.release import runtime_build_info
 from breachscope.version import get_project_version
 
@@ -58,9 +59,11 @@ async def api_info():
         "version": get_project_version(),
         "description": "디지털 포렌식 로그 분석 시스템",
         "docs": "/api/docs" if docs_enabled else None,
-        "auth_enabled": bool(os.getenv("BS_API_KEY", "").strip() or os.getenv("BS_ADMIN_PASSWORD", "").strip()),
+        "auth_enabled": auth_is_enabled(),
         "api_key_enabled": bool(os.getenv("BS_API_KEY", "").strip()),
-        "password_login_enabled": bool(os.getenv("BS_ADMIN_PASSWORD", "").strip()),
+        "password_login_enabled": password_login_is_enabled(),
+        "rbac_enabled": bool(configured_role_passwords()),
+        "configured_roles": sorted(configured_role_passwords()),
         "case_history_path": os.getenv("BS_CASE_HISTORY_PATH", "~/.breachscope/case_history.json"),
         "cases_root": os.getenv("BS_CASES_ROOT", "~/.breachscope/cases"),
         "audit_log_path": os.getenv("BS_AUDIT_LOG_PATH", "~/.breachscope/audit.jsonl"),

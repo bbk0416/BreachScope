@@ -164,7 +164,7 @@ def run_project_readiness(root: str | Path = ".") -> dict[str, Any]:
             root_path,
             "env_security_defaults",
             ".env.example",
-            ["BS_API_KEY", "BS_ADMIN_PASSWORD", "BS_SESSION_SECRET", "BS_AUDIT_LOG_PATH", "BS_RULE_TUNING_PATH", "BS_RULE_AUTHORING_ROOT", "BS_RULE_ACTIVATION_PATH", "BS_BACKUP_ROOT", "BS_DEPLOYMENT_MODE"],
+            ["BS_API_KEY", "BS_ADMIN_PASSWORD", "BS_AUTHOR_PASSWORD", "BS_REVIEWER_PASSWORD", "BS_OPERATOR_PASSWORD", "BS_SESSION_SECRET", "BS_AUDIT_LOG_PATH", "BS_RULE_TUNING_PATH", "BS_RULE_AUTHORING_ROOT", "BS_RULE_ACTIVATION_PATH", "BS_BACKUP_ROOT", "BS_DEPLOYMENT_MODE"],
             ".env.example documents deployment security and data paths.",
         ),
         _exists_check(

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add optional rule-lifecycle RBAC with fixed author/reviewer/operator browser identities, server-enforced permissions, non-admin self-approval blocking, admin/API-key override, and legacy single-admin compatibility.
 - Add versioned custom-rule activation/deactivation/rollback with per-analysis opt-in, SHA-verified published artifacts, evidence-scope disclosure, and backup/deployment persistence.
 - Add custom-rule authoring workflow (draft → runtime validate → approve → publish) with versioned YAML artifacts, audit logs, backup inclusion, and no automatic activation into the canonical detector.
 - Add persistent, versioned rule-tuning profiles with optimistic concurrency, audit logging, web save/load/history/delete controls, and Docker-persistent storage without modifying canonical rule YAML.
