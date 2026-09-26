@@ -111,120 +111,119 @@ Total: **34 / 133 pairs (25.6%)**.
 
 These 34 pairs were structurally unable to become HIT under the frozen current rulepack.
 
-The remaining **99 / 133 pairs** had at least one rule mapped to the expected technique or a satisfying sub-technique. Their MISS status cannot be assigned to a single cause from the sealed result alone.
+The remaining **99 / 133 pairs** had at least one rule mapped to the expected technique or a satisfying sub-technique. The post-hoc diagnostic has now separated them further:
 
-## Why "rule exists" does not mean the pair should hit
+- **96 / 133**: normalized telemetry existed on the referenced host inside the frozen BSF event window, but BreachScope produced **no finding for the expected technique anywhere in the corpus**.
+- **3 / 133**: no normalized telemetry existed on the referenced host inside the frozen BSF window. All three were T1105 pairs.
+- **0 / 133**: expected-technique finding on the correct host/time.
+- **0 / 133**: pair scoring ERROR.
 
-The BRAWL BSF labels describe the attack technique at a relatively broad semantic level. BreachScope rules intentionally detect narrower observable shapes.
+## Post-hoc finding distribution
 
-Examples:
+The 44 canonical-run findings are now fully accounted for:
 
-- BRAWL `PowerShell` does not imply encoded command, execution-policy bypass, DownloadString, or Invoke-Expression.
-- BRAWL `Remote File Copy` does not imply web download or certutil.
-- BRAWL `Remote System Discovery` does not imply nslookup.
-- BRAWL `Credential Dumping` does not imply one of BreachScope's specific LSASS/SAM/NTDS/WDigest command or event patterns.
-- BRAWL `Windows Management Instrumentation` does not imply one of the specific WMIC/XSL/query/WmiPrvSE-child patterns currently covered.
+| Rule | ATT&CK | Findings |
+|---|---|---:|
+| R-MSBUILD-InlineTask | T1127.001 | 29 |
+| R-NET-View-Share | T1135 | 15 |
 
-Therefore broadening rules merely to make the BRAWL score increase would be post-hoc overfitting.
+No finding anywhere in the 54,236 normalized host events carried any of the preregistered expected techniques. Therefore the canonical 0/133 was not caused by correct-technique findings narrowly missing the host/time window.
 
-## Measured post-hoc diagnosis
+## Technique-by-technique diagnosis
 
-The separate analysis `brawl-posthoc-miss-diagnosis-v1` reran detection on the already-open, hash-verified BRAWL archive without changing rules and without rerunning the canonical scorer.
+### T1003 Credential Dumping — 16 pairs
 
-Result artifact:
+The BSF attack oracle records `powershell -command -` process creation plus a separate `process/open` action targeting `C:\Windows\System32\lsass.exe`.
+
+Current T1003 rules are built around narrower endpoint observables such as `comsvcs.dll, MiniDump`, `sekurlsa::logonpasswords`, `procdump -ma lsass`, or specific SAM/SYSTEM/NTDS/WDigest/process-access telemetry. The BSF process-open oracle is ground-truth metadata; it is not injected into the detector as endpoint telemetry.
+
+**Classification:** observable/rule-shape mismatch, not a scorer failure.
+
+### T1547.001 Registry Run Keys — 15 pairs
+
+BSF commands use `reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run ...`. Current `R-REG-RunKey` matches the HKCU Run path, while `R-RUNKEY-UNNAMED-13` depends on Sysmon Event ID 13 registry SetValue telemetry.
+
+**Classification:** confirmed command-pattern scope mismatch plus missing matching registry telemetry.
+
+### T1018 Remote System Discovery — 1 pair
+
+The BSF command line is `powershell -command -`. Current T1018 coverage is `R-NSLOOKUP-Discovery`; the actual PowerShell script body is not present in the recorded command line.
+
+**Classification:** narrow rule coverage plus lost semantic command content.
+
+### T1059.001 PowerShell — 19 pairs
+
+BSF records generic `powershell -command -`. Current PowerShell rules intentionally require higher-signal shapes such as encoded commands, execution-policy bypass, DownloadString, or Invoke-Expression.
+
+**Classification:** intentional rule narrowness. Broadening to generic PowerShell solely because of this result would be post-hoc overfitting.
+
+### T1016 System Network Configuration Discovery — 1 pair
+
+BSF records `nbtstat -n`. There is no current T1016 rule.
+
+**Classification:** confirmed rule coverage gap.
+
+### T1069 Permission Groups Discovery — 18 pairs
+
+BSF records `powershell -command -`. There is no current T1069 rule, and the discovery script body is not present in the command line.
+
+**Classification:** confirmed rule coverage gap plus limited command observability.
+
+### T1087 Account Discovery — 18 pairs
+
+BSF records `powershell -command -`. Current T1087 rules cover selected local/domain account command and directory-service shapes; the PowerShell script body is not present in the recorded command line.
+
+**Classification:** existing but non-overlapping rule coverage plus limited command observability.
+
+### T1021.002 SMB/Windows Admin Shares — 15 pairs
+
+BSF records `net use \\host\C$ <redacted> /user:domain\user`. There is no current T1021.002 rule.
+
+**Classification:** confirmed rule coverage gap.
+
+### T1105 Ingress Tool Transfer / Remote File Copy mapping — 15 pairs
+
+BSF records SMB copy operations shaped as `cmd /c copy local.exe \\host\C$\remote.exe`. Current T1105 rules detect web transfer or certutil patterns. Twelve pairs had normalized telemetry in the frozen window but no T1105 finding; three had no normalized telemetry in that window.
+
+**Classification:** strong semantic/rule-shape mismatch, plus a telemetry-availability gap in 3/15 pairs.
+
+### T1047 Windows Management Instrumentation — 15 pairs
+
+BSF records `wmic /node:host /user:... /password:<redacted> process call create ...`. Current `R-WMI-Create` searches for the contiguous literal `wmic process call create`; the inserted remote-connection arguments prevent that simple string from matching. Other WMI rules target remote XSL, query `get`, or specific WmiPrvSE-child telemetry.
+
+**Classification:** confirmed rule-pattern mismatch.
+
+## Aggregate post-hoc classification
+
+| Classification | Pairs | Share |
+|---|---:|---:|
+| No current rule coverage | 34 | 25.6% |
+| Telemetry present, no expected-technique finding | 96 | 72.2% |
+| No normalized telemetry in frozen BSF window | 3 | 2.3% |
+| Canonical HIT | 0 | 0% |
+| Canonical ERROR | 0 | 0% |
+
+The post-hoc result is stored separately from the canonical result:
 
 - `external_baseline/results/brawl_posthoc_b306aa7/result.json`
-- SHA-256: `a2772d458db5ba783afe6f0af2d181ee7f409d1c7af069af65d668e6229e8500`
-- summary: `external_baseline/brawl_posthoc_miss_diagnosis_summary.yaml`
+- `external_baseline/brawl_posthoc_miss_diagnosis_summary.yaml`
+- analysis ID: `brawl-posthoc-miss-diagnosis-v1`
 
-### The 44 findings
+Credential-like command arguments from the public game are redacted in the stored post-hoc evidence.
 
-All 44 findings were outside the canonical expected-technique set:
+## Interpretation
 
-- `R-MSBUILD-InlineTask` / `T1127.001`: **29**
-- `R-NET-View-Share` / `T1135`: **15**
+The sealed 0/133 result is real under the preregistered contract. The diagnosis does **not** justify changing it.
 
-Therefore none of the canonical BRAWL pairs had an expected-technique finding anywhere in the corpus, not merely outside the host/time window.
+It shows a mixture of limitations:
 
-### Pair-level diagnosis
+1. **Missing ATT&CK coverage** — 34 pairs have no current matching rule.
+2. **Rule-shape mismatch** — several covered techniques use substantially different BRAWL command/event shapes from current narrow patterns.
+3. **Observability loss** — several CALDERA actions appear only as `powershell -command -`, hiding the script semantics from command-line rules.
+4. **Telemetry availability** — three T1105 pairs had no normalized event on the referenced host inside the frozen BSF window.
+5. **No evidence of scorer malfunction** — every pair was evaluable and the post-hoc analysis found no expected-technique finding that should have been a canonical HIT.
 
-All 133 canonical MISS pairs were classified:
-
-- **96** — `TELEMETRY_PRESENT_NO_EXPECTED_TECHNIQUE_FINDING`
-- **34** — `NO_CURRENT_RULE_COVERAGE`
-- **3** — `NO_NORMALIZED_TELEMETRY_IN_BSF_WINDOW`
-
-The 34 no-rule pairs are exactly:
-
-- T1016: **1**
-- T1069: **18**
-- T1021.002: **15**
-
-The 96 pairs with telemetry but no expected-technique finding are:
-
-- T1003: **16**
-- T1018: **1**
-- T1047: **15**
-- T1059.001: **19**
-- T1087: **18**
-- T1105: **12**
-- T1547.001: **15**
-
-The three no-telemetry pairs are all **T1105**.
-
-### Concrete root causes
-
-**T1003 / Credential Dumping**
-
-BSF records a PowerShell process with command line `powershell -command -`, plus a second BSF `process/open` event targeting `C:\\Windows\\System32\\lsass.exe`. That process-open fact is part of the red-bot oracle, but the normalized endpoint telemetry used by BreachScope does not provide a matching current-rule observable for these windows. Treating the BSF oracle itself as detector telemetry would leak ground truth into detection and is not allowed.
-
-**T1016 / System Network Configuration Discovery**
-
-The BSF command is `nbtstat -n`. Current rule coverage for T1016 is absent.
-
-**T1069 / Permission Groups Discovery**
-
-BSF records `powershell -command -`. Current T1069 rule coverage is absent, and the actual PowerShell script body is not preserved in the command line.
-
-**T1087 / Account Discovery**
-
-BSF again records `powershell -command -`. Current T1087 rules require specific visible commands/events such as `whoami /all`, `net user`, ADFind, or specific Security events. The script semantics are not present in the observable command line.
-
-**T1018 / Remote System Discovery**
-
-The BSF command is also `powershell -command -`. The current T1018 coverage is nslookup-oriented, so it does not match this opaque PowerShell form.
-
-**T1059.001 / PowerShell**
-
-All 19 pairs use `powershell -command -` at the BSF level. Current PowerShell rules deliberately require stronger suspicious forms such as encoded commands, bypass flags, DownloadString, or Invoke-Expression. Adding a generic `powershell` rule solely for this corpus would be post-hoc overfitting and would likely increase noise.
-
-**T1547.001 / Registry Run Keys**
-
-BRAWL uses `reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run ...`. The current command rule is specific to HKCU, while the other current rule expects registry-event fields. BRAWL's documented Sysmon configuration does not emit registry object/action telemetry, so this is both a rule-shape and telemetry-source mismatch.
-
-**T1021.002 / SMB/Windows Admin Shares**
-
-The BSF command is `net use \\\\host\\C$ ... /user:...`. There is no current T1021.002 rule. Credentials in the post-hoc artifact are redacted.
-
-**T1105 / Ingress Tool Transfer**
-
-BRAWL performs remote file copy with `cmd /c copy local.exe \\\\host\\C$\\remote.exe`. Current T1105 rules cover web download and certutil, not SMB/admin-share copy. Twelve pairs had normalized telemetry in the frozen window; three had none.
-
-**T1047 / Windows Management Instrumentation**
-
-BRAWL uses `wmic /node:... /user:... /password:<redacted> process call create ...`. Current WMI coverage is narrower: the simple create rule looks for the contiguous phrase `wmic process call create`, while other rules target XSL, query, or WmiPrvSE-child forms. The `/node` and credential arguments between `wmic` and `process call create` prevent the simple pattern from matching.
-
-### What this means
-
-The sealed **0/133** result is real and should remain unchanged, but its causes are mixed:
-
-1. **25.6% of pairs are structurally uncovered** by the current ATT&CK mapping/rule set.
-2. Most remaining pairs have telemetry but the current detector looks for a narrower observable than the BRAWL red-bot action.
-3. Several BRAWL techniques are executed through `powershell -command -`, where semantic script content is hidden from the command-line evidence BreachScope currently uses.
-4. Three remote-copy pairs lack normalized endpoint telemetry in the frozen BSF window.
-5. The 44 detector findings are real detections, but they are `T1127.001` and `T1135`, not any expected BRAWL pair technique.
-
-This is a **coverage/observable mismatch diagnosis**, not evidence that production recall is 0%.
+This is useful negative evidence. It identifies where the current rulepack and observable set do not generalize to an independent attack execution corpus without pretending that 0/133 is production recall.
 
 ## Remediation boundary
 

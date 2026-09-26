@@ -8,6 +8,8 @@
 - Prefer BRAWL Sysmon `data_model.fields.utc_time` over ingest `@timestamp` per upstream time semantics.
 - Preregister one-pass BRAWL scoring on BSF step × ATT&CK technique pairs with event-specific host/time matching; do not call the metric recall.
 - Freeze the BRAWL scorer and one-pass evaluator hashes before raw archive access; the evaluator uses exact archive size/Git-blob identity and a permanent canonical lock.
+- Seal the one-pass BRAWL result at 0/133 step-technique HITs, then record a separate post-hoc diagnosis: 34 pairs lack current rule coverage, 96 have in-window telemetry but no expected-technique finding, and 3 T1105 pairs lack normalized telemetry in the frozen window.
+- Preserve the sealed BRAWL result unchanged and redact credential-like arguments from stored post-hoc command evidence.
 
 ## 2.1.2 - Released 2026-09-25
 
