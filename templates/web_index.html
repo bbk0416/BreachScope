@@ -215,6 +215,53 @@
               <div id="ruleProfileHistory" class="ops-list"><div class="hint">프로필을 불러오면 버전 이력이 표시됩니다.</div></div>
             </div>
             <div class="form-group">
+              <label for="ruleDraftSelect">커스텀 룰 작성</label>
+              <select id="ruleDraftSelect"><option value="">새 draft</option></select>
+              <div class="hint">draft → validate → approve → publish 순서입니다. publish해도 canonical 73-rule detector에는 자동 활성화되지 않습니다.</div>
+              <div class="grid2" style="margin-top:8px">
+                <div class="form-group"><label for="authorRuleId">Rule ID</label><input type="text" id="authorRuleId" placeholder="C-ORG-POWERSHELL-01"></div>
+                <div class="form-group"><label for="authorRuleName">이름</label><input type="text" id="authorRuleName" placeholder="Custom PowerShell marker"></div>
+              </div>
+              <div class="form-group"><label for="authorRuleDescription">설명</label><input type="text" id="authorRuleDescription" maxlength="2000" placeholder="탐지 의도와 적용 범위"></div>
+              <div class="grid2">
+                <div class="form-group"><label for="authorRuleField">필드</label><input type="text" id="authorRuleField" value="command_line"></div>
+                <div class="form-group">
+                  <label for="authorRuleOperator">연산자</label>
+                  <select id="authorRuleOperator">
+                    <option value="regex">regex</option>
+                    <option value="contains">contains</option>
+                    <option value="startswith">startswith</option>
+                    <option value="endswith">endswith</option>
+                    <option value="equals">equals</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group"><label for="authorRulePattern">패턴</label><input type="text" id="authorRulePattern" placeholder="정규식 또는 문자열"></div>
+              <div class="grid2">
+                <div class="form-group">
+                  <label for="authorRuleSeverity">심각도</label>
+                  <select id="authorRuleSeverity">
+                    <option value="low">low</option>
+                    <option value="medium" selected>medium</option>
+                    <option value="high">high</option>
+                    <option value="critical">critical</option>
+                  </select>
+                </div>
+                <div class="form-group"><label for="authorRuleMitre">MITRE ATT&CK</label><input type="text" id="authorRuleMitre" placeholder="T1059.001"></div>
+              </div>
+              <div class="form-group"><label for="authorReviewNote">검토 메모</label><input type="text" id="authorReviewNote" maxlength="2000" placeholder="승인 근거와 검토 범위"></div>
+              <div class="case-actions">
+                <button type="button" class="btn btn-mini btn-open" id="refreshRuleDraftsBtn">draft 새로고침</button>
+                <button type="button" class="btn btn-mini btn-open" id="loadRuleDraftBtn">불러오기</button>
+                <button type="button" class="btn btn-mini btn-download" id="saveRuleDraftBtn">draft 저장</button>
+                <button type="button" class="btn btn-mini btn-open" id="validateRuleDraftBtn">validate</button>
+                <button type="button" class="btn btn-mini btn-download" id="approveRuleDraftBtn">approve</button>
+                <button type="button" class="btn btn-mini btn-download" id="publishRuleDraftBtn">publish</button>
+              </div>
+              <div class="hint" id="ruleDraftStatus">새 draft 모드</div>
+              <div id="ruleDraftHistory" class="ops-list"><div class="hint">draft를 불러오면 revision/publication 상태가 표시됩니다.</div></div>
+            </div>
+            <div class="form-group">
               <label for="ruleSearch">룰 카탈로그</label>
               <div class="case-actions">
                 <input type="text" id="ruleSearch" placeholder="룰 ID, 이름, MITRE 검색" style="flex:1;min-width:180px">
@@ -354,7 +401,27 @@
     const loadRuleProfileBtn = document.getElementById('loadRuleProfileBtn');
     const saveRuleProfileBtn = document.getElementById('saveRuleProfileBtn');
     const deleteRuleProfileBtn = document.getElementById('deleteRuleProfileBtn');
+    const ruleDraftSelect = document.getElementById('ruleDraftSelect');
+    const authorRuleId = document.getElementById('authorRuleId');
+    const authorRuleName = document.getElementById('authorRuleName');
+    const authorRuleDescription = document.getElementById('authorRuleDescription');
+    const authorRuleField = document.getElementById('authorRuleField');
+    const authorRuleOperator = document.getElementById('authorRuleOperator');
+    const authorRulePattern = document.getElementById('authorRulePattern');
+    const authorRuleSeverity = document.getElementById('authorRuleSeverity');
+    const authorRuleMitre = document.getElementById('authorRuleMitre');
+    const authorReviewNote = document.getElementById('authorReviewNote');
+    const ruleDraftStatus = document.getElementById('ruleDraftStatus');
+    const ruleDraftHistory = document.getElementById('ruleDraftHistory');
+    const refreshRuleDraftsBtn = document.getElementById('refreshRuleDraftsBtn');
+    const loadRuleDraftBtn = document.getElementById('loadRuleDraftBtn');
+    const saveRuleDraftBtn = document.getElementById('saveRuleDraftBtn');
+    const validateRuleDraftBtn = document.getElementById('validateRuleDraftBtn');
+    const approveRuleDraftBtn = document.getElementById('approveRuleDraftBtn');
+    const publishRuleDraftBtn = document.getElementById('publishRuleDraftBtn');
     let ruleCatalogData = [];
+    let ruleDrafts = [];
+    let currentRuleDraft = null;
     let ruleProfiles = [];
     let currentRuleProfile = null;
     apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
@@ -627,6 +694,159 @@
         ruleProfileStatus.innerHTML = '프로필 삭제 완료';
       } catch (error) {
         ruleProfileStatus.innerHTML = '프로필 삭제 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    function buildAuthorRule() {
+      return {
+        id: authorRuleId.value.trim(),
+        name: authorRuleName.value.trim(),
+        description: authorRuleDescription.value.trim(),
+        field: authorRuleField.value.trim() || 'command_line',
+        pattern: authorRulePattern.value,
+        operator: authorRuleOperator.value,
+        severity: authorRuleSeverity.value,
+        mitre_technique: authorRuleMitre.value.trim()
+      };
+    }
+
+    function fillAuthorRule(rule) {
+      const r = rule || {};
+      authorRuleId.value = r.id || '';
+      authorRuleName.value = r.name || '';
+      authorRuleDescription.value = r.description || '';
+      authorRuleField.value = r.field || 'command_line';
+      authorRuleOperator.value = r.operator || 'regex';
+      authorRulePattern.value = r.pattern || '';
+      authorRuleSeverity.value = r.severity || 'medium';
+      authorRuleMitre.value = r.mitre_technique || '';
+    }
+
+    function renderRuleDraftHistory(draft) {
+      if (!ruleDraftHistory) return;
+      if (!draft) {
+        ruleDraftHistory.innerHTML = '<div class="hint">새 draft입니다.</div>';
+        return;
+      }
+      const validation = draft.validation || {};
+      const approval = draft.approval || {};
+      const pubs = Array.isArray(draft.publications) ? draft.publications : [];
+      const revisions = Array.isArray(draft.revisions) ? [...draft.revisions].reverse() : [];
+      const publicationText = pubs.length
+        ? pubs.map(p => 'v' + p.version + ' · ' + escapeHtml(p.relative_path || '') + ' · detector active=' + escapeHtml(p.activated_in_detector)).join('<br>')
+        : 'publish 없음';
+      ruleDraftHistory.innerHTML =
+        '<div class="audit-item"><b>상태 ' + escapeHtml(draft.status) + ' · v' + escapeHtml(draft.version) + '</b>' +
+          '<div class="audit-meta">validation ' + escapeHtml(validation.status || 'none') + ' · approval ' + escapeHtml(approval.status || 'none') + '</div>' +
+          '<div class="audit-meta">' + publicationText + '</div></div>' +
+        revisions.slice(0, 8).map(r =>
+          '<div class="audit-item"><div><b>revision v' + escapeHtml(r.version) + '</b> · ' + escapeHtml(r.updated_at || '') + '</div>' +
+          '<div class="audit-meta">' + escapeHtml((r.rule || {}).id || '') + ' · ' + escapeHtml((r.rule || {}).pattern || '') + '</div></div>'
+        ).join('');
+    }
+
+    function renderRuleDraftOptions(preferredId = '') {
+      if (!ruleDraftSelect) return;
+      const selected = preferredId || ruleDraftSelect.value || '';
+      ruleDraftSelect.innerHTML = '<option value="">새 draft</option>' + ruleDrafts.map(d =>
+        '<option value="' + escapeHtml(d.draft_id) + '">' +
+        escapeHtml((d.rule || {}).id || d.draft_id) + ' · ' + escapeHtml(d.status) + ' · v' + escapeHtml(d.version) +
+        '</option>'
+      ).join('');
+      if (selected && ruleDrafts.some(d => d.draft_id === selected)) ruleDraftSelect.value = selected;
+    }
+
+    async function fetchRuleDrafts(preferredId = '') {
+      try {
+        ruleDraftStatus.innerHTML = 'draft 목록 불러오는 중...';
+        const response = await authFetch('/api/rules/authoring/drafts');
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'draft 목록 조회 실패');
+        ruleDrafts = Array.isArray(payload.drafts) ? payload.drafts : [];
+        renderRuleDraftOptions(preferredId);
+        ruleDraftStatus.innerHTML = '저장된 draft ' + escapeHtml(ruleDrafts.length) + '개';
+      } catch (error) {
+        ruleDraftStatus.innerHTML = 'draft 목록 조회 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function loadRuleDraft() {
+      const draftId = ruleDraftSelect.value;
+      if (!draftId) {
+        currentRuleDraft = null;
+        fillAuthorRule({});
+        authorReviewNote.value = '';
+        renderRuleDraftHistory(null);
+        ruleDraftStatus.innerHTML = '새 draft 모드';
+        return;
+      }
+      try {
+        const response = await authFetch('/api/rules/authoring/drafts/' + encodeURIComponent(draftId));
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'draft 조회 실패');
+        currentRuleDraft = payload.draft;
+        fillAuthorRule(currentRuleDraft.rule);
+        authorReviewNote.value = (currentRuleDraft.approval || {}).review_note || '';
+        renderRuleDraftHistory(currentRuleDraft);
+        ruleDraftStatus.innerHTML = '불러옴 · ' + escapeHtml(currentRuleDraft.status) + ' · v' + escapeHtml(currentRuleDraft.version);
+      } catch (error) {
+        ruleDraftStatus.innerHTML = 'draft 조회 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function saveRuleDraft() {
+      const rule = buildAuthorRule();
+      if (!rule.id || !rule.name || !rule.pattern) {
+        ruleDraftStatus.innerHTML = 'Rule ID, 이름, 패턴을 입력하세요.';
+        return;
+      }
+      const selected = ruleDrafts.find(d => d.draft_id === ruleDraftSelect.value);
+      let url = '/api/rules/authoring/drafts';
+      let method = 'POST';
+      const body = {rule};
+      if (selected) {
+        url += '/' + encodeURIComponent(selected.draft_id);
+        method = 'PUT';
+        body.expected_version = selected.version;
+      }
+      try {
+        const response = await authFetch(url, {
+          method,
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(body)
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'draft 저장 실패');
+        const saved = payload.draft;
+        await fetchRuleDrafts(saved.draft_id);
+        await loadRuleDraft();
+        await fetchAudit();
+        ruleDraftStatus.innerHTML = 'draft 저장 완료 · v' + escapeHtml(saved.version);
+      } catch (error) {
+        ruleDraftStatus.innerHTML = 'draft 저장 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function ruleDraftAction(action, extra = {}) {
+      const selected = ruleDrafts.find(d => d.draft_id === ruleDraftSelect.value);
+      if (!selected) {
+        ruleDraftStatus.innerHTML = '먼저 저장된 draft를 선택하세요.';
+        return;
+      }
+      try {
+        const body = Object.assign({expected_version: selected.version}, extra);
+        const response = await authFetch(
+          '/api/rules/authoring/drafts/' + encodeURIComponent(selected.draft_id) + '/' + action,
+          {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}
+        );
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || action + ' 실패');
+        await fetchRuleDrafts(selected.draft_id);
+        await loadRuleDraft();
+        await fetchAudit();
+        ruleDraftStatus.innerHTML = action + ' 완료 · ' + escapeHtml(payload.draft.status);
+      } catch (error) {
+        ruleDraftStatus.innerHTML = action + ' 실패: ' + escapeHtml(error.message || error);
       }
     }
 
@@ -1213,6 +1433,20 @@
     if (saveRuleProfileBtn) saveRuleProfileBtn.addEventListener('click', saveRuleProfile);
     if (deleteRuleProfileBtn) deleteRuleProfileBtn.addEventListener('click', deleteRuleProfile);
     if (ruleProfileSelect) ruleProfileSelect.addEventListener('change', loadRuleProfile);
+    if (refreshRuleDraftsBtn) refreshRuleDraftsBtn.addEventListener('click', () => fetchRuleDrafts());
+    if (loadRuleDraftBtn) loadRuleDraftBtn.addEventListener('click', loadRuleDraft);
+    if (saveRuleDraftBtn) saveRuleDraftBtn.addEventListener('click', saveRuleDraft);
+    if (validateRuleDraftBtn) validateRuleDraftBtn.addEventListener('click', () => ruleDraftAction('validate'));
+    if (approveRuleDraftBtn) approveRuleDraftBtn.addEventListener('click', () => {
+      const note = authorReviewNote.value.trim();
+      if (!note) {
+        ruleDraftStatus.innerHTML = 'approve 전에 검토 메모를 입력하세요.';
+        return;
+      }
+      ruleDraftAction('approve', {review_note: note});
+    });
+    if (publishRuleDraftBtn) publishRuleDraftBtn.addEventListener('click', () => ruleDraftAction('publish'));
+    if (ruleDraftSelect) ruleDraftSelect.addEventListener('change', loadRuleDraft);
     if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', fetchAudit);
     if (createBackupBtn) createBackupBtn.addEventListener('click', createBackup);
     if (refreshBackupsBtn) refreshBackupsBtn.addEventListener('click', fetchBackups);
@@ -1227,6 +1461,7 @@
     refreshAuditLinks();
     fetchAuthStatus();
     fetchRuleProfiles();
+    fetchRuleDrafts();
     fetchCases();
     fetchBackups();
     fetchMetrics();

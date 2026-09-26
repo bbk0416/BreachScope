@@ -12,6 +12,8 @@ from typing import Any
 
 from api.services.audit_log import audit_log_path
 from api.services.case_history import CaseHistoryService
+from api.services.rule_authoring import RuleAuthoringService
+from api.services.rule_tuning import RuleTuningProfileService
 
 
 BACKUP_ROOT_ENV = "BS_BACKUP_ROOT"
@@ -63,6 +65,8 @@ class BackupService:
         history_path = CaseHistoryService.default_index_path()
         cases_root = CaseHistoryService.default_root()
         audit_path = audit_log_path()
+        rule_tuning_path = RuleTuningProfileService.default_path().expanduser().resolve()
+        rule_authoring_root = RuleAuthoringService.default_root().expanduser().resolve()
 
         manifest: dict[str, Any] = {
             "backup_id": backup_id,
@@ -74,6 +78,8 @@ class BackupService:
                 "case_history_path": str(history_path),
                 "cases_root": str(cases_root),
                 "audit_log_path": str(audit_path),
+                "rule_tuning_path": str(rule_tuning_path),
+                "rule_authoring_root": str(rule_authoring_root),
             },
             "files": [],
         }
@@ -94,6 +100,27 @@ class BackupService:
                         except ValueError:
                             continue
                         self._add_file(zf, path, Path("cases") / rel, manifest)
+                if rule_tuning_path.exists():
+                    self._add_file(
+                        zf,
+                        rule_tuning_path,
+                        Path("rule_tuning_profiles.json"),
+                        manifest,
+                    )
+                if rule_authoring_root.exists():
+                    for path in sorted(
+                        p for p in rule_authoring_root.rglob("*") if p.is_file()
+                    ):
+                        try:
+                            rel = path.relative_to(rule_authoring_root)
+                        except ValueError:
+                            continue
+                        self._add_file(
+                            zf,
+                            path,
+                            Path("rule_authoring") / rel,
+                            manifest,
+                        )
                 zf.writestr("backup_manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
             tmp_path.replace(zip_path)
         finally:

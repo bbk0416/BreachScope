@@ -28,6 +28,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 - ✅ 옵션 설정 (GUI)
 - ✅ 룰 카탈로그 검색 및 분석 단위 룰 포함/제외
 - ✅ 룰 튜닝 프로필 저장/불러오기/버전 이력/삭제
+- ✅ 커스텀 룰 draft → validate → approve → publish workflow (publish 후 detector 자동 활성화 없음)
 - ✅ 분석 실행
 - ✅ 리포트 다운로드 (HTML, JSON, CSV, PDF)
 - ✅ REST API 제공 (`/api/analyze`, `/api/rules`)
@@ -104,4 +105,5 @@ v8부터 웹 콘솔 좌측에 최근 분석 이력이 표시됩니다. 분석이
 BS_CASES_ROOT=/data/breachscope/cases
 BS_CASE_HISTORY_PATH=/data/breachscope/case_history.json
 BS_RULE_TUNING_PATH=/data/breachscope/rule_tuning_profiles.json
+BS_RULE_AUTHORING_ROOT=/data/breachscope/rule_authoring
 ```

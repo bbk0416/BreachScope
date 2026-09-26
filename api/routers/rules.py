@@ -2,12 +2,19 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api.services.audit_log import AuditLogService, actor_from_request
+from api.services.rule_authoring import (
+    RuleAuthoringError,
+    RuleAuthoringService,
+    RuleAuthoringStateError,
+    RuleAuthoringVersionConflict,
+)
 from api.services.rule_tuning import (
     RuleTuningProfileError,
     RuleTuningProfileService,
@@ -32,8 +39,28 @@ class RuleTuningProfileUpdate(RuleTuningProfileCreate):
     expected_version: int = Field(..., ge=1)
 
 
+class RuleDraftCreate(BaseModel):
+    rule: dict[str, Any]
+
+
+class RuleDraftUpdate(RuleDraftCreate):
+    expected_version: int = Field(..., ge=1)
+
+
+class RuleDraftVersionAction(BaseModel):
+    expected_version: int = Field(..., ge=1)
+
+
+class RuleDraftApprove(RuleDraftVersionAction):
+    review_note: str = Field(..., min_length=1, max_length=2000)
+
+
 def _profile_service() -> RuleTuningProfileService:
     return RuleTuningProfileService()
+
+
+def _authoring_service() -> RuleAuthoringService:
+    return RuleAuthoringService()
 
 
 @router.get("/rules", response_class=JSONResponse)
@@ -224,3 +251,184 @@ async def delete_rule_tuning_profile(
         details={"version": removed["version"], "name": removed["name"]},
     )
     return {"success": True, "profile": removed}
+
+
+@router.get("/rules/authoring/drafts", response_class=JSONResponse)
+async def list_rule_drafts():
+    try:
+        return {"success": True, "drafts": _authoring_service().list_drafts()}
+    except RuleAuthoringError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.get("/rules/authoring/drafts/{draft_id}", response_class=JSONResponse)
+async def get_rule_draft(draft_id: str):
+    try:
+        return {"success": True, "draft": _authoring_service().get_draft(draft_id)}
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
+    except RuleAuthoringError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.post("/rules/authoring/drafts", response_class=JSONResponse)
+async def create_rule_draft(payload: RuleDraftCreate, request: Request):
+    actor = actor_from_request(request)
+    try:
+        draft = _authoring_service().create_draft(
+            rule=payload.rule,
+            updated_by=actor.subject,
+        )
+    except RuleAuthoringError as exc:
+        AuditLogService().record(
+            "rule.authoring.create",
+            request=request,
+            status="failure",
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    AuditLogService().record(
+        "rule.authoring.create",
+        request=request,
+        status="success",
+        target=draft["draft_id"],
+        details={"version": draft["version"], "rule_id": draft["rule"]["id"]},
+    )
+    return {"success": True, "draft": draft}
+
+
+@router.put("/rules/authoring/drafts/{draft_id}", response_class=JSONResponse)
+async def update_rule_draft(draft_id: str, payload: RuleDraftUpdate, request: Request):
+    actor = actor_from_request(request)
+    try:
+        draft = _authoring_service().update_draft(
+            draft_id,
+            expected_version=payload.expected_version,
+            rule=payload.rule,
+            updated_by=actor.subject,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
+    except RuleAuthoringVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    AuditLogService().record(
+        "rule.authoring.update",
+        request=request,
+        status="success",
+        target=draft_id,
+        details={"version": draft["version"], "rule_id": draft["rule"]["id"]},
+    )
+    return {"success": True, "draft": draft}
+
+
+@router.post("/rules/authoring/drafts/{draft_id}/validate", response_class=JSONResponse)
+async def validate_rule_draft(
+    draft_id: str,
+    payload: RuleDraftVersionAction,
+    request: Request,
+):
+    try:
+        draft = _authoring_service().validate_draft(
+            draft_id,
+            expected_version=payload.expected_version,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
+    except RuleAuthoringVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringError as exc:
+        AuditLogService().record(
+            "rule.authoring.validate",
+            request=request,
+            status="failure",
+            target=draft_id,
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    AuditLogService().record(
+        "rule.authoring.validate",
+        request=request,
+        status="success",
+        target=draft_id,
+        details={
+            "version": draft["version"],
+            "rule_id": draft["rule"]["id"],
+            "canonical_rulepack_modified": False,
+        },
+    )
+    return {"success": True, "draft": draft}
+
+
+@router.post("/rules/authoring/drafts/{draft_id}/approve", response_class=JSONResponse)
+async def approve_rule_draft(
+    draft_id: str,
+    payload: RuleDraftApprove,
+    request: Request,
+):
+    actor = actor_from_request(request)
+    try:
+        draft = _authoring_service().approve_draft(
+            draft_id,
+            expected_version=payload.expected_version,
+            review_note=payload.review_note,
+            approved_by=actor.subject,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
+    except RuleAuthoringVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    AuditLogService().record(
+        "rule.authoring.approve",
+        request=request,
+        status="success",
+        target=draft_id,
+        details={
+            "version": draft["version"],
+            "rule_id": draft["rule"]["id"],
+            "approved_by": draft["approval"]["approved_by"],
+        },
+    )
+    return {"success": True, "draft": draft}
+
+
+@router.post("/rules/authoring/drafts/{draft_id}/publish", response_class=JSONResponse)
+async def publish_rule_draft(
+    draft_id: str,
+    payload: RuleDraftVersionAction,
+    request: Request,
+):
+    actor = actor_from_request(request)
+    try:
+        draft = _authoring_service().publish_draft(
+            draft_id,
+            expected_version=payload.expected_version,
+            published_by=actor.subject,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
+    except RuleAuthoringVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringStateError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleAuthoringError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    publication = draft["publications"][-1]
+    AuditLogService().record(
+        "rule.authoring.publish",
+        request=request,
+        status="success",
+        target=draft_id,
+        details={
+            "version": draft["version"],
+            "rule_id": draft["rule"]["id"],
+            "sha256": publication["sha256"],
+            "activated_in_detector": False,
+        },
+    )
+    return {"success": True, "draft": draft}
