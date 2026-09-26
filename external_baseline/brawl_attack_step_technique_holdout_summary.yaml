@@ -1,0 +1,50 @@
+schema: breachscope.brawl_attack_step_technique_holdout_summary.v1
+analysis_id: brawl-independent-attack-step-technique-holdout-v1
+status: COMPLETED
+canonical_job_id: 190abd2aad9944ed99da6b938f03c0d8
+canonical_repo_commit: de4d7da521f3be43720cf5db419baa54d76dd4c3
+rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+source:
+  repository: mitre/brawl-public-game-001
+  commit: 7ec51fac8fc05ea01da210f604b821ef52818173
+  archive_size_bytes: 4967769
+  archive_git_blob_sha1: 257a4ed9dcba427f75cc11da286f44004ed6c7c0
+  archive_sha256: 717baf85e44a4c82a91af4df1783ae167d7441a58889f057124c52386c58aade
+  records_by_type:
+    bsf_events: 1
+    computer_properties: 131
+    game_metadata: 1
+    sysmon: 47026
+    win_event: 7210
+execution:
+  host_event_count: 54236
+  finding_count: 44
+  bsf_step_count: 96
+  permanent_lock_path: 'C:\Users\bbk0416\.breachscope\canonical_locks\BRAWL_ATTACK_STEP_TECHNIQUE_HOLDOUT_V1.lock'
+score:
+  metric_name: brawl_attack_step_technique_hit_fraction
+  total_step_technique_pairs: 133
+  pair_hits: 0
+  pair_misses: 133
+  pair_errors: 0
+  evaluable_pairs: 133
+  total_steps: 96
+  fully_hit_steps: 0
+  partial_steps: 0
+  missed_steps: 96
+  error_steps: 0
+  step_technique_hit_fraction_of_all_pairs: 0
+  step_technique_hit_fraction_of_evaluable_pairs: 0
+claim_boundaries:
+  event_level_attack_ground_truth: NOT_AVAILABLE
+  event_level_benign_ground_truth: NOT_AVAILABLE
+  step_level_red_bot_attack_oracle: AVAILABLE
+  step_technique_pair_oracle: AVAILABLE
+  production_accuracy: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+notes:
+  - The metric is a preregistered step-technique expected-technique hit fraction, not recall.
+  - The public BRAWL game is not used as a production benign-FPR corpus.
+  - A prior direct-script launch failed at import before evaluator entry, before raw ZIP inspection, and before permanent-lock creation; it is not counted as a canonical execution.
+  - The successful module-form invocation is the sole canonical execution. Retry is prohibited.
