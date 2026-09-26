@@ -21,6 +21,8 @@
 - `mitre_include` (str, 선택): 포함할 MITRE 기법 (쉼표 구분, 예: "T1059.001,T1105")
 - `mitre_exclude` (str, 선택): 제외할 MITRE 기법 (쉼표 구분)
 - `host_include` (str, 선택): 포함할 호스트 (쉼표 구분)
+- `rule_include` (str, 선택): 이번 분석에 포함할 룰 ID (쉼표 구분). 비우면 전체 룰을 사용합니다.
+- `rule_exclude` (str, 선택): 이번 분석에서 제외할 룰 ID (쉼표 구분). 원본 YAML은 변경하지 않습니다.
 - `redact` (bool, 기본값: True): 민감 정보 마스킹 여부
 - `render_pdf` (bool, 기본값: False): PDF 리포트 생성 여부
 - `do_evtx` (bool, 기본값: False): EVTX 파일 자동 변환 여부

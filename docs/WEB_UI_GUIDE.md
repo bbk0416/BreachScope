@@ -26,6 +26,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ### 기능
 - ✅ 파일 업로드 (드래그 앤 드롭)
 - ✅ 옵션 설정 (GUI)
+- ✅ 룰 카탈로그 검색 및 분석 단위 룰 포함/제외
 - ✅ 분석 실행
 - ✅ 리포트 다운로드 (HTML, JSON, CSV, PDF)
 - ✅ REST API 제공 (`/api/analyze`, `/api/rules`)
@@ -48,7 +49,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 ### 웹 UI 사용
 1. 브라우저에서 `http://localhost:8501` 접속
 2. 로그 파일 업로드
-3. 옵션 설정
+3. 옵션 설정. 필요하면 룰 카탈로그에서 룰을 검색해 이번 분석의 포함/제외 목록에 추가
 4. "분석 실행" 클릭
 5. 리포트 다운로드
 

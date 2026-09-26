@@ -45,6 +45,8 @@ class Pipeline:
         mitre_include: Optional[List[str]] = None,
         mitre_exclude: Optional[List[str]] = None,
         host_include: Optional[List[str]] = None,
+        rule_include: Optional[List[str]] = None,
+        rule_exclude: Optional[List[str]] = None,
         max_events: Optional[int] = None,
         enable_parallel: bool = True,
         max_workers: Optional[int] = None,
@@ -60,6 +62,8 @@ class Pipeline:
             mitre_include: 포함할 MITRE 기법 목록
             mitre_exclude: 제외할 MITRE 기법 목록
             host_include: 포함할 호스트 목록
+            rule_include: 분석에 포함할 룰 ID 목록
+            rule_exclude: 분석에서 제외할 룰 ID 목록
             max_events: 최대 이벤트 수 (None이면 제한 없음, 대용량 파일 처리 시 유용)
             enable_parallel: 병렬 처리 활성화 여부
             max_workers: 병렬 처리 워커 수 (None이면 자동 결정)
@@ -72,6 +76,8 @@ class Pipeline:
         self.mitre_include = mitre_include
         self.mitre_exclude = mitre_exclude
         self.host_include = host_include
+        self.rule_include = rule_include
+        self.rule_exclude = rule_exclude
         self.max_events = max_events
         self.enable_parallel = enable_parallel
         self.max_workers = max_workers
@@ -101,7 +107,14 @@ class Pipeline:
             로드된 Rule 리스트
         """
         if self.rules is None:
-            self.rules = load_rules(self.rules_dir)
+            rules = load_rules(self.rules_dir)
+            include_set = {str(x).strip().casefold() for x in (self.rule_include or []) if str(x).strip()}
+            exclude_set = {str(x).strip().casefold() for x in (self.rule_exclude or []) if str(x).strip()}
+            if include_set:
+                rules = [rule for rule in rules if rule.id.casefold() in include_set]
+            if exclude_set:
+                rules = [rule for rule in rules if rule.id.casefold() not in exclude_set]
+            self.rules = rules
         return self.rules
 
     def collect_events(self, input_dir: Path) -> List[Event]:
@@ -245,6 +258,8 @@ class Pipeline:
             "mitre_include": (self.mitre_include or []),
             "mitre_exclude": (self.mitre_exclude or []),
             "host_include": (self.host_include or []),
+            "rule_include": (self.rule_include or []),
+            "rule_exclude": (self.rule_exclude or []),
         }
         summary["time_histogram"] = self._time_histogram(self.findings)
         summary["sample_scenarios"] = summarize_sample_context(self.events or [], self.findings or [])
@@ -478,6 +493,8 @@ def run_pipeline(
     mitre_include: list[str] | None = None,
     mitre_exclude: list[str] | None = None,
     host_include: list[str] | None = None,
+    rule_include: list[str] | None = None,
+    rule_exclude: list[str] | None = None,
     max_events: int | None = None,
 ) -> tuple[Path, int]:
     """
@@ -497,6 +514,8 @@ def run_pipeline(
         mitre_include: 포함할 MITRE 기법 목록
         mitre_exclude: 제외할 MITRE 기법 목록
         host_include: 포함할 호스트 목록
+        rule_include: 분석에 포함할 룰 ID 목록
+        rule_exclude: 분석에서 제외할 룰 ID 목록
         max_events: 최대 이벤트 수 (None이면 제한 없음)
 
     Returns:
@@ -514,6 +533,8 @@ def run_pipeline(
         mitre_include=mitre_include,
         mitre_exclude=mitre_exclude,
         host_include=host_include,
+        rule_include=rule_include,
+        rule_exclude=rule_exclude,
         max_events=max_events,
     )
     return pipeline.run(

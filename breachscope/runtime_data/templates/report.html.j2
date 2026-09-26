@@ -316,7 +316,9 @@
       최소 심각도={{ filters.get('min_severity','') or '없음' }},
       포함 TTP={{ (filters.get('mitre_include') or []) | join(', ') or '없음' }},
       제외 TTP={{ (filters.get('mitre_exclude') or []) | join(', ') or '없음' }},
-      호스트={{ (filters.get('host_include') or []) | join(', ') or '전체' }}
+      호스트={{ (filters.get('host_include') or []) | join(', ') or '전체' }},
+      포함 룰={{ (filters.get('rule_include') or []) | join(', ') or '전체' }},
+      제외 룰={{ (filters.get('rule_exclude') or []) | join(', ') or '없음' }}
     </p>
   </div>
 

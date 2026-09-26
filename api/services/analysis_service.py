@@ -117,6 +117,8 @@ class AnalysisService:
         mitre_include: Optional[str] = None,
         mitre_exclude: Optional[str] = None,
         host_include: Optional[str] = None,
+        rule_include: Optional[str] = None,
+        rule_exclude: Optional[str] = None,
         redact: bool = True,
         render_pdf: bool = False,
         do_evtx: bool = False,
@@ -259,6 +261,8 @@ class AnalysisService:
                 mitre_include=split_csv(mitre_include) if mitre_include else None,
                 mitre_exclude=split_csv(mitre_exclude) if mitre_exclude else None,
                 host_include=split_csv(host_include) if host_include else None,
+                rule_include=split_csv(rule_include) if rule_include else None,
+                rule_exclude=split_csv(rule_exclude) if rule_exclude else None,
                 max_events=max_events,
                 redact=redact,
             )

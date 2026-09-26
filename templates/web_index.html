@@ -182,6 +182,25 @@
                 <input type="text" id="mitreExclude" placeholder="T1003">
               </div>
             </div>
+            <div class="grid2">
+              <div class="form-group">
+                <label for="ruleInclude">포함 룰 ID</label>
+                <input type="text" id="ruleInclude" placeholder="비우면 전체 룰 사용">
+              </div>
+              <div class="form-group">
+                <label for="ruleExclude">제외 룰 ID</label>
+                <input type="text" id="ruleExclude" placeholder="예: R-PS-ENC,R-WMI-Create">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="ruleSearch">룰 카탈로그</label>
+              <div class="case-actions">
+                <input type="text" id="ruleSearch" placeholder="룰 ID, 이름, MITRE 검색" style="flex:1;min-width:180px">
+                <button type="button" class="btn btn-mini btn-open" id="loadRulesBtn">룰 불러오기</button>
+              </div>
+              <div class="hint">원본 YAML은 수정하지 않습니다. 여기서 선택한 포함/제외 룰은 이번 분석에만 적용됩니다.</div>
+              <div id="ruleCatalog" class="ops-list"><div class="hint">룰 목록을 불러오지 않았습니다.</div></div>
+            </div>
           </div>
 
           <div class="section">
@@ -301,6 +320,10 @@
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const authStatus = document.getElementById('authStatus');
+    const loadRulesBtn = document.getElementById('loadRulesBtn');
+    const ruleCatalog = document.getElementById('ruleCatalog');
+    const ruleSearch = document.getElementById('ruleSearch');
+    let ruleCatalogData = [];
     apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
     apiKeyInput.addEventListener('change', () => {
       localStorage.setItem('breachscope_api_key', apiKeyInput.value.trim());
@@ -411,6 +434,8 @@
       fd.append('mitre_include', document.getElementById('mitreInclude').value.trim());
       fd.append('mitre_exclude', document.getElementById('mitreExclude').value.trim());
       fd.append('host_include', document.getElementById('hostInclude').value.trim());
+      fd.append('rule_include', document.getElementById('ruleInclude').value.trim());
+      fd.append('rule_exclude', document.getElementById('ruleExclude').value.trim());
       fd.append('redact', document.getElementById('redact').checked ? 'true' : 'false');
       fd.append('render_pdf', document.getElementById('renderPdf').checked ? 'true' : 'false');
       fd.append('do_evtx', document.getElementById('doEvtx').checked ? 'true' : 'false');
@@ -419,6 +444,52 @@
       addField(fd, 'collect_hours', document.getElementById('collectHours').value.trim());
       addField(fd, 'work_dir', document.getElementById('workDirPath').value.trim());
       return fd;
+    }
+
+    function addRuleToken(inputId, ruleId) {
+      const input = document.getElementById(inputId);
+      const tokens = input.value.split(',').map(x => x.trim()).filter(Boolean);
+      if (!tokens.some(x => x.toLowerCase() === String(ruleId).toLowerCase())) tokens.push(ruleId);
+      input.value = tokens.join(',');
+    }
+
+    function renderRuleCatalog() {
+      if (!ruleCatalog) return;
+      const query = String(ruleSearch && ruleSearch.value || '').trim().toLowerCase();
+      const rows = ruleCatalogData.filter(r => {
+        const haystack = [r.id, r.title, r.severity, r.mitre_technique, r.field].join(' ').toLowerCase();
+        return !query || haystack.includes(query);
+      });
+      if (!rows.length) {
+        ruleCatalog.innerHTML = '<div class="hint">조건에 맞는 룰이 없습니다.</div>';
+        return;
+      }
+      ruleCatalog.innerHTML = rows.slice(0, 120).map(r =>
+        '<div class="audit-item">' +
+          '<div><b class="mono">' + escapeHtml(r.id) + '</b> · <span class="' + sevClass(r.severity) + '">' + escapeHtml(r.severity) + '</span> · <span class="mono">' + escapeHtml(r.mitre_technique || '-') + '</span></div>' +
+          '<div class="audit-meta">' + escapeHtml(r.title || '') + '</div>' +
+          '<div class="case-actions">' +
+            '<button type="button" class="btn btn-mini btn-open" data-rule-include="' + escapeHtml(r.id) + '">포함</button>' +
+            '<button type="button" class="btn btn-mini btn-download" data-rule-exclude="' + escapeHtml(r.id) + '">제외</button>' +
+          '</div>' +
+        '</div>'
+      ).join('');
+      ruleCatalog.querySelectorAll('[data-rule-include]').forEach(btn => btn.addEventListener('click', () => addRuleToken('ruleInclude', btn.dataset.ruleInclude)));
+      ruleCatalog.querySelectorAll('[data-rule-exclude]').forEach(btn => btn.addEventListener('click', () => addRuleToken('ruleExclude', btn.dataset.ruleExclude)));
+    }
+
+    async function fetchRules() {
+      if (!ruleCatalog) return;
+      try {
+        ruleCatalog.innerHTML = '<div class="hint">룰 목록 불러오는 중...</div>';
+        const response = await authFetch('/api/rules');
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || '룰 목록 조회 실패');
+        ruleCatalogData = Array.isArray(payload.rules) ? payload.rules : [];
+        renderRuleCatalog();
+      } catch (error) {
+        ruleCatalog.innerHTML = '<div class="alert alert-error">룰 목록 조회 실패: ' + escapeHtml(error.message || error) + '</div>';
+      }
     }
 
     function renderBars(title, rows) {
@@ -951,6 +1022,8 @@
       }
     });
 
+    if (loadRulesBtn) loadRulesBtn.addEventListener('click', fetchRules);
+    if (ruleSearch) ruleSearch.addEventListener('input', renderRuleCatalog);
     if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', fetchAudit);
     if (createBackupBtn) createBackupBtn.addEventListener('click', createBackup);
     if (refreshBackupsBtn) refreshBackupsBtn.addEventListener('click', fetchBackups);

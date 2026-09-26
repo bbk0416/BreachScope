@@ -89,6 +89,8 @@ def main():
     ap.add_argument("--mitre-include", help="포함할 ATT&CK 코드 목록(쉼표 구분)")
     ap.add_argument("--mitre-exclude", help="제외할 ATT&CK 코드 목록(쉼표 구분)")
     ap.add_argument("--host-include", help="포함할 호스트 목록(쉼표 구분)")
+    ap.add_argument("--rule-include", help="분석에 포함할 룰 ID 목록(쉼표 구분)")
+    ap.add_argument("--rule-exclude", help="분석에서 제외할 룰 ID 목록(쉼표 구분)")
     ap.add_argument("--open", action="store_true", help="생성 후 기본 브라우저로 HTML 리포트 열기")
     ap.add_argument("--ingest-evtx", action="store_true", help="입력 폴더의 .evtx 파일을 JSONL로 변환하여 분석")
     ap.add_argument("--collect-evtx", action="store_true", help="Windows 이벤트 로그를 자동으로 수집 (관리자 권한 권장)")
@@ -224,6 +226,8 @@ def main():
         mitre_include=split_csv(args.mitre_include),
         mitre_exclude=split_csv(args.mitre_exclude),
         host_include=split_csv(args.host_include),
+        rule_include=split_csv(args.rule_include),
+        rule_exclude=split_csv(args.rule_exclude),
     )
     print(f"리포트 생성: {html_path}")
     if args.export_json:

@@ -25,6 +25,8 @@ class Config:
     mitre_include: Optional[List[str]] = None
     mitre_exclude: Optional[List[str]] = None
     host_include: Optional[List[str]] = None
+    rule_include: Optional[List[str]] = None
+    rule_exclude: Optional[List[str]] = None
 
     # 출력 설정
     export_json: bool = False
@@ -83,6 +85,8 @@ class Config:
                 mitre_include=data.get("mitre_include"),
                 mitre_exclude=data.get("mitre_exclude"),
                 host_include=data.get("host_include"),
+                rule_include=data.get("rule_include"),
+                rule_exclude=data.get("rule_exclude"),
                 export_json=data.get("export_json", False),
                 export_csv=data.get("export_csv", False),
                 render_pdf=data.get("render_pdf", False),
@@ -107,6 +111,8 @@ class Config:
             "mitre_include": self.mitre_include,
             "mitre_exclude": self.mitre_exclude,
             "host_include": self.host_include,
+            "rule_include": self.rule_include,
+            "rule_exclude": self.rule_exclude,
             "export_json": self.export_json,
             "export_csv": self.export_csv,
             "render_pdf": self.render_pdf,
