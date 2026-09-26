@@ -220,13 +220,40 @@ P2-35M 이후에는 새 canonical 평가 번호를 자동으로 만들지 않습
 - 장점: 탐지 규칙이 만든 라벨이 아니라 red bot 자체의 실행 기록이므로, 현재까지 검토한 후보 중 공격 행동 ground truth 독립성이 가장 강합니다.
 - 제한: 이 공개 game에는 CALDERA red bot만 참여했고 Grey bot이 없었습니다. upstream도 자격 증명 관점에서 Game Board가 sterile하다고 설명합니다. 따라서 realistic benign background나 production FPR 평가용 corpus로 취급하지 않습니다.
 - 제한: 현재 BreachScope JSONL collector는 BRAWL의 `data_model.fields.*` 구조를 직접 정규화하지 않습니다. raw corpus를 열기 전에 documented schema만으로 adapter를 구현하고 synthetic fixture로 고정해야 합니다.
-- 현재 상태: independent attack-ground-truth holdout 후보 1순위. raw ZIP은 preregistration/adapter freeze 전까지 열지 않습니다.
+- 현재 상태: preregistration/adapter/scorer/evaluator freeze 후 canonical one-pass를 1회 실행해 결과를 봉인했습니다. 재실행은 금지합니다.
 
 이 후보를 사용할 경우 첫 평가는 attack-side BSF step/technique coverage만 대상으로 하고, benign FPR이나 production recall을 함께 주장하지 않습니다. BSF step과 telemetry event 사이의 matching rule, 허용 time window, host/command-line/object-action 매칭 우선순위를 detector 실행 전에 고정해야 합니다.
 
+#### 2026-09-26 BRAWL canonical one-pass 결과
+
+preregistration은 main commit `de4d7da521f3be43720cf5db419baa54d76dd4c3`에서 고정했고, 동일한 current rule tree SHA-256 `1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7`로 canonical one-pass를 1회 실행했습니다.
+
+- source commit: `7ec51fac8fc05ea01da210f604b821ef52818173`
+- source archive SHA-256: `717baf85e44a4c82a91af4df1783ae167d7441a58889f057124c52386c58aade`
+- normalized host events: **54,236**
+- BreachScope findings: **44**
+- BSF steps: **96**
+- evaluable step × technique pairs: **133**
+- pair HIT: **0**
+- pair MISS: **133**
+- pair ERROR: **0**
+- preregistered step-technique hit fraction: **0.0**
+- fully-hit steps: **0 / 96**
+
+이 결과는 숨기거나 보정하지 않습니다. 현재 rulepack은 이 독립 BRAWL attack-side holdout에서 preregistered expected-technique + same-host + same-BSF-event-time-window 조건을 만족하는 finding을 만들지 못했습니다.
+
+단, **0/133을 event-level recall 0%라고 부르지 않습니다.** BRAWL은 event-level malicious/benign ground truth를 제공하는 corpus가 아니며 Grey bot도 없습니다. 따라서 production accuracy, production recall, production FPR은 계속 `NOT_CLAIMED`입니다.
+
+영구 기록:
+
+- `external_baseline/results/brawl_de4d7da/result.json`
+- `external_baseline/brawl_attack_step_technique_holdout_summary.yaml`
+- preregistration: `external_baseline/brawl_attack_step_scoring_preregistration.yaml`
+
+
 ### 현재 결정
 
-위 네 후보를 검토했지만 새 P2 canonical one-pass evaluation은 아직 시작하지 않습니다. BRAWL은 공격 ground truth 후보 1순위로 보존하되, raw corpus 미열람 상태를 유지하고 documented schema 기반 adapter와 scoring contract를 먼저 고정합니다.
+위 네 후보 중 BRAWL은 documented-schema adapter와 scoring contract를 먼저 고정한 뒤 canonical one-pass까지 완료했습니다. 결과는 133개 step-technique pair 모두 MISS였으며, 이를 근거로 historical result를 수정하거나 같은 analysis_id를 재실행하지 않습니다. 다음 작업은 이 sealed result에 대한 post-hoc miss diagnosis이며, remediation이 필요하면 별도 analysis_id와 fresh revalidation으로만 진행합니다.
 
 다음 canonical 평가를 시작하려면 최소한 다음 조건을 모두 만족해야 합니다.
 
