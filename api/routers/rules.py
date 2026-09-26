@@ -9,6 +9,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api.services.audit_log import AuditLogService, actor_from_request
+from api.services.rule_activation import (
+    RuleActivationError,
+    RuleActivationService,
+    RuleActivationVersionConflict,
+)
 from api.services.rule_authoring import (
     RuleAuthoringError,
     RuleAuthoringService,
@@ -55,12 +60,32 @@ class RuleDraftApprove(RuleDraftVersionAction):
     review_note: str = Field(..., min_length=1, max_length=2000)
 
 
+class RuleActivationActivate(BaseModel):
+    expected_version: int = Field(..., ge=0)
+    draft_id: str = Field(..., min_length=1, max_length=200)
+    published_version: int = Field(..., ge=1)
+
+
+class RuleActivationDeactivate(BaseModel):
+    expected_version: int = Field(..., ge=0)
+    draft_id: str = Field(..., min_length=1, max_length=200)
+
+
+class RuleActivationRollback(BaseModel):
+    expected_version: int = Field(..., ge=0)
+    target_version: int = Field(..., ge=0)
+
+
 def _profile_service() -> RuleTuningProfileService:
     return RuleTuningProfileService()
 
 
 def _authoring_service() -> RuleAuthoringService:
     return RuleAuthoringService()
+
+
+def _activation_service() -> RuleActivationService:
+    return RuleActivationService()
 
 
 @router.get("/rules", response_class=JSONResponse)
@@ -432,3 +457,114 @@ async def publish_rule_draft(
         },
     )
     return {"success": True, "draft": draft}
+
+
+@router.get("/rules/activation", response_class=JSONResponse)
+async def get_rule_activation_state():
+    try:
+        state = _activation_service().get_state()
+    except RuleActivationError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"success": True, "activation": state}
+
+
+@router.post("/rules/activation/activate", response_class=JSONResponse)
+async def activate_published_rule(
+    payload: RuleActivationActivate,
+    request: Request,
+):
+    actor = actor_from_request(request)
+    try:
+        state = _activation_service().activate(
+            draft_id=payload.draft_id,
+            published_version=payload.published_version,
+            expected_version=payload.expected_version,
+            actor=actor.subject,
+        )
+    except RuleActivationVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleActivationError as exc:
+        AuditLogService().record(
+            "rule.activation.activate",
+            request=request,
+            status="failure",
+            target=payload.draft_id,
+            details={
+                "published_version": payload.published_version,
+                "reason": str(exc),
+            },
+        )
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    AuditLogService().record(
+        "rule.activation.activate",
+        request=request,
+        status="success",
+        target=payload.draft_id,
+        details={
+            "activation_version": state["version"],
+            "published_version": payload.published_version,
+            "active_rule_ids": [row["rule_id"] for row in state["active"]],
+        },
+    )
+    return {"success": True, "activation": state}
+
+
+@router.post("/rules/activation/deactivate", response_class=JSONResponse)
+async def deactivate_published_rule(
+    payload: RuleActivationDeactivate,
+    request: Request,
+):
+    actor = actor_from_request(request)
+    try:
+        state = _activation_service().deactivate(
+            draft_id=payload.draft_id,
+            expected_version=payload.expected_version,
+            actor=actor.subject,
+        )
+    except RuleActivationVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleActivationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    AuditLogService().record(
+        "rule.activation.deactivate",
+        request=request,
+        status="success",
+        target=payload.draft_id,
+        details={
+            "activation_version": state["version"],
+            "active_rule_ids": [row["rule_id"] for row in state["active"]],
+        },
+    )
+    return {"success": True, "activation": state}
+
+
+@router.post("/rules/activation/rollback", response_class=JSONResponse)
+async def rollback_rule_activation(
+    payload: RuleActivationRollback,
+    request: Request,
+):
+    actor = actor_from_request(request)
+    try:
+        state = _activation_service().rollback(
+            target_version=payload.target_version,
+            expected_version=payload.expected_version,
+            actor=actor.subject,
+        )
+    except RuleActivationVersionConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except RuleActivationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    AuditLogService().record(
+        "rule.activation.rollback",
+        request=request,
+        status="success",
+        details={
+            "activation_version": state["version"],
+            "target_version": payload.target_version,
+            "active_rule_ids": [row["rule_id"] for row in state["active"]],
+        },
+    )
+    return {"success": True, "activation": state}

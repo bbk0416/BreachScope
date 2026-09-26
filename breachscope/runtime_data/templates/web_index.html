@@ -157,6 +157,11 @@
               <input type="checkbox" id="useRepoRules" checked>
               <label for="useRepoRules">저장소 rules/ 룰팩 사용</label>
             </div>
+            <div class="check">
+              <input type="checkbox" id="useCustomRules">
+              <label for="useCustomRules">활성화된 custom rule도 이번 분석에 사용</label>
+            </div>
+            <div class="hint">기본 OFF입니다. 켜면 activation manifest의 published custom rule을 SHA 검증 후 canonical 룰과 함께 사용합니다.</div>
             <div class="grid2">
               <div class="form-group">
                 <label for="minSeverity">최소 심각도</label>
@@ -260,6 +265,16 @@
               </div>
               <div class="hint" id="ruleDraftStatus">새 draft 모드</div>
               <div id="ruleDraftHistory" class="ops-list"><div class="hint">draft를 불러오면 revision/publication 상태가 표시됩니다.</div></div>
+            </div>
+            <div class="form-group">
+              <label>Custom rule activation / rollback</label>
+              <div class="case-actions">
+                <button type="button" class="btn btn-mini btn-open" id="refreshRuleActivationBtn">activation 새로고침</button>
+                <button type="button" class="btn btn-mini btn-download" id="activateRuleDraftBtn">선택 draft 최신 publish 활성화</button>
+                <button type="button" class="btn btn-mini btn-download" id="deactivateRuleDraftBtn">선택 draft 비활성화</button>
+              </div>
+              <div class="hint" id="ruleActivationStatus">activation manifest 확인 중...</div>
+              <div id="ruleActivationHistory" class="ops-list"><div class="hint">활성화 이력을 불러오지 않았습니다.</div></div>
             </div>
             <div class="form-group">
               <label for="ruleSearch">룰 카탈로그</label>
@@ -419,7 +434,13 @@
     const validateRuleDraftBtn = document.getElementById('validateRuleDraftBtn');
     const approveRuleDraftBtn = document.getElementById('approveRuleDraftBtn');
     const publishRuleDraftBtn = document.getElementById('publishRuleDraftBtn');
+    const refreshRuleActivationBtn = document.getElementById('refreshRuleActivationBtn');
+    const activateRuleDraftBtn = document.getElementById('activateRuleDraftBtn');
+    const deactivateRuleDraftBtn = document.getElementById('deactivateRuleDraftBtn');
+    const ruleActivationStatus = document.getElementById('ruleActivationStatus');
+    const ruleActivationHistory = document.getElementById('ruleActivationHistory');
     let ruleCatalogData = [];
+    let ruleActivationState = {version: 0, active: [], history: []};
     let ruleDrafts = [];
     let currentRuleDraft = null;
     let ruleProfiles = [];
@@ -530,6 +551,7 @@
       const fd = new FormData();
       for (const file of document.getElementById('logFiles').files) fd.append('files', file);
       fd.append('use_repo_rules', document.getElementById('useRepoRules').checked ? 'true' : 'false');
+      fd.append('use_custom_rules', document.getElementById('useCustomRules').checked ? 'true' : 'false');
       fd.append('min_severity', document.getElementById('minSeverity').value);
       fd.append('mitre_include', document.getElementById('mitreInclude').value.trim());
       fd.append('mitre_exclude', document.getElementById('mitreExclude').value.trim());
@@ -847,6 +869,133 @@
         ruleDraftStatus.innerHTML = action + ' 완료 · ' + escapeHtml(payload.draft.status);
       } catch (error) {
         ruleDraftStatus.innerHTML = action + ' 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    function renderRuleActivationState(state) {
+      if (!ruleActivationHistory) return;
+      const active = Array.isArray(state && state.active) ? state.active : [];
+      const history = Array.isArray(state && state.history) ? [...state.history].reverse() : [];
+      const activeHtml = active.length
+        ? active.map(item =>
+            '<div class="audit-item"><b>' + escapeHtml(item.rule_id) + '</b>' +
+            '<div class="audit-meta">' + escapeHtml(item.draft_id) + ' · publish v' + escapeHtml(item.published_version) + '</div></div>'
+          ).join('')
+        : '<div class="hint">현재 활성 custom rule 없음</div>';
+      const historyHtml = history.slice(0, 12).map(item =>
+        '<div class="audit-item"><div><b>activation v' + escapeHtml(item.version) + '</b> · ' +
+        escapeHtml(item.updated_at || '') + ' · ' + escapeHtml(item.reason || '') + '</div>' +
+        '<div class="audit-meta">active: ' + escapeHtml((item.active || []).map(x => x.rule_id).join(', ') || 'none') + '</div>' +
+        (Number(item.version) === Number(state.version)
+          ? ''
+          : '<div class="case-actions"><button type="button" class="btn btn-mini btn-open" data-rule-activation-rollback="' + escapeHtml(item.version) + '">이 버전으로 rollback</button></div>') +
+        '</div>'
+      ).join('');
+      ruleActivationHistory.innerHTML =
+        '<div class="hint"><b>현재 active</b></div>' + activeHtml +
+        '<div class="hint" style="margin-top:8px"><b>manifest history</b></div>' + historyHtml;
+      ruleActivationHistory.querySelectorAll('[data-rule-activation-rollback]').forEach(btn => {
+        btn.addEventListener('click', () => rollbackRuleActivation(Number(btn.dataset.ruleActivationRollback)));
+      });
+    }
+
+    async function fetchRuleActivation() {
+      if (!ruleActivationStatus) return;
+      try {
+        const response = await authFetch('/api/rules/activation');
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'activation 조회 실패');
+        ruleActivationState = payload.activation || {version: 0, active: [], history: []};
+        renderRuleActivationState(ruleActivationState);
+        ruleActivationStatus.innerHTML =
+          'activation manifest v' + escapeHtml(ruleActivationState.version) +
+          ' · active ' + escapeHtml((ruleActivationState.active || []).length) + '개';
+      } catch (error) {
+        ruleActivationStatus.innerHTML = 'activation 조회 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function activateCurrentPublishedRule() {
+      if (!currentRuleDraft) {
+        ruleActivationStatus.innerHTML = '먼저 published draft를 불러오세요.';
+        return;
+      }
+      const pubs = Array.isArray(currentRuleDraft.publications) ? currentRuleDraft.publications : [];
+      if (!pubs.length) {
+        ruleActivationStatus.innerHTML = '선택 draft에 publish artifact가 없습니다.';
+        return;
+      }
+      const publication = [...pubs].sort((a, b) => Number(b.version) - Number(a.version))[0];
+      try {
+        const response = await authFetch('/api/rules/activation/activate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            expected_version: Number(ruleActivationState.version || 0),
+            draft_id: currentRuleDraft.draft_id,
+            published_version: Number(publication.version)
+          })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'activation 실패');
+        ruleActivationState = payload.activation;
+        renderRuleActivationState(ruleActivationState);
+        await fetchAudit();
+        ruleActivationStatus.innerHTML =
+          '활성화 완료 · manifest v' + escapeHtml(ruleActivationState.version) +
+          ' · ' + escapeHtml(publication.rule_id);
+      } catch (error) {
+        ruleActivationStatus.innerHTML = 'activation 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function deactivateCurrentPublishedRule() {
+      if (!currentRuleDraft) {
+        ruleActivationStatus.innerHTML = '먼저 draft를 불러오세요.';
+        return;
+      }
+      try {
+        const response = await authFetch('/api/rules/activation/deactivate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            expected_version: Number(ruleActivationState.version || 0),
+            draft_id: currentRuleDraft.draft_id
+          })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'deactivation 실패');
+        ruleActivationState = payload.activation;
+        renderRuleActivationState(ruleActivationState);
+        await fetchAudit();
+        ruleActivationStatus.innerHTML =
+          '비활성화 완료 · manifest v' + escapeHtml(ruleActivationState.version);
+      } catch (error) {
+        ruleActivationStatus.innerHTML = 'deactivation 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function rollbackRuleActivation(targetVersion) {
+      if (!window.confirm('activation manifest를 v' + targetVersion + ' 상태로 rollback할까요?')) return;
+      try {
+        const response = await authFetch('/api/rules/activation/rollback', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            expected_version: Number(ruleActivationState.version || 0),
+            target_version: Number(targetVersion)
+          })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || 'rollback 실패');
+        ruleActivationState = payload.activation;
+        renderRuleActivationState(ruleActivationState);
+        await fetchAudit();
+        ruleActivationStatus.innerHTML =
+          'rollback 완료 · 새 manifest v' + escapeHtml(ruleActivationState.version) +
+          ' · restored from v' + escapeHtml(targetVersion);
+      } catch (error) {
+        ruleActivationStatus.innerHTML = 'rollback 실패: ' + escapeHtml(error.message || error);
       }
     }
 
@@ -1447,6 +1596,9 @@
     });
     if (publishRuleDraftBtn) publishRuleDraftBtn.addEventListener('click', () => ruleDraftAction('publish'));
     if (ruleDraftSelect) ruleDraftSelect.addEventListener('change', loadRuleDraft);
+    if (refreshRuleActivationBtn) refreshRuleActivationBtn.addEventListener('click', fetchRuleActivation);
+    if (activateRuleDraftBtn) activateRuleDraftBtn.addEventListener('click', activateCurrentPublishedRule);
+    if (deactivateRuleDraftBtn) deactivateRuleDraftBtn.addEventListener('click', deactivateCurrentPublishedRule);
     if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', fetchAudit);
     if (createBackupBtn) createBackupBtn.addEventListener('click', createBackup);
     if (refreshBackupsBtn) refreshBackupsBtn.addEventListener('click', fetchBackups);
@@ -1462,6 +1614,7 @@
     fetchAuthStatus();
     fetchRuleProfiles();
     fetchRuleDrafts();
+    fetchRuleActivation();
     fetchCases();
     fetchBackups();
     fetchMetrics();

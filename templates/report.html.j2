@@ -320,6 +320,16 @@
       포함 룰={{ (filters.get('rule_include') or []) | join(', ') or '전체' }},
       제외 룰={{ (filters.get('rule_exclude') or []) | join(', ') or '없음' }}
     </p>
+    {% set custom_activation = report.summary.get('custom_rule_activation', {}) or {} %}
+    {% if custom_activation.get('enabled_for_analysis') %}
+    <div style="margin-top:10px;padding:10px;border:1px solid #d97706;background:#fff7ed;border-radius:6px;">
+      <b>Custom rule 활성화 분석</b><br>
+      적용 custom rule:
+      <span class="mono">{{ (custom_activation.get('effective_custom_rule_ids') or []) | join(', ') or '없음' }}</span><br>
+      canonical rulepack 수정: {{ custom_activation.get('canonical_rulepack_modified') }}<br>
+      현재 canonical detection evidence는 위 custom rule의 성능 근거로 적용되지 않습니다.
+    </div>
+    {% endif %}
   </div>
 
   <h2>요약 차트</h2>

@@ -23,6 +23,7 @@
 - `host_include` (str, 선택): 포함할 호스트 (쉼표 구분)
 - `rule_include` (str, 선택): 이번 분석에 포함할 룰 ID (쉼표 구분). 비우면 전체 룰을 사용합니다.
 - `rule_exclude` (str, 선택): 이번 분석에서 제외할 룰 ID (쉼표 구분). 원본 YAML은 변경하지 않습니다.
+- `use_custom_rules` (bool, 기본값: False): activation manifest에서 활성화된 published custom rule을 이번 분석에 포함합니다. 활성 artifact는 SHA-256과 runtime loader를 다시 확인합니다.
 - `redact` (bool, 기본값: True): 민감 정보 마스킹 여부
 - `render_pdf` (bool, 기본값: False): PDF 리포트 생성 여부
 - `do_evtx` (bool, 기본값: False): EVTX 파일 자동 변환 여부
@@ -40,6 +41,12 @@
   "risk_score": 73,
   "risk_level": "high",
   "preview": {},
+  "custom_rule_activation": {
+    "enabled_for_analysis": false,
+    "loaded_custom_rule_count": 0,
+    "effective_custom_rule_ids": [],
+    "canonical_rulepack_modified": false
+  },
   "html_path": "/path/to/report.html",
   "json_path": "/path/to/report.json",
   "csv_path": "/path/to/report.csv",
@@ -171,7 +178,21 @@
 validation PASS인 현재 버전에 검토 메모와 승인자를 기록합니다. 내용이 수정되면 validation/approval은 초기화됩니다.
 
 ### POST `/api/rules/authoring/drafts/{draft_id}/publish`
-승인된 현재 버전을 별도 versioned YAML artifact로 publish합니다. publish artifact의 `activated_in_detector`는 false이며 canonical 73-rule detector에 자동 합류하지 않습니다.
+승인된 현재 버전을 별도 versioned YAML artifact로 publish합니다. publish 자체는 canonical 73-rule detector를 변경하지 않습니다.
+
+### GET `/api/rules/activation`
+현재 custom-rule activation manifest와 version history를 조회합니다. 최초 상태는 version 0 / active=[] 입니다.
+
+### POST `/api/rules/activation/activate`
+publish된 특정 draft/version을 activation manifest에 등록합니다. `expected_version`, `draft_id`, `published_version`을 받으며 publish artifact의 SHA-256과 runtime loader를 다시 검증합니다. 같은 draft의 이전 활성 버전은 새 버전으로 교체됩니다.
+
+### POST `/api/rules/activation/deactivate`
+현재 활성 상태의 draft를 제거합니다. `expected_version` 불일치 시 409를 반환합니다.
+
+### POST `/api/rules/activation/rollback`
+이전 activation manifest snapshot을 새 manifest 버전으로 복원합니다. 복원 대상 publish artifact도 다시 SHA-256 검증합니다.
+
+활성화된 custom rule은 분석에 자동 적용되지 않습니다. `/api/analyze`에서 `use_custom_rules=true`를 명시해야 하며, 해당 분석 리포트에는 custom rule provenance와 canonical detection evidence 비적용 경계가 기록됩니다.
 
 ---
 

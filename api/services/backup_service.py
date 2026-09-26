@@ -12,6 +12,7 @@ from typing import Any
 
 from api.services.audit_log import audit_log_path
 from api.services.case_history import CaseHistoryService
+from api.services.rule_activation import RuleActivationService
 from api.services.rule_authoring import RuleAuthoringService
 from api.services.rule_tuning import RuleTuningProfileService
 
@@ -67,6 +68,7 @@ class BackupService:
         audit_path = audit_log_path()
         rule_tuning_path = RuleTuningProfileService.default_path().expanduser().resolve()
         rule_authoring_root = RuleAuthoringService.default_root().expanduser().resolve()
+        rule_activation_path = RuleActivationService.default_path().expanduser().resolve()
 
         manifest: dict[str, Any] = {
             "backup_id": backup_id,
@@ -80,6 +82,7 @@ class BackupService:
                 "audit_log_path": str(audit_path),
                 "rule_tuning_path": str(rule_tuning_path),
                 "rule_authoring_root": str(rule_authoring_root),
+                "rule_activation_path": str(rule_activation_path),
             },
             "files": [],
         }
@@ -121,6 +124,13 @@ class BackupService:
                             Path("rule_authoring") / rel,
                             manifest,
                         )
+                if rule_activation_path.exists():
+                    self._add_file(
+                        zf,
+                        rule_activation_path,
+                        Path("rule_activation.json"),
+                        manifest,
+                    )
                 zf.writestr("backup_manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
             tmp_path.replace(zip_path)
         finally:
