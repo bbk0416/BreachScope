@@ -408,6 +408,7 @@ class RuleAuthoringService:
         expected_version: int,
         review_note: str,
         approved_by: str,
+        require_distinct_reviewer: bool = False,
     ) -> dict[str, Any]:
         note = self._normalize_text(
             review_note, field="review_note", limit=2000, required=True
@@ -416,6 +417,13 @@ class RuleAuthoringService:
             data = self._read()
             index, draft = self._find(data, draft_id)
             self._assert_version(draft, expected_version)
+            if (
+                require_distinct_reviewer
+                and str(draft.get("updated_by") or "") == str(approved_by or "")
+            ):
+                raise RuleAuthoringStateError(
+                    "현재 버전을 작성/수정한 주체는 같은 버전을 승인할 수 없습니다."
+                )
             validation = draft.get("validation") or {}
             if (
                 draft.get("status") != "validated"

@@ -16,7 +16,7 @@ from typing import Any
 from api.services.audit_log import AuditLogService, audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
-from api.security import auth_is_enabled, configured_admin_password, configured_api_key, session_ttl_seconds
+from api.security import auth_is_enabled, configured_admin_password, configured_api_key, configured_role_passwords, password_login_is_enabled, session_ttl_seconds
 from breachscope.demo_scenarios import SCENARIOS, write_demo_scenario
 from breachscope.pipeline import Pipeline
 from breachscope.rulepack import summarize_rules
@@ -253,8 +253,9 @@ def _security_checks() -> list[Check]:
     checks: list[Check] = []
     api_key = configured_api_key()
     admin_password = configured_admin_password()
+    role_passwords = configured_role_passwords()
     session_secret = os.getenv("BS_SESSION_SECRET", "").strip()
-    if not (api_key or admin_password):
+    if not auth_is_enabled():
         checks.append(Check("auth_enabled", "warn", "authentication is disabled; acceptable only for local demos"))
     else:
         checks.append(Check("auth_enabled", "pass", "authentication is enabled"))
@@ -266,16 +267,23 @@ def _security_checks() -> list[Check]:
         checks.append(Check("admin_password_strength", "warn", "BS_ADMIN_PASSWORD should be changed to a long random password"))
     elif admin_password:
         checks.append(Check("admin_password_strength", "pass", "admin password length looks acceptable"))
-    if admin_password:
+    for role, password in sorted(role_passwords.items()):
+        if len(password) < 12 or password.startswith("change-me"):
+            checks.append(Check(f"{role}_password_strength", "warn", f"BS_{role.upper()}_PASSWORD should be changed to a long random password"))
+        else:
+            checks.append(Check(f"{role}_password_strength", "pass", f"{role} password length looks acceptable"))
+    if password_login_is_enabled():
+        all_login_passwords = {admin_password, *role_passwords.values()}
+        all_login_passwords.discard("")
         if not session_secret or session_secret.startswith("change-me") or len(session_secret) < 32:
             checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should be a separate 32+ character random value"))
-        elif session_secret in {api_key, admin_password}:
-            checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should not equal the API key or admin password"))
+        elif session_secret == api_key or session_secret in all_login_passwords:
+            checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should not equal an API key or login password"))
         else:
             checks.append(Check("session_secret", "pass", "session secret looks acceptable"))
     if _bool_env("BS_COOKIE_SECURE", "0"):
         checks.append(Check("cookie_secure", "pass", "Secure cookie flag is enabled"))
-    elif admin_password:
+    elif password_login_is_enabled():
         checks.append(Check("cookie_secure", "warn", "set BS_COOKIE_SECURE=1 when serving behind HTTPS"))
     if _bool_env("BS_DISABLE_DOCS", "0"):
         checks.append(Check("api_docs", "pass", "API docs are disabled"))

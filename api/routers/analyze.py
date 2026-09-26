@@ -7,6 +7,7 @@ from typing import List, Optional
 import logging
 from api.services.upload_policy import UploadLimitError
 
+from api.rbac import ROLE_OPERATOR, require_roles
 from api.services.analysis_service import AnalysisService
 from api.services.audit_log import AuditLogService
 
@@ -44,6 +45,9 @@ async def analyze(
     Returns:
         분석 결과 및 리포트 다운로드 링크
     """
+    if use_custom_rules:
+        require_roles(request, ROLE_OPERATOR)
+
     try:
         result = await analysis_service.analyze(
             files=files,

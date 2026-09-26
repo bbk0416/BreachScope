@@ -22,6 +22,8 @@ The generated file sets fresh values for:
 
 Review the generated `.env` before starting the service.
 
+The bootstrap command intentionally keeps optional rule-lifecycle RBAC accounts disabled. To enable them, manually set one or more of `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD` to long random values. The admin account remains the default first-run login.
+
 ## Run the go-live checker
 
 ```bash

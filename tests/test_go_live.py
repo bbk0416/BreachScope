@@ -126,3 +126,27 @@ def test_go_live_api_endpoint(tmp_path, monkeypatch):
     payload = response.json()
     assert payload["status"] == "pass"
     assert payload["deployment_mode"] == "production"
+
+
+def test_go_live_accepts_role_only_browser_auth(tmp_path, monkeypatch):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env["BS_AUTHOR_PASSWORD"] = "author-role-password-123456"
+    env["BS_REVIEWER_PASSWORD"] = "reviewer-role-password-123456"
+    env["BS_OPERATOR_PASSWORD"] = "operator-role-password-123456"
+    for key in ("BS_API_KEY", "BS_ADMIN_PASSWORD"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    auth = next(
+        check for check in result["checks"]
+        if check["name"] == "runtime_authentication"
+    )
+    assert auth["status"] == "pass"
+    assert auth["details"]["api_key_enabled"] is False
+    assert auth["details"]["password_login_enabled"] is True
+    assert auth["details"]["rbac_roles"] == ["author", "operator", "reviewer"]
+    assert result["status"] == "pass"

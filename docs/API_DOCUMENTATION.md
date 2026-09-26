@@ -2,6 +2,18 @@
 
 ## 웹 API 엔드포인트
 
+### 인증 및 Rule Lifecycle RBAC
+기본 호환 모드는 기존과 동일합니다. `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, `BS_OPERATOR_PASSWORD`가 모두 비어 있으면 단일 admin/API-key 권한으로 동작합니다.
+
+역할 계정을 설정하면 `/api/auth/login`의 `username`에 `admin`, `author`, `reviewer`, `operator` 중 하나를 사용합니다. 임의 username은 새로운 주체가 되지 않고 admin 경로로 처리됩니다.
+
+- author: tuning profile 및 rule draft 생성/수정/validate
+- reviewer: validated draft approve/publish
+- operator: published rule activate/deactivate/rollback, `use_custom_rules=true` 분석
+- admin/API key: 전체 권한
+
+역할 분리가 켜진 경우 non-admin reviewer는 자신이 마지막으로 작성/수정한 현재 draft 버전을 승인할 수 없습니다. 권한 부족은 HTTP 403, 자기승인 차단은 workflow state conflict로 HTTP 409를 반환합니다.
+
 ### GET `/`
 메인 페이지를 반환합니다.
 
@@ -153,14 +165,20 @@
 단일 프로필과 저장된 revision 이력을 조회합니다.
 
 ### POST `/api/rules/profiles`
+권한: author 또는 admin.
+
 분석 단위 룰 include/exclude 조합을 새 프로필로 저장합니다. 존재하지 않는 룰 ID 또는 include/exclude 중복은 400으로 거부합니다.
 
 요청 필드: name, description, rule_include, rule_exclude.
 
 ### PUT `/api/rules/profiles/{profile_id}`
+권한: author 또는 admin.
+
 프로필을 새 버전으로 갱신합니다. `expected_version`이 현재 버전과 다르면 409를 반환합니다.
 
 ### DELETE `/api/rules/profiles/{profile_id}?expected_version=N`
+권한: author 또는 admin.
+
 현재 버전이 일치할 때만 프로필을 삭제합니다. 생성/수정/삭제는 감사 로그에 기록됩니다.
 
 ---
@@ -169,27 +187,41 @@
 커스텀 룰 draft 목록을 조회합니다. 이 저장소는 canonical `rules/`와 분리됩니다.
 
 ### POST `/api/rules/authoring/drafts`
+권한: author 또는 admin.
+
 새 룰 draft를 저장합니다. 단순 저장 단계에서는 runtime regex 검증이나 canonical ID 충돌 검사를 아직 통과할 필요가 없습니다.
 
 ### POST `/api/rules/authoring/drafts/{draft_id}/validate`
+권한: author 또는 admin.
+
 현재 버전을 실제 BreachScope runtime loader로 검증합니다. 잘못된 regex, loader 오류, canonical rule ID 충돌은 400으로 거부합니다.
 
 ### POST `/api/rules/authoring/drafts/{draft_id}/approve`
+권한: reviewer 또는 admin.
+
 validation PASS인 현재 버전에 검토 메모와 승인자를 기록합니다. 내용이 수정되면 validation/approval은 초기화됩니다.
 
 ### POST `/api/rules/authoring/drafts/{draft_id}/publish`
+권한: reviewer 또는 admin.
+
 승인된 현재 버전을 별도 versioned YAML artifact로 publish합니다. publish 자체는 canonical 73-rule detector를 변경하지 않습니다.
 
 ### GET `/api/rules/activation`
 현재 custom-rule activation manifest와 version history를 조회합니다. 최초 상태는 version 0 / active=[] 입니다.
 
 ### POST `/api/rules/activation/activate`
+권한: operator 또는 admin.
+
 publish된 특정 draft/version을 activation manifest에 등록합니다. `expected_version`, `draft_id`, `published_version`을 받으며 publish artifact의 SHA-256과 runtime loader를 다시 검증합니다. 같은 draft의 이전 활성 버전은 새 버전으로 교체됩니다.
 
 ### POST `/api/rules/activation/deactivate`
+권한: operator 또는 admin.
+
 현재 활성 상태의 draft를 제거합니다. `expected_version` 불일치 시 409를 반환합니다.
 
 ### POST `/api/rules/activation/rollback`
+권한: operator 또는 admin.
+
 이전 activation manifest snapshot을 새 manifest 버전으로 복원합니다. 복원 대상 publish artifact도 다시 SHA-256 검증합니다.
 
 활성화된 custom rule은 분석에 자동 적용되지 않습니다. `/api/analyze`에서 `use_custom_rules=true`를 명시해야 하며, 해당 분석 리포트에는 custom rule provenance와 canonical detection evidence 비적용 경계가 기록됩니다.

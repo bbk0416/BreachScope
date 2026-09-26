@@ -302,12 +302,19 @@
               <div class="hint">자동화/API 클라이언트용입니다. 브라우저 사용자는 아래 관리자 로그인(HttpOnly 쿠키)을 권장합니다.</div>
             </div>
             <div class="form-group">
-              <label for="adminPassword">관리자 로그인</label>
-              <input type="password" id="adminPassword" placeholder="BS_ADMIN_PASSWORD 설정 시 입력" autocomplete="current-password">
+              <label for="loginRole">콘솔 로그인</label>
+              <select id="loginRole">
+                <option value="admin">admin</option>
+                <option value="author">author</option>
+                <option value="reviewer">reviewer</option>
+                <option value="operator">operator</option>
+              </select>
+              <input type="password" id="adminPassword" placeholder="선택한 역할의 비밀번호" autocomplete="current-password" style="margin-top:8px">
               <div class="case-actions">
                 <button type="button" class="btn btn-mini btn-open" id="loginBtn">로그인</button>
                 <button type="button" class="btn btn-mini btn-download" id="logoutBtn">로그아웃</button>
               </div>
+              <div class="hint">역할 계정을 설정하지 않은 배포는 기존 admin 단일 로그인 방식으로 동작합니다.</div>
               <div class="hint" id="authStatus">인증 상태 확인 중...</div>
             </div>
           </div>
@@ -400,6 +407,7 @@
     const opsStatus = document.getElementById('opsStatus');
     const backupList = document.getElementById('backupList');
     const apiKeyInput = document.getElementById('apiKey');
+    const loginRole = document.getElementById('loginRole');
     const adminPasswordInput = document.getElementById('adminPassword');
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -445,6 +453,7 @@
     let currentRuleDraft = null;
     let ruleProfiles = [];
     let currentRuleProfile = null;
+    let currentAuthRole = 'none';
     apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
     apiKeyInput.addEventListener('change', () => {
       localStorage.setItem('breachscope_api_key', apiKeyInput.value.trim());
@@ -474,17 +483,49 @@
       if (auditJsonlLink) auditJsonlLink.href = withApiKey('/api/audit/export?file_type=jsonl');
     }
 
+    function roleAllows(...roles) {
+      return currentAuthRole === 'admin' || roles.includes(currentAuthRole);
+    }
+
+    function applyRoleUi() {
+      const canAuthor = roleAllows('author');
+      const canReview = roleAllows('reviewer');
+      const canOperate = roleAllows('operator');
+      [saveRuleProfileBtn, deleteRuleProfileBtn, saveRuleDraftBtn, validateRuleDraftBtn]
+        .filter(Boolean).forEach(el => { el.disabled = !canAuthor; });
+      [approveRuleDraftBtn, publishRuleDraftBtn]
+        .filter(Boolean).forEach(el => { el.disabled = !canReview; });
+      [activateRuleDraftBtn, deactivateRuleDraftBtn]
+        .filter(Boolean).forEach(el => { el.disabled = !canOperate; });
+      const customToggle = document.getElementById('useCustomRules');
+      if (customToggle) {
+        customToggle.disabled = !canOperate;
+        if (!canOperate) customToggle.checked = false;
+      }
+    }
+
     function renderAuthStatus(payload) {
       if (!payload || !payload.auth_required) {
-        authStatus.innerHTML = '인증 비활성화: 로컬 데모 모드입니다.';
+        currentAuthRole = 'admin';
+        applyRoleUi();
+        authStatus.innerHTML = '인증 비활성화: 로컬 데모 모드 · role=admin';
         return;
       }
       if (payload.authenticated) {
         const via = payload.auth_method === 'session' ? '세션 로그인' : 'API Key';
-        authStatus.innerHTML = `인증됨: ${escapeHtml(via)}`;
+        currentAuthRole = payload.auth_method === 'api_key' ? 'admin' : (payload.session_role || 'admin');
+        applyRoleUi();
+        authStatus.innerHTML = '인증됨: ' + escapeHtml(via) + ' · role=' + escapeHtml(currentAuthRole);
       } else if (payload.password_login_enabled) {
-        authStatus.innerHTML = '인증 필요: 관리자 비밀번호로 로그인하거나 API Key를 입력하세요.';
+        currentAuthRole = 'none';
+        applyRoleUi();
+        const configured = (payload.configured_roles || []).join(', ');
+        authStatus.innerHTML = payload.rbac_enabled
+          ? '인증 필요 · RBAC roles: ' + escapeHtml(configured || 'admin only')
+          : '인증 필요: 관리자 비밀번호로 로그인하거나 API Key를 입력하세요.';
       } else {
+        currentAuthRole = 'none';
+        applyRoleUi();
         authStatus.innerHTML = '인증 필요: API Key를 입력하세요.';
       }
     }
@@ -505,7 +546,7 @@
         const response = await authFetch('/api/auth/login', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({password})
+          body: JSON.stringify({username: loginRole.value, password})
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.detail || payload.message || '로그인 실패');

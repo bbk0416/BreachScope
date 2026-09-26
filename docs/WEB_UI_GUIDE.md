@@ -30,6 +30,7 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 - ✅ 룰 튜닝 프로필 저장/불러오기/버전 이력/삭제
 - ✅ 커스텀 룰 draft → validate → approve → publish workflow
 - ✅ published custom rule activation/deactivation/manifest rollback; 분석별 custom rule 사용은 기본 OFF
+- ✅ 선택형 rule lifecycle RBAC: author / reviewer / operator / admin 역할 로그인과 버튼 권한 표시
 - ✅ 분석 실행
 - ✅ 리포트 다운로드 (HTML, JSON, CSV, PDF)
 - ✅ REST API 제공 (`/api/analyze`, `/api/rules`)

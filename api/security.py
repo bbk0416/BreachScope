@@ -43,13 +43,38 @@ def configured_admin_password() -> str:
     return _env("BS_ADMIN_PASSWORD")
 
 
+def configured_role_password(role: str) -> str:
+    env_name = {
+        "author": "BS_AUTHOR_PASSWORD",
+        "reviewer": "BS_REVIEWER_PASSWORD",
+        "operator": "BS_OPERATOR_PASSWORD",
+    }.get(str(role or "").strip().lower(), "")
+    return _env(env_name) if env_name else ""
+
+
+def configured_role_passwords() -> dict[str, str]:
+    return {
+        role: password
+        for role in ("author", "reviewer", "operator")
+        if (password := configured_role_password(role))
+    }
+
+
+def password_login_is_enabled() -> bool:
+    return bool(configured_admin_password() or configured_role_passwords())
+
+
 # BREACHSCOPE_P0_12_AUTH_FAIL_CLOSED_V1
 def _is_production_mode() -> bool:
     return _env("BS_DEPLOYMENT_MODE").casefold() in {"production", "prod"}
 
 
 def _credentials_configured() -> bool:
-    return bool(configured_api_key() or configured_admin_password())
+    return bool(
+        configured_api_key()
+        or configured_admin_password()
+        or configured_role_passwords()
+    )
 
 
 def _production_auth_misconfigured() -> bool:
@@ -142,7 +167,14 @@ def _session_secret() -> str:
     invalidating every session. In small local deployments it safely falls back to
     BS_API_KEY or BS_ADMIN_PASSWORD.
     """
-    return _env("BS_SESSION_SECRET") or configured_api_key() or configured_admin_password() or "breachscope-dev-session-secret"
+    role_fallback = next(iter(configured_role_passwords().values()), "")
+    return (
+        _env("BS_SESSION_SECRET")
+        or configured_api_key()
+        or configured_admin_password()
+        or role_fallback
+        or "breachscope-dev-session-secret"
+    )
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -154,7 +186,12 @@ def _b64url_decode(data: str) -> bytes:
     return base64.urlsafe_b64decode(data + padding)
 
 
-def create_session_token(subject: str = "admin", ttl_seconds: int | None = None, now: int | None = None) -> str:
+def create_session_token(
+    subject: str = "admin",
+    ttl_seconds: int | None = None,
+    now: int | None = None,
+    role: str | None = None,
+) -> str:
     """Create a compact HMAC-signed session token.
 
     The token intentionally uses only the Python standard library. It is not a
@@ -164,6 +201,7 @@ def create_session_token(subject: str = "admin", ttl_seconds: int | None = None,
     ttl = int(ttl_seconds if ttl_seconds is not None else session_ttl_seconds())
     payload = {
         "sub": subject,
+        "role": str(role or subject or "admin").strip().lower(),
         "iat": issued_at,
         "exp": issued_at + ttl,
         "typ": "breachscope-session",
@@ -211,6 +249,15 @@ def extract_api_key(request: Request) -> str:
     return ""
 
 
+def _session_identity_is_enabled(payload: dict[str, object]) -> bool:
+    role = str(payload.get("role") or payload.get("sub") or "admin").strip().lower()
+    if role == "admin":
+        return bool(configured_admin_password())
+    if role in {"author", "reviewer", "operator"}:
+        return bool(configured_role_password(role))
+    return False
+
+
 def request_is_authenticated(request: Request) -> tuple[bool, str]:
     """Return (authenticated, method) for API key or browser session."""
     api_key = configured_api_key()
@@ -218,7 +265,14 @@ def request_is_authenticated(request: Request) -> tuple[bool, str]:
     if api_key and supplied and hmac.compare_digest(supplied, api_key):
         return True, "api_key"
 
-    if configured_admin_password() and verify_session_token(request.cookies.get(SESSION_COOKIE_NAME)):
+    session_payload = verify_session_token(
+        request.cookies.get(SESSION_COOKIE_NAME)
+    )
+    if (
+        password_login_is_enabled()
+        and session_payload
+        and _session_identity_is_enabled(session_payload)
+    ):
         return True, "session"
 
     return False, "none"
