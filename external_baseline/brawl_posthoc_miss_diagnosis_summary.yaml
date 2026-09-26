@@ -1,0 +1,92 @@
+schema: breachscope.brawl_posthoc_miss_diagnosis_summary.v1
+analysis_id: brawl-posthoc-miss-diagnosis-v1
+status: POSTHOC_COMPLETED
+canonical_analysis_id: brawl-independent-attack-step-technique-holdout-v1
+canonical_result_modified: false
+canonical_rerun: false
+
+source:
+  brawl_commit: 7ec51fac8fc05ea01da210f604b821ef52818173
+  archive_sha256: 717baf85e44a4c82a91af4df1783ae167d7441a58889f057124c52386c58aade
+  posthoc_result_path: external_baseline/results/brawl_posthoc_b306aa7/result.json
+  posthoc_result_sha256: a2772d458db5ba783afe6f0af2d181ee7f409d1c7af069af65d668e6229e8500
+  canonical_lock_path: external_baseline/locks/BRAWL_ATTACK_STEP_TECHNIQUE_HOLDOUT_V1.lock
+  canonical_lock_sha256: 8ae204ed88cdff01b69bd243c69183d440354bfcc278fb55b9dcb6ffa6b6b965
+  canonical_lock_byte_equal_to_permanent_home_lock: true
+  sensitive_command_arguments_redacted: true
+
+observed:
+  host_event_count: 54236
+  finding_count: 44
+  findings_by_rule:
+    R-MSBUILD-InlineTask: 29
+    R-NET-View-Share: 15
+  findings_by_technique:
+    T1127.001: 29
+    T1135: 15
+
+pair_classifications:
+  total: 133
+  TELEMETRY_PRESENT_NO_EXPECTED_TECHNIQUE_FINDING: 96
+  NO_CURRENT_RULE_COVERAGE: 34
+  NO_NORMALIZED_TELEMETRY_IN_BSF_WINDOW: 3
+
+confirmed_no_current_rule_coverage:
+  T1016: 1
+  T1069: 18
+  T1021.002: 15
+  total: 34
+  fraction_of_pairs: 0.2556390977443609
+
+telemetry_present_no_expected_technique_finding:
+  T1003: 16
+  T1018: 1
+  T1047: 15
+  T1059.001: 19
+  T1087: 18
+  T1105: 12
+  T1547.001: 15
+  total: 96
+
+no_normalized_telemetry_in_bsf_window:
+  T1105: 3
+  total: 3
+
+representative_root_causes:
+  T1003:
+    bsf_shape: powershell -command - plus process/open targeting lsass.exe
+    diagnosis: BRAWL BSF oracle contains process-open meaning, but the normalized endpoint telemetry used by the detector does not expose a matching T1003 observable under current rules.
+  T1016:
+    bsf_shape: nbtstat -n
+    diagnosis: no current T1016 rule
+  T1069:
+    bsf_shape: powershell -command -
+    diagnosis: no current T1069 rule; semantic script content is not present in the command line
+  T1087:
+    bsf_shape: powershell -command -
+    diagnosis: current T1087 rules cover specific account-discovery commands/events; the semantic script content is not present in the command line
+  T1018:
+    bsf_shape: powershell -command -
+    diagnosis: current T1018 rule is nslookup-oriented and does not cover this opaque PowerShell form
+  T1059.001:
+    bsf_shape: powershell -command -
+    diagnosis: current PowerShell rules intentionally require encoded, bypass, download, or Invoke-Expression shapes rather than generic PowerShell
+  T1547.001:
+    bsf_shape: reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+    diagnosis: current command rule targets HKCU Run-key syntax, while the registry-event rule depends on telemetry not emitted by the documented BRAWL Sysmon configuration
+  T1021.002:
+    bsf_shape: net use \\host\C$ with credentials
+    diagnosis: no current T1021.002 rule
+  T1105:
+    bsf_shape: cmd /c copy local.exe \\host\C$\remote.exe
+    diagnosis: current T1105 rules target web download or certutil; 3 of 15 pairs also had no normalized telemetry inside the frozen BSF window
+  T1047:
+    bsf_shape: wmic /node:host /user:... /password:<redacted> process call create ...
+    diagnosis: current WMI rules cover narrower exact WMIC/XSL/query/WmiPrvSE-child shapes; the /node and credential arguments break the simple command pattern
+
+claim_boundaries:
+  event_level_recall: NOT_CLAIMED
+  event_level_precision: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  remediation_must_use_new_analysis_id: true
