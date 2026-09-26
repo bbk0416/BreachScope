@@ -80,10 +80,10 @@ def test_p2_25_claim_boundary_does_not_turn_fixture_hits_into_recall() -> None:
 
 def test_current_chain_keeps_attack_revalidation_and_adds_fresh_benign() -> None:
     chain = yaml.safe_load(CHAIN.read_text(encoding="utf-8"))
-    assert chain["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+    assert chain["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
 
     assert chain["current_rulepack_validation"]["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
-    assert chain["current_rulepack_validation"]["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert chain["current_rulepack_validation"]["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
 
     attack = chain["post_remediation_revalidations"][0]
     assert attack["detector_rules_tree_sha256"] != chain["current_frozen_detector"]["rules_tree_sha256"]

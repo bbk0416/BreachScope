@@ -10,17 +10,18 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
-        "repo_commit": "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4",
-        "rules_tree_sha256": "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7",
-        "rule_count": 69,
+        "repo_commit": "bad0c88037d489f5b375c120002be74ac6082ffa",
+        "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
+        "rule_count": 73,
         "rule_file_count": 5,
     }
 
     assert [row["remediation_id"] for row in data["posthoc_remediations"]] == [
         "p2-24d-rule-noise-remediation",
         "p2-35i-original-filename-masquerading-remediation",
+        "independent-command-coverage-remediation-v1",
     ]
     assert data["posthoc_remediations"][1]["detector_repo_commit"] == (
         "d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4"
@@ -91,7 +92,8 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
 
     m = revalidation[2]
     assert m["revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
-    assert m["detector_rules_tree_sha256"] == data["current_frozen_detector"]["rules_tree_sha256"]
+    assert m["detector_rules_tree_sha256"] == "1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7"
+    assert m["detector_rules_tree_sha256"] != data["current_frozen_detector"]["rules_tree_sha256"]
     assert m["fixture_count"] == 10
     assert m["hits"] == 6
     assert m["misses"] == 4

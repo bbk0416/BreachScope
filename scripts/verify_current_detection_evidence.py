@@ -6,6 +6,7 @@ import argparse
 import copy
 import hashlib
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any, Mapping
@@ -78,6 +79,14 @@ P35M_CONTRACT_SHA = "0636d07c4ab3ea15b790c7f872d86aadcc999810db2cfaea78e9ddff448
 P35M_RUNNER_SHA = "c50c2b7abb06ff9e8406443767a0ff7701b3a76c4abf7187cd4d487dae2b9427"
 P35M_PRODUCT_COMMIT = "2401f8b9b6a569b8b932451f0a0ae20ffa26abbc"
 
+CMDGAP_ID = "independent-command-coverage-remediation-v1"
+CMDGAP_HASH = "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88"
+CMDGAP_COMMIT = "bad0c88037d489f5b375c120002be74ac6082ffa"
+CMDGAP_RECORD = "external_baseline/independent_command_coverage_remediation.yaml"
+CMDGAP_CURRENT_ID = "independent-command-coverage-remediation-current-detection-evidence"
+CMDGAP_EXAMPLE_BLOB = "554f7bf200b31f85bb6fa3df9ff4651d8fe0eb6c"
+CMDGAP_P20_BLOB = "787a510c233d7ccedc38bd88a2de2f7cbb34ac6b"
+
 
 
 def _require(actual: Any, expected: Any, label: str) -> None:
@@ -90,6 +99,25 @@ def _mapping(value: Any, label: str) -> Mapping[str, Any]:
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _git_blob_at_commit(repo: Path, commit: str, relative_path: str) -> str:
+    try:
+        value = subprocess.check_output(
+            ["git", "rev-parse", f"{commit}:{relative_path}"],
+            cwd=repo,
+            text=True,
+            stderr=subprocess.STDOUT,
+        ).strip()
+    except subprocess.CalledProcessError as exc:
+        raise CurrentEvidenceError(
+            f"cannot resolve historical blob {commit}:{relative_path}: {exc.output.strip()}"
+        ) from exc
+    if len(value) != 40:
+        raise CurrentEvidenceError(
+            f"invalid historical blob id for {commit}:{relative_path}: {value!r}"
+        )
+    return value
 
 
 def _locked_json(repo: Path, value: Any, sha256: str, label: str) -> dict[str, Any]:
@@ -300,9 +328,9 @@ def _verify_p2_20(
     _require(change.get("rule_file"), "rules/p2_20_postholdout_rules.yml", f"{label} rule file")
     _require(change.get("rule_file_git_blob_sha1"), P20_RULE_BLOB, f"{label} rule blob")
     _require(
-        legacy._git_blob_sha1(repo / "rules/p2_20_postholdout_rules.yml"),
+        _git_blob_at_commit(repo, P20_COMMIT, "rules/p2_20_postholdout_rules.yml"),
         P20_RULE_BLOB,
-        f"{label} live rule blob",
+        f"{label} historical rule blob",
     )
     expected_rules = {
         "R-WINRS-REMOTE-TARGET": ("T1021.006", "medium"),
@@ -426,9 +454,9 @@ def _verify_p2_24d(
     _require(remediation.get("rule_file"), "rules/example_safe.yml", f"{label} rule file")
     _require(remediation.get("rule_file_git_blob_sha1"), P24D_RULE_BLOB, f"{label} rule blob")
     _require(
-        legacy._git_blob_sha1(repo / "rules/example_safe.yml"),
+        _git_blob_at_commit(repo, P24D_COMMIT, "rules/example_safe.yml"),
         P24D_RULE_BLOB,
-        f"{label} live rule blob",
+        f"{label} historical rule blob",
     )
     _require(
         remediation.get("changed_rules"),
@@ -1161,6 +1189,207 @@ def _verify_p2_35i(
     }
 
 
+def _verify_cmdgap(
+    repo: Path,
+    record: Mapping[str, Any],
+    previous_hash: str,
+) -> tuple[str, dict[str, Any]]:
+    label = "CMDGAP"
+    _require(
+        record.get("schema"),
+        "breachscope.independent_command_coverage_remediation.v1",
+        f"{label} schema",
+    )
+    _require(record.get("analysis_id"), CMDGAP_ID, f"{label} analysis id")
+    _require(
+        record.get("status"),
+        "IMPLEMENTED_POSTHOC_PENDING_FRESH_REVALIDATION",
+        f"{label} status",
+    )
+    _require(
+        record.get("analysis_class"),
+        "POSTHOC_DEVELOPMENT_REMEDIATION_NOT_FRESH_VALIDATION",
+        f"{label} class",
+    )
+
+    basis = _mapping(record.get("basis"), f"{label} basis")
+    _require(basis.get("brawl_canonical_result_modified"), False, f"{label} canonical modified")
+    _require(basis.get("brawl_canonical_rerun"), False, f"{label} canonical rerun")
+    _require(
+        basis.get("rule_semantics_basis"),
+        "INDEPENDENT_PUBLIC_DOCUMENTATION_AND_SYNTHETIC_FIXTURES",
+        f"{label} semantic basis",
+    )
+    _require(basis.get("brawl_score_optimization_target"), False, f"{label} score target")
+
+    remediation = _mapping(record.get("remediation"), f"{label} remediation")
+    _require(remediation.get("remediation_id"), CMDGAP_ID, f"{label} remediation id")
+    _require(
+        remediation.get("change_class"),
+        "posthoc_gap_remediation_with_independent_semantic_support",
+        f"{label} change class",
+    )
+    _require(remediation.get("detector_repo_commit"), CMDGAP_COMMIT, f"{label} detector commit")
+    _require(remediation.get("from_rules_tree_sha256"), previous_hash, f"{label} from hash")
+    _require(remediation.get("to_rules_tree_sha256"), CMDGAP_HASH, f"{label} to hash")
+    _require(remediation.get("rule_count_before"), 69, f"{label} rule count before")
+    _require(remediation.get("rule_count_after"), 73, f"{label} rule count after")
+    _require(remediation.get("rule_file_count"), 5, f"{label} rule file count")
+    _require(remediation.get("fresh_attack_revalidation"), "NOT_RUN", f"{label} attack")
+    _require(remediation.get("fresh_benign_revalidation"), "NOT_RUN", f"{label} benign")
+
+    files = remediation.get("changed_rule_files")
+    if not isinstance(files, list) or len(files) != 2:
+        raise CurrentEvidenceError(f"{label} must record exactly two changed rule files")
+    file_map = {
+        str(row.get("path")): str(row.get("git_blob_sha1"))
+        for row in files
+        if isinstance(row, Mapping)
+    }
+    _require(
+        file_map,
+        {
+            "rules/example_safe.yml": CMDGAP_EXAMPLE_BLOB,
+            "rules/p2_20_postholdout_rules.yml": CMDGAP_P20_BLOB,
+        },
+        f"{label} changed file blobs",
+    )
+    _require(
+        _git_blob_at_commit(repo, CMDGAP_COMMIT, "rules/example_safe.yml"),
+        CMDGAP_EXAMPLE_BLOB,
+        f"{label} detector-commit example_safe blob",
+    )
+    _require(
+        _git_blob_at_commit(repo, CMDGAP_COMMIT, "rules/p2_20_postholdout_rules.yml"),
+        CMDGAP_P20_BLOB,
+        f"{label} detector-commit P2-20 blob",
+    )
+
+    _require(
+        remediation.get("modified_rule_ids"),
+        ["R-WMI-Create", "R-REG-RunKey"],
+        f"{label} modified rule ids",
+    )
+    expected_added = [
+        "R-NETWORK-CONFIG-NBTSTAT",
+        "R-PERMISSION-GROUPS-LOCAL-NET",
+        "R-PERMISSION-GROUPS-DOMAIN-NET",
+        "R-SMB-ADMIN-SHARE-NET-USE",
+    ]
+    _require(remediation.get("added_rule_ids"), expected_added, f"{label} added rule ids")
+
+    wmi = legacy._load_rule(repo, "rules/example_safe.yml", "R-WMI-Create")
+    _require(wmi.get("operator"), "regex", f"{label} WMI operator")
+    _require(
+        wmi.get("pattern"),
+        r"(?i)\bwmic(?:\.exe)?\b.*\bprocess\s+call\s+create\b",
+        f"{label} WMI pattern",
+    )
+    _require(wmi.get("mitre_technique"), "T1047", f"{label} WMI technique")
+
+    run_key = legacy._load_rule(repo, "rules/example_safe.yml", "R-REG-RunKey")
+    _require(run_key.get("operator"), "regex", f"{label} Run-key operator")
+    _require(
+        run_key.get("pattern"),
+        r"(?i)\breg(?:\.exe)?\s+add\s+(?:HKCU|HKLM|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE)\\Software\\Microsoft\\Windows\\CurrentVersion\\Run(?:Once)?\b",
+        f"{label} Run-key pattern",
+    )
+    _require(run_key.get("mitre_technique"), "T1547.001", f"{label} Run-key technique")
+
+    expected_rules = {
+        "R-NETWORK-CONFIG-NBTSTAT": "T1016",
+        "R-PERMISSION-GROUPS-LOCAL-NET": "T1069.001",
+        "R-PERMISSION-GROUPS-DOMAIN-NET": "T1069.002",
+        "R-SMB-ADMIN-SHARE-NET-USE": "T1021.002",
+    }
+    for rule_id, technique in expected_rules.items():
+        live = legacy._load_rule(repo, "rules/p2_20_postholdout_rules.yml", rule_id)
+        _require(live.get("field"), "command_line", f"{label} {rule_id} field")
+        _require(live.get("operator"), "regex", f"{label} {rule_id} operator")
+        _require(live.get("mitre_technique"), technique, f"{label} {rule_id} technique")
+        predicates = {
+            (item.get("field"), str(item.get("pattern")))
+            for item in (live.get("all_of") or [])
+            if isinstance(item, Mapping)
+        }
+        _require(("event_id", "1") in predicates, True, f"{label} {rule_id} event predicate")
+        _require(
+            ("source", "Microsoft-Windows-Sysmon") in predicates,
+            True,
+            f"{label} {rule_id} source predicate",
+        )
+
+    development = _mapping(record.get("development_validation"), f"{label} development")
+    synthetic = _mapping(
+        development.get("independent_synthetic_tests"),
+        f"{label} synthetic",
+    )
+    _require(synthetic.get("status"), "PASS", f"{label} synthetic status")
+    _require(synthetic.get("passed"), 10, f"{label} synthetic passed")
+    _require(synthetic.get("failed"), 0, f"{label} synthetic failed")
+    related = _mapping(development.get("related_regression"), f"{label} related")
+    _require(related.get("status"), "PASS", f"{label} related status")
+    _require(related.get("passed"), 47, f"{label} related passed")
+    _require(related.get("failed"), 0, f"{label} related failed")
+
+    brawl = _mapping(
+        development.get("brawl_posthoc_development_recheck"),
+        f"{label} BRAWL development recheck",
+    )
+    _require(
+        brawl.get("class"),
+        "POSTHOC_DEVELOPMENT_ONLY_NOT_FRESH_VALIDATION",
+        f"{label} BRAWL class",
+    )
+    _require(brawl.get("rules_frozen_before_recheck"), True, f"{label} frozen before recheck")
+    _require(brawl.get("canonical_result_recomputed"), False, f"{label} canonical recompute")
+    _require(brawl.get("canonical_result_replaced"), False, f"{label} canonical replace")
+    _require(brawl.get("prior_findings"), 44, f"{label} prior findings")
+    _require(brawl.get("post_remediation_findings"), 89, f"{label} post findings")
+    pair_diag = _mapping(brawl.get("post_pair_diagnostic"), f"{label} pair diagnostic")
+    _require(pair_diag.get("frozen_pair_count"), 133, f"{label} pair count")
+    _require(pair_diag.get("would_meet_frozen_hit_dimensions"), 1, f"{label} would-hit")
+    _require(
+        pair_diag.get("expected_technique_same_host_outside_window"),
+        23,
+        f"{label} outside-window",
+    )
+    _require(
+        pair_diag.get("telemetry_present_no_expected_technique_finding"),
+        100,
+        f"{label} no-technique finding",
+    )
+    _require(
+        pair_diag.get("no_normalized_telemetry_in_frozen_window"),
+        9,
+        f"{label} no telemetry",
+    )
+
+    claims = _mapping(record.get("claim_boundary"), f"{label} claims")
+    _require(claims.get("posthoc_development_change"), True, f"{label} posthoc")
+    _require(claims.get("fresh_validation"), False, f"{label} fresh")
+    _require(
+        claims.get("prior_p2_35m_revalidation_applies_to_current_rulepack"),
+        False,
+        f"{label} P2-35M applicability",
+    )
+    _require(claims.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} FPR")
+    _require(claims.get("production_accuracy"), "NOT_CLAIMED", f"{label} accuracy")
+
+    return CMDGAP_HASH, {
+        "remediation_id": CMDGAP_ID,
+        "detector_repo_commit": CMDGAP_COMMIT,
+        "from_rules_tree_sha256": previous_hash,
+        "to_rules_tree_sha256": CMDGAP_HASH,
+        "change_class": "posthoc_gap_remediation_with_independent_semantic_support",
+        "rule_count_before": 69,
+        "rule_count_after": 73,
+        "fresh_attack_revalidation": "NOT_RUN",
+        "fresh_benign_revalidation": "NOT_RUN",
+        "production_false_positive_rate": "NOT_CLAIMED",
+    }
+
+
 def _verify_p2_35m(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
     label = "P2-35M"
     _require(row.get("revalidation_id"), P35M_ID, f"{label} chain id")
@@ -1277,24 +1506,199 @@ def _verify_p2_35m(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
-    live_chain = legacy._load_yaml(chain_path)
-    _require(live_chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
-    _require(live_chain.get("current_evidence_id"), P35M_CURRENT_ID, "current evidence id")
-    live_rows = live_chain.get("post_remediation_revalidations")
-    if not isinstance(live_rows, list) or len(live_rows) != 3:
-        raise CurrentEvidenceError("post_remediation_revalidations must contain P2-25, P2-26C, then P2-35M")
-    p35m = _verify_p2_35m(repo, _mapping(live_rows[2], "P2-35M chain row"))
-    live_validation = _mapping(live_chain.get("current_rulepack_validation"), "current rulepack validation")
-    _require(live_validation.get("rule_change_id"), P35I_ID, "current validation rule change")
-    _require(live_validation.get("current_revalidation_id"), P35M_ID, "current validation revalidation")
-    _require(live_validation.get("fresh_attack_revalidation_after_current_rule_change"), "COMPLETED", "current validation attack")
-    _require(live_validation.get("fresh_benign_revalidation_after_current_rule_change"), "COMPLETED", "current validation benign")
-    _require(live_validation.get("prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"), False, "current validation prior applicability")
-    _require(live_validation.get("fresh_current_rulepack_performance_available"), True, "current validation performance")
+    live_current_chain = legacy._load_yaml(chain_path)
+    _require(live_current_chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
+    _require(
+        live_current_chain.get("current_evidence_id"),
+        CMDGAP_CURRENT_ID,
+        "current evidence id",
+    )
 
-    chain = copy.deepcopy(live_chain)
+    live_rows = live_current_chain.get("post_remediation_revalidations")
+    if not isinstance(live_rows, list) or len(live_rows) != 3:
+        raise CurrentEvidenceError(
+            "post_remediation_revalidations must contain P2-25, P2-26C, then P2-35M"
+        )
+    p35m = _verify_p2_35m(repo, _mapping(live_rows[2], "P2-35M chain row"))
+
+    live_posthoc_rows = live_current_chain.get("posthoc_remediations")
+    if not isinstance(live_posthoc_rows, list) or len(live_posthoc_rows) != 3:
+        raise CurrentEvidenceError(
+            "posthoc_remediations must contain P2-24D, P2-35I, then CMDGAP"
+        )
+    cmdgap_row = _mapping(live_posthoc_rows[2], "CMDGAP chain row")
+    _require(cmdgap_row.get("remediation_id"), CMDGAP_ID, "CMDGAP chain id")
+    _require(
+        cmdgap_row.get("remediation_record"),
+        CMDGAP_RECORD,
+        "CMDGAP chain record",
+    )
+    _require(
+        cmdgap_row.get("change_class"),
+        "posthoc_gap_remediation_with_independent_semantic_support",
+        "CMDGAP chain class",
+    )
+    _require(
+        cmdgap_row.get("detector_repo_commit"),
+        CMDGAP_COMMIT,
+        "CMDGAP chain commit",
+    )
+    _require(
+        cmdgap_row.get("from_rules_tree_sha256"),
+        P35I_HASH,
+        "CMDGAP chain from hash",
+    )
+    _require(
+        cmdgap_row.get("to_rules_tree_sha256"),
+        CMDGAP_HASH,
+        "CMDGAP chain to hash",
+    )
+    _require(
+        cmdgap_row.get("fresh_attack_revalidation"),
+        "NOT_RUN",
+        "CMDGAP chain attack",
+    )
+    _require(
+        cmdgap_row.get("fresh_benign_revalidation"),
+        "NOT_RUN",
+        "CMDGAP chain benign",
+    )
+
+    cmdgap_path = legacy._relative_file(
+        repo,
+        cmdgap_row.get("remediation_record"),
+        "CMDGAP remediation",
+    )
+    cmdgap_record = legacy._load_yaml(cmdgap_path)
+    current_from_record, cmdgap = _verify_cmdgap(repo, cmdgap_record, P35I_HASH)
+    _require(current_from_record, CMDGAP_HASH, "CMDGAP verified rule hash")
+
+    current_hash, current_rule_file_count = legacy.historical._rules_tree_hash(
+        repo / "rules"
+    )
+    _require(current_hash, CMDGAP_HASH, "live current rule tree")
+    _require(current_rule_file_count, 5, "live current rule file count")
+
+    live_detector = _mapping(
+        live_current_chain.get("current_frozen_detector"),
+        "live current frozen detector",
+    )
+    _require(live_detector.get("repo_commit"), CMDGAP_COMMIT, "live detector commit")
+    _require(
+        live_detector.get("rules_tree_sha256"),
+        CMDGAP_HASH,
+        "live detector rule hash",
+    )
+    _require(live_detector.get("rule_count"), 73, "live detector rule count")
+    _require(live_detector.get("rule_file_count"), 5, "live detector rule file count")
+
+    live_validation = _mapping(
+        live_current_chain.get("current_rulepack_validation"),
+        "live current rulepack validation",
+    )
+    _require(live_validation.get("rule_change_id"), CMDGAP_ID, "live validation rule change")
+    _require(
+        live_validation.get("current_revalidation_id"),
+        "NOT_RUN",
+        "live validation revalidation",
+    )
+    _require(
+        live_validation.get("fresh_attack_revalidation_after_current_rule_change"),
+        "NOT_RUN",
+        "live validation attack",
+    )
+    _require(
+        live_validation.get("fresh_benign_revalidation_after_current_rule_change"),
+        "NOT_RUN",
+        "live validation benign",
+    )
+    _require(
+        live_validation.get("prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"),
+        False,
+        "live validation prior P2-25/P2-26C applicability",
+    )
+    _require(
+        live_validation.get("prior_p2_35m_revalidation_applies_to_current_rulepack"),
+        False,
+        "live validation P2-35M applicability",
+    )
+    _require(
+        live_validation.get("fresh_current_rulepack_performance_available"),
+        False,
+        "live validation performance",
+    )
+
+    live_claims = _mapping(
+        live_current_chain.get("claim_boundary"),
+        "live current evidence claims",
+    )
+    _require(live_claims.get("production_accuracy"), "NOT_CLAIMED", "production accuracy")
+    _require(
+        live_claims.get("production_false_positive_rate"),
+        "NOT_CLAIMED",
+        "production FPR",
+    )
+    _require(live_claims.get("production_recall"), "NOT_CLAIMED", "production recall")
+    _require(
+        live_claims.get("fresh_full_benign_fpr_for_current_rulepack"),
+        "NOT_CLAIMED",
+        "fresh full benign FPR",
+    )
+
+    # Reconstruct the exact P2-35M-era live chain in memory. This preserves the
+    # byte-exact historical result while allowing the repository's live rules
+    # to move forward to the 73-rule CMDGAP remediation.
+    p35m_chain = copy.deepcopy(live_current_chain)
+    p35m_chain["current_evidence_id"] = P35M_CURRENT_ID
+    p35m_chain["current_frozen_detector"] = {
+        "repo_commit": P35I_COMMIT,
+        "rules_tree_sha256": P35I_HASH,
+        "rule_count": 69,
+        "rule_file_count": 5,
+    }
+    p35m_chain["posthoc_remediations"] = live_posthoc_rows[:2]
+    p35m_chain["current_rulepack_validation"] = {
+        "rule_change_id": P35I_ID,
+        "current_revalidation_id": P35M_ID,
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
+        "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
+        "fresh_current_rulepack_performance_available": True,
+    }
+
+    _require(p35m_chain.get("current_evidence_id"), P35M_CURRENT_ID, "P2-35M historical current id")
+    historical_rows = p35m_chain.get("post_remediation_revalidations")
+    if not isinstance(historical_rows, list) or len(historical_rows) != 3:
+        raise CurrentEvidenceError(
+            "historical post_remediation_revalidations must contain P2-25, P2-26C, then P2-35M"
+        )
+    historical_validation = _mapping(
+        p35m_chain.get("current_rulepack_validation"),
+        "P2-35M historical current rulepack validation",
+    )
+    _require(historical_validation.get("rule_change_id"), P35I_ID, "P2-35M validation rule change")
+    _require(historical_validation.get("current_revalidation_id"), P35M_ID, "P2-35M validation revalidation")
+    _require(
+        historical_validation.get("fresh_attack_revalidation_after_current_rule_change"),
+        "COMPLETED",
+        "P2-35M validation attack",
+    )
+    _require(
+        historical_validation.get("fresh_benign_revalidation_after_current_rule_change"),
+        "COMPLETED",
+        "P2-35M validation benign",
+    )
+    _require(
+        historical_validation.get("fresh_current_rulepack_performance_available"),
+        True,
+        "P2-35M validation performance",
+    )
+
+    # Rewind once more to the P2-35I post-remediation/pre-revalidation point
+    # and verify the entire older chain under its historical invariants.
+    chain = copy.deepcopy(p35m_chain)
     chain["current_evidence_id"] = P35I_CURRENT_ID
-    chain["post_remediation_revalidations"] = live_rows[:2]
+    chain["post_remediation_revalidations"] = historical_rows[:2]
     chain["current_rulepack_validation"] = {
         "rule_change_id": P35I_ID,
         "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
@@ -1304,6 +1708,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     }
     _require(chain.get("schema"), CHAIN_SCHEMA, "historical current evidence schema")
     _require(chain.get("current_evidence_id"), P35I_CURRENT_ID, "historical current evidence id")
+
     calibrations = chain.get("calibrations")
     if not isinstance(calibrations, list):
         raise CurrentEvidenceError("calibrations must be a list")
@@ -1316,10 +1721,18 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         J_ID,
         P20_ID,
     ]
-    _require([row.get("calibration_id") for row in calibrations], expected_ids, "calibration chain order/content")
+    _require(
+        [row.get("calibration_id") for row in calibrations],
+        expected_ids,
+        "calibration chain order/content",
+    )
 
     history = _verify_history_through_h(repo, chain)
-    j_path = legacy._relative_file(repo, calibrations[5].get("measurement_record"), "P2-11J measurement")
+    j_path = legacy._relative_file(
+        repo,
+        calibrations[5].get("measurement_record"),
+        "P2-11J measurement",
+    )
     j_record = legacy._load_yaml(j_path)
     j_hash, j = _verify_j(repo, j_record, H_HASH)
 
@@ -1336,16 +1749,8 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         raise CurrentEvidenceError("posthoc_remediations must contain P2-24D then P2-35I")
     posthoc_row = _mapping(posthoc_rows[0], "P2-24D chain row")
     _require(posthoc_row.get("remediation_id"), P24D_ID, "P2-24D chain id")
-    _require(
-        posthoc_row.get("from_rules_tree_sha256"),
-        p20_hash,
-        "P2-24D chain from hash",
-    )
-    _require(
-        posthoc_row.get("to_rules_tree_sha256"),
-        P24D_HASH,
-        "P2-24D chain to hash",
-    )
+    _require(posthoc_row.get("from_rules_tree_sha256"), p20_hash, "P2-24D chain from hash")
+    _require(posthoc_row.get("to_rules_tree_sha256"), P24D_HASH, "P2-24D chain to hash")
     _require(posthoc_row.get("fresh_attack_revalidation"), "NOT_RUN", "P2-24D chain attack")
     _require(posthoc_row.get("fresh_benign_revalidation"), "NOT_RUN", "P2-24D chain benign")
 
@@ -1376,45 +1781,71 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(p35i_row.get("to_rules_tree_sha256"), P35I_HASH, "P2-35I chain to hash")
     _require(p35i_row.get("fresh_attack_revalidation"), "NOT_RUN", "P2-35I chain attack")
     _require(p35i_row.get("fresh_benign_revalidation"), "NOT_RUN", "P2-35I chain benign")
-    p35i_path = legacy._relative_file(repo, p35i_row.get("remediation_record"), "P2-35I remediation")
+    p35i_path = legacy._relative_file(
+        repo,
+        p35i_row.get("remediation_record"),
+        "P2-35I remediation",
+    )
     p35i_record = legacy._load_yaml(p35i_path)
     final_hash, p35i = _verify_p2_35i(repo, p35i_record, final_hash)
 
-    current_hash, rule_file_count = legacy.historical._rules_tree_hash(repo / "rules")
-    _require(final_hash, current_hash, "current rule tree explained by chain")
-    detector = _mapping(chain.get("current_frozen_detector"), "current frozen detector")
-    _require(detector.get("repo_commit"), P35I_COMMIT, "current detector commit")
-    _require(detector.get("rules_tree_sha256"), P35I_HASH, "current detector rule hash")
-    _require(detector.get("rule_count"), 69, "current detector rule count")
-    _require(detector.get("rule_file_count"), 5, "current detector rule file count")
+    _require(final_hash, P35I_HASH, "historical P2-35I rule tree explained by chain")
+    detector = _mapping(chain.get("current_frozen_detector"), "historical current frozen detector")
+    _require(detector.get("repo_commit"), P35I_COMMIT, "historical detector commit")
+    _require(detector.get("rules_tree_sha256"), P35I_HASH, "historical detector rule hash")
+    _require(detector.get("rule_count"), 69, "historical detector rule count")
+    _require(detector.get("rule_file_count"), 5, "historical detector rule file count")
 
-    current_validation = _mapping(chain.get("current_rulepack_validation"), "current rulepack validation")
-    _require(current_validation.get("rule_change_id"), P35I_ID, "current validation rule change")
-    _require(current_validation.get("fresh_attack_revalidation_after_current_rule_change"), "NOT_RUN", "current validation attack")
-    _require(current_validation.get("fresh_benign_revalidation_after_current_rule_change"), "NOT_RUN", "current validation benign")
-    _require(current_validation.get("prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"), False, "current validation prior applicability")
-    _require(current_validation.get("fresh_current_rulepack_performance_available"), False, "current validation performance")
+    current_validation = _mapping(
+        chain.get("current_rulepack_validation"),
+        "historical current rulepack validation",
+    )
+    _require(current_validation.get("rule_change_id"), P35I_ID, "historical validation rule change")
+    _require(
+        current_validation.get("fresh_attack_revalidation_after_current_rule_change"),
+        "NOT_RUN",
+        "historical validation attack",
+    )
+    _require(
+        current_validation.get("fresh_benign_revalidation_after_current_rule_change"),
+        "NOT_RUN",
+        "historical validation benign",
+    )
+    _require(
+        current_validation.get("fresh_current_rulepack_performance_available"),
+        False,
+        "historical validation performance",
+    )
 
-    claims = _mapping(chain.get("claim_boundary"), "current evidence claims")
-    _require(claims.get("production_accuracy"), "NOT_CLAIMED", "production accuracy")
-    _require(claims.get("production_false_positive_rate"), "NOT_CLAIMED", "production FPR")
-    _require(claims.get("final_blind_holdout"), False, "final blind holdout")
-    _require(claims.get("fresh_full_benign_fpr_for_current_rulepack"), "NOT_CLAIMED", "fresh full benign FPR")
+    claims = _mapping(chain.get("claim_boundary"), "historical current evidence claims")
+    _require(claims.get("production_accuracy"), "NOT_CLAIMED", "historical production accuracy")
+    _require(
+        claims.get("production_false_positive_rate"),
+        "NOT_CLAIMED",
+        "historical production FPR",
+    )
+    _require(claims.get("final_blind_holdout"), False, "historical final blind holdout")
+    _require(
+        claims.get("fresh_full_benign_fpr_for_current_rulepack"),
+        "NOT_CLAIMED",
+        "historical fresh full benign FPR",
+    )
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v12",
-        "current_evidence_id": live_chain.get("current_evidence_id"),
+        "schema": "breachscope.current_detection_evidence_verification.v13",
+        "current_evidence_id": live_current_chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
         "current_rules_tree_sha256": current_hash,
-        "rule_file_count": rule_file_count,
+        "rule_file_count": current_rule_file_count,
         "base_attack_scenario_hits": history["base_attack_scenario_hits"],
         "current_attack_scenario_hits": history["current_attack_scenario_hits"],
         "current_attack_scenario_hits_applies_to_current_rulepack": False,
         "attack_scenario_total": history["attack_scenario_total"],
-        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
-        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
         "prior_revalidations_apply_to_current_rulepack": False,
+        "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
         "prior_attack_fixture_hits": p25["hits"],
         "prior_attack_fixture_total": p25["fixture_count"],
         "prior_attack_fixture_hit_rate": p25["fixture_hit_rate"],
@@ -1422,21 +1853,26 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "prior_benign_parse_errors": p26c["parse_errors"],
         "prior_benign_flagged_events": p26c["flagged_events"],
         "prior_benign_findings": p26c["findings"],
-        "prior_benign_observed_flagged_event_fraction": p26c["observed_source_intent_benign_flagged_event_fraction"],
-        "prior_benign_observed_flagged_event_percent": p26c["observed_source_intent_benign_flagged_event_percent"],
+        "prior_benign_observed_flagged_event_fraction": p26c[
+            "observed_source_intent_benign_flagged_event_fraction"
+        ],
+        "prior_benign_observed_flagged_event_percent": p26c[
+            "observed_source_intent_benign_flagged_event_percent"
+        ],
         "historical_benign": history["historical_benign"],
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
-        "posthoc_remediations": [p24d, p35i],
+        "posthoc_remediations": [p24d, p35i, cmdgap],
         "post_remediation_revalidations": [p25, p26c, p35m],
         "parser_maintenance": [p29],
         "current_rulepack_validation": {
-            "rule_change_id": P35I_ID,
-            "current_revalidation_id": P35M_ID,
-            "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
-            "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
+            "rule_change_id": CMDGAP_ID,
+            "current_revalidation_id": "NOT_RUN",
+            "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
+            "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
             "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
-            "fresh_current_rulepack_performance_available": True,
+            "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
+            "fresh_current_rulepack_performance_available": False,
         },
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",
@@ -1444,7 +1880,6 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
             "fresh_full_benign_fpr_for_current_rulepack": "NOT_CLAIMED",
         },
     }
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)

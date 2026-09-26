@@ -1,11 +1,11 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: p2-35m-current-rulepack-fresh-source-revalidation-current-detection-evidence
+current_evidence_id: independent-command-coverage-remediation-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 current_frozen_detector:
-  repo_commit: d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4
-  rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
-  rule_count: 69
+  repo_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
   rule_file_count: 5
 remediations:
 - remediation_id: p2-10a-scheduled-task-4698
@@ -53,6 +53,14 @@ posthoc_remediations:
   detector_repo_commit: d53861ea1dca4a5cf2ed57e7d147ab04b244e7f4
   from_rules_tree_sha256: ac5b6f1db7af2208910e9a7954b414d21c6ef019dfcdf29ddfdd566cd77a9326
   to_rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  fresh_attack_revalidation: NOT_RUN
+  fresh_benign_revalidation: NOT_RUN
+- remediation_id: independent-command-coverage-remediation-v1
+  remediation_record: external_baseline/independent_command_coverage_remediation.yaml
+  change_class: posthoc_gap_remediation_with_independent_semantic_support
+  detector_repo_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  from_rules_tree_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  to_rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
   fresh_attack_revalidation: NOT_RUN
   fresh_benign_revalidation: NOT_RUN
 post_remediation_revalidations:
@@ -124,12 +132,13 @@ post_remediation_revalidations:
   production_false_positive_rate: NOT_CLAIMED
   production_recall: NOT_CLAIMED
 current_rulepack_validation:
-  rule_change_id: p2-35i-original-filename-masquerading-remediation
-  current_revalidation_id: p2-35m-current-rulepack-fresh-source-revalidation
-  fresh_attack_revalidation_after_current_rule_change: COMPLETED
-  fresh_benign_revalidation_after_current_rule_change: COMPLETED
+  rule_change_id: independent-command-coverage-remediation-v1
+  current_revalidation_id: NOT_RUN
+  fresh_attack_revalidation_after_current_rule_change: NOT_RUN
+  fresh_benign_revalidation_after_current_rule_change: NOT_RUN
   prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack: false
-  fresh_current_rulepack_performance_available: true
+  prior_p2_35m_revalidation_applies_to_current_rulepack: false
+  fresh_current_rulepack_performance_available: false
 parser_maintenance:
 - maintenance_id: p2-29-single-parse-evtx
   record: external_baseline/p2_29_single_parse_parser_maintenance.yaml
@@ -332,6 +341,11 @@ claim_boundary:
     flagged by R-WMI-WMIPRVSE-CHILD-4688. The 60% fixture hit rate and 10% source-path
     technique-match fraction are not event-level recall, and 4/425,974 is an observed
     source-intent benign flagged-event fraction rather than a confirmed or production
-    FPR. P2-35M therefore completes fresh attack and benign revalidation for the current
+    FPR. P2-35M therefore completes fresh attack and benign revalidation for the historical
     69-rule detector without establishing an independent combined source-family holdout
-    or any production accuracy, recall, or false-positive-rate claim.'
+    or any production accuracy, recall, or false-positive-rate claim. The later
+    independent-command-coverage-remediation-v1 changes the live detector to 73 rules
+    using independent ATT&CK/Microsoft/Atomic-supported command semantics after the sealed
+    BRAWL diagnosis. That change is post-hoc development, not fresh validation; the P2-35M
+    69-rule measurements do not apply to the current 73-rule detector, and fresh attack
+    and benign revalidation for the current rulepack remain NOT_RUN.'
