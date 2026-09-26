@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add persistent, versioned rule-tuning profiles with optimistic concurrency, audit logging, web save/load/history/delete controls, and Docker-persistent storage without modifying canonical rule YAML.
 - Add per-analysis rule include/exclude tuning across CLI, API, config, reports, and the web rule catalog without modifying the canonical YAML rulepack.
 - Add a documented-schema-only MITRE BRAWL adapter for Sysmon and Windows Event records without inspecting the released raw archive.
 - Preserve CALDERA BSF step/ATT&CK references as attack-side ground truth without inventing event-level malicious/benign labels.

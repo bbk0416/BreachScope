@@ -59,6 +59,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_CASE_HISTORY_PATH` | Case metadata JSON path | `~/.breachscope/case_history.json` |
 | `BS_AUDIT_ENABLED` | Enable append-only JSONL audit trail | `1` |
 | `BS_AUDIT_LOG_PATH` | Audit JSONL path | `~/.breachscope/audit.jsonl` |
+| `BS_RULE_TUNING_PATH` | Versioned rule-tuning profile JSON path | `~/.breachscope/rule_tuning_profiles.json` |
 | `BS_AUDIT_CHAIN_SECRET` | Optional HMAC key for audit integrity checks | unset |
 | `BS_WEB_CLEANUP_AFTER_ANALYSIS` | Delete web workdir after analysis when `1` | `0` |
 | `BS_PDF_FONT_REGULAR` | Override Korean PDF regular font | auto-detect |

@@ -193,6 +193,28 @@
               </div>
             </div>
             <div class="form-group">
+              <label for="ruleProfileSelect">룰 튜닝 프로필</label>
+              <select id="ruleProfileSelect"><option value="">새 프로필</option></select>
+              <div class="grid2" style="margin-top:8px">
+                <div class="form-group">
+                  <label for="ruleProfileName">프로필 이름</label>
+                  <input type="text" id="ruleProfileName" maxlength="120" placeholder="예: 고객사 A PowerShell 예외">
+                </div>
+                <div class="form-group">
+                  <label for="ruleProfileDescription">설명</label>
+                  <input type="text" id="ruleProfileDescription" maxlength="1000" placeholder="적용 목적과 변경 이유">
+                </div>
+              </div>
+              <div class="case-actions">
+                <button type="button" class="btn btn-mini btn-open" id="refreshRuleProfilesBtn">프로필 새로고침</button>
+                <button type="button" class="btn btn-mini btn-open" id="loadRuleProfileBtn">불러오기</button>
+                <button type="button" class="btn btn-mini btn-download" id="saveRuleProfileBtn">저장/업데이트</button>
+                <button type="button" class="btn btn-mini btn-download" id="deleteRuleProfileBtn">삭제</button>
+              </div>
+              <div class="hint" id="ruleProfileStatus">저장된 프로필은 canonical rules/를 수정하지 않습니다.</div>
+              <div id="ruleProfileHistory" class="ops-list"><div class="hint">프로필을 불러오면 버전 이력이 표시됩니다.</div></div>
+            </div>
+            <div class="form-group">
               <label for="ruleSearch">룰 카탈로그</label>
               <div class="case-actions">
                 <input type="text" id="ruleSearch" placeholder="룰 ID, 이름, MITRE 검색" style="flex:1;min-width:180px">
@@ -323,7 +345,18 @@
     const loadRulesBtn = document.getElementById('loadRulesBtn');
     const ruleCatalog = document.getElementById('ruleCatalog');
     const ruleSearch = document.getElementById('ruleSearch');
+    const ruleProfileSelect = document.getElementById('ruleProfileSelect');
+    const ruleProfileName = document.getElementById('ruleProfileName');
+    const ruleProfileDescription = document.getElementById('ruleProfileDescription');
+    const ruleProfileStatus = document.getElementById('ruleProfileStatus');
+    const ruleProfileHistory = document.getElementById('ruleProfileHistory');
+    const refreshRuleProfilesBtn = document.getElementById('refreshRuleProfilesBtn');
+    const loadRuleProfileBtn = document.getElementById('loadRuleProfileBtn');
+    const saveRuleProfileBtn = document.getElementById('saveRuleProfileBtn');
+    const deleteRuleProfileBtn = document.getElementById('deleteRuleProfileBtn');
     let ruleCatalogData = [];
+    let ruleProfiles = [];
+    let currentRuleProfile = null;
     apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
     apiKeyInput.addEventListener('change', () => {
       localStorage.setItem('breachscope_api_key', apiKeyInput.value.trim());
@@ -444,6 +477,157 @@
       addField(fd, 'collect_hours', document.getElementById('collectHours').value.trim());
       addField(fd, 'work_dir', document.getElementById('workDirPath').value.trim());
       return fd;
+    }
+
+    function splitRuleTokens(value) {
+      return String(value || '').split(',').map(x => x.trim()).filter(Boolean);
+    }
+
+    function renderRuleProfileHistory(profile) {
+      if (!ruleProfileHistory) return;
+      const revisions = Array.isArray(profile && profile.revisions) ? [...profile.revisions].reverse() : [];
+      if (!revisions.length) {
+        ruleProfileHistory.innerHTML = '<div class="hint">버전 이력 없음</div>';
+        return;
+      }
+      ruleProfileHistory.innerHTML = revisions.slice(0, 12).map(r =>
+        '<div class="audit-item">' +
+          '<div><b>v' + escapeHtml(r.version) + '</b> · ' + escapeHtml(r.updated_at || '') + ' · ' + escapeHtml(r.updated_by || 'system') + '</div>' +
+          '<div class="audit-meta">include ' + escapeHtml((r.rule_include || []).join(', ') || 'all') + ' · exclude ' + escapeHtml((r.rule_exclude || []).join(', ') || 'none') + '</div>' +
+          '<div class="case-actions"><button type="button" class="btn btn-mini btn-open" data-rule-profile-revision="' + escapeHtml(r.version) + '">이 버전 불러오기</button></div>' +
+        '</div>'
+      ).join('');
+      ruleProfileHistory.querySelectorAll('[data-rule-profile-revision]').forEach(btn => btn.addEventListener('click', () => {
+        if (!currentRuleProfile) return;
+        const version = Number(btn.dataset.ruleProfileRevision);
+        const revision = (currentRuleProfile.revisions || []).find(r => Number(r.version) === version);
+        if (!revision) return;
+        ruleProfileName.value = revision.name || currentRuleProfile.name || '';
+        ruleProfileDescription.value = revision.description || '';
+        document.getElementById('ruleInclude').value = (revision.rule_include || []).join(',');
+        document.getElementById('ruleExclude').value = (revision.rule_exclude || []).join(',');
+        ruleProfileStatus.innerHTML = 'v' + escapeHtml(version) + ' 내용을 불러왔습니다. 저장하면 새 버전으로 기록됩니다.';
+      }));
+    }
+
+    function renderRuleProfileOptions(preferredId = '') {
+      if (!ruleProfileSelect) return;
+      const selected = preferredId || ruleProfileSelect.value || '';
+      ruleProfileSelect.innerHTML = '<option value="">새 프로필</option>' + ruleProfiles.map(p =>
+        '<option value="' + escapeHtml(p.profile_id) + '">' + escapeHtml(p.name) + ' · v' + escapeHtml(p.version) + '</option>'
+      ).join('');
+      if (selected && ruleProfiles.some(p => p.profile_id === selected)) ruleProfileSelect.value = selected;
+    }
+
+    async function fetchRuleProfiles(preferredId = '') {
+      if (!ruleProfileSelect) return;
+      try {
+        ruleProfileStatus.innerHTML = '프로필 목록 불러오는 중...';
+        const response = await authFetch('/api/rules/profiles');
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || '프로필 목록 조회 실패');
+        ruleProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
+        renderRuleProfileOptions(preferredId);
+        ruleProfileStatus.innerHTML = '저장된 프로필 ' + escapeHtml(ruleProfiles.length) + '개';
+      } catch (error) {
+        ruleProfileStatus.innerHTML = '프로필 목록 조회 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function loadRuleProfile() {
+      const profileId = ruleProfileSelect && ruleProfileSelect.value;
+      if (!profileId) {
+        currentRuleProfile = null;
+        ruleProfileName.value = '';
+        ruleProfileDescription.value = '';
+        ruleProfileHistory.innerHTML = '<div class="hint">새 프로필입니다.</div>';
+        ruleProfileStatus.innerHTML = '새 프로필 모드';
+        return;
+      }
+      try {
+        ruleProfileStatus.innerHTML = '프로필 불러오는 중...';
+        const response = await authFetch('/api/rules/profiles/' + encodeURIComponent(profileId));
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || '프로필 조회 실패');
+        currentRuleProfile = payload.profile || null;
+        if (!currentRuleProfile) throw new Error('프로필 응답이 비어 있습니다.');
+        ruleProfileName.value = currentRuleProfile.name || '';
+        ruleProfileDescription.value = currentRuleProfile.description || '';
+        document.getElementById('ruleInclude').value = (currentRuleProfile.rule_include || []).join(',');
+        document.getElementById('ruleExclude').value = (currentRuleProfile.rule_exclude || []).join(',');
+        renderRuleProfileHistory(currentRuleProfile);
+        ruleProfileStatus.innerHTML = '불러옴 · v' + escapeHtml(currentRuleProfile.version) + ' · revisions ' + escapeHtml(currentRuleProfile.revision_count || 0);
+      } catch (error) {
+        ruleProfileStatus.innerHTML = '프로필 조회 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function saveRuleProfile() {
+      const name = ruleProfileName.value.trim();
+      if (!name) {
+        ruleProfileStatus.innerHTML = '프로필 이름을 입력하세요.';
+        return;
+      }
+      const selectedId = ruleProfileSelect.value;
+      const selected = ruleProfiles.find(p => p.profile_id === selectedId);
+      const payload = {
+        name,
+        description: ruleProfileDescription.value.trim(),
+        rule_include: splitRuleTokens(document.getElementById('ruleInclude').value),
+        rule_exclude: splitRuleTokens(document.getElementById('ruleExclude').value),
+      };
+      let url = '/api/rules/profiles';
+      let method = 'POST';
+      if (selected) {
+        url += '/' + encodeURIComponent(selected.profile_id);
+        method = 'PUT';
+        payload.expected_version = selected.version;
+      }
+      try {
+        ruleProfileStatus.innerHTML = '프로필 저장 중...';
+        const response = await authFetch(url, {
+          method,
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.detail || '프로필 저장 실패');
+        const saved = body.profile;
+        await fetchRuleProfiles(saved.profile_id);
+        await loadRuleProfile();
+        await fetchAudit();
+        ruleProfileStatus.innerHTML = '저장 완료 · v' + escapeHtml(saved.version);
+      } catch (error) {
+        ruleProfileStatus.innerHTML = '프로필 저장 실패: ' + escapeHtml(error.message || error);
+      }
+    }
+
+    async function deleteRuleProfile() {
+      const selectedId = ruleProfileSelect.value;
+      const selected = ruleProfiles.find(p => p.profile_id === selectedId);
+      if (!selected) {
+        ruleProfileStatus.innerHTML = '삭제할 프로필을 선택하세요.';
+        return;
+      }
+      if (!window.confirm('룰 튜닝 프로필 "' + selected.name + '"을 삭제할까요?')) return;
+      try {
+        ruleProfileStatus.innerHTML = '프로필 삭제 중...';
+        const response = await authFetch(
+          '/api/rules/profiles/' + encodeURIComponent(selected.profile_id) + '?expected_version=' + encodeURIComponent(selected.version),
+          {method: 'DELETE'}
+        );
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(body.detail || '프로필 삭제 실패');
+        currentRuleProfile = null;
+        ruleProfileName.value = '';
+        ruleProfileDescription.value = '';
+        ruleProfileHistory.innerHTML = '<div class="hint">프로필을 선택하세요.</div>';
+        await fetchRuleProfiles();
+        await fetchAudit();
+        ruleProfileStatus.innerHTML = '프로필 삭제 완료';
+      } catch (error) {
+        ruleProfileStatus.innerHTML = '프로필 삭제 실패: ' + escapeHtml(error.message || error);
+      }
     }
 
     function addRuleToken(inputId, ruleId) {
@@ -1024,6 +1208,11 @@
 
     if (loadRulesBtn) loadRulesBtn.addEventListener('click', fetchRules);
     if (ruleSearch) ruleSearch.addEventListener('input', renderRuleCatalog);
+    if (refreshRuleProfilesBtn) refreshRuleProfilesBtn.addEventListener('click', () => fetchRuleProfiles());
+    if (loadRuleProfileBtn) loadRuleProfileBtn.addEventListener('click', loadRuleProfile);
+    if (saveRuleProfileBtn) saveRuleProfileBtn.addEventListener('click', saveRuleProfile);
+    if (deleteRuleProfileBtn) deleteRuleProfileBtn.addEventListener('click', deleteRuleProfile);
+    if (ruleProfileSelect) ruleProfileSelect.addEventListener('change', loadRuleProfile);
     if (refreshAuditBtn) refreshAuditBtn.addEventListener('click', fetchAudit);
     if (createBackupBtn) createBackupBtn.addEventListener('click', createBackup);
     if (refreshBackupsBtn) refreshBackupsBtn.addEventListener('click', fetchBackups);
@@ -1037,6 +1226,7 @@
     if (pruneApplyBtn) pruneApplyBtn.addEventListener('click', () => pruneCases(false));
     refreshAuditLinks();
     fetchAuthStatus();
+    fetchRuleProfiles();
     fetchCases();
     fetchBackups();
     fetchMetrics();

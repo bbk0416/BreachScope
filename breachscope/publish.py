@@ -70,6 +70,7 @@ def _production_env(out: Path) -> dict[str, str]:
         "BS_CASES_ROOT": str(out / "runtime_check" / "cases"),
         "BS_CASE_HISTORY_PATH": str(out / "runtime_check" / "case_history.json"),
         "BS_AUDIT_LOG_PATH": str(out / "runtime_check" / "audit.jsonl"),
+        "BS_RULE_TUNING_PATH": str(out / "runtime_check" / "rule_tuning_profiles.json"),
         "BS_BACKUP_ROOT": str(out / "runtime_check" / "backups"),
         "BS_AUTH_RATE_LIMIT_PATH": str(out / "runtime_check" / "auth_rate_limit.json"),
     }
