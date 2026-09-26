@@ -23,6 +23,7 @@ from breachscope.runtime_paths import default_rules_dir
 from api.services.workdir_service import WorkDirectoryService
 from api.services.report_preview import build_preview
 from api.services.case_history import CaseHistoryService
+from api.services.rule_activation import RuleActivationService
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,7 @@ class AnalysisService:
         host_include: Optional[str] = None,
         rule_include: Optional[str] = None,
         rule_exclude: Optional[str] = None,
+        use_custom_rules: bool = False,
         redact: bool = True,
         render_pdf: bool = False,
         do_evtx: bool = False,
@@ -255,6 +257,13 @@ class AnalysisService:
             config = Config.from_env()
             max_events = config.max_events
 
+            additional_rules = []
+            custom_rule_provenance = []
+            if use_custom_rules:
+                additional_rules, custom_rule_provenance = (
+                    RuleActivationService().load_active_rules()
+                )
+
             pipeline = Pipeline(
                 rules_dir=rules_dir,
                 min_severity=min_severity,
@@ -263,6 +272,8 @@ class AnalysisService:
                 host_include=split_csv(host_include) if host_include else None,
                 rule_include=split_csv(rule_include) if rule_include else None,
                 rule_exclude=split_csv(rule_exclude) if rule_exclude else None,
+                additional_rules=additional_rules,
+                custom_rule_provenance=custom_rule_provenance,
                 max_events=max_events,
                 redact=redact,
             )
@@ -322,6 +333,11 @@ class AnalysisService:
                 "risk_level": risk.get("level", "none"),
                 "executive_summary": executive_summary,
                 "preview": preview,
+                "custom_rule_activation": (
+                    (report_data or {}).get("summary", {}).get(
+                        "custom_rule_activation", {}
+                    )
+                ),
                 "html_path": str(html_path) if retain_artifact_paths and Path(html_path).exists() else None,
                 "json_path": str(json_path) if retain_artifact_paths and json_path.exists() else None,
                 "csv_path": str(csv_path) if retain_artifact_paths and csv_path.exists() else None,

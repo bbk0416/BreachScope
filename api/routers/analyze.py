@@ -29,6 +29,7 @@ async def analyze(
     host_include: Optional[str] = Form(""),
     rule_include: Optional[str] = Form(""),
     rule_exclude: Optional[str] = Form(""),
+    use_custom_rules: bool = Form(False),
     redact: bool = Form(True),
     render_pdf: bool = Form(False),
     do_evtx: bool = Form(False),
@@ -53,6 +54,7 @@ async def analyze(
             host_include=host_include,
             rule_include=rule_include,
             rule_exclude=rule_exclude,
+            use_custom_rules=use_custom_rules,
             redact=redact,
             render_pdf=render_pdf,
             do_evtx=do_evtx,
@@ -74,6 +76,12 @@ async def analyze(
                 "uploaded_files": len([f for f in (files or []) if getattr(f, "filename", "")]),
                 "render_pdf": render_pdf,
                 "collect_evtx": collect_evtx,
+                "use_custom_rules": use_custom_rules,
+                "custom_rule_count": (
+                    result.get("custom_rule_activation", {}).get(
+                        "loaded_custom_rule_count", 0
+                    )
+                ),
             },
         )
         return result

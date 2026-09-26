@@ -47,6 +47,8 @@ class Pipeline:
         host_include: Optional[List[str]] = None,
         rule_include: Optional[List[str]] = None,
         rule_exclude: Optional[List[str]] = None,
+        additional_rules: Optional[List[Rule]] = None,
+        custom_rule_provenance: Optional[List[Dict[str, Any]]] = None,
         max_events: Optional[int] = None,
         enable_parallel: bool = True,
         max_workers: Optional[int] = None,
@@ -64,6 +66,8 @@ class Pipeline:
             host_include: 포함할 호스트 목록
             rule_include: 분석에 포함할 룰 ID 목록
             rule_exclude: 분석에서 제외할 룰 ID 목록
+            additional_rules: 별도 활성화된 custom rule 목록
+            custom_rule_provenance: custom rule publication/activation 출처
             max_events: 최대 이벤트 수 (None이면 제한 없음, 대용량 파일 처리 시 유용)
             enable_parallel: 병렬 처리 활성화 여부
             max_workers: 병렬 처리 워커 수 (None이면 자동 결정)
@@ -78,6 +82,9 @@ class Pipeline:
         self.host_include = host_include
         self.rule_include = rule_include
         self.rule_exclude = rule_exclude
+        self.additional_rules = list(additional_rules or [])
+        self.custom_rule_provenance = list(custom_rule_provenance or [])
+        self.effective_custom_rule_ids: List[str] = []
         self.max_events = max_events
         self.enable_parallel = enable_parallel
         self.max_workers = max_workers
@@ -107,13 +114,32 @@ class Pipeline:
             로드된 Rule 리스트
         """
         if self.rules is None:
-            rules = load_rules(self.rules_dir)
+            canonical_rules = load_rules(self.rules_dir)
+            canonical_ids = {rule.id.casefold() for rule in canonical_rules}
+            custom_ids: set[str] = set()
+            for rule in self.additional_rules:
+                key = rule.id.casefold()
+                if key in canonical_ids:
+                    raise ValueError(
+                        f"custom rule ID conflicts with canonical rule: {rule.id}"
+                    )
+                if key in custom_ids:
+                    raise ValueError(f"duplicate custom rule ID: {rule.id}")
+                custom_ids.add(key)
+
+            rules = list(canonical_rules) + list(self.additional_rules)
             include_set = {str(x).strip().casefold() for x in (self.rule_include or []) if str(x).strip()}
             exclude_set = {str(x).strip().casefold() for x in (self.rule_exclude or []) if str(x).strip()}
             if include_set:
                 rules = [rule for rule in rules if rule.id.casefold() in include_set]
             if exclude_set:
                 rules = [rule for rule in rules if rule.id.casefold() not in exclude_set]
+
+            effective_ids = {rule.id.casefold() for rule in rules}
+            self.effective_custom_rule_ids = [
+                rule.id for rule in self.additional_rules
+                if rule.id.casefold() in effective_ids
+            ]
             self.rules = rules
         return self.rules
 
@@ -260,6 +286,16 @@ class Pipeline:
             "host_include": (self.host_include or []),
             "rule_include": (self.rule_include or []),
             "rule_exclude": (self.rule_exclude or []),
+        }
+        summary["custom_rule_activation"] = {
+            "enabled_for_analysis": bool(self.additional_rules),
+            "loaded_custom_rule_count": len(self.additional_rules),
+            "effective_custom_rule_ids": list(self.effective_custom_rule_ids),
+            "provenance": list(self.custom_rule_provenance),
+            "canonical_rulepack_modified": False,
+            "current_detection_evidence_applies_to_custom_rules": False
+            if self.additional_rules
+            else None,
         }
         summary["time_histogram"] = self._time_histogram(self.findings)
         summary["sample_scenarios"] = summarize_sample_context(self.events or [], self.findings or [])
@@ -495,6 +531,8 @@ def run_pipeline(
     host_include: list[str] | None = None,
     rule_include: list[str] | None = None,
     rule_exclude: list[str] | None = None,
+    additional_rules: list[Rule] | None = None,
+    custom_rule_provenance: list[dict[str, Any]] | None = None,
     max_events: int | None = None,
 ) -> tuple[Path, int]:
     """
@@ -516,6 +554,8 @@ def run_pipeline(
         host_include: 포함할 호스트 목록
         rule_include: 분석에 포함할 룰 ID 목록
         rule_exclude: 분석에서 제외할 룰 ID 목록
+        additional_rules: 별도 활성화된 custom rule 목록
+        custom_rule_provenance: custom rule publication/activation 출처
         max_events: 최대 이벤트 수 (None이면 제한 없음)
 
     Returns:
@@ -535,6 +575,8 @@ def run_pipeline(
         host_include=host_include,
         rule_include=rule_include,
         rule_exclude=rule_exclude,
+        additional_rules=additional_rules,
+        custom_rule_provenance=custom_rule_provenance,
         max_events=max_events,
     )
     return pipeline.run(
