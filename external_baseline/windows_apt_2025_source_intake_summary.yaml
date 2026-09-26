@@ -116,6 +116,20 @@ allowed_documentation_review:
     sha256: 61d2cd0385e8abaf687b8118ec5d24e36908b461d9a7018f48b7ef06f974358a
     observation: filters scenarios by ATT&CK tactic, technique, group, or scenario identifier; these mappings are not permitted as the malicious-versus-general oracle by the preregistration contract
 
+upstream_article_review:
+  article: "Windows-APT 2025: A dataset for APT-inspired attack scenarios on windows systems"
+  journal: Data in Brief
+  doi: 10.1016/j.dib.2026.112569
+  pmcid: PMC12950481
+  reviewed_date: 2026-09-26
+  observations:
+    - the article reports 38393 general logs and 63620 malicious logs in Table 8
+    - the article describes malicious logs as activities associated with APT scenarios and says they are tagged with MITRE ATT&CK tactic and technique identifiers
+    - the article explicitly states that normal logs may also contain MITRE tags
+    - the article provides scenario-level intent in scenario_manifest.csv, not an explicit row-level malicious-versus-general class field
+    - the article does not document a deterministic row-level partition procedure that can reproduce the Table 8 class counts from the frozen v3 CSV headers alone
+  conclusion: conceptual class definitions and aggregate counts are insufficient to establish a deterministic row-level source-intent oracle without semantic row inspection or inference from ATT&CK/Wazuh mappings
+
 label_provenance:
   explicit_source_intent_header_candidate_count: 0
   seventeen_log_csvs_have_explicit_label_class_malicious_benign_intent_fields: false
