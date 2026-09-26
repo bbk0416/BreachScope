@@ -249,6 +249,7 @@ preregistration은 main commit `de4d7da521f3be43720cf5db419baa54d76dd4c3`에서 
 - `external_baseline/results/brawl_de4d7da/result.json`
 - `external_baseline/brawl_attack_step_technique_holdout_summary.yaml`
 - preregistration: `external_baseline/brawl_attack_step_scoring_preregistration.yaml`
+- post-hoc miss diagnosis: `docs/BRAWL_POSTHOC_MISS_DIAGNOSIS.md`
 
 
 ### 현재 결정
