@@ -35,5 +35,5 @@ BreachScope turns Windows-oriented security logs into an incident triage package
 - More real-world EVTX fixture testing.
 - RBAC/SSO and per-organization permissions beyond the built-in single-admin login.
 - Encrypted object storage for reports and uploads.
-- Rule tuning UI and analyst feedback loop.
+- Persistent rule authoring/versioning workflow beyond the current per-analysis include/exclude tuning and case analyst feedback.
 - Signed release artifacts and CI/CD.
