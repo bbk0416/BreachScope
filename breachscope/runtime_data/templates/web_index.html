@@ -312,6 +312,7 @@
               <input type="password" id="adminPassword" placeholder="선택한 역할의 비밀번호" autocomplete="current-password" style="margin-top:8px">
               <div class="case-actions">
                 <button type="button" class="btn btn-mini btn-open" id="loginBtn">로그인</button>
+                <button type="button" class="btn btn-mini btn-open" id="oidcLoginBtn" style="display:none">SSO 로그인</button>
                 <button type="button" class="btn btn-mini btn-download" id="logoutBtn">로그아웃</button>
               </div>
               <div class="hint">역할 계정을 설정하지 않은 배포는 기존 admin 단일 로그인 방식으로 동작합니다.</div>
@@ -410,6 +411,7 @@
     const loginRole = document.getElementById('loginRole');
     const adminPasswordInput = document.getElementById('adminPassword');
     const loginBtn = document.getElementById('loginBtn');
+    const oidcLoginBtn = document.getElementById('oidcLoginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const authStatus = document.getElementById('authStatus');
     const loadRulesBtn = document.getElementById('loadRulesBtn');
@@ -507,6 +509,7 @@
     }
 
     function renderAuthStatus(payload) {
+      if (oidcLoginBtn) oidcLoginBtn.style.display = payload && payload.oidc_login_enabled ? '' : 'none';
       if (!payload || !payload.auth_required) {
         currentAuthRole = 'admin';
         applyRoleUi();
@@ -514,17 +517,20 @@
         return;
       }
       if (payload.authenticated) {
-        const via = payload.auth_method === 'session' ? '세션 로그인' : 'API Key';
+        const via = payload.auth_method === 'session'
+          ? (payload.session_authn === 'oidc' ? 'SSO 세션' : '세션 로그인')
+          : 'API Key';
         currentAuthRole = payload.auth_method === 'api_key' ? 'admin' : (payload.session_role || 'admin');
         applyRoleUi();
         authStatus.innerHTML = '인증됨: ' + escapeHtml(via) + ' · role=' + escapeHtml(currentAuthRole);
-      } else if (payload.password_login_enabled) {
+      } else if (payload.password_login_enabled || payload.oidc_login_enabled) {
         currentAuthRole = 'none';
         applyRoleUi();
         const configured = (payload.configured_roles || []).join(', ');
+        const methods = [payload.password_login_enabled ? '비밀번호' : '', payload.oidc_login_enabled ? 'SSO' : '', payload.api_key_enabled ? 'API Key' : ''].filter(Boolean).join(' / ');
         authStatus.innerHTML = payload.rbac_enabled
-          ? '인증 필요 · RBAC roles: ' + escapeHtml(configured || 'admin only')
-          : '인증 필요: 관리자 비밀번호로 로그인하거나 API Key를 입력하세요.';
+          ? '인증 필요 · ' + escapeHtml(methods) + ' · roles: ' + escapeHtml(configured || 'admin only')
+          : '인증 필요: ' + escapeHtml(methods) + ' 중 하나를 사용하세요.';
       } else {
         currentAuthRole = 'none';
         applyRoleUi();
@@ -559,6 +565,10 @@
       } catch (error) {
         authStatus.innerHTML = `로그인 실패: ${escapeHtml(error.message || error)}`;
       }
+    });
+
+    oidcLoginBtn.addEventListener('click', () => {
+      window.location.assign('/api/auth/oidc/login?next=/');
     });
 
     logoutBtn.addEventListener('click', async () => {

@@ -14,6 +14,8 @@
 
 역할 분리가 켜진 경우 non-admin reviewer는 자신이 마지막으로 작성/수정한 현재 draft 버전을 승인할 수 없습니다. 권한 부족은 HTTP 403, 자기승인 차단은 workflow state conflict로 HTTP 409를 반환합니다.
 
+OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. admin과 다른 role이 함께 매칭되면 admin, 둘 이상의 non-admin role이 동시에 매칭되면 403으로 거부합니다.
+
 ### GET `/`
 메인 페이지를 반환합니다.
 

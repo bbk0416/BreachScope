@@ -14,6 +14,12 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from api.services.oidc_auth import (
+    oidc_is_configured,
+    oidc_role_is_configured,
+    oidc_settings_present,
+)
+
 
 SESSION_COOKIE_NAME = "bs_session"
 DEFAULT_SESSION_TTL_SECONDS = 8 * 60 * 60
@@ -69,12 +75,16 @@ def _is_production_mode() -> bool:
     return _env("BS_DEPLOYMENT_MODE").casefold() in {"production", "prod"}
 
 
-def _credentials_configured() -> bool:
+def _local_credentials_configured() -> bool:
     return bool(
         configured_api_key()
         or configured_admin_password()
         or configured_role_passwords()
     )
+
+
+def _credentials_configured() -> bool:
+    return _local_credentials_configured() or oidc_is_configured()
 
 
 def _production_auth_misconfigured() -> bool:
@@ -83,7 +93,11 @@ def _production_auth_misconfigured() -> bool:
 
 def auth_is_enabled() -> bool:
     """Return True when auth is configured or production requires fail-closed auth."""
-    return _credentials_configured() or _is_production_mode()
+    return (
+        _local_credentials_configured()
+        or oidc_settings_present()
+        or _is_production_mode()
+    )
 
 
 # BREACHSCOPE_P2_06N_SHARED_TRUSTED_PROXY_IP_V1
@@ -191,6 +205,7 @@ def create_session_token(
     ttl_seconds: int | None = None,
     now: int | None = None,
     role: str | None = None,
+    authn: str | None = None,
 ) -> str:
     """Create a compact HMAC-signed session token.
 
@@ -202,6 +217,7 @@ def create_session_token(
     payload = {
         "sub": subject,
         "role": str(role or subject or "admin").strip().lower(),
+        "authn": str(authn or "password").strip().lower(),
         "iat": issued_at,
         "exp": issued_at + ttl,
         "typ": "breachscope-session",
@@ -251,6 +267,9 @@ def extract_api_key(request: Request) -> str:
 
 def _session_identity_is_enabled(payload: dict[str, object]) -> bool:
     role = str(payload.get("role") or payload.get("sub") or "admin").strip().lower()
+    authn = str(payload.get("authn") or "password").strip().lower()
+    if authn == "oidc":
+        return oidc_is_configured() and oidc_role_is_configured(role)
     if role == "admin":
         return bool(configured_admin_password())
     if role in {"author", "reviewer", "operator"}:
@@ -268,11 +287,7 @@ def request_is_authenticated(request: Request) -> tuple[bool, str]:
     session_payload = verify_session_token(
         request.cookies.get(SESSION_COOKIE_NAME)
     )
-    if (
-        password_login_is_enabled()
-        and session_payload
-        and _session_identity_is_enabled(session_payload)
-    ):
+    if session_payload and _session_identity_is_enabled(session_payload):
         return True, "session"
 
     return False, "none"

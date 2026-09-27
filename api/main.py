@@ -14,6 +14,7 @@ from breachscope.exceptions import BreachScopeError
 from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
 from api.middleware import setup_middleware
 from api.security import auth_is_enabled, configured_role_passwords, password_login_is_enabled
+from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
 from api.services.artifact_encryption import artifact_encryption_enabled
 from api.services.object_storage import object_storage_configured
 from breachscope.release import runtime_build_info
@@ -64,8 +65,10 @@ async def api_info():
         "auth_enabled": auth_is_enabled(),
         "api_key_enabled": bool(os.getenv("BS_API_KEY", "").strip()),
         "password_login_enabled": password_login_is_enabled(),
-        "rbac_enabled": bool(configured_role_passwords()),
-        "configured_roles": sorted(configured_role_passwords()),
+        "rbac_enabled": bool(configured_role_passwords() or configured_oidc_roles()),
+        "configured_roles": sorted(set(configured_role_passwords()) | set(configured_oidc_roles())),
+        "oidc_settings_present": oidc_settings_present(),
+        "oidc_login_enabled": oidc_is_configured(),
         "artifact_encryption_enabled": artifact_encryption_enabled(),
         "object_storage_configured": object_storage_configured(),
         "case_history_path": os.getenv("BS_CASE_HISTORY_PATH", "~/.breachscope/case_history.json"),

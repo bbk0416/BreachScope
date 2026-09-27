@@ -18,6 +18,7 @@ from api.services.artifact_encryption import (
     validate_artifact_encryption_key_value,
 )
 from api.services.case_history import CaseHistoryService
+from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
 from api.security import configured_admin_password, configured_api_key, configured_role_passwords, session_ttl_seconds
 from api.services.ops_status import _path_info  # lightweight helper already used by readiness checks
 from breachscope.project_readiness import run_project_readiness
@@ -30,6 +31,7 @@ SECRET_ENV_KEYS = (
     "BS_AUTHOR_PASSWORD",
     "BS_REVIEWER_PASSWORD",
     "BS_OPERATOR_PASSWORD",
+    "BS_OIDC_CLIENT_SECRET",
     "BS_SESSION_SECRET",
     "BS_AUDIT_CHAIN_SECRET",
     "BS_ARTIFACT_ENCRYPTION_KEY",
@@ -74,12 +76,28 @@ def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
         if value:
             role_passwords[role] = value
     role_passwords = {k: v for k, v in role_passwords.items() if v}
-    if not api_key and not admin and not role_passwords:
+    oidc_present = oidc_settings_present(env)
+    oidc_ready = oidc_is_configured(env)
+    oidc_roles = configured_oidc_roles(env)
+    if oidc_present and not oidc_ready:
         return GoLiveCheck(
             "runtime_authentication",
             "fail",
-            "BS_API_KEY or at least one browser-login password must be configured before shared use.",
-            {"api_key_enabled": False, "password_login_enabled": False, "rbac_roles": []},
+            "OIDC settings are present but incomplete or unsafe.",
+            {
+                "api_key_enabled": bool(api_key),
+                "password_login_enabled": bool(admin or role_passwords),
+                "rbac_roles": sorted(role_passwords),
+                "oidc_login_enabled": False,
+                "oidc_roles": [],
+            },
+        )
+    if not api_key and not admin and not role_passwords and not oidc_ready:
+        return GoLiveCheck(
+            "runtime_authentication",
+            "fail",
+            "BS_API_KEY, browser-login password, or valid OIDC configuration is required before shared use.",
+            {"api_key_enabled": False, "password_login_enabled": False, "rbac_roles": [], "oidc_login_enabled": False, "oidc_roles": []},
         )
     warnings = []
     if api_key and (len(api_key) < 24 or _looks_placeholder(api_key)):
@@ -99,6 +117,8 @@ def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
             "api_key_enabled": bool(api_key),
             "password_login_enabled": bool(admin or role_passwords),
             "rbac_roles": sorted(role_passwords),
+            "oidc_login_enabled": oidc_ready,
+            "oidc_roles": oidc_roles,
         },
     )
 
@@ -112,7 +132,7 @@ def _check_session_secret(env: Mapping[str, str]) -> GoLiveCheck:
     if not any(role_passwords):
         role_passwords = list(configured_role_passwords().values())
     secret = _env_value(env, "BS_SESSION_SECRET")
-    if not admin and not any(role_passwords):
+    if not admin and not any(role_passwords) and not oidc_settings_present(env):
         return GoLiveCheck("session_secret", "pass", "Browser login is disabled, so session secret is not required.", {})
     if not secret or len(secret) < 32 or _looks_placeholder(secret):
         return GoLiveCheck(
@@ -320,7 +340,7 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
     failed_or_warn = [c for c in checks if c.status in {"fail", "warn"}]
     for check in failed_or_warn:
         if check.name == "runtime_authentication":
-            steps.append("Run `python scripts/init_env.py --production --https --output .env` and set strong authentication secrets.")
+            steps.append("Configure a strong API key/password login or complete the OIDC issuer/client/redirect/role mapping settings.")
         elif check.name == "session_secret":
             steps.append("Set BS_SESSION_SECRET to a unique 32+ character random value.")
         elif check.name == "placeholder_secrets":

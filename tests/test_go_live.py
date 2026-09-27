@@ -239,3 +239,67 @@ def test_go_live_accepts_s3_object_storage_with_client_encryption(
     assert check["details"]["provider"] == "s3"
     assert check["details"]["bucket_configured"] is True
     assert result["status"] == "pass"
+
+
+def test_go_live_accepts_oidc_only_browser_auth(tmp_path, monkeypatch):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env.update({
+        "BS_OIDC_ISSUER_URL": "https://idp.example.test",
+        "BS_OIDC_CLIENT_ID": "breachscope",
+        "BS_OIDC_REDIRECT_URI": "https://breachscope.example.test/api/auth/oidc/callback",
+        "BS_OIDC_OPERATOR_VALUES": "breachscope-operators",
+    })
+    for key in (
+        "BS_API_KEY",
+        "BS_ADMIN_PASSWORD",
+        "BS_AUTHOR_PASSWORD",
+        "BS_REVIEWER_PASSWORD",
+        "BS_OPERATOR_PASSWORD",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    auth_check = next(
+        row for row in result["checks"]
+        if row["name"] == "runtime_authentication"
+    )
+    assert auth_check["status"] == "pass"
+    assert auth_check["details"]["password_login_enabled"] is False
+    assert auth_check["details"]["oidc_login_enabled"] is True
+    assert auth_check["details"]["oidc_roles"] == ["operator"]
+    assert result["status"] == "pass"
+
+
+def test_go_live_rejects_partial_oidc_configuration(tmp_path, monkeypatch):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env.update({
+        "BS_OIDC_ISSUER_URL": "https://idp.example.test",
+        "BS_OIDC_CLIENT_ID": "breachscope",
+        "BS_OIDC_OPERATOR_VALUES": "breachscope-operators",
+    })
+    for key in (
+        "BS_API_KEY",
+        "BS_ADMIN_PASSWORD",
+        "BS_AUTHOR_PASSWORD",
+        "BS_REVIEWER_PASSWORD",
+        "BS_OPERATOR_PASSWORD",
+        "BS_OIDC_REDIRECT_URI",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    auth_check = next(
+        row for row in result["checks"]
+        if row["name"] == "runtime_authentication"
+    )
+    assert auth_check["status"] == "fail"
+    assert auth_check["details"]["oidc_login_enabled"] is False
+    assert result["status"] == "fail"
