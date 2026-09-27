@@ -497,6 +497,8 @@
         .filter(Boolean).forEach(el => { el.disabled = !canReview; });
       [activateRuleDraftBtn, deactivateRuleDraftBtn]
         .filter(Boolean).forEach(el => { el.disabled = !canOperate; });
+      document.querySelectorAll('[data-object-storage-action]')
+        .forEach(el => { el.disabled = !canOperate; });
       const customToggle = document.getElementById('useCustomRules');
       if (customToggle) {
         customToggle.disabled = !canOperate;
@@ -1277,12 +1279,22 @@
         const missing = c.exists === false ? ' · 파일 없음' : '';
         const workflow = c.workflow_status || 'new';
         const assignee = c.assignee || 'unassigned';
+        const remote = c.object_storage || null;
+        const remotePill = remote
+          ? `<span class="pill">remote:${escapeHtml(remote.provider || 's3')}</span>`
+          : '';
+        const canOperate = roleAllows('operator');
+        const remoteActions = remote
+          ? `${c.exists === false ? `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="restore" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복원</button>` : ''}
+             <button type="button" class="btn btn-mini btn-download" data-object-storage-action="delete" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 삭제</button>`
+          : (c.exists === false ? '' : `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="replicate" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복제</button>`);
         return `<div class="case-item" data-case-id="${escapeHtml(c.case_id)}">
           <div class="case-title"><span>${escapeHtml(c.title || c.case_id)}</span><span class="${riskClass(level)}">${escapeHtml(c.risk_score)}/100</span></div>
           <div class="case-meta mono">${escapeHtml(c.created_at)} · ${escapeHtml(hosts)}${escapeHtml(missing)}</div>
-          <div class="case-meta"><span class="pill">${escapeHtml(workflow)}</span><span class="pill">${escapeHtml(assignee)}</span></div>
+          <div class="case-meta"><span class="pill">${escapeHtml(workflow)}</span><span class="pill">${escapeHtml(assignee)}</span>${remotePill}</div>
           <div class="case-actions">
             <button type="button" class="btn btn-mini btn-open" data-open-case="${escapeHtml(c.case_id)}">열기</button>
+            ${remoteActions}
             <button type="button" class="btn btn-mini btn-download" data-delete-case="${escapeHtml(c.case_id)}">삭제</button>
           </div>
         </div>`;
@@ -1294,6 +1306,11 @@
       caseHistory.querySelectorAll('[data-delete-case]').forEach(btn => btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         await deleteCase(btn.dataset.deleteCase);
+      }));
+      caseHistory.querySelectorAll('[data-object-storage-action]').forEach(btn => btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (btn.disabled) return;
+        await caseObjectStorageAction(btn.dataset.caseId, btn.dataset.objectStorageAction);
       }));
       caseHistory.querySelectorAll('.case-item').forEach(card => card.addEventListener('click', async () => openCase(card.dataset.caseId)));
     }
@@ -1581,6 +1598,30 @@
       }
     }
 
+    async function caseObjectStorageAction(caseId, action) {
+      const encoded = encodeURIComponent(caseId);
+      let url = `/api/cases/${encoded}/object-storage/replicate`;
+      let method = 'POST';
+      let label = '원격 복제';
+      if (action === 'restore') {
+        url = `/api/cases/${encoded}/object-storage/restore`;
+        label = '원격 복원';
+      } else if (action === 'delete') {
+        url = `/api/cases/${encoded}/object-storage`;
+        method = 'DELETE';
+        label = '원격 삭제';
+      }
+      try {
+        const response = await authFetch(url, {method});
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || `${label} 실패`);
+        results.innerHTML = `<div class="alert alert-success"><b>${escapeHtml(label)} 완료:</b> ${escapeHtml(caseId)}</div>`;
+        await fetchCases();
+        await fetchAudit();
+      } catch (error) {
+        results.innerHTML = `<div class="alert alert-error"><b>${escapeHtml(label)} 실패:</b> ${escapeHtml(error.message || error)}</div>`;
+      }
+    }
     async function deleteCase(caseId) {
       try {
         const response = await authFetch(`/api/cases/${encodeURIComponent(caseId)}`, { method: 'DELETE' });

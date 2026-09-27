@@ -271,6 +271,7 @@ class CaseHistoryService:
         item.setdefault("severity_override", "")
         item.setdefault("closure_summary", "")
         item.setdefault("updated_by", "system")
+        item.setdefault("object_storage", None)
         return item
 
     @case_history_locked
@@ -328,6 +329,88 @@ class CaseHistoryService:
         return updated
 
     @case_history_locked
+    def set_object_storage_state(
+        self,
+        case_id: str,
+        metadata: Dict[str, Any],
+        *,
+        updated_by: str = "system",
+    ) -> Dict[str, Any]:
+        data = self._read_index()
+        cases = data.get("cases") or []
+        updated: Dict[str, Any] | None = None
+        for i, row in enumerate(cases):
+            if row.get("case_id") != case_id:
+                continue
+            item = self._with_workflow_defaults(row)
+            clean = dict(metadata or {})
+            clean["updated_by"] = self._truncate_text(updated_by, 120) or "system"
+            item["object_storage"] = clean
+            cases[i] = item
+            updated = item
+            break
+        if updated is None:
+            raise KeyError(case_id)
+        data["cases"] = cases
+        self._write_index(data)
+        return updated
+
+    @case_history_locked
+    def clear_object_storage_state(
+        self,
+        case_id: str,
+    ) -> Dict[str, Any]:
+        data = self._read_index()
+        cases = data.get("cases") or []
+        updated: Dict[str, Any] | None = None
+        for i, row in enumerate(cases):
+            if row.get("case_id") != case_id:
+                continue
+            item = self._with_workflow_defaults(row)
+            item["object_storage"] = None
+            cases[i] = item
+            updated = item
+            break
+        if updated is None:
+            raise KeyError(case_id)
+        data["cases"] = cases
+        self._write_index(data)
+        return updated
+
+    @case_history_locked
+    def mark_object_storage_restored(
+        self,
+        case_id: str,
+        *,
+        restored_at: str,
+        restored_by: str = "system",
+    ) -> Dict[str, Any]:
+        data = self._read_index()
+        cases = data.get("cases") or []
+        updated: Dict[str, Any] | None = None
+        for i, row in enumerate(cases):
+            if row.get("case_id") != case_id:
+                continue
+            item = self._with_workflow_defaults(row)
+            remote = dict(item.get("object_storage") or {})
+            if not remote:
+                raise ValueError("case has no object-storage replica metadata")
+            remote["last_restored_at"] = str(restored_at)
+            remote["last_restored_by"] = (
+                self._truncate_text(restored_by, 120) or "system"
+            )
+            remote["restore_count"] = int(remote.get("restore_count") or 0) + 1
+            item["object_storage"] = remote
+            cases[i] = item
+            updated = item
+            break
+        if updated is None:
+            raise KeyError(case_id)
+        data["cases"] = cases
+        self._write_index(data)
+        return updated
+
+    @case_history_locked
     def workflow_summary(self) -> Dict[str, Any]:
         """Return a compact board-style summary for the case queue."""
         rows = [self._with_workflow_defaults(row) for row in self._read_index().get("cases") or []]
@@ -376,6 +459,14 @@ class CaseHistoryService:
                 kept.append(row)
         if target is None:
             raise KeyError(case_id)
+
+        if target.get("object_storage"):
+            return {
+                "case_id": case_id,
+                "deleted": False,
+                "removed_files": False,
+                "reason": "remote_replica_exists",
+            }
 
         removed_files = False
         if remove_files:
@@ -432,6 +523,7 @@ class CaseHistoryService:
         removed_files = 0
         removed_case_records = 0
         failed_file_deletions = 0
+        blocked_remote_replicas = 0
 
         for index, row in enumerate(rows):
             must_keep = index < keep_last
@@ -448,11 +540,17 @@ class CaseHistoryService:
                 "work_dir": row.get("work_dir"),
                 "risk_level": row.get("risk_level"),
                 "finding_count": row.get("finding_count"),
+                "object_storage": bool(row.get("object_storage")),
             }
             candidates.append(item)
 
             if dry_run:
                 kept.append(row)
+                continue
+
+            if row.get("object_storage"):
+                kept.append(row)
+                blocked_remote_replicas += 1
                 continue
 
             if remove_files:
@@ -478,6 +576,9 @@ class CaseHistoryService:
             "removed_case_records": 0 if dry_run else removed_case_records,
             "removed_files": 0 if dry_run else removed_files,
             "failed_file_deletions": 0 if dry_run else failed_file_deletions,
+            "blocked_remote_replicas": (
+                0 if dry_run else blocked_remote_replicas
+            ),
             "candidates": candidates,
         }
 

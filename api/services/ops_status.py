@@ -22,6 +22,11 @@ from api.services.artifact_encryption import (
     artifact_encryption_enabled,
     validate_artifact_encryption_key,
 )
+from api.services.object_storage import (
+    ObjectStorageError,
+    object_storage_configured,
+    validate_object_storage_configuration,
+)
 from breachscope.demo_scenarios import SCENARIOS, write_demo_scenario
 from breachscope.pipeline import Pipeline
 from breachscope.rulepack import summarize_rules
@@ -118,6 +123,32 @@ def live_status() -> dict[str, Any]:
     }
 
 
+def _check_object_storage() -> Check:
+    if not object_storage_configured():
+        return Check(
+            "object_storage",
+            "pass",
+            "Remote object storage is optional and currently disabled.",
+        )
+    try:
+        config = validate_object_storage_configuration()
+    except ObjectStorageError as exc:
+        return Check("object_storage", "fail", str(exc))
+    return Check(
+        "object_storage",
+        "pass",
+        "S3-compatible object storage is statically configured.",
+        {
+            "provider": config.provider if config else None,
+            "bucket": config.bucket if config else None,
+            "prefix": config.prefix if config else None,
+            "endpoint_url_configured": bool(
+                config.endpoint_url if config else None
+            ),
+        },
+    )
+
+
 def readiness_status() -> dict[str, Any]:
     checks = []
     if artifact_encryption_enabled():
@@ -147,6 +178,7 @@ def readiness_status() -> dict[str, Any]:
             )
         )
 
+    checks.append(_check_object_storage())
     checks.append(_check_path("cases_root", CaseHistoryService.default_root(), create_dir=True))
     checks.append(_check_path("case_history", CaseHistoryService.default_index_path(), create_dir=True, file_path=True))
     checks.append(_check_path("audit_log", audit_log_path(), create_dir=True, file_path=True))
@@ -264,6 +296,7 @@ def config_diagnostics() -> dict[str, Any]:
     checks: list[Check] = []
     checks.extend(_security_checks())
     # Re-run readiness checks as Check objects so callers get consistent severity details.
+    checks.append(_check_object_storage())
     checks.append(_check_path("cases_root", CaseHistoryService.default_root(), create_dir=True))
     checks.append(_check_path("case_history", CaseHistoryService.default_index_path(), create_dir=True, file_path=True))
     checks.append(_check_path("audit_log", audit_log_path(), create_dir=True, file_path=True))

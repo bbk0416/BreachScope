@@ -68,6 +68,11 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_RULE_AUTHORING_ROOT` | Draft/review/published custom-rule root | `~/.breachscope/rule_authoring` |
 | `BS_RULE_ACTIVATION_PATH` | Versioned custom-rule activation manifest | `~/.breachscope/rule_activation.json` |
 | `BS_ARTIFACT_ENCRYPTION_KEY` | Optional URL-safe base64 32-byte key for AES-256-GCM encryption of retained case inputs/reports | unset |
+| `BS_OBJECT_STORAGE_PROVIDER` | Optional remote case replica provider. Currently `s3` only. | unset |
+| `BS_OBJECT_STORAGE_BUCKET` | S3-compatible bucket for encrypted case replicas | unset |
+| `BS_OBJECT_STORAGE_PREFIX` | Object-key prefix for case replicas | `breachscope/cases` |
+| `BS_OBJECT_STORAGE_REGION` | Optional AWS SDK region | unset |
+| `BS_OBJECT_STORAGE_ENDPOINT_URL` | Optional S3-compatible endpoint URL (for example MinIO/R2) | unset |
 | `BS_AUDIT_CHAIN_SECRET` | Optional HMAC key for audit integrity checks | unset |
 | `BS_WEB_CLEANUP_AFTER_ANALYSIS` | Delete web workdir after analysis when `1` | `0` |
 | `BS_PDF_FONT_REGULAR` | Override Korean PDF regular font | auto-detect |
@@ -136,6 +141,32 @@ GET /api/backups/{backup_id}/integrity
 ```
 
 대규모 운영에서는 이 기능과 별개로 Docker volume 또는 호스트 디스크 스냅샷을 함께 운용하는 것을 권장합니다.
+
+### S3-compatible 원격 케이스 replica
+
+로컬 케이스 저장은 기본/기준 저장소로 유지됩니다. 선택적으로 operator/admin이 **이미 AES-256-GCM으로 client-side 암호화된 retained case**를 S3-compatible bucket에 복제하고, 로컬 파일이 없을 때 다시 복원할 수 있습니다. 평문 파일이 하나라도 남아 있는 case는 원격 복제가 거부됩니다.
+
+```bash
+BS_ARTIFACT_ENCRYPTION_KEY=<32-byte-url-safe-base64-key>
+BS_OBJECT_STORAGE_PROVIDER=s3
+BS_OBJECT_STORAGE_BUCKET=breachscope-cases
+BS_OBJECT_STORAGE_PREFIX=breachscope/cases
+BS_OBJECT_STORAGE_REGION=ap-northeast-2
+# MinIO/R2 같은 S3-compatible 서비스에서만 필요
+BS_OBJECT_STORAGE_ENDPOINT_URL=
+```
+
+AWS access key를 BreachScope 전용 변수로 저장하지 않습니다. boto3의 표준 credential chain(AWS 환경변수, profile, IAM role/workload identity 등)을 사용합니다. bucket은 private으로 유지하고 최소 권한만 부여합니다. Docker Compose는 `.env`를 container에 전달하므로 위 설정도 그대로 전달됩니다.
+
+```http
+POST   /api/cases/{case_id}/object-storage/replicate
+POST   /api/cases/{case_id}/object-storage/restore?overwrite=false
+DELETE /api/cases/{case_id}/object-storage?forget=false
+```
+
+복제는 object 파일을 먼저 업로드하고 `case_manifest.json`을 마지막에 기록합니다. case index에는 remote manifest의 SHA-256과 bucket/key metadata가 남습니다. 복원 시 manifest SHA-256, 각 object의 크기/SHA-256, AES-GCM 인증을 모두 확인한 뒤 임시 디렉터리를 원자적으로 교체합니다. 기본 restore는 비어 있지 않은 로컬 case를 덮어쓰지 않습니다.
+
+원격 replica metadata가 있는 case는 일반 case 삭제와 retention prune이 차단됩니다. 먼저 원격 replica를 삭제해야 합니다. `forget=true`는 원격 저장소 장애나 out-of-band 삭제 후 **metadata만 강제로 제거하는 복구 옵션**이라 remote orphan을 만들 수 있으므로 API에서 명시적으로 사용할 때만 허용합니다. readiness/config-check는 네트워크나 bucket 권한을 probe하지 않고 정적 설정과 client-side encryption 전제만 확인합니다.
 
 ### 케이스 보존 정리
 

@@ -16,6 +16,11 @@ from api.services.artifact_encryption import (
 )
 from api.services.audit_log import AuditLogService, actor_from_request
 from api.services.report_preview import load_preview
+from api.services.object_storage import (
+    ObjectStorageError,
+    ObjectStorageService,
+)
+from api.rbac import ROLE_OPERATOR, require_roles
 
 router = APIRouter()
 
@@ -37,6 +42,10 @@ class CaseWorkflowUpdate(BaseModel):
 
 def _service() -> CaseHistoryService:
     return CaseHistoryService()
+
+
+def _object_storage_service() -> ObjectStorageService:
+    return ObjectStorageService()
 
 
 @router.get("/cases", response_class=JSONResponse)
@@ -72,6 +81,7 @@ async def prune_cases(
             "removed_case_records": result.get("removed_case_records"),
             "removed_files": result.get("removed_files"),
             "failed_file_deletions": result.get("failed_file_deletions"),
+            "blocked_remote_replicas": result.get("blocked_remote_replicas"),
         },
     )
     return {"success": True, **result}
@@ -237,6 +247,225 @@ async def get_case_report(
     )
 
 
+@router.post(
+    "/cases/{case_id}/object-storage/replicate",
+    response_class=JSONResponse,
+)
+async def replicate_case_to_object_storage(
+    case_id: str,
+    request: Request,
+):
+    identity = require_roles(request, ROLE_OPERATOR)
+    try:
+        case = _service().get_case(case_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
+
+    if not case.get("exists"):
+        raise HTTPException(
+            status_code=409,
+            detail="원격 복제를 위해 로컬 케이스 디렉토리가 필요합니다.",
+        )
+    if case.get("object_storage"):
+        raise HTTPException(
+            status_code=409,
+            detail="이미 원격 replica가 있습니다. 기존 replica를 먼저 삭제하세요.",
+        )
+
+    storage = _object_storage_service()
+    try:
+        remote = storage.replicate_case(
+            case_id,
+            str(case.get("work_dir") or ""),
+        )
+    except ObjectStorageError as exc:
+        AuditLogService().record(
+            "case.object_storage.replicate",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc), "stage": "upload"},
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    try:
+        updated = _service().set_object_storage_state(
+            case_id,
+            remote,
+            updated_by=identity.subject,
+        )
+    except Exception as exc:
+        rollback_error = None
+        try:
+            storage.delete_replica(case_id, remote)
+        except Exception as cleanup_exc:
+            rollback_error = str(cleanup_exc)
+        AuditLogService().record(
+            "case.object_storage.replicate",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": "case_index_persist_failed",
+                "rollback_error": rollback_error,
+            },
+        )
+        detail = (
+            "원격 복제 metadata 저장에 실패해 업로드를 되돌렸습니다."
+            if rollback_error is None
+            else "원격 복제 metadata 저장과 원격 rollback이 모두 실패했습니다. 운영자 확인이 필요합니다."
+        )
+        raise HTTPException(status_code=500, detail=detail) from exc
+
+    AuditLogService().record(
+        "case.object_storage.replicate",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "provider": remote.get("provider"),
+            "bucket": remote.get("bucket"),
+            "case_prefix": remote.get("case_prefix"),
+            "file_count": remote.get("file_count"),
+            "total_bytes": remote.get("total_bytes"),
+        },
+    )
+    return {
+        "success": True,
+        "object_storage": updated.get("object_storage"),
+    }
+
+
+@router.post(
+    "/cases/{case_id}/object-storage/restore",
+    response_class=JSONResponse,
+)
+async def restore_case_from_object_storage(
+    case_id: str,
+    request: Request,
+    overwrite: bool = Query(False),
+):
+    identity = require_roles(request, ROLE_OPERATOR)
+    try:
+        case = _service().get_case(case_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
+
+    remote = dict(case.get("object_storage") or {})
+    if not remote:
+        raise HTTPException(
+            status_code=409,
+            detail="이 케이스에는 원격 replica 메타데이터가 없습니다.",
+        )
+
+    work_dir = Path(str(case.get("work_dir") or ""))
+    if work_dir.exists() and any(work_dir.iterdir()) and not overwrite:
+        raise HTTPException(
+            status_code=409,
+            detail="로컬 케이스가 이미 존재합니다. overwrite=true가 필요합니다.",
+        )
+
+    try:
+        result = _object_storage_service().restore_case(
+            case_id,
+            str(case.get("work_dir") or ""),
+            remote,
+            overwrite=overwrite,
+        )
+        _service().mark_object_storage_restored(
+            case_id,
+            restored_at=str(result.get("restored_at") or ""),
+            restored_by=identity.subject,
+        )
+    except ObjectStorageError as exc:
+        AuditLogService().record(
+            "case.object_storage.restore",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    AuditLogService().record(
+        "case.object_storage.restore",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "file_count": result.get("file_count"),
+            "verified": result.get("verified"),
+        },
+    )
+    return {"success": True, "restore": result}
+
+
+@router.delete(
+    "/cases/{case_id}/object-storage",
+    response_class=JSONResponse,
+)
+async def delete_case_object_storage_replica(
+    case_id: str,
+    request: Request,
+    forget: bool = Query(False),
+):
+    identity = require_roles(request, ROLE_OPERATOR)
+    try:
+        case = _service().get_case(case_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
+
+    remote = dict(case.get("object_storage") or {})
+    if not remote:
+        raise HTTPException(
+            status_code=404,
+            detail="원격 replica 메타데이터가 없습니다.",
+        )
+
+    if forget:
+        _service().clear_object_storage_state(case_id)
+        result = {
+            "forgotten": True,
+            "remote_deleted": False,
+            "forgotten_by": identity.subject,
+        }
+        AuditLogService().record(
+            "case.object_storage.forget",
+            request=request,
+            status="success",
+            case_id=case_id,
+            details=result,
+        )
+        return {"success": True, "delete": result}
+
+    try:
+        result = _object_storage_service().delete_replica(
+            case_id,
+            remote,
+        )
+        _service().clear_object_storage_state(case_id)
+    except ObjectStorageError as exc:
+        AuditLogService().record(
+            "case.object_storage.delete",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    AuditLogService().record(
+        "case.object_storage.delete",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "deleted_object_count": result.get("deleted_object_count"),
+        },
+    )
+    return {"success": True, "delete": result}
+
+
 @router.delete("/cases/{case_id}", response_class=JSONResponse)
 async def delete_case(case_id: str, request: Request, remove_files: bool = Query(True)):
     """케이스 이력에서 제거합니다. 안전한 작업 디렉토리만 파일까지 삭제합니다."""
@@ -248,9 +477,14 @@ async def delete_case(case_id: str, request: Request, remove_files: bool = Query
 
     if not result.get("deleted"):
         AuditLogService().record("case.delete", request=request, status="failure", case_id=case_id, details=result)
+        detail = (
+            "원격 replica가 있습니다. 원격 replica를 먼저 삭제하거나 forget=true로 메타데이터를 정리하세요."
+            if result.get("reason") == "remote_replica_exists"
+            else "케이스 파일 삭제를 완료하지 못해 이력을 유지했습니다."
+        )
         raise HTTPException(
             status_code=409,
-            detail="케이스 파일 삭제를 완료하지 못해 이력을 유지했습니다.",
+            detail=detail,
         )
 
     AuditLogService().record("case.delete", request=request, status="success", case_id=case_id, details=result)
