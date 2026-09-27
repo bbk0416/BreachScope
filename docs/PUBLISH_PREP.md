@@ -25,7 +25,8 @@ out/publish/
 ├── dist/
 │   ├── breachscope-X.Y.Z-source.zip
 │   ├── SHA256SUMS.txt
-│   └── release_manifest.json
+│   ├── release_manifest.json
+│   └── release_manifest.sig.json  # release signing enabled 시
 ├── demo_pack/
 │   └── breachscope-demo-pack.zip
 ├── showcase/
@@ -48,6 +49,7 @@ out/publish/
 - Demo Pack ZIP 위생 검사
 - Showcase ZIP 위생 검사
 - 최종 public launch ZIP checksum 생성
+- release signing key가 설정된 경우 Ed25519 manifest signature 포함
 
 ## API Preview
 

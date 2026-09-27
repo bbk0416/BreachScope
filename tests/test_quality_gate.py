@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from api.main import app
-from breachscope.quality_gate import render_markdown, run_quality_gate
+from breachscope.quality_gate import SECRET_PATTERNS, render_markdown, run_quality_gate
 
 client = TestClient(app)
 
@@ -45,3 +45,8 @@ def test_quality_gate_api_endpoint():
     assert payload["success"] is True
     assert payload["score"] >= 95
     assert payload["summary"]["failed"] == 0
+
+
+def test_quality_gate_secret_patterns_cover_release_signing_private_key():
+    line = "BS_RELEASE_SIGNING_PRIVATE_KEY=" + "A" * 43
+    assert any(pattern.search(line) for _, pattern in SECRET_PATTERNS)

@@ -186,7 +186,7 @@ async def publish_prep_preview():
             "default_output_dir": "out/publish",
             "zip_name": "breachscope-public-launch-pack.zip",
             "included_sections": [
-                "dist/ release ZIP, checksum, and manifest",
+                "dist/ release ZIP, checksum, manifest, and optional Ed25519 signature",
                 "demo_pack/ external handoff package",
                 "showcase/ GitHub Pages static landing package",
                 "PUBLIC_LAUNCH_SUMMARY.md",
