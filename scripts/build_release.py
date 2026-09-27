@@ -5,6 +5,7 @@ Creates:
 - dist/breachscope-<version>-source.zip
 - dist/SHA256SUMS.txt
 - dist/release_manifest.json
+- dist/release_manifest.sig.json (when BS_RELEASE_SIGNING_PRIVATE_KEY is set)
 """
 from __future__ import annotations
 
@@ -33,7 +34,11 @@ def main() -> int:
     args = parse_args()
     if args.clean:
         dist = Path(args.dist)
-        for name in ("SHA256SUMS.txt", "release_manifest.json"):
+        for name in (
+            "SHA256SUMS.txt",
+            "release_manifest.json",
+            "release_manifest.sig.json",
+        ):
             (dist / name).unlink(missing_ok=True)
         for path in dist.glob("*-source.zip"):
             path.unlink()
@@ -44,6 +49,14 @@ def main() -> int:
     print(f"BreachScope release bundle created in {result['dist_dir']}")
     for artifact in result["artifacts"]:
         print(f"- {Path(artifact['path']).name} ({artifact['size_bytes']} bytes) sha256={artifact['sha256']}")
+    signing = result.get("signing") or {}
+    if signing.get("enabled"):
+        print(
+            "- release manifest signature: Ed25519 "
+            f"public-key-sha256={signing.get('public_key_sha256')}"
+        )
+    else:
+        print("- release manifest signature: disabled")
     return 0
 
 

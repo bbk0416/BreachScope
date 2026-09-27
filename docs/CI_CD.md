@@ -79,9 +79,12 @@ breachscope-<version>-source.zip
 breachscope-<version>.tar.gz / .whl
 SHA256SUMS.txt
 release_manifest.json
+release_manifest.sig.json  # BS_RELEASE_SIGNING_PRIVATE_KEY 설정 시
 ```
 
 `release_manifest.json`에는 버전, git SHA/tag, 생성 시간, 산출물 크기와 SHA-256이 포함됩니다.
+
+`BS_RELEASE_SIGNING_PRIVATE_KEY`를 GitHub Actions secret으로 설정하면 최종 manifest 재생성 후 Ed25519 detached signature를 만들고 `scripts/verify_release_signature.py`로 self-check합니다. secret이 없으면 기존 unsigned release 동작을 유지합니다. 실제 authenticity는 repository 밖의 신뢰 채널에서 받은 public key/fingerprint와 비교해야 합니다.
 
 ## 로컬에서 CI 비슷하게 돌리기
 

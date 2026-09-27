@@ -57,15 +57,26 @@ jobs:
         run: python -m build --no-isolation
 
       - name: Add Python distribution checksums and refresh manifest
+        env:
+          BS_RELEASE_SIGNING_PRIVATE_KEY: ${{ secrets.BS_RELEASE_SIGNING_PRIVATE_KEY }}
         run: |
           python - <<'PY'
           from pathlib import Path
           from breachscope.release import ReleaseArtifact, sha256_file, write_release_manifest
+          from breachscope.release_signing import (
+              DEFAULT_SIGNATURE_NAME,
+              release_signing_key_configured,
+              sign_release_manifest,
+          )
 
           dist = Path("dist")
           artifacts = []
           for path in sorted(dist.glob("*")):
-              if path.name in {"SHA256SUMS.txt", "release_manifest.json"} or path.is_dir():
+              if path.name in {
+                  "SHA256SUMS.txt",
+                  "release_manifest.json",
+                  DEFAULT_SIGNATURE_NAME,
+              } or path.is_dir():
                   continue
               artifacts.append(
                   ReleaseArtifact(
@@ -87,8 +98,25 @@ jobs:
                   sha256=sha256_file(checksums),
               )
           )
-          write_release_manifest(".", artifacts, dist / "release_manifest.json")
+          manifest = write_release_manifest(
+              ".",
+              artifacts,
+              dist / "release_manifest.json",
+          )
+          signature_path = dist / DEFAULT_SIGNATURE_NAME
+          if release_signing_key_configured():
+              sign_release_manifest(manifest.path, signature_path)
+          else:
+              signature_path.unlink(missing_ok=True)
           PY
+
+      - name: Verify release manifest signature when present
+        run: |
+          if [ -f dist/release_manifest.sig.json ]; then
+            python scripts/verify_release_signature.py --manifest dist/release_manifest.json --signature dist/release_manifest.sig.json
+          else
+            echo "Release signing disabled: no detached signature generated."
+          fi
 
       - name: Upload release build artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

@@ -41,6 +41,7 @@ python scripts/build_release.py --clean
 dist/breachscope-<version>-source.zip
 dist/SHA256SUMS.txt
 dist/release_manifest.json
+dist/release_manifest.sig.json  # BS_RELEASE_SIGNING_PRIVATE_KEY 설정 시
 ```
 
 `dist/SHA256SUMS.txt`로 ZIP 무결성을 확인할 수 있습니다.
@@ -48,6 +49,32 @@ dist/release_manifest.json
 ```bash
 sha256sum -c dist/SHA256SUMS.txt
 ```
+
+### 선택형 Ed25519 릴리즈 서명
+
+`BS_RELEASE_SIGNING_PRIVATE_KEY`에 URL-safe base64 형식의 32바이트 Ed25519 private seed를 넣으면 `scripts/build_release.py`가 `release_manifest.sig.json`을 함께 생성합니다. private key는 release artifact나 manifest에 기록하지 않습니다.
+
+키쌍은 한 번 생성해 private key는 별도 secret store에 보관하고, public key 또는 SHA-256 fingerprint는 별도 신뢰 채널에 공개합니다. 예시:
+
+```bash
+python -c "from breachscope.release_signing import generate_release_signing_keypair as g; import json; print(json.dumps(g(), indent=2))"
+```
+
+서명 생성:
+
+```bash
+export BS_RELEASE_SIGNING_PRIVATE_KEY=<private-key>
+python scripts/build_release.py --clean
+```
+
+검증은 두 단계가 있습니다. embedded public key만 사용하면 파일과 서명의 cryptographic consistency만 확인합니다. 배포자 진위까지 확인하려면 trusted public key를 별도로 전달해야 합니다.
+
+```bash
+python scripts/verify_release_signature.py --manifest dist/release_manifest.json --signature dist/release_manifest.sig.json
+python scripts/verify_release_signature.py --manifest dist/release_manifest.json --signature dist/release_manifest.sig.json --public-key <trusted-public-key>
+```
+
+두 번째 방식이 실제 authenticity 확인에 사용하는 권장 방식입니다.
 
 ## 3. GitHub 태그 릴리즈
 

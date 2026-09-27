@@ -21,6 +21,11 @@ from typing import Iterable
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from .version import get_build_version
+from .release_signing import (
+    DEFAULT_SIGNATURE_NAME,
+    release_signing_key_configured,
+    sign_release_manifest,
+)
 
 
 DEFAULT_EXCLUDES = (
@@ -194,10 +199,40 @@ def build_release_bundle(repo_root: str | Path = ".", dist_dir: str | Path | Non
 
     zip_artifact = create_source_zip(root, dist / f"{meta.name}-{meta.version}-source.zip")
     checksums = write_checksums([zip_artifact], dist / "SHA256SUMS.txt")
-    manifest = write_release_manifest(root, [zip_artifact, checksums], dist / "release_manifest.json")
+    manifest = write_release_manifest(
+        root,
+        [zip_artifact, checksums],
+        dist / "release_manifest.json",
+    )
+    artifacts = [zip_artifact, checksums, manifest]
+    signature_path = dist / DEFAULT_SIGNATURE_NAME
+    signing: dict[str, object] = {
+        "enabled": False,
+        "algorithm": "Ed25519",
+        "signature_path": None,
+        "public_key_sha256": None,
+    }
+    if release_signing_key_configured():
+        signature = sign_release_manifest(manifest.path, signature_path)
+        signature_artifact = ReleaseArtifact(
+            path=str(signature_path),
+            size_bytes=signature_path.stat().st_size,
+            sha256=sha256_file(signature_path),
+        )
+        artifacts.append(signature_artifact)
+        signing = {
+            "enabled": True,
+            "algorithm": signature["algorithm"],
+            "signature_path": str(signature_path),
+            "public_key_sha256": signature["public_key_sha256"],
+        }
+    else:
+        signature_path.unlink(missing_ok=True)
+
     return {
         "metadata": asdict(meta),
-        "artifacts": [asdict(zip_artifact), asdict(checksums), asdict(manifest)],
+        "artifacts": [asdict(artifact) for artifact in artifacts],
+        "signing": signing,
         "dist_dir": str(dist),
     }
 

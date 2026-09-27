@@ -8,6 +8,7 @@ BreachScope processes sensitive security logs. Treat deployments as internal too
 - Put the service behind HTTPS, for example Nginx, Caddy, Cloudflare Tunnel, or a private VPN.
 - Keep case data under a dedicated data volume such as `/data`.
 - For retained local cases, optionally set `BS_ARTIFACT_ENCRYPTION_KEY` to URL-safe base64 encoding of exactly 32 random bytes. BreachScope then stores case inputs/reports as AES-256-GCM ciphertext and decrypts downloads/previews in memory.
+- Treat `BS_RELEASE_SIGNING_PRIVATE_KEY` as an offline/release secret. Do not commit it, include it in release bundles, or use the embedded signature public key alone as an authenticity trust anchor. Publish the Ed25519 public key or its SHA-256 fingerprint through a separate trusted channel.
 - Disable public API docs in production with `BS_DISABLE_DOCS=1`.
 - Do not upload real customer logs to public demo instances.
 - Review generated IOC and findings before using them for blocking decisions.

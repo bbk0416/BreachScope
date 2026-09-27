@@ -118,7 +118,8 @@ def _render_launch_summary(payload: dict[str, Any]) -> str:
         "1. `showcase/index.html` — GitHub Pages용 정적 랜딩 페이지",
         "2. `demo_pack/breachscope-demo-pack.zip` — 면접/외부 공유용 데모 핸드오프 ZIP",
         "3. `dist/SHA256SUMS.txt` — 릴리즈 산출물 checksum",
-        "4. `GITHUB_PUBLISH_COMMANDS.md` — 업로드/태그/Pages 설정 순서",
+        "4. `dist/release_manifest.sig.json` — Ed25519 detached signature (서명 키 설정 시)",
+        "5. `GITHUB_PUBLISH_COMMANDS.md` — 업로드/태그/Pages 설정 순서",
         "",
         "## Artifacts",
         "",
@@ -183,7 +184,7 @@ def _render_publish_commands(metadata: dict[str, Any]) -> str:
         "- `.env`",
         "- `out/`, `dist/`, `*.jsonl`, `*.db`, `*.log`",
         "- 실제 고객/기관 로그",
-        "- API Key, 관리자 비밀번호, 세션 시크릿",
+        "- API Key, 관리자 비밀번호, 세션 시크릿, release signing private key",
     ])
 
 
@@ -202,6 +203,7 @@ def _render_release_note(payload: dict[str, Any]) -> str:
         f"- `dist/breachscope-{version}-source.zip`",
         "- `dist/SHA256SUMS.txt`",
         "- `dist/release_manifest.json`",
+        "- `dist/release_manifest.sig.json` (when release signing is enabled)",
         "- `demo_pack/breachscope-demo-pack.zip`",
         "- `showcase/breachscope-showcase.zip`",
         "",

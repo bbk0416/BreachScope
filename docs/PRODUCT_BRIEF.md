@@ -36,4 +36,4 @@ BreachScope turns Windows-oriented security logs into an incident triage package
 - SSO and per-organization permissions beyond the built-in local admin/author/reviewer/operator accounts.
 - Remote/object-storage backend is still future work; retained local case inputs/reports now support opt-in AES-256-GCM encryption at rest.
 - Rule lifecycle now supports local author/reviewer/operator separation with admin/API-key override, including self-approval blocking for non-admin reviewers; enterprise SSO and per-organization authorization remain future work. Canonical detector YAML remains unchanged.
-- Signed release artifacts and CI/CD.
+- Release manifests now support optional Ed25519 detached signatures; external CI/CD runner policy, signing-key custody, and trusted public-key distribution remain operational work.

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add optional Ed25519 detached signatures for release manifests, trusted-public-key verification, stale-signature removal, and final-manifest signing support in the release workflow.
 - Add opt-in AES-256-GCM encryption at rest for retained case inputs/reports, transparent in-memory preview/download decryption, fail-closed wrong-key handling, and readiness/go-live key validation.
 - Add optional rule-lifecycle RBAC with fixed author/reviewer/operator browser identities, server-enforced permissions, non-admin self-approval blocking, admin/API-key override, and legacy single-admin compatibility.
 - Add versioned custom-rule activation/deactivation/rollback with per-analysis opt-in, SHA-verified published artifacts, evidence-scope disclosure, and backup/deployment persistence.

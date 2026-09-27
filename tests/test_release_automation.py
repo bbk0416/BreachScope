@@ -83,3 +83,12 @@ def test_project_metadata_honors_build_environment(tmp_path, monkeypatch):
     assert meta.version == "v16.0.0"
     assert meta.git_sha == "abc123"
     assert meta.git_tag == "v16.0.0"
+
+
+def test_release_workflow_resigns_and_verifies_final_manifest():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "BS_RELEASE_SIGNING_PRIVATE_KEY" in workflow
+    assert "sign_release_manifest(manifest.path, signature_path)" in workflow
+    assert "scripts/verify_release_signature.py" in workflow
+    assert "DEFAULT_SIGNATURE_NAME" in workflow
