@@ -30,6 +30,19 @@ At-rest case artifact encryption is also opt-in. To enable it, generate 32 rando
 python -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip('='))"
 ```
 
+S3-compatible remote replica가 필요하면 artifact encryption을 먼저 켠 뒤 object storage를 설정합니다. boto3 표준 credential chain을 사용하므로 별도 BreachScope access-key 변수는 없습니다.
+
+```bash
+BS_OBJECT_STORAGE_PROVIDER=s3
+BS_OBJECT_STORAGE_BUCKET=breachscope-cases
+BS_OBJECT_STORAGE_PREFIX=breachscope/cases
+BS_OBJECT_STORAGE_REGION=ap-northeast-2
+# 선택: MinIO/R2 등
+BS_OBJECT_STORAGE_ENDPOINT_URL=
+```
+
+Go-Live/Readiness는 provider, bucket, client-side encryption 같은 정적 전제만 검사합니다. bucket 존재 여부나 실제 IAM 권한은 네트워크 probe하지 않으므로 배포 전에 테스트 case 한 건으로 replicate → local 제거 → restore를 직접 확인해야 합니다.
+
 ## Run the go-live checker
 
 ```bash
@@ -50,6 +63,7 @@ The checker covers:
 - Runtime authentication is enabled.
 - Placeholder secrets are not still in use.
 - Optional artifact-encryption key is valid when configured.
+- Optional S3-compatible object-storage configuration requires a bucket and client-side artifact encryption.
 - Browser session secret is long and separate.
 - API documentation is disabled for production.
 - Secure cookies are enabled for HTTPS deployments.

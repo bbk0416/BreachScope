@@ -50,3 +50,12 @@ def test_quality_gate_api_endpoint():
 def test_quality_gate_secret_patterns_cover_release_signing_private_key():
     line = "BS_RELEASE_SIGNING_PRIVATE_KEY=" + "A" * 43
     assert any(pattern.search(line) for _, pattern in SECRET_PATTERNS)
+
+
+def test_quality_gate_secret_patterns_cover_aws_sdk_credentials():
+    values = [
+        "AWS_SECRET_ACCESS_KEY=" + "S" * 40,
+        "AWS_SESSION_TOKEN=" + "T" * 64,
+    ]
+    for line in values:
+        assert any(pattern.search(line) for _, pattern in SECRET_PATTERNS)

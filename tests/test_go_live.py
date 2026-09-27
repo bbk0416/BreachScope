@@ -186,3 +186,56 @@ def test_go_live_accepts_valid_artifact_encryption_key(tmp_path, monkeypatch):
     )
     assert check["status"] == "pass"
     assert check["details"]["enabled"] is True
+
+
+def test_go_live_rejects_object_storage_without_bucket(tmp_path, monkeypatch):
+    import base64
+
+    env = _good_env(tmp_path)
+    env["BS_ARTIFACT_ENCRYPTION_KEY"] = (
+        base64.urlsafe_b64encode(bytes(range(32)))
+        .decode("ascii")
+        .rstrip("=")
+    )
+    env["BS_OBJECT_STORAGE_PROVIDER"] = "s3"
+    env["BS_OBJECT_STORAGE_BUCKET"] = ""
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "object_storage"
+    )
+    assert check["status"] == "fail"
+    assert result["status"] == "fail"
+
+
+def test_go_live_accepts_s3_object_storage_with_client_encryption(
+    tmp_path,
+    monkeypatch,
+):
+    import base64
+
+    env = _good_env(tmp_path)
+    env["BS_ARTIFACT_ENCRYPTION_KEY"] = (
+        base64.urlsafe_b64encode(bytes(range(32)))
+        .decode("ascii")
+        .rstrip("=")
+    )
+    env["BS_OBJECT_STORAGE_PROVIDER"] = "s3"
+    env["BS_OBJECT_STORAGE_BUCKET"] = "breachscope-prod"
+    env["BS_OBJECT_STORAGE_PREFIX"] = "prod/cases"
+    env["BS_OBJECT_STORAGE_REGION"] = "ap-northeast-2"
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(".", env=env, deployment_mode="production")
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "object_storage"
+    )
+    assert check["status"] == "pass"
+    assert check["details"]["provider"] == "s3"
+    assert check["details"]["bucket_configured"] is True
+    assert result["status"] == "pass"

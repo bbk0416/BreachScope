@@ -139,8 +139,25 @@
 
 ---
 
+### POST `/api/cases/{case_id}/object-storage/replicate`
+권한: operator 또는 admin.
+
+로컬 retained case를 S3-compatible object storage에 복제합니다. `BS_ARTIFACT_ENCRYPTION_KEY`가 활성화되어 있고 case 내부 파일이 모두 `.enc` ciphertext여야 합니다. 이미 remote replica metadata가 있으면 409로 거부합니다.
+
+### POST `/api/cases/{case_id}/object-storage/restore?overwrite=false`
+권한: operator 또는 admin.
+
+저장된 remote manifest metadata를 기준으로 case를 복원합니다. manifest SHA-256, 각 object의 size/SHA-256, AES-GCM 인증을 통과해야 하며 기본값은 기존 non-empty 로컬 case를 덮어쓰지 않습니다. 웹 UI는 안전한 기본 복원만 제공하고 `overwrite=true`는 노출하지 않습니다.
+
+### DELETE `/api/cases/{case_id}/object-storage?forget=false`
+권한: operator 또는 admin.
+
+기본 동작은 remote object와 manifest를 삭제한 뒤 case index의 replica metadata를 지웁니다. `forget=true`는 remote storage를 건드리지 않고 metadata만 삭제하는 비상 복구 옵션이며 orphan object를 만들 수 있습니다. 웹 UI에는 이 옵션을 노출하지 않습니다.
+
+---
+
 ### DELETE `/api/cases/{case_id}`
-케이스 이력에서 제거합니다. 기본적으로 안전한 케이스 작업 디렉토리도 함께 삭제합니다.
+케이스 이력에서 제거합니다. 기본적으로 안전한 케이스 작업 디렉토리도 함께 삭제합니다. remote replica metadata가 남아 있으면 orphan object 방지를 위해 409로 거부됩니다.
 
 **파라미터**:
 - `remove_files` (bool, 기본값: true): 산출물 파일 삭제 여부

@@ -51,3 +51,45 @@ def test_config_check_and_self_test(tmp_path, monkeypatch):
     assert result["success"] is True
     assert result["findings"] > 0
     assert result["artifacts"]["zip"] is True
+
+
+def test_readiness_fails_for_object_storage_without_artifact_encryption(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_CASE_HISTORY_PATH", str(tmp_path / "case_history.json"))
+    monkeypatch.setenv("BS_CASES_ROOT", str(tmp_path / "cases"))
+    monkeypatch.setenv("BS_AUDIT_LOG_PATH", str(tmp_path / "audit.jsonl"))
+    monkeypatch.setenv("BS_BACKUP_ROOT", str(tmp_path / "backups"))
+    monkeypatch.setenv("BS_OBJECT_STORAGE_PROVIDER", "s3")
+    monkeypatch.setenv("BS_OBJECT_STORAGE_BUCKET", "breachscope-test")
+    monkeypatch.delenv("BS_ARTIFACT_ENCRYPTION_KEY", raising=False)
+
+    response = client.get("/api/health/ready")
+    assert response.status_code == 503
+    checks = {row["name"]: row for row in response.json()["checks"]}
+    assert checks["object_storage"]["status"] == "fail"
+
+
+def test_config_check_accepts_static_s3_configuration(
+    tmp_path,
+    monkeypatch,
+):
+    import base64
+
+    monkeypatch.setenv("BS_CASE_HISTORY_PATH", str(tmp_path / "case_history.json"))
+    monkeypatch.setenv("BS_CASES_ROOT", str(tmp_path / "cases"))
+    monkeypatch.setenv("BS_AUDIT_LOG_PATH", str(tmp_path / "audit.jsonl"))
+    monkeypatch.setenv("BS_BACKUP_ROOT", str(tmp_path / "backups"))
+    monkeypatch.setenv("BS_OBJECT_STORAGE_PROVIDER", "s3")
+    monkeypatch.setenv("BS_OBJECT_STORAGE_BUCKET", "breachscope-test")
+    monkeypatch.setenv(
+        "BS_ARTIFACT_ENCRYPTION_KEY",
+        base64.urlsafe_b64encode(bytes(range(32))).decode("ascii").rstrip("="),
+    )
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    checks = {row["name"]: row for row in response.json()["checks"]}
+    assert checks["object_storage"]["status"] == "pass"
+    assert checks["object_storage"]["details"]["provider"] == "s3"

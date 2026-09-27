@@ -164,6 +164,46 @@ def _check_artifact_encryption(env: Mapping[str, str]) -> GoLiveCheck:
     )
 
 
+def _check_object_storage(env: Mapping[str, str]) -> GoLiveCheck:
+    provider = _env_value(env, "BS_OBJECT_STORAGE_PROVIDER").lower()
+    bucket = _env_value(env, "BS_OBJECT_STORAGE_BUCKET")
+    endpoint = _env_value(env, "BS_OBJECT_STORAGE_ENDPOINT_URL")
+    region = _env_value(env, "BS_OBJECT_STORAGE_REGION")
+    enabled = bool(provider or bucket or endpoint or region)
+    if not enabled:
+        return GoLiveCheck(
+            "object_storage",
+            "pass",
+            "Remote object storage is optional and disabled.",
+            {"enabled": False},
+        )
+    provider = provider or "s3"
+    errors: list[str] = []
+    if provider != "s3":
+        errors.append("BS_OBJECT_STORAGE_PROVIDER must be s3.")
+    if not bucket:
+        errors.append("BS_OBJECT_STORAGE_BUCKET is required.")
+    if not _env_value(env, "BS_ARTIFACT_ENCRYPTION_KEY"):
+        errors.append(
+            "BS_ARTIFACT_ENCRYPTION_KEY is required for remote case replication."
+        )
+    return GoLiveCheck(
+        "object_storage",
+        "fail" if errors else "pass",
+        "; ".join(errors)
+        if errors
+        else "S3-compatible object storage configuration is ready.",
+        {
+            "enabled": True,
+            "provider": provider,
+            "bucket_configured": bool(bucket),
+            "endpoint_url_configured": bool(endpoint),
+            "region_configured": bool(region),
+            "client_side_encryption_required": True,
+        },
+    )
+
+
 def _check_docs_and_cookies(env: Mapping[str, str], deployment_mode: str) -> list[GoLiveCheck]:
     production = deployment_mode == "production"
     docs_disabled = _env_bool(env, "BS_DISABLE_DOCS", os.getenv("BS_DISABLE_DOCS", "0"))
@@ -291,6 +331,8 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
             steps.append("Set BS_COOKIE_SECURE=1 when the console is served through HTTPS.")
         elif check.name == "artifact_encryption":
             steps.append("Set BS_ARTIFACT_ENCRYPTION_KEY to URL-safe base64 that decodes to exactly 32 random bytes, or leave it unset to disable at-rest encryption.")
+        elif check.name == "object_storage":
+            steps.append("For remote replication, set BS_OBJECT_STORAGE_PROVIDER=s3 and BS_OBJECT_STORAGE_BUCKET, then keep BS_ARTIFACT_ENCRYPTION_KEY enabled. Credentials may come from the standard AWS SDK credential chain.")
         elif check.name == "audit_trail":
             steps.append("Keep BS_AUDIT_ENABLED=1 and back up the audit JSONL regularly.")
         elif check.name == "persistent_data_paths":
@@ -310,6 +352,7 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
         _check_session_secret(env_map),
         _check_placeholders(env_map),
         _check_artifact_encryption(env_map),
+        _check_object_storage(env_map),
         _check_session_ttl(),
         _check_data_paths(),
         _check_audit(),
