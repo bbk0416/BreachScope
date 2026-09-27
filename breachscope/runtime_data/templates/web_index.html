@@ -517,7 +517,9 @@
         return;
       }
       if (payload.authenticated) {
-        const via = payload.auth_method === 'session' ? '세션 로그인' : 'API Key';
+        const via = payload.auth_method === 'session'
+          ? (payload.session_authn === 'oidc' ? 'SSO 세션' : '세션 로그인')
+          : 'API Key';
         currentAuthRole = payload.auth_method === 'api_key' ? 'admin' : (payload.session_role || 'admin');
         applyRoleUi();
         authStatus.innerHTML = '인증됨: ' + escapeHtml(via) + ' · role=' + escapeHtml(currentAuthRole);
