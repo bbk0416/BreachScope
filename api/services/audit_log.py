@@ -23,6 +23,7 @@ from api.services.organization_scope import (
     ORGANIZATION_HEADER,
     configured_default_organization,
     normalize_organization_id,
+    row_organization_id,
 )
 from api.security import (
     SESSION_COOKIE_NAME,
@@ -218,8 +219,14 @@ class AuditLogService:
         action: str | None = None,
         status: str | None = None,
         case_id: str | None = None,
+        organization_id: str | None = None,
     ) -> list[dict[str, Any]]:
         limit = max(1, min(MAX_AUDIT_LIMIT, int(limit or DEFAULT_AUDIT_LIMIT)))
+        organization = (
+            normalize_organization_id(organization_id, default=None)
+            if organization_id is not None
+            else None
+        )
         if not self.path.exists():
             return []
         rows: list[dict[str, Any]] = []
@@ -232,6 +239,12 @@ class AuditLogService:
                 row = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if organization is not None:
+                if row_organization_id(
+                    row,
+                    default=configured_default_organization(),
+                ) != organization:
+                    continue
             if action and row.get("action") != action:
                 continue
             if status and row.get("status") != status:
@@ -287,6 +300,60 @@ class AuditLogService:
                 }
             )
         return output.getvalue()
+
+    def verify_organization_integrity(
+        self,
+        organization_id: str,
+        *,
+        secret: str | None = None,
+    ) -> dict[str, Any]:
+        """Return a stable digest over every valid event in one organization."""
+        organization = normalize_organization_id(
+            organization_id,
+            default=None,
+        )
+        rows: list[dict[str, Any]] = []
+        if self.path.exists():
+            for line in self.path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if row_organization_id(
+                    row,
+                    default=configured_default_organization(),
+                ) == organization:
+                    rows.append(row)
+
+        data = (
+            "\n".join(
+                json.dumps(
+                    row,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                for row in rows
+            )
+            + ("\n" if rows else "")
+        ).encode("utf-8")
+        digest = hashlib.sha256(data).hexdigest()
+        key = secret or os.getenv("BS_AUDIT_CHAIN_SECRET", "").strip()
+        mac = (
+            hmac.new(key.encode("utf-8"), data, hashlib.sha256).hexdigest()
+            if key
+            else None
+        )
+        return {
+            "exists": bool(rows),
+            "events": len(rows),
+            "sha256": digest,
+            "hmac_sha256": mac,
+            "organization_id": organization,
+            "scope": "logical-organization-events",
+        }
 
     def verify_chain(self, *, secret: str | None = None) -> dict[str, Any]:
         """Return a simple tamper-evidence digest over the current JSONL file.
