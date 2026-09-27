@@ -33,7 +33,7 @@ BreachScope turns Windows-oriented security logs into an incident triage package
 ## Gaps before real commercial use
 
 - More real-world EVTX fixture testing.
-- SSO and per-organization permissions beyond the built-in local admin/author/reviewer/operator accounts.
+- OIDC SSO is available for a single deployment; per-organization tenant isolation, organization-specific role policy, and SCIM/user lifecycle automation remain future work.
 - S3-compatible encrypted retained-case replication/restore is available; primary remote storage, multi-region lifecycle/retention, provider IAM automation, and organization-scoped storage remain future work.
-- Rule lifecycle now supports local author/reviewer/operator separation with admin/API-key override, including self-approval blocking for non-admin reviewers; enterprise SSO and per-organization authorization remain future work. Canonical detector YAML remains unchanged.
+- Rule lifecycle supports local accounts or OIDC-mapped author/reviewer/operator roles with admin/API-key override, including self-approval blocking for non-admin reviewers. Canonical detector YAML remains unchanged.
 - Release manifests now support optional Ed25519 detached signatures; external CI/CD runner policy, signing-key custody, and trusted public-key distribution remain operational work.

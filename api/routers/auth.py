@@ -1,15 +1,34 @@
 """Operator authentication endpoints for the BreachScope web console."""
 from __future__ import annotations
 
+import asyncio
 import hmac
+import time
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from api.services.audit_log import AuditLogService
 from api.services.auth_rate_limit import AuthRateLimiter
+from api.services.oidc_auth import (
+    OIDC_FLOW_COOKIE_NAME,
+    OidcAuthorizationError,
+    OidcConfigurationError,
+    OidcError,
+    build_authorization_url,
+    configured_oidc_config,
+    configured_oidc_roles,
+    exchange_code_for_tokens,
+    fetch_discovery,
+    map_claims_to_role,
+    new_oidc_flow,
+    oidc_is_configured,
+    oidc_settings_present,
+    verify_id_token,
+    verify_oidc_flow_token,
+)
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
@@ -71,12 +90,16 @@ async def auth_status(request: Request):
         "password_login_enabled": bool(
             configured_admin_password() or configured_role_passwords()
         ),
-        "rbac_enabled": bool(configured_role_passwords()),
-        "configured_roles": sorted(configured_role_passwords()),
+        "rbac_enabled": bool(configured_role_passwords() or configured_oidc_roles()),
+        "configured_roles": sorted(set(configured_role_passwords()) | set(configured_oidc_roles())),
+        "oidc_settings_present": oidc_settings_present(),
+        "oidc_login_enabled": oidc_is_configured(),
+        "oidc_login_url": "/api/auth/oidc/login" if oidc_is_configured() else None,
         "authenticated": authenticated,
         "auth_method": method,
         "session_subject": cookie_payload.get("sub") if cookie_payload else None,
         "session_role": cookie_payload.get("role") if cookie_payload else None,
+        "session_authn": cookie_payload.get("authn") if cookie_payload else None,
         "session_expires_at": cookie_payload.get("exp") if cookie_payload else None,
         "session_ttl_seconds": session_ttl_seconds(),
     }
@@ -152,6 +175,121 @@ async def login(payload: LoginRequest, request: Request, response: Response):
         actor=principal,
         auth_method="session",
         details={"username": principal, "role": role, "ttl_seconds": max_age},
+    )
+    return response
+
+
+@router.get("/auth/oidc/login")
+async def oidc_login(request: Request, next: str = "/"):
+    """Start an OIDC Authorization Code + PKCE login flow."""
+    audit = AuditLogService()
+    try:
+        config = configured_oidc_config()
+        metadata = await asyncio.to_thread(fetch_discovery, config)
+        flow, flow_token = new_oidc_flow(next)
+        authorization_url = build_authorization_url(config, metadata, flow)
+    except OidcConfigurationError as exc:
+        audit.record("auth.oidc.start", request=request, status="failure", details={"reason": "configuration_error"})
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except OidcError as exc:
+        audit.record("auth.oidc.start", request=request, status="failure", details={"reason": "provider_error"})
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    response = RedirectResponse(authorization_url, status_code=302)
+    response.set_cookie(
+        OIDC_FLOW_COOKIE_NAME,
+        flow_token,
+        max_age=600,
+        httponly=True,
+        secure=session_cookie_secure(request),
+        samesite="lax",
+        path="/api/auth/oidc",
+    )
+    audit.record("auth.oidc.start", request=request, status="success", auth_method="oidc")
+    return response
+
+
+@router.get("/auth/oidc/callback")
+async def oidc_callback(
+    request: Request,
+    code: str = "",
+    state: str = "",
+    error: str = "",
+):
+    """Complete OIDC login, map the identity to one BreachScope role, and issue bs_session."""
+    audit = AuditLogService()
+    flow = verify_oidc_flow_token(request.cookies.get(OIDC_FLOW_COOKIE_NAME))
+    if not flow or not state or not hmac.compare_digest(str(flow.get("state") or ""), state):
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "invalid_state"})
+        raise HTTPException(status_code=401, detail="OIDC state verification failed.")
+    if error:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "provider_denied"})
+        raise HTTPException(status_code=401, detail="OIDC provider denied authentication.")
+    if not code:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "missing_code"})
+        raise HTTPException(status_code=400, detail="OIDC authorization code is missing.")
+
+    try:
+        config = configured_oidc_config()
+        metadata = await asyncio.to_thread(fetch_discovery, config)
+        tokens = await asyncio.to_thread(
+            exchange_code_for_tokens,
+            config,
+            metadata,
+            code=code,
+            code_verifier=str(flow["code_verifier"]),
+        )
+        claims = await asyncio.to_thread(
+            verify_id_token,
+            config,
+            metadata,
+            id_token=str(tokens["id_token"]),
+            nonce=str(flow["nonce"]),
+        )
+        role = map_claims_to_role(claims, config)
+    except OidcAuthorizationError as exc:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "role_mapping_denied"})
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except OidcConfigurationError as exc:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "configuration_error"})
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except OidcError as exc:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "provider_or_token_error"})
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+
+    subject_value = str(claims.get("sub") or "")
+    if not subject_value or len(subject_value) > 512:
+        raise HTTPException(status_code=401, detail="OIDC subject is invalid.")
+    subject = "oidc:" + subject_value
+    try:
+        expires_at = int(claims["exp"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=401, detail="OIDC token expiry is invalid.") from exc
+    max_age = min(session_ttl_seconds(), max(1, expires_at - int(time.time())))
+    session_token = create_session_token(
+        subject=subject,
+        role=role,
+        ttl_seconds=max_age,
+        authn="oidc",
+    )
+    response = RedirectResponse(str(flow.get("next") or "/"), status_code=303)
+    response.set_cookie(
+        SESSION_COOKIE_NAME,
+        session_token,
+        max_age=max_age,
+        httponly=True,
+        secure=session_cookie_secure(request),
+        samesite="lax",
+        path="/",
+    )
+    response.delete_cookie(OIDC_FLOW_COOKIE_NAME, path="/api/auth/oidc")
+    audit.record(
+        "auth.oidc.callback",
+        request=request,
+        status="success",
+        actor=subject,
+        auth_method="oidc",
+        details={"role": role, "ttl_seconds": max_age},
     )
     return response
 

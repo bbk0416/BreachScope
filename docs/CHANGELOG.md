@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add optional OIDC SSO using Authorization Code + PKCE, state/nonce/JWKS ID-token verification, exact claim-to-role RBAC mapping, OIDC-only production authentication, and a web-console SSO entry point.
 - Add explicit S3-compatible replication/restore/delete for client-side encrypted retained cases, operator/admin RBAC, manifest/object/AES-GCM verification, remote-replica deletion/prune guards, readiness/go-live checks, and web case controls.
 - Add optional Ed25519 detached signatures for release manifests, trusted-public-key verification, stale-signature removal, and final-manifest signing support in the release workflow.
 - Add opt-in AES-256-GCM encryption at rest for retained case inputs/reports, transparent in-memory preview/download decryption, fail-closed wrong-key handling, and readiness/go-live key validation.

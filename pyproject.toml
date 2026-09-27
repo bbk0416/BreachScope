@@ -32,6 +32,7 @@ dependencies = [
   "python-multipart>=0.0.6",
   "python-evtx>=0.6",
   "cryptography>=42",
+  "PyJWT>=2.9,<3",
   "boto3>=1.35",
   "tomli>=2.0; python_version < \"3.11\"",
 ]

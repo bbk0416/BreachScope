@@ -35,6 +35,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 - Set `BS_API_KEY` to a long random value for automation/API clients.
 - Set `BS_ADMIN_PASSWORD` and `BS_SESSION_SECRET` for browser console login. Browser sessions are signed and stored in an HttpOnly cookie.
 - Optional rule-lifecycle RBAC: set `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and/or `BS_OPERATOR_PASSWORD`. If none are set, the existing single-admin behavior is preserved.
+- Optional OIDC SSO: set issuer/client/redirect plus exact claim-to-role mappings. OIDC uses Authorization Code + PKCE, state/nonce verification, provider JWKS signature verification, and then issues the same HttpOnly BreachScope session cookie.
 - RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback and custom-rule opt-in analysis; admin and the API key retain full access.
 - Set `BS_DISABLE_DOCS=1` if API docs should not be public.
 - Keep `BS_AUDIT_ENABLED=1` for shared deployments so login, analysis, download, and deletion events are retained.
@@ -56,7 +57,19 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_AUTHOR_PASSWORD` | Optional author account password for tuning/draft create-update-validate. | unset |
 | `BS_REVIEWER_PASSWORD` | Optional reviewer account password for approve/publish. | unset |
 | `BS_OPERATOR_PASSWORD` | Optional operator account password for activation/rollback and custom-rule opt-in analysis. | unset |
-| `BS_SESSION_SECRET` | Secret used to sign browser session cookies. | falls back to API key/password |
+| `BS_OIDC_ISSUER_URL` | OIDC issuer. HTTPS required except loopback development. | unset |
+| `BS_OIDC_CLIENT_ID` | OIDC client ID | unset |
+| `BS_OIDC_CLIENT_SECRET` | Optional confidential-client secret. Do not commit. | unset |
+| `BS_OIDC_REDIRECT_URI` | Exact registered callback URI, usually `https://host/api/auth/oidc/callback` | unset |
+| `BS_OIDC_SCOPES` | Space-separated scopes; `openid` is always enforced. | `openid profile email` |
+| `BS_OIDC_ROLE_CLAIM` | Claim path used for role mapping. Dotted paths are supported. | `groups` |
+| `BS_OIDC_DEFAULT_ROLE` | Optional fallback role when no claim value matches. Blank is fail-closed. | unset |
+| `BS_OIDC_ADMIN_VALUES` | Exact comma-separated claim values mapped to admin. | unset |
+| `BS_OIDC_AUTHOR_VALUES` | Exact comma-separated claim values mapped to author. | unset |
+| `BS_OIDC_REVIEWER_VALUES` | Exact comma-separated claim values mapped to reviewer. | unset |
+| `BS_OIDC_OPERATOR_VALUES` | Exact comma-separated claim values mapped to operator. | unset |
+| `BS_OIDC_TOKEN_AUTH_METHOD` | `client_secret_basic`, `client_secret_post`, or `none`. | auto |
+| `BS_SESSION_SECRET` | Secret used to sign browser session cookies and OIDC flow state. OIDC requires an explicit value. | falls back to API key/password for non-OIDC login |
 | `BS_SESSION_TTL_SECONDS` | Browser session lifetime in seconds. Minimum 300. | 28800 |
 | `BS_COOKIE_SECURE` | Force Secure cookies. Use `1` behind HTTPS. | auto |
 | `BS_DISABLE_DOCS` | Disable `/api/docs` and `/api/redoc` when `1` | `0` |
@@ -77,6 +90,25 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_WEB_CLEANUP_AFTER_ANALYSIS` | Delete web workdir after analysis when `1` | `0` |
 | `BS_PDF_FONT_REGULAR` | Override Korean PDF regular font | auto-detect |
 | `BS_PDF_FONT_BOLD` | Override Korean PDF bold font | auto-detect |
+
+
+### OIDC SSO example
+
+```bash
+BS_OIDC_ISSUER_URL=https://idp.example.com/realms/security
+BS_OIDC_CLIENT_ID=breachscope
+BS_OIDC_CLIENT_SECRET=<provider-client-secret>
+BS_OIDC_REDIRECT_URI=https://breachscope.example.com/api/auth/oidc/callback
+BS_OIDC_ROLE_CLAIM=groups
+BS_OIDC_ADMIN_VALUES=breachscope-admins
+BS_OIDC_AUTHOR_VALUES=breachscope-authors
+BS_OIDC_REVIEWER_VALUES=breachscope-reviewers
+BS_OIDC_OPERATOR_VALUES=breachscope-operators
+BS_SESSION_SECRET=<separate-32+-character-random-secret>
+BS_COOKIE_SECURE=1
+```
+
+The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
 
 ## 5. API-key examples
 

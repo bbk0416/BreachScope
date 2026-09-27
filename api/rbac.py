@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 from fastapi import HTTPException, Request
 
+from api.services.oidc_auth import configured_oidc_roles
+
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
@@ -34,11 +36,13 @@ class RequestIdentity:
 
 
 def configured_rbac_roles() -> list[str]:
-    return [
+    roles = {
         role
         for role, env_name in ROLE_PASSWORD_ENV.items()
         if os.getenv(env_name, "").strip()
-    ]
+    }
+    roles.update(role for role in configured_oidc_roles() if role != ROLE_ADMIN)
+    return sorted(roles)
 
 
 def rbac_is_enabled() -> bool:
