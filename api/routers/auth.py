@@ -22,6 +22,7 @@ from api.services.oidc_auth import (
     configured_oidc_roles,
     exchange_code_for_tokens,
     fetch_discovery,
+    map_claims_to_organization,
     map_claims_to_role,
     new_oidc_flow,
     oidc_is_configured,
@@ -29,6 +30,7 @@ from api.services.oidc_auth import (
     verify_id_token,
     verify_oidc_flow_token,
 )
+from api.services.organization_scope import configured_default_organization
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
@@ -100,6 +102,10 @@ async def auth_status(request: Request):
         "session_subject": cookie_payload.get("sub") if cookie_payload else None,
         "session_role": cookie_payload.get("role") if cookie_payload else None,
         "session_authn": cookie_payload.get("authn") if cookie_payload else None,
+        "session_organization_id": (
+            cookie_payload.get("org") if cookie_payload else None
+        ),
+        "default_organization_id": configured_default_organization(),
         "session_expires_at": cookie_payload.get("exp") if cookie_payload else None,
         "session_ttl_seconds": session_ttl_seconds(),
     }
@@ -147,7 +153,12 @@ async def login(payload: LoginRequest, request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Invalid password.")
 
     limiter.clear(limit_key)
-    token = create_session_token(subject=principal, role=role)
+    organization_id = configured_default_organization()
+    token = create_session_token(
+        subject=principal,
+        role=role,
+        organization_id=organization_id,
+    )
     max_age = session_ttl_seconds()
     response = JSONResponse(
         {
@@ -156,6 +167,7 @@ async def login(payload: LoginRequest, request: Request, response: Response):
             "auth_method": "session",
             "session_subject": principal,
             "session_role": role,
+            "session_organization_id": organization_id,
             "session_ttl_seconds": max_age,
         }
     )
@@ -174,7 +186,12 @@ async def login(payload: LoginRequest, request: Request, response: Response):
         status="success",
         actor=principal,
         auth_method="session",
-        details={"username": principal, "role": role, "ttl_seconds": max_age},
+        details={
+            "username": principal,
+            "role": role,
+            "organization_id": organization_id,
+            "ttl_seconds": max_age,
+        },
     )
     return response
 
@@ -247,6 +264,7 @@ async def oidc_callback(
             nonce=str(flow["nonce"]),
         )
         role = map_claims_to_role(claims, config)
+        organization_id = map_claims_to_organization(claims, config)
     except OidcAuthorizationError as exc:
         audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "role_mapping_denied"})
         raise HTTPException(status_code=403, detail=str(exc)) from exc
@@ -271,6 +289,7 @@ async def oidc_callback(
         role=role,
         ttl_seconds=max_age,
         authn="oidc",
+        organization_id=organization_id,
     )
     response = RedirectResponse(str(flow.get("next") or "/"), status_code=303)
     response.set_cookie(
@@ -289,7 +308,11 @@ async def oidc_callback(
         status="success",
         actor=subject,
         auth_method="oidc",
-        details={"role": role, "ttl_seconds": max_age},
+        details={
+            "role": role,
+            "organization_id": organization_id,
+            "ttl_seconds": max_age,
+        },
     )
     return response
 

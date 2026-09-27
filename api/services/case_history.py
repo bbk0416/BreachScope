@@ -20,6 +20,11 @@ from .artifact_encryption import artifact_exists
 from .case_history_concurrency import case_history_locked
 from .case_history_integrity import read_index_fail_closed
 from .path_boundary import is_safe_managed_delete, validate_managed_work_dir
+from .organization_scope import (
+    configured_default_organization,
+    normalize_organization_id,
+    row_organization_id,
+)
 
 
 CASE_INDEX_ENV = "BS_CASE_HISTORY_PATH"
@@ -39,6 +44,7 @@ class CaseRecord:
     hosts: List[str]
     techniques: List[str]
     artifacts: Dict[str, bool]
+    organization_id: str = "default"
     title: str = "BreachScope Analysis"
     workflow_status: str = "new"
     assignee: str = ""
@@ -52,9 +58,22 @@ class CaseRecord:
 class CaseHistoryService:
     """JSON 기반 케이스 인덱스 관리."""
 
-    def __init__(self, index_path: Optional[Path] = None):
+    def __init__(
+        self,
+        index_path: Optional[Path] = None,
+        organization_id: str | None = None,
+    ):
         self.index_path = index_path or self.default_index_path()
+        self.organization_id = normalize_organization_id(
+            organization_id,
+            default=configured_default_organization(),
+        )
         self.index_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _row_in_scope(self, row: Dict[str, Any]) -> bool:
+        return row_organization_id(
+            row, default=configured_default_organization()
+        ) == self.organization_id
 
     @staticmethod
     def default_root() -> Path:
@@ -159,6 +178,7 @@ class CaseHistoryService:
             hosts=self._hosts_from_summary(summary),
             techniques=self._techniques_from_summary(summary),
             artifacts=self._artifact_flags(work_dir),
+            organization_id=self.organization_id,
             title=self._build_title(summary),
             workflow_status="new",
             assignee="",
@@ -169,7 +189,14 @@ class CaseHistoryService:
             updated_by="system",
         )
         data = self._read_index()
-        cases = [row for row in data.get("cases", []) if row.get("case_id") != record.case_id]
+        cases = [
+            row
+            for row in data.get("cases", [])
+            if not (
+                row.get("case_id") == record.case_id
+                and self._row_in_scope(row)
+            )
+        ]
         cases.append(asdict(record))
         data["cases"] = sorted(cases, key=lambda row: row.get("updated_at") or row.get("created_at") or "", reverse=True)
         self._write_index(data)
@@ -189,8 +216,16 @@ class CaseHistoryService:
     @case_history_locked
     def list_cases(self, limit: int = 50) -> List[Dict[str, Any]]:
         data = self._read_index()
-        rows = data.get("cases") or []
-        rows = sorted(rows, key=lambda row: row.get("updated_at") or row.get("created_at") or "", reverse=True)
+        rows = [
+            row
+            for row in (data.get("cases") or [])
+            if self._row_in_scope(row)
+        ]
+        rows = sorted(
+            rows,
+            key=lambda row: row.get("updated_at") or row.get("created_at") or "",
+            reverse=True,
+        )
         enriched = []
         for row in rows[: max(0, limit)]:
             item = self._with_workflow_defaults(row)
@@ -201,9 +236,33 @@ class CaseHistoryService:
         return enriched
 
     @case_history_locked
+    def list_all_cases_for_operations(self, limit: int = 1000) -> List[Dict[str, Any]]:
+        """Return deployment-wide case metadata for internal operational metrics only.
+
+        User-facing case APIs must use list_cases(), which enforces organization scope.
+        """
+        rows = sorted(
+            self._read_index().get("cases") or [],
+            key=lambda row: row.get("updated_at") or row.get("created_at") or "",
+            reverse=True,
+        )
+        enriched = []
+        for row in rows[: max(0, limit)]:
+            item = self._with_workflow_defaults(row)
+            work_dir = Path(str(item.get("work_dir") or ""))
+            item["exists"] = work_dir.exists()
+            item["artifacts"] = (
+                self._artifact_flags(work_dir)
+                if work_dir.exists()
+                else item.get("artifacts", {})
+            )
+            enriched.append(item)
+        return enriched
+
+    @case_history_locked
     def get_case(self, case_id: str) -> Dict[str, Any]:
         for row in self._read_index().get("cases") or []:
-            if row.get("case_id") == case_id:
+            if row.get("case_id") == case_id and self._row_in_scope(row):
                 item = self._with_workflow_defaults(row)
                 work_dir = Path(str(item.get("work_dir") or ""))
                 item["exists"] = work_dir.exists()
@@ -264,6 +323,9 @@ class CaseHistoryService:
 
     def _with_workflow_defaults(self, row: Dict[str, Any]) -> Dict[str, Any]:
         item = dict(row)
+        item["organization_id"] = row_organization_id(
+            item, default=configured_default_organization()
+        )
         item.setdefault("workflow_status", "new")
         item.setdefault("assignee", "")
         item["tags"] = self._normalize_tags(item.get("tags"))
@@ -299,7 +361,7 @@ class CaseHistoryService:
         found = False
         updated: Dict[str, Any] | None = None
         for i, row in enumerate(cases):
-            if row.get("case_id") != case_id:
+            if row.get("case_id") != case_id or not self._row_in_scope(row):
                 continue
             item = self._with_workflow_defaults(row)
             if workflow_status is not None:
@@ -340,7 +402,7 @@ class CaseHistoryService:
         cases = data.get("cases") or []
         updated: Dict[str, Any] | None = None
         for i, row in enumerate(cases):
-            if row.get("case_id") != case_id:
+            if row.get("case_id") != case_id or not self._row_in_scope(row):
                 continue
             item = self._with_workflow_defaults(row)
             clean = dict(metadata or {})
@@ -364,7 +426,7 @@ class CaseHistoryService:
         cases = data.get("cases") or []
         updated: Dict[str, Any] | None = None
         for i, row in enumerate(cases):
-            if row.get("case_id") != case_id:
+            if row.get("case_id") != case_id or not self._row_in_scope(row):
                 continue
             item = self._with_workflow_defaults(row)
             item["object_storage"] = None
@@ -389,7 +451,7 @@ class CaseHistoryService:
         cases = data.get("cases") or []
         updated: Dict[str, Any] | None = None
         for i, row in enumerate(cases):
-            if row.get("case_id") != case_id:
+            if row.get("case_id") != case_id or not self._row_in_scope(row):
                 continue
             item = self._with_workflow_defaults(row)
             remote = dict(item.get("object_storage") or {})
@@ -413,7 +475,11 @@ class CaseHistoryService:
     @case_history_locked
     def workflow_summary(self) -> Dict[str, Any]:
         """Return a compact board-style summary for the case queue."""
-        rows = [self._with_workflow_defaults(row) for row in self._read_index().get("cases") or []]
+        rows = [
+            self._with_workflow_defaults(row)
+            for row in self._read_index().get("cases") or []
+            if self._row_in_scope(row)
+        ]
         by_status: Dict[str, int] = {}
         by_assignee: Dict[str, int] = {}
         by_severity: Dict[str, int] = {}
@@ -453,7 +519,7 @@ class CaseHistoryService:
         target = None
         kept = []
         for row in cases:
-            if row.get("case_id") == case_id:
+            if row.get("case_id") == case_id and self._row_in_scope(row):
                 target = row
             else:
                 kept.append(row)
@@ -513,7 +579,13 @@ class CaseHistoryService:
         """
         keep_last = max(0, int(keep_last or 0))
         data = self._read_index()
-        rows = sorted(data.get("cases") or [], key=lambda row: row.get("updated_at") or row.get("created_at") or "", reverse=True)
+        all_rows = list(data.get("cases") or [])
+        other_rows = [row for row in all_rows if not self._row_in_scope(row)]
+        rows = sorted(
+            (row for row in all_rows if self._row_in_scope(row)),
+            key=lambda row: row.get("updated_at") or row.get("created_at") or "",
+            reverse=True,
+        )
         cutoff = None
         if older_than_days is not None:
             cutoff = datetime.now(timezone.utc) - timedelta(days=max(0, int(older_than_days)))
@@ -565,7 +637,11 @@ class CaseHistoryService:
             removed_case_records += 1
 
         if not dry_run:
-            data["cases"] = kept
+            data["cases"] = sorted(
+                other_rows + kept,
+                key=lambda row: row.get("updated_at") or row.get("created_at") or "",
+                reverse=True,
+            )
             self._write_index(data)
 
         return {

@@ -154,7 +154,7 @@ def test_delete_route_returns_conflict_when_evidence_delete_did_not_finish(monke
         def record(self, *args, **kwargs):
             return None
 
-    monkeypatch.setattr(cases_router, "_service", lambda: FakeService())
+    monkeypatch.setattr(cases_router, "_service", lambda request: FakeService())
     monkeypatch.setattr(cases_router, "AuditLogService", FakeAudit)
     request = Request(
         {

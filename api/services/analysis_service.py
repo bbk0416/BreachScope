@@ -134,6 +134,7 @@ class AnalysisService:
         collect_logs: Optional[str] = None,
         collect_hours: Optional[int] = None,
         work_dir: Optional[str] = None,
+        organization_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         로그 분석 실행
@@ -335,7 +336,12 @@ class AnalysisService:
 
             if report_data is not None and not cleanup_succeeded:
                 try:
-                    case_record = CaseHistoryService().register_case(work, report_data)
+                    history = (
+                        CaseHistoryService()
+                        if organization_id is None
+                        else CaseHistoryService(organization_id=organization_id)
+                    )
+                    case_record = history.register_case(work, report_data)
                 except Exception as e:
                     logger.warning(f"케이스 이력 저장 실패: {e}")
 

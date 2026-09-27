@@ -7,7 +7,7 @@ from typing import List, Optional
 import logging
 from api.services.upload_policy import UploadLimitError
 
-from api.rbac import ROLE_OPERATOR, require_roles
+from api.rbac import ROLE_OPERATOR, identity_from_request, require_roles
 from api.services.analysis_service import AnalysisService
 from api.services.artifact_encryption import ArtifactEncryptionError
 from api.services.audit_log import AuditLogService
@@ -50,6 +50,7 @@ async def analyze(
         require_roles(request, ROLE_OPERATOR)
 
     try:
+        identity = identity_from_request(request)
         result = await analysis_service.analyze(
             files=files,
             use_repo_rules=use_repo_rules,
@@ -67,6 +68,7 @@ async def analyze(
             collect_logs=collect_logs,
             collect_hours=collect_hours,
             work_dir=work_dir,
+            organization_id=identity.organization_id,
         )
         AuditLogService().record(
             "analysis.run",
@@ -97,6 +99,7 @@ async def analyze(
                         "encrypted_file_count", 0
                     )
                 ),
+                "organization_id": identity.organization_id,
             },
         )
         return result

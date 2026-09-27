@@ -18,6 +18,11 @@ from urllib.parse import urlparse
 import jwt
 from jwt import PyJWKClient
 
+from api.services.organization_scope import (
+    configured_default_organization,
+    normalize_organization_id,
+)
+
 
 OIDC_FLOW_COOKIE_NAME = "bs_oidc_flow"
 DEFAULT_FLOW_TTL_SECONDS = 10 * 60
@@ -59,6 +64,7 @@ class OidcConfig:
     redirect_uri: str
     scopes: tuple[str, ...]
     role_claim: str
+    organization_claim: str
     default_role: str
     role_values: Mapping[str, frozenset[str]]
     token_auth_method: str
@@ -81,6 +87,7 @@ def oidc_settings_present(env: Mapping[str, str] | None = None) -> bool:
             "BS_OIDC_CLIENT_ID",
             "BS_OIDC_CLIENT_SECRET",
             "BS_OIDC_REDIRECT_URI",
+            "BS_OIDC_ORGANIZATION_CLAIM",
             "BS_OIDC_DEFAULT_ROLE",
             "BS_OIDC_ADMIN_VALUES",
             "BS_OIDC_AUTHOR_VALUES",
@@ -148,6 +155,7 @@ def configured_oidc_config(env: Mapping[str, str] | None = None) -> OidcConfig:
         scopes = ("openid",) + scopes
 
     role_claim = _env("BS_OIDC_ROLE_CLAIM", env) or "groups"
+    organization_claim = _env("BS_OIDC_ORGANIZATION_CLAIM", env)
     default_role = (_env("BS_OIDC_DEFAULT_ROLE", env) or "").casefold()
     if default_role and default_role not in KNOWN_ROLES:
         raise OidcConfigurationError(
@@ -183,6 +191,7 @@ def configured_oidc_config(env: Mapping[str, str] | None = None) -> OidcConfig:
         redirect_uri=redirect_uri,
         scopes=scopes,
         role_claim=role_claim,
+        organization_claim=organization_claim,
         default_role=default_role,
         role_values=role_values,
         token_auth_method=token_auth_method,
@@ -485,3 +494,23 @@ def map_claims_to_role(claims: Mapping[str, Any], config: OidcConfig) -> str:
     raise OidcAuthorizationError(
         "OIDC identity does not map to a BreachScope role."
     )
+
+
+def map_claims_to_organization(
+    claims: Mapping[str, Any],
+    config: OidcConfig,
+    *,
+    env: Mapping[str, str] | None = None,
+) -> str:
+    """Map one OIDC identity to exactly one active BreachScope organization."""
+    if not config.organization_claim:
+        return configured_default_organization(env)
+    values = _claim_values(claims, config.organization_claim)
+    if len(values) != 1:
+        raise OidcAuthorizationError(
+            "OIDC organization claim must resolve to exactly one organization."
+        )
+    try:
+        return normalize_organization_id(next(iter(values)), default=None)
+    except ValueError as exc:
+        raise OidcAuthorizationError("OIDC organization claim is invalid.") from exc
