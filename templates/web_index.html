@@ -481,9 +481,46 @@
     }
 
     function refreshAuditLinks() {
-      if (auditCsvLink) auditCsvLink.href = withApiKey('/api/audit/export?file_type=csv');
-      if (auditJsonlLink) auditJsonlLink.href = withApiKey('/api/audit/export?file_type=jsonl');
+      if (auditCsvLink) auditCsvLink.href = '/api/audit/export?file_type=csv';
+      if (auditJsonlLink) auditJsonlLink.href = '/api/audit/export?file_type=jsonl';
     }
+
+    async function downloadAuditExport(fileType) {
+      const response = await authFetch('/api/audit/export?file_type=' + encodeURIComponent(fileType));
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.detail || payload.message || '감사 로그 다운로드 실패');
+      }
+      const blob = await response.blob();
+      const href = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = href;
+      anchor.download = fileType === 'csv'
+        ? 'breachscope-audit.csv'
+        : 'breachscope-audit.jsonl';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(href);
+    }
+
+    if (auditCsvLink) auditCsvLink.addEventListener('click', async (event) => {
+      event.preventDefault();
+      try {
+        await downloadAuditExport('csv');
+      } catch (error) {
+        authStatus.innerHTML = `감사 로그 다운로드 실패: ${escapeHtml(error.message || error)}`;
+      }
+    });
+
+    if (auditJsonlLink) auditJsonlLink.addEventListener('click', async (event) => {
+      event.preventDefault();
+      try {
+        await downloadAuditExport('jsonl');
+      } catch (error) {
+        authStatus.innerHTML = `감사 로그 다운로드 실패: ${escapeHtml(error.message || error)}`;
+      }
+    });
 
     function roleAllows(...roles) {
       return currentAuthRole === 'admin' || roles.includes(currentAuthRole);

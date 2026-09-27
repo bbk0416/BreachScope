@@ -113,7 +113,7 @@ BS_COOKIE_SECURE=1
 
 The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. If `BS_OIDC_ORGANIZATION_CLAIM` is configured, that claim must resolve to exactly one safe organization ID and is embedded in the signed local session. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group or organization changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
 
-Retained-case list/detail/workflow/delete/prune/report/object-storage API operations are scoped to the active organization. API-key clients may select the retained-case organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. This is not full tenant isolation: rule stores, audit-query visibility, and the S3 object-key namespace remain deployment-wide.
+Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. API-key clients may select the organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. This is not full tenant isolation: rule stores and the S3 object-key namespace remain deployment-wide, and organization-specific RBAC/SCIM policy is still future work.
 
 ## 5. API-key examples
 
@@ -121,7 +121,7 @@ Retained-case list/detail/workflow/delete/prune/report/object-storage API operat
 curl -H "X-API-Key: $BS_API_KEY" http://127.0.0.1:8000/api/cases
 curl -H "X-API-Key: $BS_API_KEY" -H "X-BreachScope-Organization: soc-blue" http://127.0.0.1:8000/api/cases
 curl -H "Authorization: Bearer $BS_API_KEY" http://127.0.0.1:8000/api/rules
-curl -H "X-API-Key: $BS_API_KEY" http://127.0.0.1:8000/api/audit?limit=20
+curl -H "X-API-Key: $BS_API_KEY" -H "X-BreachScope-Organization: soc-blue" http://127.0.0.1:8000/api/audit?limit=20
 
 # Browser-login status check
 curl http://127.0.0.1:8000/api/auth/status
