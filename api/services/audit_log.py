@@ -19,6 +19,11 @@ try:  # FastAPI is available in the web app, but keep the service importable in 
 except Exception:  # pragma: no cover - defensive fallback for unusual import contexts
     Request = Any  # type: ignore
 
+from api.services.organization_scope import (
+    ORGANIZATION_HEADER,
+    configured_default_organization,
+    normalize_organization_id,
+)
 from api.security import (
     SESSION_COOKIE_NAME,
     auth_is_enabled,
@@ -85,17 +90,29 @@ def _hash_principal(value: str) -> str:
 class AuditActor:
     subject: str
     method: str
+    organization_id: str
 
 
 def actor_from_request(request: Request | None) -> AuditActor:
     """Resolve a safe actor label from an API key, session cookie, or local demo mode."""
     if request is None:
-        return AuditActor(subject="system", method="system")
+        return AuditActor(
+            subject="system",
+            method="system",
+            organization_id=configured_default_organization(),
+        )
 
     authenticated, method = request_is_authenticated(request)
     if method == "session":
         payload = verify_session_token(request.cookies.get(SESSION_COOKIE_NAME)) or {}
-        return AuditActor(subject=str(payload.get("sub") or "admin"), method="session")
+        return AuditActor(
+            subject=str(payload.get("sub") or "admin"),
+            method="session",
+            organization_id=normalize_organization_id(
+                payload.get("org"),
+                default=configured_default_organization(),
+            ),
+        )
 
     if method == "api_key" and authenticated:
         supplied = request.headers.get("x-api-key", "").strip()
@@ -105,11 +122,30 @@ def actor_from_request(request: Request | None) -> AuditActor:
                 supplied = auth[7:].strip()
         if not supplied:
             supplied = ""
-        return AuditActor(subject=f"api_key:{_hash_principal(supplied or configured_api_key())}", method="api_key")
+        try:
+            organization_id = normalize_organization_id(
+                request.headers.get(ORGANIZATION_HEADER),
+                default=configured_default_organization(),
+            )
+        except ValueError:
+            organization_id = "invalid"
+        return AuditActor(
+            subject=f"api_key:{_hash_principal(supplied or configured_api_key())}",
+            method="api_key",
+            organization_id=organization_id,
+        )
 
     if not auth_is_enabled():
-        return AuditActor(subject="local-demo", method="none")
-    return AuditActor(subject="unauthenticated", method="none")
+        return AuditActor(
+            subject="local-demo",
+            method="none",
+            organization_id=configured_default_organization(),
+        )
+    return AuditActor(
+        subject="unauthenticated",
+        method="none",
+        organization_id=configured_default_organization(),
+    )
 
 
 def _client_ip(request: Request | None) -> str | None:
@@ -162,6 +198,7 @@ class AuditLogService:
             "status": str(status),
             "actor": actor or resolved.subject,
             "auth_method": auth_method or resolved.method,
+            "organization_id": resolved.organization_id,
             "case_id": case_id,
             "target": target,
             "request": _request_meta(request),
@@ -220,6 +257,7 @@ class AuditLogService:
             "status",
             "actor",
             "auth_method",
+            "organization_id",
             "case_id",
             "target",
             "ip",
@@ -239,6 +277,7 @@ class AuditLogService:
                     "status": row.get("status"),
                     "actor": row.get("actor"),
                     "auth_method": row.get("auth_method"),
+                    "organization_id": row.get("organization_id"),
                     "case_id": row.get("case_id"),
                     "target": row.get("target"),
                     "ip": req.get("ip"),

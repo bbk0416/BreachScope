@@ -63,6 +63,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_OIDC_REDIRECT_URI` | Exact registered callback URI, usually `https://host/api/auth/oidc/callback` | unset |
 | `BS_OIDC_SCOPES` | Space-separated scopes; `openid` is always enforced. | `openid profile email` |
 | `BS_OIDC_ROLE_CLAIM` | Claim path used for role mapping. Dotted paths are supported. | `groups` |
+| `BS_OIDC_ORGANIZATION_CLAIM` | Optional claim path that must resolve to exactly one organization ID for the signed browser session. | unset |
 | `BS_OIDC_DEFAULT_ROLE` | Optional fallback role when no claim value matches. Blank is fail-closed. | unset |
 | `BS_OIDC_ADMIN_VALUES` | Exact comma-separated claim values mapped to admin. | unset |
 | `BS_OIDC_AUTHOR_VALUES` | Exact comma-separated claim values mapped to author. | unset |
@@ -75,6 +76,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_DISABLE_DOCS` | Disable `/api/docs` and `/api/redoc` when `1` | `0` |
 | `BS_CASES_ROOT` | Case artifact root directory | `~/.breachscope/cases` |
 | `BS_CASE_HISTORY_PATH` | Case metadata JSON path | `~/.breachscope/case_history.json` |
+| `BS_DEFAULT_ORGANIZATION_ID` | Default retained-case organization for local/password sessions and legacy case rows. | `default` |
 | `BS_AUDIT_ENABLED` | Enable append-only JSONL audit trail | `1` |
 | `BS_AUDIT_LOG_PATH` | Audit JSONL path | `~/.breachscope/audit.jsonl` |
 | `BS_RULE_TUNING_PATH` | Versioned rule-tuning profile JSON path | `~/.breachscope/rule_tuning_profiles.json` |
@@ -100,6 +102,7 @@ BS_OIDC_CLIENT_ID=breachscope
 BS_OIDC_CLIENT_SECRET=<provider-client-secret>
 BS_OIDC_REDIRECT_URI=https://breachscope.example.com/api/auth/oidc/callback
 BS_OIDC_ROLE_CLAIM=groups
+BS_OIDC_ORGANIZATION_CLAIM=tenant.id
 BS_OIDC_ADMIN_VALUES=breachscope-admins
 BS_OIDC_AUTHOR_VALUES=breachscope-authors
 BS_OIDC_REVIEWER_VALUES=breachscope-reviewers
@@ -108,12 +111,15 @@ BS_SESSION_SECRET=<separate-32+-character-random-secret>
 BS_COOKIE_SECURE=1
 ```
 
-The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
+The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. If `BS_OIDC_ORGANIZATION_CLAIM` is configured, that claim must resolve to exactly one safe organization ID and is embedded in the signed local session. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group or organization changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
+
+Retained-case list/detail/workflow/delete/prune/report/object-storage API operations are scoped to the active organization. API-key clients may select the retained-case organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. This is not full tenant isolation: rule stores, audit-query visibility, and the S3 object-key namespace remain deployment-wide.
 
 ## 5. API-key examples
 
 ```bash
 curl -H "X-API-Key: $BS_API_KEY" http://127.0.0.1:8000/api/cases
+curl -H "X-API-Key: $BS_API_KEY" -H "X-BreachScope-Organization: soc-blue" http://127.0.0.1:8000/api/cases
 curl -H "Authorization: Bearer $BS_API_KEY" http://127.0.0.1:8000/api/rules
 curl -H "X-API-Key: $BS_API_KEY" http://127.0.0.1:8000/api/audit?limit=20
 

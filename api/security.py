@@ -19,6 +19,10 @@ from api.services.oidc_auth import (
     oidc_role_is_configured,
     oidc_settings_present,
 )
+from api.services.organization_scope import (
+    configured_default_organization,
+    normalize_organization_id,
+)
 
 
 SESSION_COOKIE_NAME = "bs_session"
@@ -206,6 +210,7 @@ def create_session_token(
     now: int | None = None,
     role: str | None = None,
     authn: str | None = None,
+    organization_id: str | None = None,
 ) -> str:
     """Create a compact HMAC-signed session token.
 
@@ -218,6 +223,10 @@ def create_session_token(
         "sub": subject,
         "role": str(role or subject or "admin").strip().lower(),
         "authn": str(authn or "password").strip().lower(),
+        "org": normalize_organization_id(
+            organization_id,
+            default=configured_default_organization(),
+        ),
         "iat": issued_at,
         "exp": issued_at + ttl,
         "typ": "breachscope-session",

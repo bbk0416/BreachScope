@@ -541,7 +541,7 @@ def test_api_replication_rolls_back_remote_when_case_index_persist_fails(
     monkeypatch.setattr(
         cases_router_module,
         "_service",
-        lambda: FailingHistory(),
+        lambda request: FailingHistory(),
     )
     operator = _rbac_client(tmp_path, monkeypatch, "operator")
 

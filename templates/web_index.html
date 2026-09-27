@@ -522,7 +522,10 @@
           : 'API Key';
         currentAuthRole = payload.auth_method === 'api_key' ? 'admin' : (payload.session_role || 'admin');
         applyRoleUi();
-        authStatus.innerHTML = '인증됨: ' + escapeHtml(via) + ' · role=' + escapeHtml(currentAuthRole);
+        const organizationId = payload.session_organization_id || payload.default_organization_id || 'default';
+        authStatus.innerHTML = '인증됨: ' + escapeHtml(via)
+          + ' · role=' + escapeHtml(currentAuthRole)
+          + ' · org=' + escapeHtml(organizationId);
       } else if (payload.password_login_enabled || payload.oidc_login_enabled) {
         currentAuthRole = 'none';
         applyRoleUi();

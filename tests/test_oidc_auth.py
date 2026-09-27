@@ -21,6 +21,7 @@ OIDC_ENV_NAMES = (
     "BS_OIDC_REDIRECT_URI",
     "BS_OIDC_SCOPES",
     "BS_OIDC_ROLE_CLAIM",
+    "BS_OIDC_ORGANIZATION_CLAIM",
     "BS_OIDC_DEFAULT_ROLE",
     "BS_OIDC_ADMIN_VALUES",
     "BS_OIDC_AUTHOR_VALUES",
@@ -150,6 +151,29 @@ def test_admin_mapping_wins_over_other_mapped_roles(monkeypatch, tmp_path):
     ) == "admin"
 
 
+def test_oidc_organization_claim_requires_exactly_one_safe_value(monkeypatch, tmp_path):
+    _configure_oidc(monkeypatch, tmp_path)
+    monkeypatch.setenv("BS_OIDC_ORGANIZATION_CLAIM", "tenant.id")
+    config = oidc_auth.configured_oidc_config()
+
+    assert oidc_auth.map_claims_to_organization(
+        {"tenant": {"id": "ACME-Blue"}},
+        config,
+    ) == "acme-blue"
+
+    with pytest.raises(oidc_auth.OidcAuthorizationError):
+        oidc_auth.map_claims_to_organization(
+            {"tenant": {"id": ["org-a", "org-b"]}},
+            config,
+        )
+
+    with pytest.raises(oidc_auth.OidcAuthorizationError):
+        oidc_auth.map_claims_to_organization(
+            {"tenant": {"id": "../escape"}},
+            config,
+        )
+
+
 def test_nested_role_claim_is_supported(monkeypatch, tmp_path):
     _configure_oidc(monkeypatch, tmp_path)
     monkeypatch.setenv("BS_OIDC_ROLE_CLAIM", "realm_access.roles")
@@ -204,6 +228,7 @@ def test_id_token_rejects_hmac_algorithm_before_jwks_fetch(monkeypatch, tmp_path
 
 def test_oidc_login_and_callback_issue_existing_breachscope_session(monkeypatch, tmp_path):
     client = _client(monkeypatch, tmp_path)
+    monkeypatch.setenv("BS_OIDC_ORGANIZATION_CLAIM", "tenant.id")
     monkeypatch.setattr(auth, "fetch_discovery", lambda config: _metadata())
     monkeypatch.setattr(
         auth,
@@ -216,6 +241,7 @@ def test_oidc_login_and_callback_issue_existing_breachscope_session(monkeypatch,
         lambda config, metadata, **kwargs: {
             "sub": "subject-123",
             "groups": ["breachscope-operators"],
+            "tenant": {"id": "SOC-Blue"},
             "exp": int(time.time()) + 600,
         },
     )
@@ -241,6 +267,7 @@ def test_oidc_login_and_callback_issue_existing_breachscope_session(monkeypatch,
     assert body["session_authn"] == "oidc"
     assert body["session_role"] == "operator"
     assert body["session_subject"] == "oidc:subject-123"
+    assert body["session_organization_id"] == "soc-blue"
 
 
 def test_oidc_callback_rejects_state_mismatch(monkeypatch, tmp_path):

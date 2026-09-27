@@ -228,7 +228,7 @@ def _check_scenarios() -> Check:
 
 
 def metrics_snapshot() -> dict[str, Any]:
-    cases = CaseHistoryService().list_cases(limit=1000)
+    cases = CaseHistoryService().list_all_cases_for_operations(limit=1000)
     backups = BackupService().list_backups(limit=1000)
     audit_path = audit_log_path()
     audit_events = _safe_count_file_lines(audit_path)

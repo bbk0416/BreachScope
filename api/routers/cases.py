@@ -20,7 +20,7 @@ from api.services.object_storage import (
     ObjectStorageError,
     ObjectStorageService,
 )
-from api.rbac import ROLE_OPERATOR, require_roles
+from api.rbac import ROLE_OPERATOR, identity_from_request, require_roles
 
 router = APIRouter()
 
@@ -40,8 +40,10 @@ class CaseWorkflowUpdate(BaseModel):
     title: str | None = Field(None, max_length=180)
 
 
-def _service() -> CaseHistoryService:
-    return CaseHistoryService()
+def _service(request: Request) -> CaseHistoryService:
+    return CaseHistoryService(
+        organization_id=identity_from_request(request).organization_id
+    )
 
 
 def _object_storage_service() -> ObjectStorageService:
@@ -49,9 +51,12 @@ def _object_storage_service() -> ObjectStorageService:
 
 
 @router.get("/cases", response_class=JSONResponse)
-async def list_cases(limit: int = Query(20, ge=1, le=100)):
+async def list_cases(
+    request: Request,
+    limit: int = Query(20, ge=1, le=100),
+):
     """최근 분석 케이스 목록을 반환합니다."""
-    return {"success": True, "cases": _service().list_cases(limit=limit)}
+    return {"success": True, "cases": _service(request).list_cases(limit=limit)}
 
 
 @router.post("/cases/prune", response_class=JSONResponse)
@@ -63,7 +68,7 @@ async def prune_cases(
     remove_files: bool = Query(True),
 ):
     """오래된 케이스를 정리합니다. 기본은 dry-run으로 후보만 반환합니다."""
-    result = _service().prune_cases(
+    result = _service(request).prune_cases(
         keep_last=keep_last,
         older_than_days=older_than_days,
         dry_run=dry_run,
@@ -88,9 +93,9 @@ async def prune_cases(
 
 
 @router.get("/cases/workflow/summary", response_class=JSONResponse)
-async def workflow_summary():
+async def workflow_summary(request: Request):
     """케이스 워크플로 보드 요약을 반환합니다."""
-    return {"success": True, "summary": _service().workflow_summary()}
+    return {"success": True, "summary": _service(request).workflow_summary()}
 
 
 @router.patch("/cases/{case_id}/workflow", response_class=JSONResponse)
@@ -98,7 +103,7 @@ async def update_case_workflow(case_id: str, payload: CaseWorkflowUpdate, reques
     """케이스 담당자/상태/태그/분석 메모를 수정합니다."""
     actor = actor_from_request(request)
     try:
-        updated = _service().update_case_workflow(
+        updated = _service(request).update_case_workflow(
             case_id,
             workflow_status=payload.workflow_status,
             assignee=payload.assignee,
@@ -134,7 +139,7 @@ async def update_case_workflow(case_id: str, payload: CaseWorkflowUpdate, reques
 async def get_case(case_id: str, request: Request):
     """단일 케이스 메타데이터와 대시보드 미리보기를 반환합니다."""
     try:
-        case = _service().get_case(case_id)
+        case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
@@ -161,7 +166,7 @@ async def get_case_report(
 ):
     """케이스 ID 기준으로 산출물을 다운로드합니다. 파일 시스템 경로를 URL에 노출하지 않습니다."""
     try:
-        case = _service().get_case(case_id)
+        case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
@@ -257,7 +262,7 @@ async def replicate_case_to_object_storage(
 ):
     identity = require_roles(request, ROLE_OPERATOR)
     try:
-        case = _service().get_case(case_id)
+        case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
@@ -289,7 +294,7 @@ async def replicate_case_to_object_storage(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     try:
-        updated = _service().set_object_storage_state(
+        updated = _service(request).set_object_storage_state(
             case_id,
             remote,
             updated_by=identity.subject,
@@ -347,7 +352,7 @@ async def restore_case_from_object_storage(
 ):
     identity = require_roles(request, ROLE_OPERATOR)
     try:
-        case = _service().get_case(case_id)
+        case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
@@ -372,7 +377,7 @@ async def restore_case_from_object_storage(
             remote,
             overwrite=overwrite,
         )
-        _service().mark_object_storage_restored(
+        _service(request).mark_object_storage_restored(
             case_id,
             restored_at=str(result.get("restored_at") or ""),
             restored_by=identity.subject,
@@ -411,7 +416,7 @@ async def delete_case_object_storage_replica(
 ):
     identity = require_roles(request, ROLE_OPERATOR)
     try:
-        case = _service().get_case(case_id)
+        case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
@@ -423,7 +428,7 @@ async def delete_case_object_storage_replica(
         )
 
     if forget:
-        _service().clear_object_storage_state(case_id)
+        _service(request).clear_object_storage_state(case_id)
         result = {
             "forgotten": True,
             "remote_deleted": False,
@@ -443,7 +448,7 @@ async def delete_case_object_storage_replica(
             case_id,
             remote,
         )
-        _service().clear_object_storage_state(case_id)
+        _service(request).clear_object_storage_state(case_id)
     except ObjectStorageError as exc:
         AuditLogService().record(
             "case.object_storage.delete",
@@ -470,7 +475,7 @@ async def delete_case_object_storage_replica(
 async def delete_case(case_id: str, request: Request, remove_files: bool = Query(True)):
     """케이스 이력에서 제거합니다. 안전한 작업 디렉토리만 파일까지 삭제합니다."""
     try:
-        result = _service().delete_case(case_id, remove_files=remove_files)
+        result = _service(request).delete_case(case_id, remove_files=remove_files)
     except KeyError:
         AuditLogService().record("case.delete", request=request, status="failure", case_id=case_id, details={"reason": "not_found"})
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
