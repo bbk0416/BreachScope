@@ -20,6 +20,10 @@ from api.services.artifact_encryption import (
     validate_artifact_encryption_key,
     verify_artifact,
 )
+from api.services.organization_scope import (
+    configured_default_organization,
+    normalize_organization_id,
+)
 from api.services.path_boundary import validate_managed_work_dir
 
 
@@ -29,7 +33,9 @@ OBJECT_STORAGE_PREFIX_ENV = "BS_OBJECT_STORAGE_PREFIX"
 OBJECT_STORAGE_REGION_ENV = "BS_OBJECT_STORAGE_REGION"
 OBJECT_STORAGE_ENDPOINT_ENV = "BS_OBJECT_STORAGE_ENDPOINT_URL"
 
-OBJECT_STORAGE_SCHEMA = "breachscope.case-object-storage.v1"
+LEGACY_OBJECT_STORAGE_SCHEMA = "breachscope.case-object-storage.v1"
+OBJECT_STORAGE_SCHEMA = "breachscope.case-object-storage.v2"
+OBJECT_STORAGE_NAMESPACE_VERSION = 2
 DEFAULT_PROVIDER = "s3"
 DEFAULT_PREFIX = "breachscope/cases"
 _CASE_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,160}$")
@@ -133,6 +139,19 @@ def _safe_case_id(case_id: str) -> str:
     return value
 
 
+def _safe_organization_id(
+    value: object | None,
+    *,
+    default: str | None,
+) -> str:
+    try:
+        return normalize_organization_id(value, default=default)
+    except ValueError as exc:
+        raise ObjectStorageError(
+            "Invalid organization_id for object storage."
+        ) from exc
+
+
 def _safe_relative_path(value: str) -> PurePosixPath:
     rel = PurePosixPath(str(value or ""))
     if rel.is_absolute() or not rel.parts:
@@ -142,8 +161,20 @@ def _safe_relative_path(value: str) -> PurePosixPath:
     return rel
 
 
-def _case_prefix(config: ObjectStorageConfig, case_id: str) -> str:
+def _legacy_case_prefix(config: ObjectStorageConfig, case_id: str) -> str:
     return f"{config.prefix}/{_safe_case_id(case_id)}"
+
+
+def _case_prefix(
+    config: ObjectStorageConfig,
+    case_id: str,
+    organization_id: str,
+) -> str:
+    organization = _safe_organization_id(
+        organization_id,
+        default=None,
+    )
+    return f"{config.prefix}/orgs/{organization}/{_safe_case_id(case_id)}"
 
 
 def _client(config: ObjectStorageConfig):
@@ -198,15 +229,29 @@ class ObjectStorageService:
             raise ObjectStorageError("No encrypted case artifacts were found.")
         return files
 
-    def replicate_case(self, case_id: str, work_dir: str | Path) -> dict[str, Any]:
+    def replicate_case(
+        self,
+        case_id: str,
+        work_dir: str | Path,
+        *,
+        organization_id: str | None = None,
+    ) -> dict[str, Any]:
         case_id = _safe_case_id(case_id)
+        organization = _safe_organization_id(
+            organization_id,
+            default=configured_default_organization(),
+        )
         root = validate_managed_work_dir(
             work_dir,
             allow_temp=True,
             must_exist=True,
         )
         files = self._encrypted_files(root)
-        case_prefix = _case_prefix(self.config, case_id)
+        case_prefix = _case_prefix(
+            self.config,
+            case_id,
+            organization,
+        )
 
         manifest_files: list[dict[str, Any]] = []
         uploaded_keys: list[str] = []
@@ -236,6 +281,8 @@ class ObjectStorageService:
             replicated_at = _now_iso()
             manifest = {
                 "schema": OBJECT_STORAGE_SCHEMA,
+                "namespace_version": OBJECT_STORAGE_NAMESPACE_VERSION,
+                "organization_id": organization,
                 "case_id": case_id,
                 "provider": self.config.provider,
                 "bucket": self.config.bucket,
@@ -281,6 +328,8 @@ class ObjectStorageService:
         return {
             "provider": self.config.provider,
             "bucket": self.config.bucket,
+            "namespace_version": OBJECT_STORAGE_NAMESPACE_VERSION,
+            "organization_id": organization,
             "case_prefix": case_prefix,
             "manifest_key": manifest_key,
             "manifest_sha256": _sha256_bytes(manifest_bytes),
@@ -294,15 +343,50 @@ class ObjectStorageService:
         self,
         case_id: str,
         remote: dict[str, Any],
-    ) -> tuple[dict[str, Any], bytes]:
+        *,
+        organization_id: str | None = None,
+    ) -> tuple[dict[str, Any], bytes, str]:
         case_id = _safe_case_id(case_id)
+        requested_organization = _safe_organization_id(
+            organization_id,
+            default=configured_default_organization(),
+        )
         if str(remote.get("provider") or "") != self.config.provider:
             raise ObjectStorageError("Recorded object-storage provider mismatch.")
         if str(remote.get("bucket") or "") != self.config.bucket:
             raise ObjectStorageError("Recorded object-storage bucket mismatch.")
 
+        recorded_organization_raw = remote.get("organization_id")
+        if recorded_organization_raw is None:
+            if requested_organization != configured_default_organization():
+                raise ObjectStorageError(
+                    "Legacy remote replica belongs to the default organization."
+                )
+            expected_prefix = _legacy_case_prefix(self.config, case_id)
+            expected_schema = LEGACY_OBJECT_STORAGE_SCHEMA
+            namespace = "legacy-default"
+        else:
+            recorded_organization = _safe_organization_id(
+                recorded_organization_raw,
+                default=None,
+            )
+            if recorded_organization != requested_organization:
+                raise ObjectStorageError(
+                    "Recorded object-storage organization mismatch."
+                )
+            expected_prefix = _case_prefix(
+                self.config,
+                case_id,
+                recorded_organization,
+            )
+            expected_schema = OBJECT_STORAGE_SCHEMA
+            namespace = "organization"
+
+        recorded_prefix = str(remote.get("case_prefix") or "").strip()
+        if recorded_prefix and recorded_prefix != expected_prefix:
+            raise ObjectStorageError("Recorded object-storage case prefix is invalid.")
+
         manifest_key = str(remote.get("manifest_key") or "").strip()
-        expected_prefix = _case_prefix(self.config, case_id)
         if manifest_key != f"{expected_prefix}/case_manifest.json":
             raise ObjectStorageError("Recorded object-storage manifest key is invalid.")
 
@@ -328,7 +412,7 @@ class ObjectStorageService:
             raise ObjectStorageError("Remote case manifest JSON is invalid.") from exc
         if not isinstance(manifest, dict):
             raise ObjectStorageError("Remote case manifest must be an object.")
-        if manifest.get("schema") != OBJECT_STORAGE_SCHEMA:
+        if manifest.get("schema") != expected_schema:
             raise ObjectStorageError("Unsupported remote case manifest schema.")
         if manifest.get("case_id") != case_id:
             raise ObjectStorageError("Remote case manifest case_id mismatch.")
@@ -336,16 +420,31 @@ class ObjectStorageService:
             raise ObjectStorageError("Remote case manifest bucket mismatch.")
         if manifest.get("case_prefix") != expected_prefix:
             raise ObjectStorageError("Remote case manifest prefix mismatch.")
+        if namespace == "organization":
+            if manifest.get("namespace_version") != OBJECT_STORAGE_NAMESPACE_VERSION:
+                raise ObjectStorageError(
+                    "Remote case manifest namespace version mismatch."
+                )
+            if manifest.get("organization_id") != requested_organization:
+                raise ObjectStorageError(
+                    "Remote case manifest organization mismatch."
+                )
         if manifest.get("client_side_encryption") != "AES-256-GCM":
             raise ObjectStorageError("Remote case is not client-side encrypted.")
-        return manifest, manifest_bytes
+        return manifest, manifest_bytes, expected_prefix
 
     def delete_replica(
         self,
         case_id: str,
         remote: dict[str, Any],
+        *,
+        organization_id: str | None = None,
     ) -> dict[str, Any]:
-        manifest, _ = self._load_manifest(case_id, remote)
+        manifest, _, expected_prefix = self._load_manifest(
+            case_id,
+            remote,
+            organization_id=organization_id,
+        )
         rows = manifest.get("files")
         if not isinstance(rows, list):
             raise ObjectStorageError(
@@ -358,9 +457,7 @@ class ObjectStorageService:
                     "Remote case manifest contains an invalid file row."
                 )
             rel = _safe_relative_path(str(row.get("path") or ""))
-            expected_key = (
-                f"{_case_prefix(self.config, case_id)}/files/{rel.as_posix()}"
-            )
+            expected_key = f"{expected_prefix}/files/{rel.as_posix()}"
             if row.get("object_key") != expected_key:
                 raise ObjectStorageError(
                     "Remote case manifest object key mismatch."
@@ -384,7 +481,7 @@ class ObjectStorageService:
         return {
             "provider": self.config.provider,
             "bucket": self.config.bucket,
-            "case_prefix": _case_prefix(self.config, case_id),
+            "case_prefix": expected_prefix,
             "deleted_at": _now_iso(),
             "deleted_object_count": deleted,
         }
@@ -396,6 +493,7 @@ class ObjectStorageService:
         remote: dict[str, Any],
         *,
         overwrite: bool = False,
+        organization_id: str | None = None,
     ) -> dict[str, Any]:
         if not artifact_encryption_enabled():
             raise ObjectStorageError(
@@ -414,7 +512,11 @@ class ObjectStorageService:
                 "Restore target already contains files; set overwrite=true explicitly."
             )
 
-        manifest, _ = self._load_manifest(case_id, remote)
+        manifest, _, expected_prefix = self._load_manifest(
+            case_id,
+            remote,
+            organization_id=organization_id,
+        )
         rows = manifest.get("files")
         if not isinstance(rows, list) or not rows:
             raise ObjectStorageError("Remote case manifest contains no files.")
@@ -440,9 +542,7 @@ class ObjectStorageService:
                     raise ObjectStorageError(
                         "Remote case manifest contains a plaintext artifact."
                     )
-                expected_key = (
-                    f"{_case_prefix(self.config, case_id)}/files/{rel.as_posix()}"
-                )
+                expected_key = f"{expected_prefix}/files/{rel.as_posix()}"
                 if row.get("object_key") != expected_key:
                     raise ObjectStorageError(
                         "Remote case manifest object key mismatch."
@@ -502,7 +602,7 @@ class ObjectStorageService:
         return {
             "provider": self.config.provider,
             "bucket": self.config.bucket,
-            "case_prefix": _case_prefix(self.config, case_id),
+            "case_prefix": expected_prefix,
             "restored_at": _now_iso(),
             "file_count": len(restored_files),
             "target_dir": str(target),
@@ -511,7 +611,9 @@ class ObjectStorageService:
 
 
 __all__ = [
+    "LEGACY_OBJECT_STORAGE_SCHEMA",
     "OBJECT_STORAGE_SCHEMA",
+    "OBJECT_STORAGE_NAMESPACE_VERSION",
     "ObjectStorageConfig",
     "ObjectStorageError",
     "ObjectStorageService",
