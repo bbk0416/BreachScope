@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import io
 import json
 import shutil
@@ -15,6 +16,9 @@ from api.security import SESSION_COOKIE_NAME, create_session_token
 from api.services.artifact_encryption import encrypt_tree, read_artifact_bytes
 from api.services.case_history import CaseHistoryService
 from api.services.object_storage import (
+    LEGACY_OBJECT_STORAGE_SCHEMA,
+    OBJECT_STORAGE_NAMESPACE_VERSION,
+    OBJECT_STORAGE_SCHEMA,
     ObjectStorageConfig,
     ObjectStorageError,
     ObjectStorageService,
@@ -284,16 +288,28 @@ class StubObjectStorageService:
         self.replicated: list[str] = []
         self.restored: list[str] = []
         self.deleted: list[str] = []
+        self.replicated_organizations: list[str] = []
+        self.restored_organizations: list[str] = []
+        self.deleted_organizations: list[str] = []
 
-    def replicate_case(self, case_id: str, work_dir: str):
+    def replicate_case(
+        self,
+        case_id: str,
+        work_dir: str,
+        *,
+        organization_id: str | None = None,
+    ):
         self.replicated.append(case_id)
+        organization = organization_id or "default"
+        self.replicated_organizations.append(organization)
+        case_prefix = f"breachscope/cases/orgs/{organization}/{case_id}"
         return {
             "provider": "s3",
             "bucket": "breachscope-test",
-            "case_prefix": f"breachscope/cases/{case_id}",
-            "manifest_key": (
-                f"breachscope/cases/{case_id}/case_manifest.json"
-            ),
+            "namespace_version": 2,
+            "organization_id": organization,
+            "case_prefix": case_prefix,
+            "manifest_key": f"{case_prefix}/case_manifest.json",
             "manifest_sha256": "b" * 64,
             "replicated_at": "2026-09-27T02:00:00Z",
             "file_count": 3,
@@ -308,8 +324,10 @@ class StubObjectStorageService:
         remote: dict,
         *,
         overwrite: bool = False,
+        organization_id: str | None = None,
     ):
         self.restored.append(case_id)
+        self.restored_organizations.append(organization_id or "default")
         return {
             "provider": "s3",
             "bucket": "breachscope-test",
@@ -320,8 +338,15 @@ class StubObjectStorageService:
             "verified": True,
         }
 
-    def delete_replica(self, case_id: str, remote: dict):
+    def delete_replica(
+        self,
+        case_id: str,
+        remote: dict,
+        *,
+        organization_id: str | None = None,
+    ):
         self.deleted.append(case_id)
+        self.deleted_organizations.append(organization_id or "default")
         return {
             "provider": "s3",
             "bucket": "breachscope-test",
@@ -553,3 +578,278 @@ def test_api_replication_rolls_back_remote_when_case_index_persist_fails(
     assert "되돌렸습니다" in response.json()["detail"]
     assert stub_storage.replicated == ["case-persist-fail"]
     assert stub_storage.deleted == ["case-persist-fail"]
+
+
+def _legacy_replica(
+    service: ObjectStorageService,
+    fake: FakeS3,
+    case_id: str,
+    work: Path,
+) -> dict:
+    """Convert one freshly uploaded default-org v2 replica into a legacy v1 layout."""
+    remote = service.replicate_case(
+        case_id,
+        work,
+        organization_id="default",
+    )
+    manifest_bytes = fake.objects[(_config().bucket, remote["manifest_key"])]
+    manifest = json.loads(manifest_bytes.decode("utf-8"))
+    legacy_prefix = f"breachscope/cases/{case_id}"
+
+    legacy_files = []
+    for row in manifest["files"]:
+        old_key = row["object_key"]
+        rel = row["path"]
+        new_key = f"{legacy_prefix}/files/{rel}"
+        fake.objects[(_config().bucket, new_key)] = fake.objects[
+            (_config().bucket, old_key)
+        ]
+        legacy_row = dict(row)
+        legacy_row["object_key"] = new_key
+        legacy_files.append(legacy_row)
+
+    legacy_manifest = dict(manifest)
+    legacy_manifest["schema"] = LEGACY_OBJECT_STORAGE_SCHEMA
+    legacy_manifest.pop("namespace_version", None)
+    legacy_manifest.pop("organization_id", None)
+    legacy_manifest["case_prefix"] = legacy_prefix
+    legacy_manifest["files"] = legacy_files
+    legacy_manifest_bytes = (
+        json.dumps(
+            legacy_manifest,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        + b"\n"
+    )
+    legacy_manifest_key = f"{legacy_prefix}/case_manifest.json"
+    fake.objects[(_config().bucket, legacy_manifest_key)] = legacy_manifest_bytes
+
+    for key in list(fake.objects):
+        bucket, object_key = key
+        if bucket == _config().bucket and object_key.startswith(
+            remote["case_prefix"] + "/"
+        ):
+            del fake.objects[key]
+
+    return {
+        "provider": "s3",
+        "bucket": _config().bucket,
+        "case_prefix": legacy_prefix,
+        "manifest_key": legacy_manifest_key,
+        "manifest_sha256": hashlib.sha256(legacy_manifest_bytes).hexdigest(),
+        "replicated_at": remote["replicated_at"],
+        "file_count": remote["file_count"],
+        "total_bytes": remote["total_bytes"],
+        "client_side_encryption": "AES-256-GCM",
+    }
+
+
+def test_object_storage_namespace_separates_same_case_id_between_organizations(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(tmp_path, monkeypatch, "org-namespace-case")
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+
+    remote_a = service.replicate_case(
+        "case-shared",
+        work,
+        organization_id="org-a",
+    )
+    remote_b = service.replicate_case(
+        "case-shared",
+        work,
+        organization_id="org-b",
+    )
+
+    assert remote_a["namespace_version"] == OBJECT_STORAGE_NAMESPACE_VERSION
+    assert remote_a["organization_id"] == "org-a"
+    assert remote_b["organization_id"] == "org-b"
+    assert remote_a["case_prefix"] == "breachscope/cases/orgs/org-a/case-shared"
+    assert remote_b["case_prefix"] == "breachscope/cases/orgs/org-b/case-shared"
+    assert remote_a["manifest_key"] != remote_b["manifest_key"]
+
+    manifest_a = json.loads(
+        fake.objects[(_config().bucket, remote_a["manifest_key"])].decode("utf-8")
+    )
+    manifest_b = json.loads(
+        fake.objects[(_config().bucket, remote_b["manifest_key"])].decode("utf-8")
+    )
+    assert manifest_a["schema"] == OBJECT_STORAGE_SCHEMA
+    assert manifest_a["organization_id"] == "org-a"
+    assert manifest_b["organization_id"] == "org-b"
+    assert {
+        row["object_key"] for row in manifest_a["files"]
+    }.isdisjoint({
+        row["object_key"] for row in manifest_b["files"]
+    })
+
+
+def test_object_storage_rejects_cross_organization_restore_and_delete(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(tmp_path, monkeypatch, "cross-org-case")
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        "case-cross-org",
+        work,
+        organization_id="org-a",
+    )
+
+    target = tmp_path / "cases" / "cross-org-restore"
+    with pytest.raises(ObjectStorageError, match="organization mismatch"):
+        service.restore_case(
+            "case-cross-org",
+            target,
+            remote,
+            organization_id="org-b",
+        )
+
+    before = dict(fake.objects)
+    with pytest.raises(ObjectStorageError, match="organization mismatch"):
+        service.delete_replica(
+            "case-cross-org",
+            remote,
+            organization_id="org-b",
+        )
+    assert fake.objects == before
+
+
+def test_legacy_object_storage_replica_is_default_organization_only(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, report_bytes = _encrypted_case(tmp_path, monkeypatch, "legacy-case")
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = _legacy_replica(
+        service,
+        fake,
+        "case-legacy",
+        work,
+    )
+
+    with pytest.raises(ObjectStorageError, match="default organization"):
+        service.restore_case(
+            "case-legacy",
+            tmp_path / "cases" / "legacy-denied",
+            remote,
+            organization_id="org-a",
+        )
+    with pytest.raises(ObjectStorageError, match="default organization"):
+        service.delete_replica(
+            "case-legacy",
+            remote,
+            organization_id="org-a",
+        )
+
+    shutil.rmtree(work)
+    restored = service.restore_case(
+        "case-legacy",
+        work,
+        remote,
+        organization_id="default",
+    )
+    assert restored["case_prefix"] == "breachscope/cases/case-legacy"
+    assert read_artifact_bytes(
+        work / "out" / "report.json",
+        work,
+    ) == report_bytes
+
+    deleted = service.delete_replica(
+        "case-legacy",
+        remote,
+        organization_id="default",
+    )
+    assert deleted["deleted_object_count"] == 4
+    assert fake.objects == {}
+
+
+def test_object_storage_rejects_invalid_recorded_organization(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(tmp_path, monkeypatch, "invalid-org-case")
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        "case-invalid-org",
+        work,
+        organization_id="org-a",
+    )
+    tampered = dict(remote)
+    tampered["organization_id"] = "../org-a"
+
+    with pytest.raises(ObjectStorageError, match="Invalid organization_id"):
+        service.delete_replica(
+            "case-invalid-org",
+            tampered,
+            organization_id="org-a",
+        )
+
+
+def test_object_storage_api_passes_api_key_organization_to_remote_namespace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(tmp_path, monkeypatch, "api-org-namespace")
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "case_history.json"),
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / "audit.jsonl"),
+    )
+    monkeypatch.setenv("BS_API_KEY", "object-org-api-key")
+    for name in (
+        "BS_ADMIN_PASSWORD",
+        "BS_AUTHOR_PASSWORD",
+        "BS_REVIEWER_PASSWORD",
+        "BS_OPERATOR_PASSWORD",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    history = CaseHistoryService(organization_id="org-blue")
+    record = history.register_case(work, _sample_report())
+    stub = StubObjectStorageService()
+    monkeypatch.setattr(
+        cases_router_module,
+        "_object_storage_service",
+        lambda: stub,
+    )
+
+    client = TestClient(app)
+    headers = {
+        "x-api-key": "object-org-api-key",
+        "x-breachscope-organization": "org-blue",
+    }
+    replicated = client.post(
+        f"/api/cases/{record.case_id}/object-storage/replicate",
+        headers=headers,
+    )
+    assert replicated.status_code == 200, replicated.text
+    remote = replicated.json()["object_storage"]
+    assert remote["organization_id"] == "org-blue"
+    assert f"/orgs/org-blue/{record.case_id}" in remote["case_prefix"]
+    assert stub.replicated_organizations == ["org-blue"]
+
+    shutil.rmtree(work)
+    restored = client.post(
+        f"/api/cases/{record.case_id}/object-storage/restore",
+        headers=headers,
+    )
+    assert restored.status_code == 200, restored.text
+    assert stub.restored_organizations == ["org-blue"]
+
+    deleted = client.delete(
+        f"/api/cases/{record.case_id}/object-storage",
+        headers=headers,
+    )
+    assert deleted.status_code == 200, deleted.text
+    assert stub.deleted_organizations == ["org-blue"]

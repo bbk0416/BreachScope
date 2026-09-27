@@ -282,6 +282,7 @@ async def replicate_case_to_object_storage(
         remote = storage.replicate_case(
             case_id,
             str(case.get("work_dir") or ""),
+            organization_id=identity.organization_id,
         )
     except ObjectStorageError as exc:
         AuditLogService().record(
@@ -302,7 +303,11 @@ async def replicate_case_to_object_storage(
     except Exception as exc:
         rollback_error = None
         try:
-            storage.delete_replica(case_id, remote)
+            storage.delete_replica(
+                case_id,
+                remote,
+                organization_id=identity.organization_id,
+            )
         except Exception as cleanup_exc:
             rollback_error = str(cleanup_exc)
         AuditLogService().record(
@@ -376,6 +381,7 @@ async def restore_case_from_object_storage(
             str(case.get("work_dir") or ""),
             remote,
             overwrite=overwrite,
+            organization_id=identity.organization_id,
         )
         _service(request).mark_object_storage_restored(
             case_id,
@@ -447,6 +453,7 @@ async def delete_case_object_storage_replica(
         result = _object_storage_service().delete_replica(
             case_id,
             remote,
+            organization_id=identity.organization_id,
         )
         _service(request).clear_object_storage_state(case_id)
     except ObjectStorageError as exc:
