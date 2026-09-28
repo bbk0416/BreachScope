@@ -40,6 +40,7 @@ from api.services.scim_directory import (
     ScimDirectoryError,
     ScimUserDirectory,
     scim_bearer_token,
+    scim_group_store_path,
     scim_is_configured,
     scim_user_store_path,
 )
@@ -154,25 +155,45 @@ def _check_scim_provisioning() -> Check:
         )
 
     token = scim_bearer_token()
-    path = scim_user_store_path()
-    info = _path_info(path, create_dir=True, file_path=True)
-    if not info["writable"]:
+    user_path = scim_user_store_path()
+    group_path = scim_group_store_path()
+    user_info = _path_info(
+        user_path,
+        create_dir=True,
+        file_path=True,
+    )
+    group_info = _path_info(
+        group_path,
+        create_dir=True,
+        file_path=True,
+    )
+    if not user_info["writable"] or not group_info["writable"]:
         return Check(
             "scim_provisioning",
             "fail",
-            "SCIM user store path is not writable.",
-            {"enabled": True, **info},
+            "SCIM user/group store path is not writable.",
+            {
+                "enabled": True,
+                "user_store": user_info,
+                "group_store": group_info,
+            },
         )
+
     try:
-        stats = ScimUserDirectory(path=path).stats()
+        user_directory = ScimUserDirectory(
+            path=user_path,
+            group_path=group_path,
+        )
+        stats = user_directory.stats()
     except ScimDirectoryError as exc:
         return Check(
             "scim_provisioning",
             "fail",
-            "SCIM user store is invalid or unreadable.",
+            "SCIM user/group store is invalid or unreadable.",
             {
                 "enabled": True,
-                "path": str(path),
+                "user_store_path": str(user_path),
+                "group_store_path": str(group_path),
                 "error": str(exc),
             },
         )
@@ -184,15 +205,15 @@ def _check_scim_provisioning() -> Check:
         (
             "BS_SCIM_BEARER_TOKEN should be a 24+ character random value."
             if weak
-            else "SCIM provisioning store and bearer token look valid."
+            else "SCIM provisioning stores and bearer token look valid."
         ),
         {
             "enabled": True,
-            "path": str(path),
+            "user_store_path": str(user_path),
+            "group_store_path": str(group_path),
             **stats,
         },
     )
-
 
 def _check_object_storage() -> Check:
     if not object_storage_configured():
@@ -304,7 +325,12 @@ def metrics_snapshot() -> dict[str, Any]:
     backups = BackupService().list_backups(limit=1000)
     audit_path = audit_log_path()
     audit_events = _safe_count_file_lines(audit_path)
-    scim_stats = {"total_users": 0, "active_users": 0}
+    scim_stats = {
+        "total_users": 0,
+        "active_users": 0,
+        "authorized_users": 0,
+        "total_groups": 0,
+    }
     if scim_is_configured():
         try:
             scim_stats = ScimUserDirectory().stats()
@@ -332,6 +358,8 @@ def metrics_snapshot() -> dict[str, Any]:
         "scim_enabled": scim_is_configured(),
         "scim_users_total": scim_stats["total_users"],
         "scim_users_active": scim_stats["active_users"],
+        "scim_users_authorized": scim_stats["authorized_users"],
+        "scim_groups_total": scim_stats["total_groups"],
         "rulepack": _current_rule_summary(),
         "paths": {
             "cases_root": str(CaseHistoryService.default_root()),
@@ -360,6 +388,12 @@ def prometheus_metrics(snapshot: dict[str, Any] | None = None) -> str:
         "# HELP breachscope_audit_events_total Number of audit log records.",
         "# TYPE breachscope_audit_events_total gauge",
         f"breachscope_audit_events_total {int(s.get('audit_events_total') or 0)}",
+        "# HELP breachscope_scim_groups_total Number of provisioned SCIM groups.",
+        "# TYPE breachscope_scim_groups_total gauge",
+        f"breachscope_scim_groups_total {int(s.get('scim_groups_total') or 0)}",
+        "# HELP breachscope_scim_users_authorized Number of SCIM users with exactly one effective role and organization.",
+        "# TYPE breachscope_scim_users_authorized gauge",
+        f"breachscope_scim_users_authorized {int(s.get('scim_users_authorized') or 0)}",
         "# HELP breachscope_rulepack_rules_total Number of loaded detection rules.",
         "# TYPE breachscope_rulepack_rules_total gauge",
         f"breachscope_rulepack_rules_total {int((s.get('rulepack') or {}).get('total_rules') or 0)}",

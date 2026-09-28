@@ -26,6 +26,7 @@ from api.services.scim_directory import (
     ScimDirectoryError,
     ScimUserDirectory,
     scim_bearer_token,
+    scim_group_store_path,
     scim_is_configured,
     scim_user_store_path,
 )
@@ -238,25 +239,45 @@ def _check_scim_provisioning(
         )
 
     token = scim_bearer_token(env)
-    path = scim_user_store_path(env)
-    info = _path_info(path, create_dir=True, file_path=True)
-    if not info["writable"]:
+    user_path = scim_user_store_path(env)
+    group_path = scim_group_store_path(env)
+    user_info = _path_info(
+        user_path,
+        create_dir=True,
+        file_path=True,
+    )
+    group_info = _path_info(
+        group_path,
+        create_dir=True,
+        file_path=True,
+    )
+    if not user_info["writable"] or not group_info["writable"]:
         return GoLiveCheck(
             "scim_provisioning",
             "fail",
-            "SCIM user store path is not writable.",
-            {"enabled": True, **info},
+            "SCIM user/group store path is not writable.",
+            {
+                "enabled": True,
+                "user_store": user_info,
+                "group_store": group_info,
+            },
         )
+
     try:
-        stats = ScimUserDirectory(path=path).stats()
+        user_directory = ScimUserDirectory(
+            path=user_path,
+            group_path=group_path,
+        )
+        stats = user_directory.stats()
     except ScimDirectoryError as exc:
         return GoLiveCheck(
             "scim_provisioning",
             "fail",
-            "SCIM user store is invalid or unreadable.",
+            "SCIM user/group store is invalid or unreadable.",
             {
                 "enabled": True,
-                "path": str(path),
+                "user_store_path": str(user_path),
+                "group_store_path": str(group_path),
                 "error": str(exc),
             },
         )
@@ -293,6 +314,10 @@ def _check_scim_provisioning(
         warnings.append(
             "OIDC is enabled with SCIM enforcement but there are no active SCIM users."
         )
+    elif oidc_is_configured(env) and stats["authorized_users"] == 0:
+        warnings.append(
+            "OIDC is enabled with SCIM enforcement but no active SCIM user resolves to exactly one role/organization assignment."
+        )
     elif not oidc_is_configured(env):
         warnings.append(
             "SCIM is enabled but OIDC login is not configured; provisioning is staged only."
@@ -308,12 +333,12 @@ def _check_scim_provisioning(
         ),
         {
             "enabled": True,
-            "path": str(path),
+            "user_store_path": str(user_path),
+            "group_store_path": str(group_path),
             **stats,
             "oidc_enforced": oidc_is_configured(env),
         },
     )
-
 
 def _check_session_secret(env: Mapping[str, str]) -> GoLiveCheck:
     admin = _env_value(env, "BS_ADMIN_PASSWORD") or configured_admin_password()
@@ -539,7 +564,7 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
             )
         elif check.name == "scim_provisioning":
             steps.append(
-                "Use a unique strong BS_SCIM_BEARER_TOKEN, keep BS_SCIM_USER_STORE_PATH writable, and provision at least one active OIDC user before relying on SCIM enforcement."
+                "Use a unique strong BS_SCIM_BEARER_TOKEN, keep BS_SCIM_USER_STORE_PATH and BS_SCIM_GROUP_STORE_PATH writable, and provision at least one active OIDC user before relying on SCIM enforcement."
             )
         elif check.name == "session_secret":
             steps.append("Set BS_SESSION_SECRET to a unique 32+ character random value.")

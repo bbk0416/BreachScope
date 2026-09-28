@@ -15,6 +15,7 @@ from api.services.organization_scope import normalize_organization_id
 
 
 SCIM_USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User"
+SCIM_GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group"
 SCIM_LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
 SCIM_PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
 SCIM_ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error"
@@ -28,10 +29,21 @@ SCIM_SCHEMA_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Schema"
 BREACHSCOPE_USER_SCHEMA = (
     "urn:breachscope:params:scim:schemas:extension:1.0:User"
 )
+BREACHSCOPE_GROUP_SCHEMA = (
+    "urn:breachscope:params:scim:schemas:extension:1.0:Group"
+)
 KNOWN_ROLES = {"admin", "author", "reviewer", "operator"}
 _LOCK = threading.RLock()
 _FILTER_RE = re.compile(
     r'^\s*(userName|externalId|id)\s+eq\s+"([^"]*)"\s*$',
+    re.IGNORECASE,
+)
+_GROUP_FILTER_RE = re.compile(
+    r'^\s*(displayName|id)\s+eq\s+"([^"]*)"\s*$',
+    re.IGNORECASE,
+)
+_GROUP_MEMBER_PATH_RE = re.compile(
+    r'^\s*members\s*\[\s*value\s+eq\s+"([^"]+)"\s*\]\s*$',
     re.IGNORECASE,
 )
 
@@ -89,6 +101,18 @@ def scim_user_store_path(
     ).strip()
     if not value:
         value = "~/.breachscope/scim_users.json"
+    return Path(value).expanduser()
+
+
+def scim_group_store_path(
+    env: Mapping[str, str] | None = None,
+) -> Path:
+    source = os.environ if env is None else env
+    value = str(
+        source.get("BS_SCIM_GROUP_STORE_PATH", "") or ""
+    ).strip()
+    if not value:
+        value = "~/.breachscope/scim_groups.json"
     return Path(value).expanduser()
 
 
@@ -207,9 +231,13 @@ def _resource_from_payload(
     role = _extract_role(payload)
     organization_id = _extract_organization(payload)
 
-    if active and (not external_id or not role or not organization_id):
+    if active and not external_id:
         raise ScimValidationError(
-            "Active SCIM users require externalId, one BreachScope role, and organizationId."
+            "Active SCIM users require externalId."
+        )
+    if bool(role) != bool(organization_id):
+        raise ScimValidationError(
+            "BreachScope SCIM direct assignment requires both role and organizationId."
         )
 
     now = _now_iso()
@@ -227,6 +255,60 @@ def _resource_from_payload(
         "last_modified": now,
     }
     return row
+
+
+def _normalized_assignment(
+    role: object,
+    organization_id: object,
+) -> tuple[str, str] | None:
+    normalized_role = str(role or "").strip().casefold()
+    organization = str(organization_id or "").strip()
+    if not normalized_role and not organization:
+        return None
+    if normalized_role not in KNOWN_ROLES or not organization:
+        return None
+    try:
+        organization = normalize_organization_id(
+            organization,
+            default=None,
+        )
+    except ValueError:
+        return None
+    return normalized_role, organization
+
+
+def _resolved_identity(
+    user: Mapping[str, Any],
+    groups: list[dict[str, Any]],
+) -> tuple[str, str] | None:
+    if not bool(user.get("active", False)):
+        return None
+
+    assignments: set[tuple[str, str]] = set()
+    direct = _normalized_assignment(
+        user.get("role"),
+        user.get("organization_id"),
+    )
+    if direct is not None:
+        assignments.add(direct)
+
+    user_id = str(user.get("id") or "")
+    for group in groups:
+        if user_id not in {
+            str(value)
+            for value in (group.get("member_ids") or [])
+        }:
+            continue
+        assignment = _normalized_assignment(
+            group.get("role"),
+            group.get("organization_id"),
+        )
+        if assignment is not None:
+            assignments.add(assignment)
+
+    if len(assignments) != 1:
+        return None
+    return next(iter(assignments))
 
 
 def _public_resource(row: Mapping[str, Any], base_url: str = "") -> dict[str, Any]:
@@ -271,8 +353,14 @@ def _public_resource(row: Mapping[str, Any], base_url: str = "") -> dict[str, An
 class ScimUserDirectory:
     """Small JSON-backed SCIM user store with uniqueness and atomic writes."""
 
-    def __init__(self, path: Path | None = None):
+    def __init__(
+        self,
+        path: Path | None = None,
+        *,
+        group_path: Path | None = None,
+    ):
         self.path = path or scim_user_store_path()
+        self.group_path = group_path or scim_group_store_path()
 
     def _load(self) -> list[dict[str, Any]]:
         if not self.path.exists():
@@ -618,6 +706,11 @@ class ScimUserDirectory:
                 raise ScimNotFoundError("SCIM user was not found.")
             removed = rows.pop(index)
             self._save(rows)
+            from api.services.scim_groups import ScimGroupDirectory
+            ScimGroupDirectory(
+                path=self.group_path,
+                user_directory=self,
+            ).remove_user_references(str(user_id))
         return dict(removed)
 
     def find_by_oidc_subject(
@@ -636,23 +729,38 @@ class ScimUserDirectory:
     def stats(self) -> dict[str, int]:
         with _LOCK:
             rows = self._load()
+            from api.services.scim_groups import ScimGroupDirectory
+            groups = ScimGroupDirectory(
+                path=self.group_path,
+                user_directory=self,
+            ).all_rows()
         return {
             "total_users": len(rows),
             "active_users": sum(
                 1 for row in rows
                 if bool(row.get("active", False))
             ),
+            "authorized_users": sum(
+                1
+                for row in rows
+                if _resolved_identity(row, groups) is not None
+            ),
+            "total_groups": len(groups),
         }
 
     def active_roles(self) -> list[str]:
         roles: set[str] = set()
         with _LOCK:
-            for row in self._load():
-                if not bool(row.get("active", False)):
-                    continue
-                role = str(row.get("role") or "").strip().casefold()
-                if role in KNOWN_ROLES:
-                    roles.add(role)
+            rows = self._load()
+            from api.services.scim_groups import ScimGroupDirectory
+            groups = ScimGroupDirectory(
+                path=self.group_path,
+                user_directory=self,
+            ).all_rows()
+        for row in rows:
+            identity = _resolved_identity(row, groups)
+            if identity is not None:
+                roles.add(identity[0])
         return sorted(roles)
 
     def oidc_identity(
@@ -660,20 +768,15 @@ class ScimUserDirectory:
         subject: str,
     ) -> tuple[str, str] | None:
         row = self.find_by_oidc_subject(subject)
-        if not row or not bool(row.get("active", False)):
+        if row is None:
             return None
-        role = str(row.get("role") or "").strip().casefold()
-        organization_id = str(row.get("organization_id") or "").strip()
-        if role not in KNOWN_ROLES or not organization_id:
-            return None
-        try:
-            organization_id = normalize_organization_id(
-                organization_id,
-                default=None,
-            )
-        except ValueError:
-            return None
-        return role, organization_id
+        with _LOCK:
+            from api.services.scim_groups import ScimGroupDirectory
+            groups = ScimGroupDirectory(
+                path=self.group_path,
+                user_directory=self,
+            ).all_rows()
+        return _resolved_identity(row, groups)
 
 
 def scim_service_provider_config(base_url: str) -> dict[str, Any]:
@@ -703,34 +806,53 @@ def scim_service_provider_config(base_url: str) -> dict[str, Any]:
 
 
 def scim_resource_types(base_url: str) -> dict[str, Any]:
-    resource = {
-        "schemas": [SCIM_RESOURCE_TYPE_SCHEMA],
-        "id": "User",
-        "name": "User",
-        "endpoint": "/Users",
-        "schema": SCIM_USER_SCHEMA,
-        "schemaExtensions": [
-            {
-                "schema": BREACHSCOPE_USER_SCHEMA,
-                "required": False,
-            }
-        ],
-        "meta": {
-            "resourceType": "ResourceType",
-            "location": f"{base_url.rstrip('/')}/ResourceTypes/User",
+    resources = [
+        {
+            "schemas": [SCIM_RESOURCE_TYPE_SCHEMA],
+            "id": "User",
+            "name": "User",
+            "endpoint": "/Users",
+            "schema": SCIM_USER_SCHEMA,
+            "schemaExtensions": [
+                {
+                    "schema": BREACHSCOPE_USER_SCHEMA,
+                    "required": False,
+                }
+            ],
+            "meta": {
+                "resourceType": "ResourceType",
+                "location": f"{base_url.rstrip('/')}/ResourceTypes/User",
+            },
         },
-    }
+        {
+            "schemas": [SCIM_RESOURCE_TYPE_SCHEMA],
+            "id": "Group",
+            "name": "Group",
+            "endpoint": "/Groups",
+            "schema": SCIM_GROUP_SCHEMA,
+            "schemaExtensions": [
+                {
+                    "schema": BREACHSCOPE_GROUP_SCHEMA,
+                    "required": False,
+                }
+            ],
+            "meta": {
+                "resourceType": "ResourceType",
+                "location": f"{base_url.rstrip('/')}/ResourceTypes/Group",
+            },
+        },
+    ]
     return {
         "schemas": [SCIM_LIST_SCHEMA],
-        "totalResults": 1,
+        "totalResults": len(resources),
         "startIndex": 1,
-        "itemsPerPage": 1,
-        "Resources": [resource],
+        "itemsPerPage": len(resources),
+        "Resources": resources,
     }
 
 
 def scim_schemas(base_url: str) -> dict[str, Any]:
-    core = {
+    user_core = {
         "schemas": [SCIM_SCHEMA_SCHEMA],
         "id": SCIM_USER_SCHEMA,
         "name": "User",
@@ -774,11 +896,11 @@ def scim_schemas(base_url: str) -> dict[str, Any]:
             "location": f"{base_url.rstrip('/')}/Schemas/{SCIM_USER_SCHEMA}",
         },
     }
-    extension = {
+    user_extension = {
         "schemas": [SCIM_SCHEMA_SCHEMA],
         "id": BREACHSCOPE_USER_SCHEMA,
         "name": "BreachScopeUser",
-        "description": "BreachScope organization and role assignment.",
+        "description": "Optional direct BreachScope organization and role assignment.",
         "attributes": [
             {
                 "name": "organizationId",
@@ -799,10 +921,72 @@ def scim_schemas(base_url: str) -> dict[str, Any]:
             "location": f"{base_url.rstrip('/')}/Schemas/{BREACHSCOPE_USER_SCHEMA}",
         },
     }
+    group_core = {
+        "schemas": [SCIM_SCHEMA_SCHEMA],
+        "id": SCIM_GROUP_SCHEMA,
+        "name": "Group",
+        "description": "SCIM core Group subset supported by BreachScope.",
+        "attributes": [
+            {
+                "name": "displayName",
+                "type": "string",
+                "multiValued": False,
+                "required": True,
+                "caseExact": False,
+                "uniqueness": "server",
+            },
+            {
+                "name": "members",
+                "type": "complex",
+                "multiValued": True,
+                "required": False,
+                "subAttributes": [
+                    {"name": "value", "type": "string"},
+                    {"name": "$ref", "type": "reference"},
+                    {"name": "display", "type": "string"},
+                ],
+            },
+        ],
+        "meta": {
+            "resourceType": "Schema",
+            "location": f"{base_url.rstrip('/')}/Schemas/{SCIM_GROUP_SCHEMA}",
+        },
+    }
+    group_extension = {
+        "schemas": [SCIM_SCHEMA_SCHEMA],
+        "id": BREACHSCOPE_GROUP_SCHEMA,
+        "name": "BreachScopeGroup",
+        "description": "Optional BreachScope group role and organization assignment.",
+        "attributes": [
+            {
+                "name": "organizationId",
+                "type": "string",
+                "multiValued": False,
+                "required": False,
+            },
+            {
+                "name": "role",
+                "type": "string",
+                "multiValued": False,
+                "required": False,
+                "canonicalValues": sorted(KNOWN_ROLES),
+            },
+        ],
+        "meta": {
+            "resourceType": "Schema",
+            "location": f"{base_url.rstrip('/')}/Schemas/{BREACHSCOPE_GROUP_SCHEMA}",
+        },
+    }
+    resources = [
+        user_core,
+        user_extension,
+        group_core,
+        group_extension,
+    ]
     return {
         "schemas": [SCIM_LIST_SCHEMA],
-        "totalResults": 2,
+        "totalResults": len(resources),
         "startIndex": 1,
-        "itemsPerPage": 2,
-        "Resources": [core, extension],
+        "itemsPerPage": len(resources),
+        "Resources": resources,
     }

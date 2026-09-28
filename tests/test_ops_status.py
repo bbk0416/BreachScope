@@ -32,6 +32,8 @@ def test_metrics_json_and_prometheus_format():
     assert "breachscope_cases_total" in metrics.text
     assert "text/plain" in metrics.headers["content-type"]
     assert "breachscope_rulepack_rules_total" in prometheus_metrics(data)
+    assert "scim_users_authorized" in data
+    assert "breachscope_scim_users_authorized" in prometheus_metrics(data)
 
 
 def test_config_check_and_self_test(tmp_path, monkeypatch):
@@ -174,6 +176,10 @@ def test_config_checks_scim_store_and_secret_isolation(
         "BS_SCIM_USER_STORE_PATH",
         str(tmp_path / "scim_users.json"),
     )
+    monkeypatch.setenv(
+        "BS_SCIM_GROUP_STORE_PATH",
+        str(tmp_path / "scim_groups.json"),
+    )
     monkeypatch.delenv("BS_API_KEY", raising=False)
     monkeypatch.delenv("BS_ADMIN_PASSWORD", raising=False)
     monkeypatch.delenv("BS_SESSION_SECRET", raising=False)
@@ -187,6 +193,8 @@ def test_config_checks_scim_store_and_secret_isolation(
     rows = {row["name"]: row for row in response.json()["checks"]}
     assert rows["scim_provisioning"]["status"] == "pass"
     assert rows["scim_provisioning"]["details"]["total_users"] == 0
+    assert rows["scim_provisioning"]["details"]["total_groups"] == 0
+    assert rows["scim_provisioning"]["details"]["authorized_users"] == 0
 
     monkeypatch.setenv("BS_OIDC_CLIENT_SECRET", token)
     checks = {row.name: row for row in _security_checks()}
@@ -202,7 +210,37 @@ def test_config_check_flags_weak_scim_token(
         "BS_SCIM_USER_STORE_PATH",
         str(tmp_path / "scim_users.json"),
     )
+    monkeypatch.setenv(
+        "BS_SCIM_GROUP_STORE_PATH",
+        str(tmp_path / "scim_groups.json"),
+    )
     response = client.get("/api/ops/config-check")
     assert response.status_code == 200
     rows = {row["name"]: row for row in response.json()["checks"]}
     assert rows["scim_provisioning"]["status"] == "warn"
+
+
+def test_config_check_rejects_invalid_scim_group_store(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "s" * 40)
+    monkeypatch.setenv(
+        "BS_SCIM_USER_STORE_PATH",
+        str(tmp_path / "scim_users.json"),
+    )
+    group_path = tmp_path / "scim_groups.json"
+    group_path.write_text("{bad-json", encoding="utf-8")
+    monkeypatch.setenv(
+        "BS_SCIM_GROUP_STORE_PATH",
+        str(group_path),
+    )
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {
+        row["name"]: row
+        for row in response.json()["checks"]
+    }
+    assert rows["scim_provisioning"]["status"] == "fail"
+    assert "group store" in rows["scim_provisioning"]["message"]

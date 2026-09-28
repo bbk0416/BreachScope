@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, Response
 
 from api.services.audit_log import AuditLogService
 from api.services.scim_directory import (
+    BREACHSCOPE_GROUP_SCHEMA,
     BREACHSCOPE_USER_SCHEMA,
     SCIM_ERROR_SCHEMA,
     SCIM_SCHEMA_SCHEMA,
@@ -23,6 +24,7 @@ from api.services.scim_directory import (
     scim_schemas,
     scim_service_provider_config,
 )
+from api.services.scim_groups import ScimGroupDirectory
 
 
 router = APIRouter()
@@ -116,7 +118,7 @@ def _directory_error(exc: Exception) -> JSONResponse:
             str(exc),
             scim_type=exc.scim_type,
         )
-    return _scim_error(500, "SCIM user directory operation failed.")
+    return _scim_error(500, "SCIM directory operation failed.")
 
 
 def _audit_user(
@@ -150,6 +152,36 @@ def _audit_user(
     )
 
 
+def _audit_group(
+    request: Request,
+    action: str,
+    resource: dict[str, Any],
+) -> None:
+    extension = resource.get(BREACHSCOPE_GROUP_SCHEMA)
+    organization_id = ""
+    role = ""
+    if isinstance(extension, dict):
+        organization_id = str(
+            extension.get("organizationId") or ""
+        )
+        role = str(extension.get("role") or "")
+    AuditLogService().record(
+        action,
+        request=request,
+        status="success",
+        actor="scim-provisioner",
+        auth_method="scim",
+        target=str(resource.get("id") or ""),
+        organization_id=organization_id or None,
+        details={
+            "group_id": resource.get("id"),
+            "display_name": resource.get("displayName"),
+            "member_count": len(resource.get("members") or []),
+            "role": role,
+        },
+    )
+
+
 @router.get("/scim/v2/ServiceProviderConfig")
 async def service_provider_config(request: Request):
     denied = _require_scim_bearer(request)
@@ -177,6 +209,18 @@ async def user_resource_type(request: Request):
         return denied
     payload = scim_resource_types(_base_url(request))
     return _scim_response(payload["Resources"][0])
+
+
+@router.get("/scim/v2/ResourceTypes/Group")
+async def group_resource_type(request: Request):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    payload = scim_resource_types(_base_url(request))
+    for resource in payload["Resources"]:
+        if resource.get("id") == "Group":
+            return _scim_response(resource)
+    return _scim_error(404, "SCIM Group resource type was not found.")
 
 
 @router.get("/scim/v2/Schemas")
@@ -353,4 +397,161 @@ async def delete_user(user_id: str, request: Request):
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_user(request, "scim.user.delete", resource)
+    return Response(status_code=204)
+
+
+@router.get("/scim/v2/Groups")
+async def list_groups(
+    request: Request,
+    filter: str = Query(""),
+    start_index: int = Query(1, alias="startIndex", ge=1),
+    count: int = Query(100, ge=0, le=200),
+):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    try:
+        payload = ScimGroupDirectory().list_groups(
+            filter_value=filter,
+            start_index=start_index,
+            count=count,
+            base_url=_base_url(request),
+        )
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    return _scim_response(payload)
+
+
+@router.post("/scim/v2/Groups")
+async def create_group(
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    try:
+        resource = ScimGroupDirectory().create_group(
+            payload,
+            base_url=_base_url(request),
+        )
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    _audit_group(request, "scim.group.create", resource)
+    return _scim_response(
+        resource,
+        status_code=201,
+        headers={
+            "Location": str(resource["meta"]["location"]),
+            "ETag": str(resource["meta"]["version"]),
+        },
+    )
+
+
+@router.get("/scim/v2/Groups/{group_id}")
+async def get_group(group_id: str, request: Request):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    try:
+        resource = ScimGroupDirectory().get_group(
+            group_id,
+            base_url=_base_url(request),
+        )
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    return _scim_response(
+        resource,
+        headers={"ETag": str(resource["meta"]["version"])},
+    )
+
+
+@router.put("/scim/v2/Groups/{group_id}")
+async def replace_group(
+    group_id: str,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    directory = ScimGroupDirectory()
+    try:
+        current = directory.get_group(
+            group_id,
+            base_url=_base_url(request),
+        )
+        denied_version = _if_match_denied(request, current)
+        if denied_version:
+            return denied_version
+        resource = directory.replace_group(
+            group_id,
+            payload,
+            base_url=_base_url(request),
+        )
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    _audit_group(request, "scim.group.replace", resource)
+    return _scim_response(
+        resource,
+        headers={
+            "Location": str(resource["meta"]["location"]),
+            "ETag": str(resource["meta"]["version"]),
+        },
+    )
+
+
+@router.patch("/scim/v2/Groups/{group_id}")
+async def patch_group(
+    group_id: str,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    directory = ScimGroupDirectory()
+    try:
+        current = directory.get_group(
+            group_id,
+            base_url=_base_url(request),
+        )
+        denied_version = _if_match_denied(request, current)
+        if denied_version:
+            return denied_version
+        resource = directory.patch_group(
+            group_id,
+            payload,
+            base_url=_base_url(request),
+        )
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    _audit_group(request, "scim.group.patch", resource)
+    return _scim_response(
+        resource,
+        headers={
+            "Location": str(resource["meta"]["location"]),
+            "ETag": str(resource["meta"]["version"]),
+        },
+    )
+
+
+@router.delete("/scim/v2/Groups/{group_id}")
+async def delete_group(group_id: str, request: Request):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+    directory = ScimGroupDirectory()
+    try:
+        resource = directory.get_group(
+            group_id,
+            base_url=_base_url(request),
+        )
+        denied_version = _if_match_denied(request, resource)
+        if denied_version:
+            return denied_version
+        directory.delete_group(group_id)
+    except ScimDirectoryError as exc:
+        return _directory_error(exc)
+    _audit_group(request, "scim.group.delete", resource)
     return Response(status_code=204)
