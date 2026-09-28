@@ -636,3 +636,270 @@ def test_group_store_is_separate_from_user_store(
     assert "groups" not in user_payload
     assert "groups" in group_payload
     assert len(group_payload["groups"]) == 1
+
+
+def test_nested_groups_propagate_assignment_and_session_lifecycle(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    _configure(tmp_path, monkeypatch)
+    client = TestClient(app)
+
+    user = _create_user(
+        client,
+        user_name="nested@example.test",
+        external_id="nested-subject",
+    )
+    child = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Nested Child",
+            members=[user["id"]],
+        ),
+    )
+    assert child.status_code == 201, child.text
+    child_id = child.json()["id"]
+    assert child.json()["members"][0]["type"] == "User"
+
+    parent = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Nested Parent",
+            members=[child_id],
+        ),
+    )
+    assert parent.status_code == 201, parent.text
+    parent_id = parent.json()["id"]
+    assert parent.json()["members"][0]["type"] == "Group"
+    assert parent.json()["members"][0]["$ref"].endswith(
+        f"/Groups/{child_id}"
+    )
+
+    top = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Nested Reviewers",
+            members=[parent_id],
+            role="reviewer",
+            organization_id="org-nested",
+        ),
+    )
+    assert top.status_code == 201, top.text
+    top_id = top.json()["id"]
+
+    assert ScimUserDirectory().oidc_identity(
+        "nested-subject"
+    ) == ("reviewer", "org-nested")
+
+    client.cookies.set(
+        SESSION_COOKIE_NAME,
+        create_session_token(
+            subject="oidc:nested-subject",
+            role="reviewer",
+            authn="oidc",
+            organization_id="org-nested",
+        ),
+    )
+    assert client.get("/api/cases").status_code == 200
+
+    changed = client.patch(
+        f"/api/scim/v2/Groups/{top_id}",
+        headers=_headers(),
+        json={
+            "schemas": [SCIM_PATCH_SCHEMA],
+            "Operations": [
+                {
+                    "op": "replace",
+                    "path": BREACHSCOPE_GROUP_SCHEMA + ":role",
+                    "value": "author",
+                }
+            ],
+        },
+    )
+    assert changed.status_code == 200, changed.text
+    assert ScimUserDirectory().oidc_identity(
+        "nested-subject"
+    ) == ("author", "org-nested")
+    assert client.get("/api/cases").status_code == 401
+
+
+def test_nested_group_cycle_is_rejected(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    _configure(tmp_path, monkeypatch)
+    client = TestClient(app)
+
+    group_a = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Cycle A",
+            members=[],
+        ),
+    )
+    group_b = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Cycle B",
+            members=[],
+        ),
+    )
+    assert group_a.status_code == 201
+    assert group_b.status_code == 201
+    group_a_id = group_a.json()["id"]
+    group_b_id = group_b.json()["id"]
+
+    a_to_b = client.patch(
+        f"/api/scim/v2/Groups/{group_a_id}",
+        headers=_headers(),
+        json={
+            "schemas": [SCIM_PATCH_SCHEMA],
+            "Operations": [
+                {
+                    "op": "add",
+                    "path": "members",
+                    "value": [{"value": group_b_id, "type": "Group"}],
+                }
+            ],
+        },
+    )
+    assert a_to_b.status_code == 200, a_to_b.text
+
+    b_to_a = client.patch(
+        f"/api/scim/v2/Groups/{group_b_id}",
+        headers=_headers(),
+        json={
+            "schemas": [SCIM_PATCH_SCHEMA],
+            "Operations": [
+                {
+                    "op": "add",
+                    "path": "members",
+                    "value": [{"value": group_a_id, "type": "Group"}],
+                }
+            ],
+        },
+    )
+    assert b_to_a.status_code == 400
+    assert "cannot contain cycles" in b_to_a.json()["detail"]
+
+    current_b = client.get(
+        f"/api/scim/v2/Groups/{group_b_id}",
+        headers=_headers(),
+    )
+    assert current_b.status_code == 200
+    assert current_b.json()["members"] == []
+
+
+def test_nested_group_delete_removes_parent_reference(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    _configure(tmp_path, monkeypatch)
+    client = TestClient(app)
+
+    user = _create_user(
+        client,
+        user_name="nested-delete@example.test",
+        external_id="nested-delete-subject",
+    )
+    child = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Delete Child",
+            members=[user["id"]],
+        ),
+    )
+    assert child.status_code == 201
+    child_id = child.json()["id"]
+
+    parent = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Delete Parent",
+            members=[child_id],
+            role="operator",
+            organization_id="org-delete",
+        ),
+    )
+    assert parent.status_code == 201
+    parent_id = parent.json()["id"]
+    assert ScimUserDirectory().oidc_identity(
+        "nested-delete-subject"
+    ) == ("operator", "org-delete")
+
+    deleted = client.delete(
+        f"/api/scim/v2/Groups/{child_id}",
+        headers=_headers(),
+    )
+    assert deleted.status_code == 204
+
+    current_parent = client.get(
+        f"/api/scim/v2/Groups/{parent_id}",
+        headers=_headers(),
+    )
+    assert current_parent.status_code == 200
+    assert current_parent.json()["members"] == []
+    assert ScimUserDirectory().oidc_identity(
+        "nested-delete-subject"
+    ) is None
+
+
+def test_conflicting_nested_group_assignments_fail_closed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    _configure(tmp_path, monkeypatch)
+    client = TestClient(app)
+
+    user = _create_user(
+        client,
+        user_name="nested-conflict@example.test",
+        external_id="nested-conflict-subject",
+    )
+    child = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Conflict Child",
+            members=[user["id"]],
+        ),
+    )
+    assert child.status_code == 201
+    child_id = child.json()["id"]
+
+    first = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Conflict Parent A",
+            members=[child_id],
+            role="operator",
+            organization_id="org-a",
+        ),
+    )
+    assert first.status_code == 201
+    assert ScimUserDirectory().oidc_identity(
+        "nested-conflict-subject"
+    ) == ("operator", "org-a")
+
+    second = client.post(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+        json=_group_payload(
+            display_name="Conflict Parent B",
+            members=[child_id],
+            role="reviewer",
+            organization_id="org-b",
+        ),
+    )
+    assert second.status_code == 201
+    assert ScimUserDirectory().oidc_identity(
+        "nested-conflict-subject"
+    ) is None

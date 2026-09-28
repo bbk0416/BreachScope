@@ -288,6 +288,34 @@ def _resolved_identity(
     if not bool(user.get("active", False)):
         return None
 
+    groups_by_id = {
+        str(group.get("id") or ""): group
+        for group in groups
+        if str(group.get("id") or "")
+    }
+    group_ids = set(groups_by_id)
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(group_id: str) -> bool:
+        if group_id in visiting:
+            return False
+        if group_id in visited:
+            return True
+        visiting.add(group_id)
+        group = groups_by_id[group_id]
+        for raw_member_id in group.get("member_ids") or []:
+            member_id = str(raw_member_id)
+            if member_id in group_ids and not visit(member_id):
+                return False
+        visiting.remove(group_id)
+        visited.add(group_id)
+        return True
+
+    if not all(visit(group_id) for group_id in group_ids):
+        return None
+
     assignments: set[tuple[str, str]] = set()
     direct = _normalized_assignment(
         user.get("role"),
@@ -297,12 +325,33 @@ def _resolved_identity(
         assignments.add(direct)
 
     user_id = str(user.get("id") or "")
-    for group in groups:
-        if user_id not in {
+    effective_groups: set[str] = {
+        group_id
+        for group_id, group in groups_by_id.items()
+        if user_id in {
             str(value)
             for value in (group.get("member_ids") or [])
-        }:
-            continue
+            if str(value) not in group_ids
+        }
+    }
+
+    changed = True
+    while changed:
+        changed = False
+        for group_id, group in groups_by_id.items():
+            if group_id in effective_groups:
+                continue
+            nested_ids = {
+                str(value)
+                for value in (group.get("member_ids") or [])
+                if str(value) in group_ids
+            }
+            if nested_ids.intersection(effective_groups):
+                effective_groups.add(group_id)
+                changed = True
+
+    for group_id in effective_groups:
+        group = groups_by_id[group_id]
         assignment = _normalized_assignment(
             group.get("role"),
             group.get("organization_id"),
@@ -951,6 +1000,11 @@ def scim_schemas(base_url: str) -> dict[str, Any]:
                 "subAttributes": [
                     {"name": "value", "type": "string"},
                     {"name": "$ref", "type": "reference"},
+                    {
+                        "name": "type",
+                        "type": "string",
+                        "canonicalValues": ["User", "Group"],
+                    },
                     {"name": "display", "type": "string"},
                 ],
             },

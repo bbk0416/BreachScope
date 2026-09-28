@@ -67,6 +67,7 @@ def _member_ids_from_value(
     value: Any,
     *,
     valid_user_ids: set[str],
+    valid_group_ids: set[str],
 ) -> list[str]:
     if value is None:
         return []
@@ -75,26 +76,106 @@ def _member_ids_from_value(
     for item in items:
         if not isinstance(item, Mapping):
             raise ScimValidationError(
-                "SCIM group members must be objects with a User id value."
+                "SCIM group members must be objects with a resource id value."
             )
         member_id = str(item.get("value") or "").strip()
         if not member_id:
             raise ScimValidationError(
                 "SCIM group member value is required."
             )
-        if member_id not in valid_user_ids:
+
+        type_hint = str(item.get("type") or "").strip().casefold()
+        ref_hint = str(item.get("$ref") or "").strip().casefold()
+        in_users = member_id in valid_user_ids
+        in_groups = member_id in valid_group_ids
+
+        if in_users and in_groups:
+            raise ScimValidationError(
+                f"SCIM group member id is ambiguous across User and Group: {member_id}"
+            )
+
+        if type_hint:
+            if type_hint == "user" and not in_users:
+                raise ScimValidationError(
+                    f"SCIM group member User id does not exist: {member_id}"
+                )
+            if type_hint == "group" and not in_groups:
+                raise ScimValidationError(
+                    f"SCIM group member Group id does not exist: {member_id}"
+                )
+            if type_hint not in {"user", "group"}:
+                raise ScimValidationError(
+                    "SCIM group member type must be User or Group."
+                )
+        elif "/users/" in ref_hint and not in_users:
             raise ScimValidationError(
                 f"SCIM group member User id does not exist: {member_id}"
             )
+        elif "/groups/" in ref_hint and not in_groups:
+            raise ScimValidationError(
+                f"SCIM group member Group id does not exist: {member_id}"
+            )
+        elif not in_users and not in_groups:
+            raise ScimValidationError(
+                f"SCIM group member resource id does not exist: {member_id}"
+            )
+
         if member_id not in member_ids:
             member_ids.append(member_id)
     return member_ids
+
+
+def _validate_group_graph(
+    rows: list[dict[str, Any]],
+    *,
+    valid_user_ids: set[str],
+) -> None:
+    groups_by_id = {
+        str(row.get("id") or ""): row
+        for row in rows
+        if str(row.get("id") or "")
+    }
+    group_ids = set(groups_by_id)
+    for group_id, row in groups_by_id.items():
+        for raw_member_id in row.get("member_ids") or []:
+            member_id = str(raw_member_id)
+            if member_id in valid_user_ids and member_id in group_ids:
+                raise ScimValidationError(
+                    f"SCIM group member id is ambiguous across User and Group: {member_id}"
+                )
+            if member_id not in valid_user_ids and member_id not in group_ids:
+                raise ScimValidationError(
+                    f"SCIM group member resource id does not exist: {member_id}"
+                )
+
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(group_id: str) -> None:
+        if group_id in visiting:
+            raise ScimValidationError(
+                "SCIM nested group membership cannot contain cycles."
+            )
+        if group_id in visited:
+            return
+        visiting.add(group_id)
+        row = groups_by_id[group_id]
+        for raw_member_id in row.get("member_ids") or []:
+            member_id = str(raw_member_id)
+            if member_id in group_ids:
+                visit(member_id)
+        visiting.remove(group_id)
+        visited.add(group_id)
+
+    for group_id in group_ids:
+        visit(group_id)
 
 
 def _group_from_payload(
     payload: Mapping[str, Any],
     *,
     users: list[dict[str, Any]],
+    groups: list[dict[str, Any]],
     existing: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(payload, Mapping):
@@ -113,9 +194,15 @@ def _group_from_payload(
         for row in users
         if str(row.get("id") or "")
     }
+    valid_group_ids = {
+        str(row.get("id") or "")
+        for row in groups
+        if str(row.get("id") or "")
+    }
     member_ids = _member_ids_from_value(
         payload.get("members", []),
         valid_user_ids=valid_user_ids,
+        valid_group_ids=valid_group_ids,
     )
     role, organization_id = _extract_assignment(payload)
 
@@ -135,6 +222,7 @@ def public_group_resource(
     row: Mapping[str, Any],
     *,
     users: list[dict[str, Any]],
+    groups: list[dict[str, Any]],
     base_url: str = "",
 ) -> dict[str, Any]:
     schemas = [SCIM_GROUP_SCHEMA]
@@ -153,20 +241,41 @@ def public_group_resource(
         for item in users
         if str(item.get("id") or "")
     }
+    groups_by_id = {
+        str(item.get("id") or ""): item
+        for item in groups
+        if str(item.get("id") or "")
+    }
     members: list[dict[str, Any]] = []
     for raw_member_id in row.get("member_ids") or []:
         member_id = str(raw_member_id)
+        user = users_by_id.get(member_id)
+        group = groups_by_id.get(member_id)
+        if user is not None and group is not None:
+            raise ScimDirectoryError(
+                "SCIM group member id is ambiguous across User and Group."
+            )
+        if user is not None:
+            kind = "User"
+            display = str(user.get("userName") or "")
+        elif group is not None:
+            kind = "Group"
+            display = str(group.get("displayName") or "")
+        else:
+            raise ScimDirectoryError(
+                "SCIM group contains a missing member resource."
+            )
         item: dict[str, Any] = {
             "value": member_id,
+            "type": kind,
             "$ref": (
-                f"{base_url.rstrip('/')}/Users/{member_id}"
+                f"{base_url.rstrip('/')}/{kind}s/{member_id}"
                 if base_url
-                else f"/Users/{member_id}"
+                else f"/{kind}s/{member_id}"
             ),
         }
-        user = users_by_id.get(member_id)
-        if user is not None:
-            item["display"] = str(user.get("userName") or "")
+        if display:
+            item["display"] = display
         members.append(item)
 
     resource: dict[str, Any] = {
@@ -328,6 +437,7 @@ class ScimGroupDirectory:
                 public_group_resource(
                     row,
                     users=users,
+                    groups=rows,
                     base_url=base_url,
                 )
                 for row in page
@@ -348,6 +458,7 @@ class ScimGroupDirectory:
                 return public_group_resource(
                     row,
                     users=users,
+                    groups=rows,
                     base_url=base_url,
                 )
         raise ScimNotFoundError("SCIM group was not found.")
@@ -360,14 +471,28 @@ class ScimGroupDirectory:
     ) -> dict[str, Any]:
         with _LOCK:
             users = self._users()
-            row = _group_from_payload(payload, users=users)
             rows = self._load()
+            valid_user_ids = {
+                str(item.get("id") or "")
+                for item in users
+                if str(item.get("id") or "")
+            }
+            row = _group_from_payload(
+                payload,
+                users=users,
+                groups=rows,
+            )
             self._check_uniqueness(rows, row)
             rows.append(row)
+            _validate_group_graph(
+                rows,
+                valid_user_ids=valid_user_ids,
+            )
             self._save(rows)
         return public_group_resource(
             row,
             users=users,
+            groups=rows,
             base_url=base_url,
         )
 
@@ -396,6 +521,7 @@ class ScimGroupDirectory:
             row = _group_from_payload(
                 payload,
                 users=users,
+                groups=rows,
                 existing=rows[index],
             )
             self._check_uniqueness(
@@ -404,10 +530,19 @@ class ScimGroupDirectory:
                 exclude_id=str(group_id),
             )
             rows[index] = row
+            _validate_group_graph(
+                rows,
+                valid_user_ids={
+                    str(item.get("id") or "")
+                    for item in users
+                    if str(item.get("id") or "")
+                },
+            )
             self._save(rows)
         return public_group_resource(
             row,
             users=users,
+            groups=rows,
             base_url=base_url,
         )
 
@@ -444,6 +579,11 @@ class ScimGroupDirectory:
                 if str(row.get("id") or "")
             }
             rows = self._load()
+            valid_group_ids = {
+                str(row.get("id") or "")
+                for row in rows
+                if str(row.get("id") or "")
+            }
             index = next(
                 (
                     i
@@ -501,6 +641,7 @@ class ScimGroupDirectory:
                             item,
                             op=op,
                             valid_user_ids=valid_user_ids,
+                            valid_group_ids=valid_group_ids,
                         )
                     continue
 
@@ -510,11 +651,13 @@ class ScimGroupDirectory:
                     value,
                     op=op,
                     valid_user_ids=valid_user_ids,
+                    valid_group_ids=valid_group_ids,
                 )
 
             row = _group_from_payload(
                 working,
                 users=users,
+                groups=rows,
                 existing=current,
             )
             self._check_uniqueness(
@@ -523,11 +666,16 @@ class ScimGroupDirectory:
                 exclude_id=str(group_id),
             )
             rows[index] = row
+            _validate_group_graph(
+                rows,
+                valid_user_ids=valid_user_ids,
+            )
             self._save(rows)
 
         return public_group_resource(
             row,
             users=users,
+            groups=rows,
             base_url=base_url,
         )
 
@@ -539,6 +687,7 @@ class ScimGroupDirectory:
         *,
         op: str,
         valid_user_ids: set[str],
+        valid_group_ids: set[str],
     ) -> None:
         normalized = path.strip()
         lowered = normalized.casefold()
@@ -575,6 +724,7 @@ class ScimGroupDirectory:
             incoming = _member_ids_from_value(
                 value,
                 valid_user_ids=valid_user_ids,
+                valid_group_ids=valid_group_ids,
             )
             if op == "replace":
                 working["members"] = [
@@ -657,6 +807,21 @@ class ScimGroupDirectory:
                     "SCIM group was not found."
                 )
             removed = rows.pop(index)
+            changed = False
+            for row in rows:
+                original = [
+                    str(value)
+                    for value in (row.get("member_ids") or [])
+                ]
+                filtered = [
+                    value
+                    for value in original
+                    if value != str(group_id)
+                ]
+                if filtered != original:
+                    row["member_ids"] = filtered
+                    row["last_modified"] = _now_iso()
+                    changed = True
             self._save(rows)
         return dict(removed)
 
