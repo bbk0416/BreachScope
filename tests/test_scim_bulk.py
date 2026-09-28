@@ -11,6 +11,7 @@ from api.services.scim_directory import (
     SCIM_BULK_REQUEST_SCHEMA,
     SCIM_BULK_RESPONSE_SCHEMA,
     SCIM_PATCH_SCHEMA,
+    ScimUserDirectory,
 )
 
 
@@ -501,3 +502,87 @@ def test_scim_bulk_reports_unresolved_reference_without_partial_create(
         "/api/scim/v2/Groups",
         headers=_headers(),
     ).json()["totalResults"] == 0
+
+
+def test_scim_bulk_resolves_forward_nested_group_reference(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    _configure(tmp_path, monkeypatch)
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/scim/v2/Bulk",
+        headers=_headers(),
+        json={
+            "schemas": [SCIM_BULK_REQUEST_SCHEMA],
+            "Operations": [
+                {
+                    "method": "POST",
+                    "path": "/Groups",
+                    "bulkId": "parent",
+                    "data": {
+                        "schemas": [
+                            GROUP_SCHEMA,
+                            BREACHSCOPE_GROUP_SCHEMA,
+                        ],
+                        "displayName": "Bulk Nested Parent",
+                        "members": [
+                            {
+                                "value": "bulkId:child",
+                                "type": "Group",
+                            }
+                        ],
+                        BREACHSCOPE_GROUP_SCHEMA: {
+                            "role": "operator",
+                            "organizationId": "org-bulk-nested",
+                        },
+                    },
+                },
+                {
+                    "method": "POST",
+                    "path": "/Groups",
+                    "bulkId": "child",
+                    "data": {
+                        "schemas": [GROUP_SCHEMA],
+                        "displayName": "Bulk Nested Child",
+                        "members": [
+                            {
+                                "value": "bulkId:user",
+                                "type": "User",
+                            }
+                        ],
+                    },
+                },
+                {
+                    "method": "POST",
+                    "path": "/Users",
+                    "bulkId": "user",
+                    "data": _user_data(
+                        "nested-bulk@example.test",
+                        "nested-bulk-subject",
+                    ),
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert [row["status"] for row in response.json()["Operations"]] == [
+        "201",
+        "201",
+        "201",
+    ]
+
+    assert ScimUserDirectory().oidc_identity(
+        "nested-bulk-subject"
+    ) == ("operator", "org-bulk-nested")
+
+    groups = client.get(
+        "/api/scim/v2/Groups",
+        headers=_headers(),
+    ).json()["Resources"]
+    parent = next(
+        row for row in groups
+        if row["displayName"] == "Bulk Nested Parent"
+    )
+    assert parent["members"][0]["type"] == "Group"
