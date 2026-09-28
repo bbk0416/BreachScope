@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from api.main import app
 from api.services.backup_service import BackupService
+from api.services.case_history import CaseHistoryService
 from api.services.artifact_encryption import (
     ArtifactEncryptionError,
     decrypt_bytes,
@@ -427,6 +428,16 @@ def test_backup_preserves_encrypted_case_ciphertext_without_key(
     )
     monkeypatch.setenv(
         "BS_RULE_ACTIVATION_PATH", str(tmp_path / "activation.json")
+    )
+
+    CaseHistoryService().register_case(
+        case_dir,
+        {
+            "summary": {
+                "total_findings": 0,
+                "risk": {"score": 0, "level": "none"},
+            }
+        },
     )
 
     result = BackupService(backup_root=backup_root).create_backup(

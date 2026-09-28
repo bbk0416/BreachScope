@@ -236,6 +236,18 @@ class CaseHistoryService:
         return enriched
 
     @case_history_locked
+    def scoped_index_snapshot(self) -> Dict[str, Any]:
+        """Return raw case metadata limited to the active organization."""
+        data = self._read_index()
+        snapshot = dict(data)
+        snapshot["cases"] = [
+            self._with_workflow_defaults(row)
+            for row in (data.get("cases") or [])
+            if self._row_in_scope(row)
+        ]
+        return snapshot
+
+    @case_history_locked
     def list_all_cases_for_operations(self, limit: int = 1000) -> List[Dict[str, Any]]:
         """Return deployment-wide case metadata for internal operational metrics only.
 

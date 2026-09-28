@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from typing import Mapping
 
 DEFAULT_ORGANIZATION_ID = "default"
@@ -52,3 +53,56 @@ def row_organization_id(
     """Resolve stored organization, treating legacy rows as the deployment default."""
     fallback = configured_default_organization() if default is None else default
     return normalize_organization_id(row.get("organization_id"), default=fallback)
+
+
+def organization_scoped_file_root(
+    base_path: Path,
+    *,
+    namespace: str,
+) -> Path:
+    base = Path(base_path).expanduser().resolve()
+    safe_namespace = str(namespace or "").strip().replace("-", "_")
+    if not safe_namespace or not re.fullmatch(r"[a-z0-9_]+", safe_namespace):
+        raise OrganizationScopeError("organization storage namespace is invalid")
+    return base.parent / f"{safe_namespace}_organizations"
+
+
+def organization_scoped_file_path(
+    base_path: Path,
+    organization_id: str | None,
+    *,
+    namespace: str,
+) -> Path:
+    base = Path(base_path).expanduser().resolve()
+    organization = normalize_organization_id(
+        organization_id,
+        default=configured_default_organization(),
+    )
+    if organization == configured_default_organization():
+        return base
+    expected_root_name = f"{str(namespace or '').strip().replace('-', '_')}_organizations"
+    if (
+        base.parent.name == organization
+        and base.parent.parent.name == expected_root_name
+    ):
+        return base
+    return organization_scoped_file_root(
+        base,
+        namespace=namespace,
+    ) / organization / base.name
+
+
+def organization_scoped_root(
+    base_root: Path,
+    organization_id: str | None,
+) -> Path:
+    base = Path(base_root).expanduser().resolve()
+    organization = normalize_organization_id(
+        organization_id,
+        default=configured_default_organization(),
+    )
+    if organization == configured_default_organization():
+        return base
+    if base.name == organization and base.parent.name == "organizations":
+        return base
+    return base / "organizations" / organization

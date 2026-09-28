@@ -114,3 +114,5 @@ BS_RULE_TUNING_PATH=/data/breachscope/rule_tuning_profiles.json
 BS_RULE_AUTHORING_ROOT=/data/breachscope/rule_authoring
 BS_RULE_ACTIVATION_PATH=/data/breachscope/rule_activation.json
 ```
+
+These are the default organization's base paths. Non-default organizations are stored in separate derived tuning/authoring/activation namespaces, and the web console always uses the organization bound to the active authenticated session.

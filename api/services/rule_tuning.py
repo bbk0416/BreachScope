@@ -12,6 +12,7 @@ from typing import Any
 from breachscope.rules import load_rules
 from breachscope.runtime_paths import default_rules_dir
 
+from .organization_scope import organization_scoped_file_path
 from .rule_tuning_concurrency import rule_tuning_lock
 
 
@@ -30,8 +31,18 @@ class RuleTuningVersionConflict(RuleTuningProfileError):
 
 
 class RuleTuningProfileService:
-    def __init__(self, path: Path | None = None, rules_dir: Path | None = None):
-        self.path = (path or self.default_path()).expanduser().resolve()
+    def __init__(
+        self,
+        path: Path | None = None,
+        rules_dir: Path | None = None,
+        organization_id: str | None = None,
+    ):
+        self.base_path = (path or self.default_path()).expanduser().resolve()
+        self.path = organization_scoped_file_path(
+            self.base_path,
+            organization_id,
+            namespace="rule_tuning",
+        )
         self.rules_dir = (rules_dir or default_rules_dir()).expanduser().resolve()
         self.path.parent.mkdir(parents=True, exist_ok=True)
 

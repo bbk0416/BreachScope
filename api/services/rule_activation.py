@@ -12,6 +12,7 @@ from typing import Any
 from breachscope.rules import RuleLoadError, load_rules
 from breachscope.schemas import Rule
 
+from .organization_scope import organization_scoped_file_path
 from .rule_authoring import RuleAuthoringService
 from .rule_tuning_concurrency import rule_tuning_lock
 
@@ -34,9 +35,18 @@ class RuleActivationService:
         self,
         path: Path | None = None,
         authoring_root: Path | None = None,
+        organization_id: str | None = None,
     ):
-        self.path = (path or self.default_path()).expanduser().resolve()
-        self.authoring = RuleAuthoringService(root=authoring_root)
+        self.base_path = (path or self.default_path()).expanduser().resolve()
+        self.path = organization_scoped_file_path(
+            self.base_path,
+            organization_id,
+            namespace="rule_activation",
+        )
+        self.authoring = RuleAuthoringService(
+            root=authoring_root,
+            organization_id=organization_id,
+        )
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
     @staticmethod

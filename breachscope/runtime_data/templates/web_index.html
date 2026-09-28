@@ -1382,14 +1382,41 @@
         return;
       }
       backupList.innerHTML = rows.slice(0, 8).map(b => {
-        const url = withApiKey(`/api/backups/${encodeURIComponent(b.backup_id)}/download`);
         const size = Math.round(Number(b.size_bytes || 0) / 1024);
         return `<div class="audit-item">
           <div class="audit-title"><span>${escapeHtml(b.label || b.backup_id)}</span><span>${escapeHtml(size)} KB</span></div>
           <div class="audit-meta mono">${escapeHtml(b.created_at || '-')} · ${escapeHtml(b.file_count || 0)} files</div>
-          <div class="case-actions"><a class="btn btn-mini btn-download" href="${url}" download>ZIP 다운로드</a></div>
+          <div class="case-actions"><button type="button" class="btn btn-mini btn-download" data-backup-download="${escapeHtml(b.backup_id)}">ZIP 다운로드</button></div>
         </div>`;
       }).join('');
+      backupList.querySelectorAll('[data-backup-download]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try {
+            await downloadBackup(btn.dataset.backupDownload);
+          } catch (error) {
+            opsStatus.innerHTML = '백업 다운로드 실패: ' + escapeHtml(error.message || error);
+          }
+        });
+      });
+    }
+
+    async function downloadBackup(backupId) {
+      const response = await authFetch(
+        '/api/backups/' + encodeURIComponent(backupId) + '/download'
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.detail || payload.message || '백업 다운로드 실패');
+      }
+      const blob = await response.blob();
+      const href = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = href;
+      anchor.download = backupId + '.zip';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(href);
     }
 
     async function fetchBackups() {

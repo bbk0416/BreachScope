@@ -20,6 +20,7 @@ import yaml
 from breachscope.rules import RuleLoadError, load_rules
 from breachscope.runtime_paths import default_rules_dir
 
+from .organization_scope import organization_scoped_root
 from .rule_tuning_concurrency import rule_tuning_lock
 
 
@@ -43,8 +44,17 @@ class RuleAuthoringStateError(RuleAuthoringError):
 
 
 class RuleAuthoringService:
-    def __init__(self, root: Path | None = None, canonical_rules_dir: Path | None = None):
-        self.root = (root or self.default_root()).expanduser().resolve()
+    def __init__(
+        self,
+        root: Path | None = None,
+        canonical_rules_dir: Path | None = None,
+        organization_id: str | None = None,
+    ):
+        self.base_root = (root or self.default_root()).expanduser().resolve()
+        self.root = organization_scoped_root(
+            self.base_root,
+            organization_id,
+        )
         self.index_path = self.root / "drafts.json"
         self.published_root = self.root / "published"
         self.canonical_rules_dir = (

@@ -256,6 +256,32 @@ class AuditLogService:
                 break
         return rows
 
+    def read_all_events(
+        self,
+        *,
+        organization_id: str,
+    ) -> list[dict[str, Any]]:
+        organization = normalize_organization_id(
+            organization_id,
+            default=None,
+        )
+        if not self.path.exists():
+            return []
+        rows: list[dict[str, Any]] = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row_organization_id(
+                row,
+                default=configured_default_organization(),
+            ) == organization:
+                rows.append(row)
+        return rows
+
     def export_jsonl(self, events: Iterable[dict[str, Any]] | None = None) -> str:
         rows = list(events) if events is not None else self.read_events(limit=MAX_AUDIT_LIMIT)
         return "\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + ("\n" if rows else "")

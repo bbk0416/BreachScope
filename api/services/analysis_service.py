@@ -271,7 +271,9 @@ class AnalysisService:
             custom_rule_provenance = []
             if use_custom_rules:
                 additional_rules, custom_rule_provenance = (
-                    RuleActivationService().load_active_rules()
+                    RuleActivationService(
+                        organization_id=organization_id
+                    ).load_active_rules()
                 )
 
             pipeline = Pipeline(
