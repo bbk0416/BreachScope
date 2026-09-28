@@ -13,7 +13,12 @@ setup_path()
 from breachscope.exceptions import BreachScopeError
 from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
 from api.middleware import setup_middleware
-from api.security import auth_is_enabled, configured_role_passwords, password_login_is_enabled
+from api.security import (
+    api_key_auth_is_configured,
+    auth_is_enabled,
+    configured_role_passwords,
+    password_login_is_enabled,
+)
 from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
 from api.services.artifact_encryption import artifact_encryption_enabled
 from api.services.object_storage import object_storage_configured
@@ -63,7 +68,7 @@ async def api_info():
         "description": "디지털 포렌식 로그 분석 시스템",
         "docs": "/api/docs" if docs_enabled else None,
         "auth_enabled": auth_is_enabled(),
-        "api_key_enabled": bool(os.getenv("BS_API_KEY", "").strip()),
+        "api_key_enabled": api_key_auth_is_configured(),
         "password_login_enabled": password_login_is_enabled(),
         "rbac_enabled": bool(configured_role_passwords() or configured_oidc_roles()),
         "configured_roles": sorted(set(configured_role_passwords()) | set(configured_oidc_roles())),

@@ -20,17 +20,20 @@ except Exception:  # pragma: no cover - defensive fallback for unusual import co
     Request = Any  # type: ignore
 
 from api.services.organization_scope import (
-    ORGANIZATION_HEADER,
     configured_default_organization,
     normalize_organization_id,
     row_organization_id,
 )
 from api.security import (
     SESSION_COOKIE_NAME,
+    ApiKeyConfigurationError,
+    ApiKeyOrganizationAccessError,
+    ApiKeyOrganizationSelectorError,
     auth_is_enabled,
     client_ip_from_request,
-    configured_api_key,
+    extract_api_key,
     request_is_authenticated,
+    resolve_api_key_credential,
     verify_session_token,
 )
 
@@ -103,6 +106,28 @@ def actor_from_request(request: Request | None) -> AuditActor:
             organization_id=configured_default_organization(),
         )
 
+    supplied = extract_api_key(request)
+    if supplied:
+        try:
+            credential = resolve_api_key_credential(request)
+        except ApiKeyOrganizationAccessError as exc:
+            return AuditActor(
+                subject=f"api_key:{_hash_principal(supplied)}",
+                method="api_key",
+                organization_id=exc.organization_id,
+            )
+        except (
+            ApiKeyConfigurationError,
+            ApiKeyOrganizationSelectorError,
+        ):
+            credential = None
+        if credential is not None:
+            return AuditActor(
+                subject=f"api_key:{_hash_principal(supplied)}",
+                method="api_key",
+                organization_id=credential.organization_id,
+            )
+
     authenticated, method = request_is_authenticated(request)
     if method == "session":
         payload = verify_session_token(request.cookies.get(SESSION_COOKIE_NAME)) or {}
@@ -113,27 +138,6 @@ def actor_from_request(request: Request | None) -> AuditActor:
                 payload.get("org"),
                 default=configured_default_organization(),
             ),
-        )
-
-    if method == "api_key" and authenticated:
-        supplied = request.headers.get("x-api-key", "").strip()
-        if not supplied:
-            auth = request.headers.get("authorization", "").strip()
-            if auth.lower().startswith("bearer "):
-                supplied = auth[7:].strip()
-        if not supplied:
-            supplied = ""
-        try:
-            organization_id = normalize_organization_id(
-                request.headers.get(ORGANIZATION_HEADER),
-                default=configured_default_organization(),
-            )
-        except ValueError:
-            organization_id = "invalid"
-        return AuditActor(
-            subject=f"api_key:{_hash_principal(supplied or configured_api_key())}",
-            method="api_key",
-            organization_id=organization_id,
         )
 
     if not auth_is_enabled():

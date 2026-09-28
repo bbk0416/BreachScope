@@ -7,8 +7,9 @@ import hmac
 import json
 import os
 import time
+from dataclasses import dataclass
 from ipaddress import ip_address
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -27,6 +28,30 @@ from api.services.organization_scope import (
 
 SESSION_COOKIE_NAME = "bs_session"
 DEFAULT_SESSION_TTL_SECONDS = 8 * 60 * 60
+ORGANIZATION_API_KEYS_ENV = "BS_ORGANIZATION_API_KEYS"
+
+
+class ApiKeyConfigurationError(ValueError):
+    """Raised when API-key delegation settings are malformed or ambiguous."""
+
+
+class ApiKeyOrganizationSelectorError(ValueError):
+    """Raised when an API-key organization selector is invalid."""
+
+
+class ApiKeyOrganizationAccessError(PermissionError):
+    """Raised when an organization-bound API key requests another organization."""
+
+    def __init__(self, organization_id: str):
+        super().__init__("API key is not delegated to the requested organization.")
+        self.organization_id = organization_id
+
+
+@dataclass(frozen=True)
+class ApiKeyCredential:
+    organization_id: str
+    delegated: bool
+
 
 SAFE_PATH_PREFIXES = (
     "/",
@@ -47,6 +72,92 @@ def _env(name: str) -> str:
 
 def configured_api_key() -> str:
     return _env("BS_API_KEY")
+
+
+def organization_api_key_settings_present(
+    env: Mapping[str, str] | None = None,
+) -> bool:
+    source = os.environ if env is None else env
+    raw = str(source.get(ORGANIZATION_API_KEYS_ENV, "") or "").strip()
+    if not raw:
+        return False
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return True
+    return not (isinstance(payload, dict) and not payload)
+
+
+def configured_organization_api_keys(
+    env: Mapping[str, str] | None = None,
+) -> dict[str, str]:
+    """Return normalized organization-to-secret API key bindings."""
+    source = os.environ if env is None else env
+    raw = str(source.get(ORGANIZATION_API_KEYS_ENV, "") or "").strip()
+    if not raw:
+        return {}
+    def _unique_object(pairs):
+        obj = {}
+        for key, value in pairs:
+            if key in obj:
+                raise ApiKeyConfigurationError(
+                    "BS_ORGANIZATION_API_KEYS contains duplicate organization entries."
+                )
+            obj[key] = value
+        return obj
+
+    try:
+        payload = json.loads(raw, object_pairs_hook=_unique_object)
+    except json.JSONDecodeError as exc:
+        raise ApiKeyConfigurationError(
+            "BS_ORGANIZATION_API_KEYS must be a JSON object."
+        ) from exc
+    if not isinstance(payload, dict):
+        raise ApiKeyConfigurationError(
+            "BS_ORGANIZATION_API_KEYS must be a JSON object."
+        )
+
+    result: dict[str, str] = {}
+    secret_owners: dict[str, str] = {}
+    global_key = str(source.get("BS_API_KEY", "") or "").strip()
+    for raw_org, raw_secret in payload.items():
+        try:
+            organization_id = normalize_organization_id(
+                raw_org,
+                default=None,
+            )
+        except ValueError as exc:
+            raise ApiKeyConfigurationError(
+                "BS_ORGANIZATION_API_KEYS contains an invalid organization ID."
+            ) from exc
+        if organization_id in result:
+            raise ApiKeyConfigurationError(
+                "BS_ORGANIZATION_API_KEYS contains duplicate normalized organizations."
+            )
+        if not isinstance(raw_secret, str) or not raw_secret.strip():
+            raise ApiKeyConfigurationError(
+                "BS_ORGANIZATION_API_KEYS values must be non-empty strings."
+            )
+        secret = raw_secret.strip()
+        if global_key and hmac.compare_digest(secret, global_key):
+            raise ApiKeyConfigurationError(
+                "Organization API keys must not reuse BS_API_KEY."
+            )
+        if secret in secret_owners:
+            raise ApiKeyConfigurationError(
+                "Organization API keys must be unique per organization."
+            )
+        result[organization_id] = secret
+        secret_owners[secret] = organization_id
+    return result
+
+
+def api_key_auth_is_configured() -> bool:
+    try:
+        organization_keys = configured_organization_api_keys()
+    except ApiKeyConfigurationError:
+        return False
+    return bool(configured_api_key() or organization_keys)
 
 
 def configured_admin_password() -> str:
@@ -81,7 +192,7 @@ def _is_production_mode() -> bool:
 
 def _local_credentials_configured() -> bool:
     return bool(
-        configured_api_key()
+        api_key_auth_is_configured()
         or configured_admin_password()
         or configured_role_passwords()
     )
@@ -99,6 +210,7 @@ def auth_is_enabled() -> bool:
     """Return True when auth is configured or production requires fail-closed auth."""
     return (
         _local_credentials_configured()
+        or organization_api_key_settings_present()
         or oidc_settings_present()
         or _is_production_mode()
     )
@@ -274,6 +386,59 @@ def extract_api_key(request: Request) -> str:
     return ""
 
 
+def resolve_api_key_credential(
+    request: Request,
+) -> ApiKeyCredential | None:
+    """Resolve a global or organization-bound API credential without exposing it."""
+    supplied = extract_api_key(request)
+    if not supplied:
+        return None
+
+    organization_keys = configured_organization_api_keys()
+    global_key = configured_api_key()
+    raw_selector = request.headers.get("x-breachscope-organization")
+
+    if global_key and hmac.compare_digest(supplied, global_key):
+        try:
+            organization_id = normalize_organization_id(
+                raw_selector,
+                default=configured_default_organization(),
+            )
+        except ValueError as exc:
+            raise ApiKeyOrganizationSelectorError(
+                "Invalid BreachScope organization selector."
+            ) from exc
+        return ApiKeyCredential(
+            organization_id=organization_id,
+            delegated=False,
+        )
+
+    matched_organization = None
+    for organization_id, secret in organization_keys.items():
+        if hmac.compare_digest(supplied, secret):
+            matched_organization = organization_id
+    if matched_organization is None:
+        return None
+
+    if raw_selector is not None and raw_selector.strip():
+        try:
+            requested = normalize_organization_id(
+                raw_selector,
+                default=None,
+            )
+        except ValueError as exc:
+            raise ApiKeyOrganizationSelectorError(
+                "Invalid BreachScope organization selector."
+            ) from exc
+        if requested != matched_organization:
+            raise ApiKeyOrganizationAccessError(matched_organization)
+
+    return ApiKeyCredential(
+        organization_id=matched_organization,
+        delegated=True,
+    )
+
+
 def _session_identity_is_enabled(payload: dict[str, object]) -> bool:
     role = str(payload.get("role") or payload.get("sub") or "admin").strip().lower()
     authn = str(payload.get("authn") or "password").strip().lower()
@@ -288,10 +453,17 @@ def _session_identity_is_enabled(payload: dict[str, object]) -> bool:
 
 def request_is_authenticated(request: Request) -> tuple[bool, str]:
     """Return (authenticated, method) for API key or browser session."""
-    api_key = configured_api_key()
-    supplied = extract_api_key(request)
-    if api_key and supplied and hmac.compare_digest(supplied, api_key):
-        return True, "api_key"
+    if extract_api_key(request):
+        try:
+            credential = resolve_api_key_credential(request)
+        except (
+            ApiKeyConfigurationError,
+            ApiKeyOrganizationSelectorError,
+            ApiKeyOrganizationAccessError,
+        ):
+            credential = None
+        if credential is not None:
+            return True, "api_key"
 
     session_payload = verify_session_token(
         request.cookies.get(SESSION_COOKIE_NAME)
@@ -338,6 +510,51 @@ class ApiKeyAuthMiddleware(BaseHTTPMiddleware):
 
         if not auth_is_enabled() or self._is_exempt(request):
             return await call_next(request)
+
+        supplied_api_key = extract_api_key(request)
+        if supplied_api_key:
+            try:
+                credential = resolve_api_key_credential(request)
+            except ApiKeyConfigurationError:
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "success": False,
+                        "error": "api_key_configuration_invalid",
+                        "message": "API-key delegation configuration is invalid.",
+                    },
+                )
+            except ApiKeyOrganizationSelectorError as exc:
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "success": False,
+                        "error": "invalid_organization_selector",
+                        "message": str(exc),
+                    },
+                )
+            except ApiKeyOrganizationAccessError as exc:
+                try:
+                    from api.services.audit_log import AuditLogService
+
+                    AuditLogService().record(
+                        "auth.denied",
+                        request=request,
+                        status="failure",
+                        details={"reason": "organization_scope_denied"},
+                    )
+                except Exception:
+                    pass
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        "success": False,
+                        "error": "organization_scope_denied",
+                        "message": str(exc),
+                    },
+                )
+            if credential is not None:
+                return await call_next(request)
 
         authenticated, _method = request_is_authenticated(request)
         if authenticated:

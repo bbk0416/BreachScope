@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 import os
 
 from fastapi.testclient import TestClient
@@ -303,3 +304,93 @@ def test_go_live_rejects_partial_oidc_configuration(tmp_path, monkeypatch):
     assert auth_check["status"] == "fail"
     assert auth_check["details"]["oidc_login_enabled"] is False
     assert result["status"] == "fail"
+
+
+def test_go_live_accepts_organization_api_keys_only(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env["BS_ORGANIZATION_API_KEYS"] = json.dumps(
+        {
+            "org-a": "a" * 32,
+            "org-b": "b" * 32,
+        }
+    )
+    for key in ("BS_API_KEY", "BS_ADMIN_PASSWORD"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    auth = next(
+        row for row in result["checks"]
+        if row["name"] == "runtime_authentication"
+    )
+    assert auth["status"] == "pass"
+    assert auth["details"]["api_key_enabled"] is True
+    assert auth["details"]["global_api_key_enabled"] is False
+    assert auth["details"]["organization_api_key_count"] == 2
+    assert auth["details"]["organization_api_key_config_valid"] is True
+    assert result["status"] == "pass"
+
+
+def test_go_live_rejects_invalid_organization_api_keys(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env["BS_ORGANIZATION_API_KEYS"] = "{bad-json"
+    for key in ("BS_API_KEY", "BS_ADMIN_PASSWORD"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    auth = next(
+        row for row in result["checks"]
+        if row["name"] == "runtime_authentication"
+    )
+    assert auth["status"] == "fail"
+    assert auth["details"]["organization_api_key_config_valid"] is False
+    assert result["status"] == "fail"
+
+
+def test_go_live_warns_for_weak_organization_api_key(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env.pop("BS_API_KEY")
+    env.pop("BS_ADMIN_PASSWORD")
+    env["BS_ORGANIZATION_API_KEYS"] = json.dumps(
+        {"org-a": "short-key"}
+    )
+    for key in ("BS_API_KEY", "BS_ADMIN_PASSWORD"):
+        monkeypatch.delenv(key, raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    auth = next(
+        row for row in result["checks"]
+        if row["name"] == "runtime_authentication"
+    )
+    assert auth["status"] == "warn"
+    assert "24+ random" in auth["message"]

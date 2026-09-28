@@ -8,15 +8,19 @@ from fastapi import HTTPException, Request
 
 from api.services.oidc_auth import configured_oidc_roles
 from api.services.organization_scope import (
-    ORGANIZATION_HEADER,
     configured_default_organization,
     normalize_organization_id,
 )
 
 from api.security import (
     SESSION_COOKIE_NAME,
+    ApiKeyConfigurationError,
+    ApiKeyOrganizationAccessError,
+    ApiKeyOrganizationSelectorError,
     auth_is_enabled,
+    extract_api_key,
     request_is_authenticated,
+    resolve_api_key_credential,
     verify_session_token,
 )
 
@@ -56,6 +60,26 @@ def rbac_is_enabled() -> bool:
 
 
 def identity_from_request(request: Request) -> RequestIdentity:
+    if extract_api_key(request):
+        try:
+            credential = resolve_api_key_credential(request)
+        except ApiKeyOrganizationSelectorError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except ApiKeyOrganizationAccessError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        except ApiKeyConfigurationError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail="API-key delegation configuration is invalid.",
+            ) from exc
+        if credential is not None:
+            return RequestIdentity(
+                subject="api_key",
+                role=ROLE_ADMIN,
+                method="api_key",
+                organization_id=credential.organization_id,
+            )
+
     authenticated, method = request_is_authenticated(request)
 
     if method == "session" and authenticated:
@@ -73,24 +97,6 @@ def identity_from_request(request: Request) -> RequestIdentity:
         return RequestIdentity(
             subject=subject,
             role=role,
-            method=method,
-            organization_id=organization_id,
-        )
-
-    if method == "api_key" and authenticated:
-        try:
-            organization_id = normalize_organization_id(
-                request.headers.get(ORGANIZATION_HEADER),
-                default=configured_default_organization(),
-            )
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid BreachScope organization selector.",
-            ) from exc
-        return RequestIdentity(
-            subject="api_key",
-            role=ROLE_ADMIN,
             method=method,
             organization_id=organization_id,
         )

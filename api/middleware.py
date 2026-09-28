@@ -44,7 +44,7 @@ def setup_middleware(app: FastAPI):
         allow_headers=["*"],
     )
 
-    # Optional product deployment guard. Disabled unless BS_API_KEY is set.
+    # Optional product deployment guard. Enabled by any configured auth credential.
     app.add_middleware(ApiKeyAuthMiddleware)
 
     # BREACHSCOPE_P1_01_REQUEST_LIMIT_V1

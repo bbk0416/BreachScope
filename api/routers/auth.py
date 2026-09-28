@@ -33,14 +33,19 @@ from api.services.oidc_auth import (
 from api.services.organization_scope import configured_default_organization
 from api.security import (
     SESSION_COOKIE_NAME,
+    ApiKeyConfigurationError,
+    api_key_auth_is_configured,
     auth_is_enabled,
     client_ip_from_request,
     configured_admin_password,
     configured_api_key,
+    configured_organization_api_keys,
     configured_role_password,
     configured_role_passwords,
     create_session_token,
+    organization_api_key_settings_present,
     request_is_authenticated,
+    resolve_api_key_credential,
     session_cookie_secure,
     session_ttl_seconds,
     trusted_proxy_ips as _trusted_proxy_ips,
@@ -85,10 +90,39 @@ async def auth_status(request: Request):
         if authenticated and method == "session"
         else None
     )
+    api_key_credential = (
+        resolve_api_key_credential(request)
+        if authenticated and method == "api_key"
+        else None
+    )
+    active_organization_id = (
+        api_key_credential.organization_id
+        if api_key_credential is not None
+        else (
+            str(cookie_payload.get("org"))
+            if cookie_payload and cookie_payload.get("org")
+            else configured_default_organization()
+        )
+    )
+    try:
+        organization_api_keys = configured_organization_api_keys()
+        organization_api_key_config_valid = True
+    except ApiKeyConfigurationError:
+        organization_api_keys = {}
+        organization_api_key_config_valid = False
+
     return {
         "success": True,
         "auth_required": auth_is_enabled(),
-        "api_key_enabled": bool(configured_api_key()),
+        "api_key_enabled": api_key_auth_is_configured(),
+        "global_api_key_enabled": bool(configured_api_key()),
+        "organization_api_key_settings_present": (
+            organization_api_key_settings_present()
+        ),
+        "organization_api_key_config_valid": (
+            organization_api_key_config_valid
+        ),
+        "organization_api_key_count": len(organization_api_keys),
         "password_login_enabled": bool(
             configured_admin_password() or configured_role_passwords()
         ),
@@ -99,6 +133,12 @@ async def auth_status(request: Request):
         "oidc_login_url": "/api/auth/oidc/login" if oidc_is_configured() else None,
         "authenticated": authenticated,
         "auth_method": method,
+        "active_organization_id": active_organization_id,
+        "api_key_delegated": (
+            api_key_credential.delegated
+            if api_key_credential is not None
+            else None
+        ),
         "session_subject": cookie_payload.get("sub") if cookie_payload else None,
         "session_role": cookie_payload.get("role") if cookie_payload else None,
         "session_authn": cookie_payload.get("authn") if cookie_payload else None,

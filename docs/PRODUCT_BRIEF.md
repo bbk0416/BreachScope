@@ -33,7 +33,7 @@ BreachScope turns Windows-oriented security logs into an incident triage package
 ## Gaps before real commercial use
 
 - More real-world EVTX fixture testing.
-- OIDC SSO can bind a signed session to one organization. Retained-case operations, audit reads, built-in backups, rule-tuning profiles, custom-rule authoring/published artifacts, activation state, and S3 replica namespaces are organization-scoped. The canonical built-in rule pack remains deployment-wide/read-only. Organization-specific role policy, API-key delegation boundaries, and SCIM/user lifecycle automation remain future work.
+- OIDC SSO can bind a signed session to one organization. Retained-case operations, audit reads, built-in backups, rule-tuning profiles, custom-rule authoring/published artifacts, activation state, and S3 replica namespaces are organization-scoped. The canonical built-in rule pack remains deployment-wide/read-only. Organization-bound delegated API keys are supported; organization-specific role policy and SCIM/user lifecycle automation remain future work.
 - S3-compatible encrypted retained-case replication/restore uses organization-scoped object-key namespaces. Primary remote storage, multi-region lifecycle/retention, and provider IAM automation remain future work.
 - Rule lifecycle supports local accounts or OIDC-mapped author/reviewer/operator roles with admin/API-key override, including self-approval blocking for non-admin reviewers. Canonical detector YAML remains unchanged.
 - Release manifests now support optional Ed25519 detached signatures; external CI/CD runner policy, signing-key custody, and trusted public-key distribution remain operational work.

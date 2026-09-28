@@ -22,6 +22,8 @@ The generated file sets fresh values for:
 
 Review the generated `.env` before starting the service.
 
+For delegated automation, `BS_ORGANIZATION_API_KEYS` may be used instead of the deployment-wide `BS_API_KEY`. It is a JSON object mapping organization IDs to unique 24+ character random secrets. Organization-bound keys cannot switch to another organization with `X-BreachScope-Organization`. Malformed JSON, duplicate normalized organizations, duplicate secrets, or reuse of `BS_API_KEY` fails the authentication readiness check.
+
 The bootstrap command intentionally keeps optional rule-lifecycle RBAC accounts disabled. To enable them, manually set one or more of `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD` to long random values. The admin account remains the default first-run login.
 
 OIDC can replace local browser passwords for shared deployments. Set `BS_OIDC_ISSUER_URL`, `BS_OIDC_CLIENT_ID`, the exact registered `BS_OIDC_REDIRECT_URI`, a strong `BS_SESSION_SECRET`, and at least one exact role mapping such as `BS_OIDC_OPERATOR_VALUES=breachscope-operators`. `BS_OIDC_CLIENT_SECRET` is optional for public PKCE clients and required when using `client_secret_basic` or `client_secret_post`. Partial OIDC settings fail the production authentication check.

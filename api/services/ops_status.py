@@ -16,7 +16,16 @@ from typing import Any
 from api.services.audit_log import AuditLogService, audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
-from api.security import auth_is_enabled, configured_admin_password, configured_api_key, configured_role_passwords, password_login_is_enabled, session_ttl_seconds
+from api.security import (
+    ApiKeyConfigurationError,
+    auth_is_enabled,
+    configured_admin_password,
+    configured_api_key,
+    configured_organization_api_keys,
+    configured_role_passwords,
+    password_login_is_enabled,
+    session_ttl_seconds,
+)
 from api.services.artifact_encryption import (
     ArtifactEncryptionError,
     artifact_encryption_enabled,
@@ -317,6 +326,12 @@ def config_diagnostics() -> dict[str, Any]:
 def _security_checks() -> list[Check]:
     checks: list[Check] = []
     api_key = configured_api_key()
+    try:
+        organization_api_keys = configured_organization_api_keys()
+        organization_api_key_error = None
+    except ApiKeyConfigurationError as exc:
+        organization_api_keys = {}
+        organization_api_key_error = str(exc)
     admin_password = configured_admin_password()
     role_passwords = configured_role_passwords()
     session_secret = os.getenv("BS_SESSION_SECRET", "").strip()
@@ -328,6 +343,36 @@ def _security_checks() -> list[Check]:
         checks.append(Check("api_key_strength", "warn", "BS_API_KEY should be a long random value"))
     elif api_key:
         checks.append(Check("api_key_strength", "pass", "BS_API_KEY length looks acceptable"))
+    if organization_api_key_error:
+        checks.append(
+            Check(
+                "organization_api_keys",
+                "fail",
+                "BS_ORGANIZATION_API_KEYS is invalid.",
+                {"error": organization_api_key_error},
+            )
+        )
+    elif organization_api_keys:
+        weak_organizations = sorted(
+            organization_id
+            for organization_id, secret in organization_api_keys.items()
+            if len(secret) < 24 or secret.startswith("change-me")
+        )
+        checks.append(
+            Check(
+                "organization_api_keys",
+                "warn" if weak_organizations else "pass",
+                (
+                    "organization API keys should be long random values"
+                    if weak_organizations
+                    else "organization API key lengths look acceptable"
+                ),
+                {
+                    "count": len(organization_api_keys),
+                    "weak_organizations": weak_organizations,
+                },
+            )
+        )
     if admin_password and (len(admin_password) < 12 or admin_password.startswith("change-me")):
         checks.append(Check("admin_password_strength", "warn", "BS_ADMIN_PASSWORD should be changed to a long random password"))
     elif admin_password:
@@ -340,9 +385,11 @@ def _security_checks() -> list[Check]:
     if password_login_is_enabled():
         all_login_passwords = {admin_password, *role_passwords.values()}
         all_login_passwords.discard("")
+        all_api_keys = {api_key, *organization_api_keys.values()}
+        all_api_keys.discard("")
         if not session_secret or session_secret.startswith("change-me") or len(session_secret) < 32:
             checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should be a separate 32+ character random value"))
-        elif session_secret == api_key or session_secret in all_login_passwords:
+        elif session_secret in all_api_keys or session_secret in all_login_passwords:
             checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should not equal an API key or login password"))
         else:
             checks.append(Check("session_secret", "pass", "session secret looks acceptable"))
