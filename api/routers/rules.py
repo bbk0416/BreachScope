@@ -13,6 +13,7 @@ from api.rbac import (
     ROLE_AUTHOR,
     ROLE_OPERATOR,
     ROLE_REVIEWER,
+    identity_from_request,
     rbac_is_enabled,
     require_roles,
 )
@@ -84,16 +85,16 @@ class RuleActivationRollback(BaseModel):
     target_version: int = Field(..., ge=0)
 
 
-def _profile_service() -> RuleTuningProfileService:
-    return RuleTuningProfileService()
+def _profile_service(organization_id: str) -> RuleTuningProfileService:
+    return RuleTuningProfileService(organization_id=organization_id)
 
 
-def _authoring_service() -> RuleAuthoringService:
-    return RuleAuthoringService()
+def _authoring_service(organization_id: str) -> RuleAuthoringService:
+    return RuleAuthoringService(organization_id=organization_id)
 
 
-def _activation_service() -> RuleActivationService:
-    return RuleActivationService()
+def _activation_service(organization_id: str) -> RuleActivationService:
+    return RuleActivationService(organization_id=organization_id)
 
 
 @router.get("/rules", response_class=JSONResponse)
@@ -125,17 +126,25 @@ async def get_rules():
 
 
 @router.get("/rules/profiles", response_class=JSONResponse)
-async def list_rule_tuning_profiles():
+async def list_rule_tuning_profiles(request: Request):
+    organization_id = identity_from_request(request).organization_id
     try:
-        return {"success": True, "profiles": _profile_service().list_profiles()}
+        return {
+            "success": True,
+            "profiles": _profile_service(organization_id).list_profiles(),
+        }
     except RuleTuningProfileError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/rules/profiles/{profile_id}", response_class=JSONResponse)
-async def get_rule_tuning_profile(profile_id: str):
+async def get_rule_tuning_profile(profile_id: str, request: Request):
+    organization_id = identity_from_request(request).organization_id
     try:
-        return {"success": True, "profile": _profile_service().get_profile(profile_id)}
+        return {
+            "success": True,
+            "profile": _profile_service(organization_id).get_profile(profile_id),
+        }
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="룰 튜닝 프로필을 찾을 수 없습니다.") from exc
     except RuleTuningProfileError as exc:
@@ -146,7 +155,7 @@ async def get_rule_tuning_profile(profile_id: str):
 async def create_rule_tuning_profile(payload: RuleTuningProfileCreate, request: Request):
     actor = require_roles(request, ROLE_AUTHOR)
     try:
-        profile = _profile_service().create_profile(
+        profile = _profile_service(actor.organization_id).create_profile(
             name=payload.name,
             description=payload.description,
             rule_include=payload.rule_include,
@@ -185,7 +194,7 @@ async def update_rule_tuning_profile(
 ):
     actor = require_roles(request, ROLE_AUTHOR)
     try:
-        profile = _profile_service().update_profile(
+        profile = _profile_service(actor.organization_id).update_profile(
             profile_id,
             expected_version=payload.expected_version,
             name=payload.name,
@@ -243,9 +252,9 @@ async def delete_rule_tuning_profile(
     request: Request,
     expected_version: int = Query(..., ge=1),
 ):
-    require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR)
     try:
-        removed = _profile_service().delete_profile(
+        removed = _profile_service(actor.organization_id).delete_profile(
             profile_id,
             expected_version=expected_version,
         )
@@ -288,17 +297,25 @@ async def delete_rule_tuning_profile(
 
 
 @router.get("/rules/authoring/drafts", response_class=JSONResponse)
-async def list_rule_drafts():
+async def list_rule_drafts(request: Request):
+    organization_id = identity_from_request(request).organization_id
     try:
-        return {"success": True, "drafts": _authoring_service().list_drafts()}
+        return {
+            "success": True,
+            "drafts": _authoring_service(organization_id).list_drafts(),
+        }
     except RuleAuthoringError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/rules/authoring/drafts/{draft_id}", response_class=JSONResponse)
-async def get_rule_draft(draft_id: str):
+async def get_rule_draft(draft_id: str, request: Request):
+    organization_id = identity_from_request(request).organization_id
     try:
-        return {"success": True, "draft": _authoring_service().get_draft(draft_id)}
+        return {
+            "success": True,
+            "draft": _authoring_service(organization_id).get_draft(draft_id),
+        }
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="룰 draft를 찾을 수 없습니다.") from exc
     except RuleAuthoringError as exc:
@@ -309,7 +326,7 @@ async def get_rule_draft(draft_id: str):
 async def create_rule_draft(payload: RuleDraftCreate, request: Request):
     actor = require_roles(request, ROLE_AUTHOR)
     try:
-        draft = _authoring_service().create_draft(
+        draft = _authoring_service(actor.organization_id).create_draft(
             rule=payload.rule,
             updated_by=actor.subject,
         )
@@ -335,7 +352,7 @@ async def create_rule_draft(payload: RuleDraftCreate, request: Request):
 async def update_rule_draft(draft_id: str, payload: RuleDraftUpdate, request: Request):
     actor = require_roles(request, ROLE_AUTHOR)
     try:
-        draft = _authoring_service().update_draft(
+        draft = _authoring_service(actor.organization_id).update_draft(
             draft_id,
             expected_version=payload.expected_version,
             rule=payload.rule,
@@ -363,9 +380,9 @@ async def validate_rule_draft(
     payload: RuleDraftVersionAction,
     request: Request,
 ):
-    require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR)
     try:
-        draft = _authoring_service().validate_draft(
+        draft = _authoring_service(actor.organization_id).validate_draft(
             draft_id,
             expected_version=payload.expected_version,
         )
@@ -404,7 +421,7 @@ async def approve_rule_draft(
 ):
     actor = require_roles(request, ROLE_REVIEWER)
     try:
-        draft = _authoring_service().approve_draft(
+        draft = _authoring_service(actor.organization_id).approve_draft(
             draft_id,
             expected_version=payload.expected_version,
             review_note=payload.review_note,
@@ -443,7 +460,7 @@ async def publish_rule_draft(
 ):
     actor = require_roles(request, ROLE_REVIEWER)
     try:
-        draft = _authoring_service().publish_draft(
+        draft = _authoring_service(actor.organization_id).publish_draft(
             draft_id,
             expected_version=payload.expected_version,
             published_by=actor.subject,
@@ -473,9 +490,10 @@ async def publish_rule_draft(
 
 
 @router.get("/rules/activation", response_class=JSONResponse)
-async def get_rule_activation_state():
+async def get_rule_activation_state(request: Request):
+    organization_id = identity_from_request(request).organization_id
     try:
-        state = _activation_service().get_state()
+        state = _activation_service(organization_id).get_state()
     except RuleActivationError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"success": True, "activation": state}
@@ -488,7 +506,7 @@ async def activate_published_rule(
 ):
     actor = require_roles(request, ROLE_OPERATOR)
     try:
-        state = _activation_service().activate(
+        state = _activation_service(actor.organization_id).activate(
             draft_id=payload.draft_id,
             published_version=payload.published_version,
             expected_version=payload.expected_version,
@@ -530,7 +548,7 @@ async def deactivate_published_rule(
 ):
     actor = require_roles(request, ROLE_OPERATOR)
     try:
-        state = _activation_service().deactivate(
+        state = _activation_service(actor.organization_id).deactivate(
             draft_id=payload.draft_id,
             expected_version=payload.expected_version,
             actor=actor.subject,
@@ -560,7 +578,7 @@ async def rollback_rule_activation(
 ):
     actor = require_roles(request, ROLE_OPERATOR)
     try:
-        state = _activation_service().rollback(
+        state = _activation_service(actor.organization_id).rollback(
             target_version=payload.target_version,
             expected_version=payload.expected_version,
             actor=actor.subject,

@@ -14,7 +14,11 @@
 
 역할 분리가 켜진 경우 non-admin reviewer는 자신이 마지막으로 작성/수정한 현재 draft 버전을 승인할 수 없습니다. 권한 부족은 HTTP 403, 자기승인 차단은 workflow state conflict로 HTTP 409를 반환합니다.
 
-OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. admin과 다른 role이 함께 매칭되면 admin, 둘 이상의 non-admin role이 동시에 매칭되면 403으로 거부합니다. `BS_OIDC_ORGANIZATION_CLAIM`을 설정하면 해당 claim은 정확히 하나의 안전한 organization ID로 매핑되어 서명된 브라우저 세션에 고정됩니다. API key 클라이언트는 `X-BreachScope-Organization` 헤더로 retained-case 및 audit HTTP scope를 선택할 수 있으며, 브라우저 세션은 이 헤더로 organization을 덮어쓸 수 없습니다.
+OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. admin과 다른 role이 함께 매칭되면 admin, 둘 이상의 non-admin role이 동시에 매칭되면 403으로 거부합니다. `BS_OIDC_ORGANIZATION_CLAIM`을 설정하면 해당 claim은 정확히 하나의 안전한 organization ID로 매핑되어 서명된 브라우저 세션에 고정됩니다. API key 클라이언트는 `X-BreachScope-Organization` 헤더로 retained-case, audit, custom-rule lifecycle, object-storage, backup HTTP scope를 선택할 수 있으며, 브라우저 세션은 이 헤더로 organization을 덮어쓸 수 없습니다.
+
+### Backup API organization scope
+
+`GET/POST /api/backups`와 download/integrity/delete 경로는 현재 organization의 backup namespace만 사용합니다. 생성되는 ZIP에는 현재 organization의 case metadata/artifacts, audit events, rule-tuning profiles, custom-rule authoring/publication artifacts, activation state만 포함됩니다. 다른 organization의 backup ID는 404로 처리됩니다. `BS_DEFAULT_ORGANIZATION_ID`는 기존 `BS_BACKUP_ROOT`를 그대로 사용하고, non-default organization은 `BS_BACKUP_ROOT/organizations/<organization_id>/` 아래에 저장됩니다.
 
 ### Audit API organization scope
 
@@ -192,6 +196,10 @@ OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorizat
 ```
 
 ---
+
+### Rule lifecycle organization scope
+
+Rule-tuning profiles, custom-rule drafts/publications, and activation state are resolved from the active organization. API-key clients select that organization with X-BreachScope-Organization; browser sessions remain bound to the signed session organization and cannot override it with that header. BS_DEFAULT_ORGANIZATION_ID uses the configured legacy base paths, while non-default organizations use separate derived storage namespaces. Analyses with use_custom_rules=true load only the active custom rules for the request organization. The canonical built-in rules/ pack is unchanged and remains deployment-wide/read-only.
 
 ### GET `/api/rules/profiles`
 저장된 룰 튜닝 프로필 목록을 조회합니다. 목록 응답에는 현재 버전과 revision 수가 포함되며 전체 revision 본문은 포함하지 않습니다.

@@ -76,12 +76,12 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_DISABLE_DOCS` | Disable `/api/docs` and `/api/redoc` when `1` | `0` |
 | `BS_CASES_ROOT` | Case artifact root directory | `~/.breachscope/cases` |
 | `BS_CASE_HISTORY_PATH` | Case metadata JSON path | `~/.breachscope/case_history.json` |
-| `BS_DEFAULT_ORGANIZATION_ID` | Default retained-case organization for local/password sessions and legacy case rows. | `default` |
+| `BS_DEFAULT_ORGANIZATION_ID` | Default organization for local/password sessions and legacy case/audit/custom-rule storage compatibility | `default` |
 | `BS_AUDIT_ENABLED` | Enable append-only JSONL audit trail | `1` |
 | `BS_AUDIT_LOG_PATH` | Audit JSONL path | `~/.breachscope/audit.jsonl` |
-| `BS_RULE_TUNING_PATH` | Versioned rule-tuning profile JSON path | `~/.breachscope/rule_tuning_profiles.json` |
-| `BS_RULE_AUTHORING_ROOT` | Draft/review/published custom-rule root | `~/.breachscope/rule_authoring` |
-| `BS_RULE_ACTIVATION_PATH` | Versioned custom-rule activation manifest | `~/.breachscope/rule_activation.json` |
+| `BS_RULE_TUNING_PATH` | Base JSON path for the default organization's versioned rule-tuning profiles; non-default organizations use a derived `rule_tuning_organizations/<org>/` path | `~/.breachscope/rule_tuning_profiles.json` |
+| `BS_RULE_AUTHORING_ROOT` | Base draft/review/published custom-rule root; non-default organizations use `organizations/<org>/` below this root | `~/.breachscope/rule_authoring` |
+| `BS_RULE_ACTIVATION_PATH` | Base activation manifest for the default organization; non-default organizations use a derived `rule_activation_organizations/<org>/` path | `~/.breachscope/rule_activation.json` |
 | `BS_ARTIFACT_ENCRYPTION_KEY` | Optional URL-safe base64 32-byte key for AES-256-GCM encryption of retained case inputs/reports | unset |
 | `BS_OBJECT_STORAGE_PROVIDER` | Optional remote case replica provider. Currently `s3` only. | unset |
 | `BS_OBJECT_STORAGE_BUCKET` | S3-compatible bucket for encrypted case replicas | unset |
@@ -113,7 +113,7 @@ BS_COOKIE_SECURE=1
 
 The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. If `BS_OIDC_ORGANIZATION_CLAIM` is configured, that claim must resolve to exactly one safe organization ID and is embedded in the signed local session. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group or organization changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
 
-Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. API-key clients may select the organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. This is not full tenant isolation: rule stores and organization-specific RBAC/SCIM policy remain deployment-wide/future work.
+Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. API-key clients may select the organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. Rule-tuning profiles, custom-rule authoring/published artifacts, and activation manifests are also organization-scoped. BS_DEFAULT_ORGANIZATION_ID keeps the configured base tuning/authoring/activation paths for backward compatibility; non-default organizations use derived organization namespaces. The canonical built-in rule pack remains deployment-wide and read-only. This is not full tenant isolation because organization-specific RBAC policy, API-key delegation boundaries, and SCIM/user lifecycle remain deployment-wide/future work.
 
 ## 5. API-key examples
 
@@ -172,6 +172,8 @@ BS_BACKUP_ROOT=/data/backups
 ```
 
 ```http
+The built-in backup API is organization-scoped. Each ZIP contains only the active organization's case metadata/artifacts, audit events, and custom-rule lifecycle stores. The default organization writes directly under `BS_BACKUP_ROOT`; non-default organizations use `BS_BACKUP_ROOT/organizations/<organization_id>/`. A backup ID from another organization resolves as 404. Use an external volume/filesystem snapshot when a deployment-wide backup is required.
+
 POST /api/backups?include_cases=true&include_audit=true
 GET /api/backups
 GET /api/backups/{backup_id}/download
