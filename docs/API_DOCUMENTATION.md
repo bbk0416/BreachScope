@@ -29,12 +29,13 @@ SCIM은 전용 `Authorization: Bearer <BS_SCIM_BEARER_TOKEN>`으로 `/api/scim/v
 - `GET/PUT/PATCH/DELETE /api/scim/v2/Users/{id}`
 - `GET/POST /api/scim/v2/Groups`
 - `GET/PUT/PATCH/DELETE /api/scim/v2/Groups/{id}`
+- `POST /api/scim/v2/Bulk`
 
 Users list는 `id`, `userName`, `externalId`의 exact `eq` filter를, Groups list는 `id`, `displayName`의 exact `eq` filter를 지원하며 둘 다 `startIndex`/`count` pagination을 사용합니다. User/Group 응답은 ETag를 반환하며 PUT/PATCH/DELETE의 `If-Match`를 검사합니다. Group member는 기존 SCIM User ID만 받을 수 있고 nested group membership은 지원하지 않습니다.
 
 Active user는 OIDC `sub`와 연결할 `externalId`가 필요합니다. role+organization은 User extension `urn:breachscope:params:scim:schemas:extension:1.0:User` 또는 Group extension `urn:breachscope:params:scim:schemas:extension:1.0:Group`에서 올 수 있습니다. Group extension도 `role`, `organizationId`를 사용합니다. User 직접 assignment와 모든 Group assignment를 합친 결과가 정확히 하나의 `(role, organizationId)` pair로 해석될 때만 OIDC 로그인을 허용합니다. 같은 pair가 User와 Group에 중복되는 것은 허용하지만 서로 다른 pair가 동시에 존재하면 fail-closed입니다. User/group membership/assignment 변경이나 Group 삭제는 기존 OIDC 세션에 다음 요청부터 즉시 반영됩니다.
 
-현재 구현은 single-instance JSON-backed Users/Groups provisioning subset입니다. Users와 Groups는 각각 `BS_SCIM_USER_STORE_PATH`, `BS_SCIM_GROUP_STORE_PATH`에 저장됩니다. Bulk, password provisioning, sort, nested-group authorization, external identity DB, multi-replica directory write는 지원하지 않습니다.
+현재 구현은 single-instance JSON-backed Users/Groups provisioning subset입니다. Users와 Groups는 각각 `BS_SCIM_USER_STORE_PATH`, `BS_SCIM_GROUP_STORE_PATH`에 저장됩니다. Bulk는 RFC 7644 형태의 `BulkRequest`/`BulkResponse`로 Users/Groups POST·PUT·PATCH·DELETE, POST `bulkId`, `bulkId:` cross-reference, operation `version`, `failOnErrors`를 지원합니다. 한 요청은 최대 100 operations / 1 MiB이며, Bulk는 원자적 트랜잭션이 아니라 처리된 operation별 결과를 반환합니다. password provisioning, sort, nested-group authorization, external identity DB, multi-replica directory write는 지원하지 않습니다.
 
 ### Organization-specific RBAC policy
 
