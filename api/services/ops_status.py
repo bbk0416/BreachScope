@@ -44,6 +44,11 @@ from api.services.scim_directory import (
     scim_is_configured,
     scim_user_store_path,
 )
+from api.services.scim_store import (
+    ScimStoreError,
+    scim_database_path,
+    scim_storage_backend,
+)
 from api.services.object_storage import (
     ObjectStorageError,
     object_storage_configured,
@@ -155,45 +160,97 @@ def _check_scim_provisioning() -> Check:
         )
 
     token = scim_bearer_token()
-    user_path = scim_user_store_path()
-    group_path = scim_group_store_path()
-    user_info = _path_info(
-        user_path,
-        create_dir=True,
-        file_path=True,
-    )
-    group_info = _path_info(
-        group_path,
-        create_dir=True,
-        file_path=True,
-    )
-    if not user_info["writable"] or not group_info["writable"]:
+    try:
+        backend = scim_storage_backend()
+    except ScimStoreError as exc:
         return Check(
             "scim_provisioning",
             "fail",
-            "SCIM user/group store path is not writable.",
+            "SCIM storage backend configuration is invalid.",
             {
                 "enabled": True,
-                "user_store": user_info,
-                "group_store": group_info,
+                "error": str(exc),
             },
         )
 
-    try:
-        user_directory = ScimUserDirectory(
-            path=user_path,
-            group_path=group_path,
+    storage_details: dict[str, Any] = {
+        "storage_backend": backend,
+    }
+    if backend == "sqlite":
+        database_path = scim_database_path()
+        database_info = _path_info(
+            database_path,
+            create_dir=True,
+            file_path=True,
         )
+        if not database_info["writable"]:
+            return Check(
+                "scim_provisioning",
+                "fail",
+                "SCIM SQLite database path is not writable.",
+                {
+                    "enabled": True,
+                    "storage_backend": backend,
+                    "database": database_info,
+                },
+            )
+        storage_details["database_path"] = str(database_path)
+        directory_kwargs = {
+            "backend": backend,
+            "database_path": database_path,
+        }
+    else:
+        user_path = scim_user_store_path()
+        group_path = scim_group_store_path()
+        user_info = _path_info(
+            user_path,
+            create_dir=True,
+            file_path=True,
+        )
+        group_info = _path_info(
+            group_path,
+            create_dir=True,
+            file_path=True,
+        )
+        if not user_info["writable"] or not group_info["writable"]:
+            return Check(
+                "scim_provisioning",
+                "fail",
+                "SCIM user/group store path is not writable.",
+                {
+                    "enabled": True,
+                    "storage_backend": backend,
+                    "user_store": user_info,
+                    "group_store": group_info,
+                },
+            )
+        storage_details.update(
+            {
+                "user_store_path": str(user_path),
+                "group_store_path": str(group_path),
+            }
+        )
+        directory_kwargs = {
+            "path": user_path,
+            "group_path": group_path,
+            "backend": backend,
+        }
+
+    try:
+        user_directory = ScimUserDirectory(**directory_kwargs)
         stats = user_directory.stats()
     except ScimDirectoryError as exc:
         return Check(
             "scim_provisioning",
             "fail",
-            "SCIM user/group store is invalid or unreadable.",
+            (
+                "SCIM user/group store is invalid or unreadable."
+                if backend == "json"
+                else "SCIM SQLite identity store is invalid or unreadable."
+            ),
             {
                 "enabled": True,
-                "user_store_path": str(user_path),
-                "group_store_path": str(group_path),
+                **storage_details,
                 "error": str(exc),
             },
         )
@@ -205,12 +262,11 @@ def _check_scim_provisioning() -> Check:
         (
             "BS_SCIM_BEARER_TOKEN should be a 24+ character random value."
             if weak
-            else "SCIM provisioning stores and bearer token look valid."
+            else "SCIM provisioning storage and bearer token look valid."
         ),
         {
             "enabled": True,
-            "user_store_path": str(user_path),
-            "group_store_path": str(group_path),
+            **storage_details,
             **stats,
         },
     )

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add optional SQLite-backed SCIM identity storage with structured Users/Groups/membership tables, JSON-backend compatibility, Docker/go-live/config diagnostics, and explicit single-instance/non-migrating storage semantics.
 - Add transitive SCIM nested-group authorization with User/Group member typing, recursive OIDC role/organization resolution, cycle rejection, parent-reference cleanup on Group deletion, Bulk forward-reference compatibility, and fail-closed assignment conflicts.
 - Add bounded SCIM 2.0 Bulk provisioning for Users/Groups POST/PUT/PATCH/DELETE, including `bulkId` cross-references, forward-reference resolution, operation version checks, `failOnErrors`, 100-operation/1-MiB limits, per-operation audit events, and partial-failure responses.
 - Add SCIM 2.0 Groups provisioning with User-ID membership, group role/organization assignments, ETag/If-Match mutation guards, audit events, immediate OIDC session revalidation on group lifecycle changes, separate persistent group storage, and fail-closed handling of conflicting User/Group assignments.

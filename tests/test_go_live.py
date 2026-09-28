@@ -711,3 +711,75 @@ def test_go_live_accepts_group_only_scim_assignment_from_env_paths(
     assert checks["scim_provisioning"]["details"][
         "total_groups"
     ] == 1
+
+
+
+def test_go_live_accepts_sqlite_scim_identity_store(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env["BS_OIDC_ISSUER_URL"] = "https://idp.example.test"
+    env["BS_OIDC_CLIENT_ID"] = "breachscope"
+    env["BS_OIDC_REDIRECT_URI"] = (
+        "https://breachscope.example.test/api/auth/oidc/callback"
+    )
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_STORAGE_BACKEND"] = "sqlite"
+    env["BS_SCIM_DATABASE_PATH"] = str(
+        tmp_path / "scim_identity.db"
+    )
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    ScimUserDirectory(
+        backend="sqlite",
+        database_path=Path(env["BS_SCIM_DATABASE_PATH"]),
+        env=env,
+    ).create_user(
+        {
+            "userName": "sqlite-go-live@example.test",
+            "externalId": "sqlite-go-live-subject",
+            "active": True,
+            BREACHSCOPE_USER_SCHEMA: {
+                "role": "operator",
+                "organizationId": "sqlite-org",
+            },
+        }
+    )
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    checks = {row["name"]: row for row in result["checks"]}
+    scim = checks["scim_provisioning"]
+    assert scim["status"] == "pass"
+    assert scim["details"]["storage_backend"] == "sqlite"
+    assert scim["details"]["database_path"] == env[
+        "BS_SCIM_DATABASE_PATH"
+    ]
+    assert scim["details"]["active_users"] == 1
+    assert scim["details"]["authorized_users"] == 1
+
+
+def test_go_live_rejects_invalid_scim_storage_backend(
+    tmp_path,
+):
+    env = _good_env(tmp_path)
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_STORAGE_BACKEND"] = "postgres"
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "scim_provisioning"
+    )
+    assert check["status"] == "fail"
+    assert "storage backend" in check["message"]
+    assert "json or sqlite" in check["details"]["error"]
