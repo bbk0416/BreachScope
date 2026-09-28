@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hmac
+import json
 from typing import Any
 
 from fastapi import APIRouter, Body, Query, Request
@@ -11,6 +12,8 @@ from api.services.audit_log import AuditLogService
 from api.services.scim_directory import (
     BREACHSCOPE_GROUP_SCHEMA,
     BREACHSCOPE_USER_SCHEMA,
+    SCIM_BULK_MAX_OPERATIONS,
+    SCIM_BULK_MAX_PAYLOAD_SIZE,
     SCIM_ERROR_SCHEMA,
     SCIM_SCHEMA_SCHEMA,
     ScimConflictError,
@@ -24,6 +27,7 @@ from api.services.scim_directory import (
     scim_schemas,
     scim_service_provider_config,
 )
+from api.services.scim_bulk import ScimBulkRequestError, execute_scim_bulk
 from api.services.scim_groups import ScimGroupDirectory
 
 
@@ -241,6 +245,61 @@ async def schema_by_id(schema_id: str, request: Request):
         if resource.get("id") == schema_id:
             return _scim_response(resource)
     return _scim_error(404, "SCIM schema was not found.")
+
+
+@router.post("/scim/v2/Bulk")
+async def bulk(request: Request):
+    denied = _require_scim_bearer(request)
+    if denied:
+        return denied
+
+    raw = await request.body()
+    if len(raw) > SCIM_BULK_MAX_PAYLOAD_SIZE:
+        return _scim_error(
+            413,
+            "The size of the bulk operation exceeds "
+            f"maxPayloadSize ({SCIM_BULK_MAX_PAYLOAD_SIZE}).",
+        )
+    try:
+        payload = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return _scim_error(
+            400,
+            "SCIM Bulk request body must be valid UTF-8 JSON.",
+            scim_type="invalidSyntax",
+        )
+    if not isinstance(payload, dict):
+        return _scim_error(
+            400,
+            "SCIM Bulk request body must be a JSON object.",
+            scim_type="invalidSyntax",
+        )
+
+    try:
+        response, audit_events = execute_scim_bulk(
+            payload,
+            base_url=_base_url(request),
+            max_operations=SCIM_BULK_MAX_OPERATIONS,
+        )
+    except ScimBulkRequestError as exc:
+        return _scim_error(
+            exc.status_code,
+            str(exc),
+            scim_type=exc.scim_type,
+        )
+
+    for event in audit_events:
+        kind = str(event.get("kind") or "")
+        action = str(event.get("action") or "")
+        resource = event.get("resource")
+        if not action or not isinstance(resource, dict):
+            continue
+        if kind == "user":
+            _audit_user(request, action, resource)
+        elif kind == "group":
+            _audit_group(request, action, resource)
+
+    return _scim_response(response)
 
 
 @router.get("/scim/v2/Users")

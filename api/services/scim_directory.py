@@ -19,6 +19,10 @@ SCIM_GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group"
 SCIM_LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
 SCIM_PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp"
 SCIM_ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error"
+SCIM_BULK_REQUEST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:BulkRequest"
+SCIM_BULK_RESPONSE_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:BulkResponse"
+SCIM_BULK_MAX_OPERATIONS = 100
+SCIM_BULK_MAX_PAYLOAD_SIZE = 1_048_576
 SCIM_SP_CONFIG_SCHEMA = (
     "urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"
 )
@@ -784,7 +788,11 @@ def scim_service_provider_config(base_url: str) -> dict[str, Any]:
         "schemas": [SCIM_SP_CONFIG_SCHEMA],
         "documentationUri": "",
         "patch": {"supported": True},
-        "bulk": {"supported": False, "maxOperations": 0, "maxPayloadSize": 0},
+        "bulk": {
+            "supported": True,
+            "maxOperations": SCIM_BULK_MAX_OPERATIONS,
+            "maxPayloadSize": SCIM_BULK_MAX_PAYLOAD_SIZE,
+        },
         "filter": {"supported": True, "maxResults": 200},
         "changePassword": {"supported": False},
         "sort": {"supported": False},
