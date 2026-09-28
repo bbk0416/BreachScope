@@ -36,6 +36,13 @@ from api.services.artifact_encryption import (
     artifact_encryption_enabled,
     validate_artifact_encryption_key,
 )
+from api.services.scim_directory import (
+    ScimDirectoryError,
+    ScimUserDirectory,
+    scim_bearer_token,
+    scim_is_configured,
+    scim_user_store_path,
+)
 from api.services.object_storage import (
     ObjectStorageError,
     object_storage_configured,
@@ -137,6 +144,56 @@ def live_status() -> dict[str, Any]:
     }
 
 
+def _check_scim_provisioning() -> Check:
+    if not scim_is_configured():
+        return Check(
+            "scim_provisioning",
+            "pass",
+            "SCIM provisioning is optional and currently disabled.",
+            {"enabled": False},
+        )
+
+    token = scim_bearer_token()
+    path = scim_user_store_path()
+    info = _path_info(path, create_dir=True, file_path=True)
+    if not info["writable"]:
+        return Check(
+            "scim_provisioning",
+            "fail",
+            "SCIM user store path is not writable.",
+            {"enabled": True, **info},
+        )
+    try:
+        stats = ScimUserDirectory(path=path).stats()
+    except ScimDirectoryError as exc:
+        return Check(
+            "scim_provisioning",
+            "fail",
+            "SCIM user store is invalid or unreadable.",
+            {
+                "enabled": True,
+                "path": str(path),
+                "error": str(exc),
+            },
+        )
+
+    weak = len(token) < 24 or token.startswith("change-me")
+    return Check(
+        "scim_provisioning",
+        "warn" if weak else "pass",
+        (
+            "BS_SCIM_BEARER_TOKEN should be a 24+ character random value."
+            if weak
+            else "SCIM provisioning store and bearer token look valid."
+        ),
+        {
+            "enabled": True,
+            "path": str(path),
+            **stats,
+        },
+    )
+
+
 def _check_object_storage() -> Check:
     if not object_storage_configured():
         return Check(
@@ -193,6 +250,7 @@ def readiness_status() -> dict[str, Any]:
         )
 
     checks.append(_check_object_storage())
+    checks.append(_check_scim_provisioning())
     checks.append(_check_path("cases_root", CaseHistoryService.default_root(), create_dir=True))
     checks.append(_check_path("case_history", CaseHistoryService.default_index_path(), create_dir=True, file_path=True))
     checks.append(_check_path("audit_log", audit_log_path(), create_dir=True, file_path=True))
@@ -246,6 +304,12 @@ def metrics_snapshot() -> dict[str, Any]:
     backups = BackupService().list_backups(limit=1000)
     audit_path = audit_log_path()
     audit_events = _safe_count_file_lines(audit_path)
+    scim_stats = {"total_users": 0, "active_users": 0}
+    if scim_is_configured():
+        try:
+            scim_stats = ScimUserDirectory().stats()
+        except ScimDirectoryError:
+            pass
     risk_counts: dict[str, int] = {}
     finding_total = 0
     for case in cases:
@@ -265,6 +329,9 @@ def metrics_snapshot() -> dict[str, Any]:
         "audit_events_total": audit_events,
         "audit_enabled": audit_is_enabled(),
         "auth_enabled": auth_is_enabled(),
+        "scim_enabled": scim_is_configured(),
+        "scim_users_total": scim_stats["total_users"],
+        "scim_users_active": scim_stats["active_users"],
         "rulepack": _current_rule_summary(),
         "paths": {
             "cases_root": str(CaseHistoryService.default_root()),
@@ -311,6 +378,7 @@ def config_diagnostics() -> dict[str, Any]:
     checks.extend(_security_checks())
     # Re-run readiness checks as Check objects so callers get consistent severity details.
     checks.append(_check_object_storage())
+    checks.append(_check_scim_provisioning())
     checks.append(_check_path("cases_root", CaseHistoryService.default_root(), create_dir=True))
     checks.append(_check_path("case_history", CaseHistoryService.default_index_path(), create_dir=True, file_path=True))
     checks.append(_check_path("audit_log", audit_log_path(), create_dir=True, file_path=True))
@@ -346,6 +414,7 @@ def _security_checks() -> list[Check]:
     admin_password = configured_admin_password()
     role_passwords = configured_role_passwords()
     session_secret = os.getenv("BS_SESSION_SECRET", "").strip()
+    scim_token = scim_bearer_token()
     if not auth_is_enabled():
         checks.append(Check("auth_enabled", "warn", "authentication is disabled; acceptable only for local demos"))
     else:
@@ -409,6 +478,32 @@ def _security_checks() -> list[Check]:
                 },
             )
         )
+    if scim_token:
+        other_secrets = {
+            api_key,
+            *organization_api_keys.values(),
+            admin_password,
+            *role_passwords.values(),
+            session_secret,
+            os.getenv("BS_OIDC_CLIENT_SECRET", "").strip(),
+        }
+        other_secrets.discard("")
+        if scim_token in other_secrets:
+            checks.append(
+                Check(
+                    "scim_secret_isolation",
+                    "fail",
+                    "BS_SCIM_BEARER_TOKEN must not reuse another BreachScope credential.",
+                )
+            )
+        else:
+            checks.append(
+                Check(
+                    "scim_secret_isolation",
+                    "pass",
+                    "SCIM bearer token is distinct from local credentials.",
+                )
+            )
     if admin_password and (len(admin_password) < 12 or admin_password.startswith("change-me")):
         checks.append(Check("admin_password_strength", "warn", "BS_ADMIN_PASSWORD should be changed to a long random password"))
     elif admin_password:
@@ -421,7 +516,11 @@ def _security_checks() -> list[Check]:
     if password_login_is_enabled():
         all_login_passwords = {admin_password, *role_passwords.values()}
         all_login_passwords.discard("")
-        all_api_keys = {api_key, *organization_api_keys.values()}
+        all_api_keys = {
+            api_key,
+            *organization_api_keys.values(),
+            scim_token,
+        }
         all_api_keys.discard("")
         if not session_secret or session_secret.startswith("change-me") or len(session_secret) < 32:
             checks.append(Check("session_secret", "warn", "BS_SESSION_SECRET should be a separate 32+ character random value"))

@@ -22,6 +22,13 @@ from api.services.artifact_encryption import (
     validate_artifact_encryption_key_value,
 )
 from api.services.case_history import CaseHistoryService
+from api.services.scim_directory import (
+    ScimDirectoryError,
+    ScimUserDirectory,
+    scim_bearer_token,
+    scim_is_configured,
+    scim_user_store_path,
+)
 from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
 from api.security import (
     ApiKeyConfigurationError,
@@ -43,6 +50,7 @@ SECRET_ENV_KEYS = (
     "BS_REVIEWER_PASSWORD",
     "BS_OPERATOR_PASSWORD",
     "BS_OIDC_CLIENT_SECRET",
+    "BS_SCIM_BEARER_TOKEN",
     "BS_SESSION_SECRET",
     "BS_AUDIT_CHAIN_SECRET",
     "BS_ARTIFACT_ENCRYPTION_KEY",
@@ -214,6 +222,95 @@ def _check_organization_rbac_policy(
             "role_override_count": sum(
                 len(role_map) for role_map in policies.values()
             ),
+        },
+    )
+
+
+def _check_scim_provisioning(
+    env: Mapping[str, str],
+) -> GoLiveCheck:
+    if not scim_is_configured(env):
+        return GoLiveCheck(
+            "scim_provisioning",
+            "pass",
+            "SCIM provisioning is optional and currently disabled.",
+            {"enabled": False},
+        )
+
+    token = scim_bearer_token(env)
+    path = scim_user_store_path(env)
+    info = _path_info(path, create_dir=True, file_path=True)
+    if not info["writable"]:
+        return GoLiveCheck(
+            "scim_provisioning",
+            "fail",
+            "SCIM user store path is not writable.",
+            {"enabled": True, **info},
+        )
+    try:
+        stats = ScimUserDirectory(path=path).stats()
+    except ScimDirectoryError as exc:
+        return GoLiveCheck(
+            "scim_provisioning",
+            "fail",
+            "SCIM user store is invalid or unreadable.",
+            {
+                "enabled": True,
+                "path": str(path),
+                "error": str(exc),
+            },
+        )
+
+    try:
+        org_keys = configured_organization_api_keys(env)
+    except ApiKeyConfigurationError:
+        org_keys = {}
+    other_secrets = {
+        _env_value(env, "BS_API_KEY"),
+        *org_keys.values(),
+        _env_value(env, "BS_ADMIN_PASSWORD"),
+        _env_value(env, "BS_AUTHOR_PASSWORD"),
+        _env_value(env, "BS_REVIEWER_PASSWORD"),
+        _env_value(env, "BS_OPERATOR_PASSWORD"),
+        _env_value(env, "BS_SESSION_SECRET"),
+        _env_value(env, "BS_OIDC_CLIENT_SECRET"),
+    }
+    other_secrets.discard("")
+    if token in other_secrets:
+        return GoLiveCheck(
+            "scim_provisioning",
+            "fail",
+            "BS_SCIM_BEARER_TOKEN must not reuse another BreachScope credential.",
+            {"enabled": True, **stats},
+        )
+
+    warnings: list[str] = []
+    if len(token) < 24 or _looks_placeholder(token):
+        warnings.append(
+            "BS_SCIM_BEARER_TOKEN should use 24+ random characters."
+        )
+    if oidc_is_configured(env) and stats["active_users"] == 0:
+        warnings.append(
+            "OIDC is enabled with SCIM enforcement but there are no active SCIM users."
+        )
+    elif not oidc_is_configured(env):
+        warnings.append(
+            "SCIM is enabled but OIDC login is not configured; provisioning is staged only."
+        )
+
+    return GoLiveCheck(
+        "scim_provisioning",
+        "warn" if warnings else "pass",
+        (
+            " ".join(warnings)
+            if warnings
+            else "SCIM provisioning and OIDC lifecycle enforcement are configured."
+        ),
+        {
+            "enabled": True,
+            "path": str(path),
+            **stats,
+            "oidc_enforced": oidc_is_configured(env),
         },
     )
 
@@ -440,6 +537,10 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
             steps.append(
                 "Fix BS_ORGANIZATION_RBAC_POLICIES JSON, role names, and permission names before go-live."
             )
+        elif check.name == "scim_provisioning":
+            steps.append(
+                "Use a unique strong BS_SCIM_BEARER_TOKEN, keep BS_SCIM_USER_STORE_PATH writable, and provision at least one active OIDC user before relying on SCIM enforcement."
+            )
         elif check.name == "session_secret":
             steps.append("Set BS_SESSION_SECRET to a unique 32+ character random value.")
         elif check.name == "placeholder_secrets":
@@ -469,6 +570,7 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
     checks: list[GoLiveCheck] = [
         _check_auth(env_map),
         _check_organization_rbac_policy(env_map),
+        _check_scim_provisioning(env_map),
         _check_session_secret(env_map),
         _check_placeholders(env_map),
         _check_artifact_encryption(env_map),

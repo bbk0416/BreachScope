@@ -5,6 +5,10 @@ import os
 from fastapi.testclient import TestClient
 
 from api.main import app
+from api.services.scim_directory import (
+    BREACHSCOPE_USER_SCHEMA,
+    ScimUserDirectory,
+)
 from breachscope.bootstrap_env import generate_env_text, write_env_file
 from breachscope.golive import render_markdown, run_go_live_check
 
@@ -458,3 +462,110 @@ def test_go_live_rejects_invalid_organization_rbac_policy(
         "BS_ORGANIZATION_RBAC_POLICIES" in step
         for step in result["next_steps"]
     )
+
+
+def test_go_live_accepts_oidc_scim_without_claim_role_mapping(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env.pop("BS_ADMIN_PASSWORD")
+    env["BS_OIDC_ISSUER_URL"] = "https://idp.example.test"
+    env["BS_OIDC_CLIENT_ID"] = "breachscope"
+    env["BS_OIDC_REDIRECT_URI"] = (
+        "https://breachscope.example.test/api/auth/oidc/callback"
+    )
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_USER_STORE_PATH"] = str(
+        tmp_path / "scim_users.json"
+    )
+    for name in (
+        "BS_OIDC_ADMIN_VALUES",
+        "BS_OIDC_AUTHOR_VALUES",
+        "BS_OIDC_REVIEWER_VALUES",
+        "BS_OIDC_OPERATOR_VALUES",
+        "BS_OIDC_DEFAULT_ROLE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.delenv("BS_ADMIN_PASSWORD", raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    ScimUserDirectory(
+        path=Path(env["BS_SCIM_USER_STORE_PATH"])
+    ).create_user(
+        {
+            "userName": "alice@example.test",
+            "externalId": "subject-123",
+            "active": True,
+            BREACHSCOPE_USER_SCHEMA: {
+                "role": "operator",
+                "organizationId": "org-a",
+            },
+        }
+    )
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    checks = {row["name"]: row for row in result["checks"]}
+    assert checks["runtime_authentication"]["status"] == "pass"
+    assert checks["runtime_authentication"]["details"][
+        "oidc_login_enabled"
+    ] is True
+    assert checks["runtime_authentication"]["details"][
+        "oidc_roles"
+    ] == ["operator"]
+    assert checks["scim_provisioning"]["status"] == "pass"
+    assert checks["scim_provisioning"]["details"][
+        "active_users"
+    ] == 1
+
+
+def test_go_live_scim_warns_for_zero_active_users_and_rejects_secret_reuse(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env["BS_OIDC_ISSUER_URL"] = "https://idp.example.test"
+    env["BS_OIDC_CLIENT_ID"] = "breachscope"
+    env["BS_OIDC_REDIRECT_URI"] = (
+        "https://breachscope.example.test/api/auth/oidc/callback"
+    )
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_USER_STORE_PATH"] = str(
+        tmp_path / "scim_users.json"
+    )
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "scim_provisioning"
+    )
+    assert check["status"] == "warn"
+    assert "no active SCIM users" in check["message"]
+
+    env["BS_SCIM_BEARER_TOKEN"] = env["BS_API_KEY"]
+    monkeypatch.setenv(
+        "BS_SCIM_BEARER_TOKEN",
+        env["BS_SCIM_BEARER_TOKEN"],
+    )
+    reused = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    check = next(
+        row for row in reused["checks"]
+        if row["name"] == "scim_provisioning"
+    )
+    assert check["status"] == "fail"
+    assert "must not reuse" in check["message"]

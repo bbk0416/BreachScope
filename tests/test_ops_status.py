@@ -162,3 +162,47 @@ def test_security_checks_validate_organization_rbac_policy(monkeypatch):
     )
     checks = {row.name: row for row in _security_checks()}
     assert checks["organization_rbac_policy"].status == "fail"
+
+
+def test_config_checks_scim_store_and_secret_isolation(
+    tmp_path,
+    monkeypatch,
+):
+    token = "s" * 40
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", token)
+    monkeypatch.setenv(
+        "BS_SCIM_USER_STORE_PATH",
+        str(tmp_path / "scim_users.json"),
+    )
+    monkeypatch.delenv("BS_API_KEY", raising=False)
+    monkeypatch.delenv("BS_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("BS_SESSION_SECRET", raising=False)
+    monkeypatch.delenv("BS_OIDC_CLIENT_SECRET", raising=False)
+
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["scim_secret_isolation"].status == "pass"
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {row["name"]: row for row in response.json()["checks"]}
+    assert rows["scim_provisioning"]["status"] == "pass"
+    assert rows["scim_provisioning"]["details"]["total_users"] == 0
+
+    monkeypatch.setenv("BS_OIDC_CLIENT_SECRET", token)
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["scim_secret_isolation"].status == "fail"
+
+
+def test_config_check_flags_weak_scim_token(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "short")
+    monkeypatch.setenv(
+        "BS_SCIM_USER_STORE_PATH",
+        str(tmp_path / "scim_users.json"),
+    )
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {row["name"]: row for row in response.json()["checks"]}
+    assert rows["scim_provisioning"]["status"] == "warn"

@@ -15,7 +15,20 @@
 
 역할 분리가 켜진 경우 non-admin reviewer는 자신이 마지막으로 작성/수정한 현재 draft 버전을 승인할 수 없습니다. 권한 부족은 HTTP 403, 자기승인 차단은 workflow state conflict로 HTTP 409를 반환합니다.
 
-OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. admin과 다른 role이 함께 매칭되면 admin, 둘 이상의 non-admin role이 동시에 매칭되면 403으로 거부합니다. `BS_OIDC_ORGANIZATION_CLAIM`을 설정하면 해당 claim은 정확히 하나의 안전한 organization ID로 매핑되어 서명된 브라우저 세션에 고정됩니다. Global `BS_API_KEY` 클라이언트는 `X-BreachScope-Organization` 헤더로 retained-case, audit, custom-rule lifecycle, object-storage, backup HTTP scope를 선택할 수 있습니다. `BS_ORGANIZATION_API_KEYS`의 key는 하나의 organization에 고정되며 헤더를 생략하거나 같은 organization만 지정할 수 있습니다. 다른 organization selector는 403, 잘못된 selector는 400입니다. 브라우저 세션은 이 헤더로 organization을 덮어쓸 수 없습니다.
+OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. SCIM을 사용하지 않을 때는 ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. `BS_OIDC_ORGANIZATION_CLAIM`을 설정하면 해당 claim은 정확히 하나의 안전한 organization ID로 매핑됩니다. SCIM이 설정되면 OIDC `sub`와 SCIM `externalId`를 정확히 매칭하고 SCIM의 active/role/organization을 권한 원본으로 사용합니다. SCIM-managed OIDC session은 매 요청마다 다시 확인되므로 disable/delete/role·organization 변경이 기존 session을 즉시 무효화합니다. Global `BS_API_KEY` 클라이언트는 `X-BreachScope-Organization` 헤더로 retained-case, audit, custom-rule lifecycle, object-storage, backup HTTP scope를 선택할 수 있습니다. `BS_ORGANIZATION_API_KEYS`의 key는 하나의 organization에 고정되며 헤더를 생략하거나 같은 organization만 지정할 수 있습니다. 다른 organization selector는 403, 잘못된 selector는 400입니다. 브라우저 세션은 이 헤더로 organization을 덮어쓸 수 없습니다.
+
+### SCIM 2.0 provisioning
+
+SCIM은 전용 `Authorization: Bearer <BS_SCIM_BEARER_TOKEN>`으로 `/api/scim/v2/*`를 호출합니다. 일반 BreachScope API key와 분리되어 있습니다.
+
+지원 endpoint:
+- `GET /api/scim/v2/ServiceProviderConfig`
+- `GET /api/scim/v2/ResourceTypes`, `GET /api/scim/v2/ResourceTypes/User`
+- `GET /api/scim/v2/Schemas`, `GET /api/scim/v2/Schemas/{schema_id}`
+- `GET/POST /api/scim/v2/Users`
+- `GET/PUT/PATCH/DELETE /api/scim/v2/Users/{id}`
+
+Users list는 `id`, `userName`, `externalId`의 exact `eq` filter와 `startIndex`/`count` pagination을 지원합니다. User 응답은 ETag를 반환하며 PUT/PATCH/DELETE의 `If-Match`를 검사합니다. Active user는 OIDC sub와 연결할 externalId, 하나의 role, organizationId가 모두 필요합니다. BreachScope extension URN은 `urn:breachscope:params:scim:schemas:extension:1.0:User`이며 `role`, `organizationId`를 사용합니다. OIDC 연동 시 `externalId`는 OIDC `sub`와 같아야 합니다. 현재 구현은 single-instance JSON-backed Users provisioning subset이며 Groups/Bulk/password provisioning/sort/multi-replica directory write는 지원하지 않습니다.
 
 ### Organization-specific RBAC policy
 
