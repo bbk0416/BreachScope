@@ -244,3 +244,48 @@ def test_config_check_rejects_invalid_scim_group_store(
     }
     assert rows["scim_provisioning"]["status"] == "fail"
     assert "group store" in rows["scim_provisioning"]["message"]
+
+
+
+def test_config_check_accepts_sqlite_scim_store(
+    tmp_path,
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "s" * 40)
+    monkeypatch.setenv("BS_SCIM_STORAGE_BACKEND", "sqlite")
+    database_path = tmp_path / "scim_identity.db"
+    monkeypatch.setenv(
+        "BS_SCIM_DATABASE_PATH",
+        str(database_path),
+    )
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {
+        row["name"]: row
+        for row in response.json()["checks"]
+    }
+    scim = rows["scim_provisioning"]
+    assert scim["status"] == "pass"
+    assert scim["details"]["storage_backend"] == "sqlite"
+    assert scim["details"]["database_path"] == str(database_path)
+    assert scim["details"]["total_users"] == 0
+    assert database_path.exists()
+
+
+def test_config_check_rejects_invalid_scim_storage_backend(
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "s" * 40)
+    monkeypatch.setenv("BS_SCIM_STORAGE_BACKEND", "postgres")
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {
+        row["name"]: row
+        for row in response.json()["checks"]
+    }
+    scim = rows["scim_provisioning"]
+    assert scim["status"] == "fail"
+    assert "storage backend" in scim["message"]
+    assert "json or sqlite" in scim["details"]["error"]

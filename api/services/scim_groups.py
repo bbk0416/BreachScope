@@ -1,13 +1,18 @@
 """SCIM 2.0 Group provisioning and BreachScope group assignments."""
 from __future__ import annotations
 
-import json
-import os
 import uuid
 from pathlib import Path
 from typing import Any, Mapping
 
 from api.services.organization_scope import normalize_organization_id
+from api.services.scim_store import (
+    ScimIdentityStore,
+    ScimStoreError,
+    scim_database_path,
+    scim_storage_backend,
+)
+
 from api.services.scim_directory import (
     BREACHSCOPE_GROUP_SCHEMA,
     KNOWN_ROLES,
@@ -301,63 +306,54 @@ def public_group_resource(
 
 
 class ScimGroupDirectory:
-    """JSON-backed SCIM Group directory used by OIDC identity resolution."""
+    """SCIM Group directory backed by JSON files or SQLite."""
 
     def __init__(
         self,
         path: Path | None = None,
         *,
         user_directory: ScimUserDirectory | None = None,
+        backend: str | None = None,
+        database_path: Path | None = None,
+        env: Mapping[str, str] | None = None,
     ):
-        self.path = path or scim_group_store_path()
-        self.user_directory = user_directory or ScimUserDirectory()
+        self.user_directory = user_directory or ScimUserDirectory(
+            backend=backend,
+            database_path=database_path,
+            env=env,
+        )
+        self.path = path or scim_group_store_path(env)
+        self.backend = (
+            backend
+            or getattr(self.user_directory, "backend", None)
+            or scim_storage_backend(env)
+        )
+        self.database_path = (
+            database_path
+            or getattr(self.user_directory, "database_path", None)
+            or scim_database_path(env)
+        )
+        try:
+            self.store = ScimIdentityStore(
+                backend=self.backend,
+                user_path=self.user_directory.path,
+                group_path=self.path,
+                database_path=self.database_path,
+            )
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     def _load(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
         try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            raise ScimDirectoryError(
-                "SCIM group store is unreadable or invalid."
-            ) from exc
-        if not isinstance(payload, dict) or not isinstance(
-            payload.get("groups"), list
-        ):
-            raise ScimDirectoryError(
-                "SCIM group store format is invalid."
-            )
-
-        rows: list[dict[str, Any]] = []
-        for row in payload["groups"]:
-            if (
-                isinstance(row, dict)
-                and row.get("id")
-                and row.get("displayName")
-            ):
-                rows.append(dict(row))
-        return rows
+            return self.store.load_groups()
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     def _save(self, rows: list[dict[str, Any]]) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "schema_version": 1,
-            "groups": rows,
-        }
-        temp = self.path.with_name(
-            self.path.name + f".{uuid.uuid4().hex}.tmp"
-        )
-        temp.write_text(
-            json.dumps(
-                payload,
-                ensure_ascii=False,
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temp, self.path)
+        try:
+            self.store.save_groups(rows)
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     def _users(self) -> list[dict[str, Any]]:
         return self.user_directory._load()

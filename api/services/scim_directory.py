@@ -12,6 +12,12 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from api.services.organization_scope import normalize_organization_id
+from api.services.scim_store import (
+    ScimIdentityStore,
+    ScimStoreError,
+    scim_database_path,
+    scim_storage_backend,
+)
 
 
 SCIM_USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User"
@@ -404,56 +410,44 @@ def _public_resource(row: Mapping[str, Any], base_url: str = "") -> dict[str, An
 
 
 class ScimUserDirectory:
-    """Small JSON-backed SCIM user store with uniqueness and atomic writes."""
+    """SCIM user directory backed by JSON files or SQLite."""
 
     def __init__(
         self,
         path: Path | None = None,
         *,
         group_path: Path | None = None,
+        backend: str | None = None,
+        database_path: Path | None = None,
+        env: Mapping[str, str] | None = None,
     ):
-        self.path = path or scim_user_store_path()
-        self.group_path = group_path or scim_group_store_path()
+        self.path = path or scim_user_store_path(env)
+        self.group_path = group_path or scim_group_store_path(env)
+        try:
+            self.backend = backend or scim_storage_backend(env)
+            self.database_path = (
+                database_path or scim_database_path(env)
+            )
+            self.store = ScimIdentityStore(
+                backend=self.backend,
+                user_path=self.path,
+                group_path=self.group_path,
+                database_path=self.database_path,
+            )
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     def _load(self) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
         try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            raise ScimDirectoryError(
-                "SCIM user store is unreadable or invalid."
-            ) from exc
-        if not isinstance(payload, dict) or not isinstance(
-            payload.get("users"), list
-        ):
-            raise ScimDirectoryError("SCIM user store format is invalid.")
-        rows: list[dict[str, Any]] = []
-        for row in payload["users"]:
-            if isinstance(row, dict) and row.get("id") and row.get("userName"):
-                rows.append(dict(row))
-        return rows
+            return self.store.load_users()
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     def _save(self, rows: list[dict[str, Any]]) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
-            "schema_version": 1,
-            "users": rows,
-        }
-        temp = self.path.with_name(
-            self.path.name + f".{uuid.uuid4().hex}.tmp"
-        )
-        temp.write_text(
-            json.dumps(
-                payload,
-                ensure_ascii=False,
-                indent=2,
-                sort_keys=True,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temp, self.path)
+        try:
+            self.store.save_users(rows)
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
 
     @staticmethod
     def _check_uniqueness(

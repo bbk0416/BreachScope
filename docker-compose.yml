@@ -17,6 +17,8 @@ services:
       BS_RULE_TUNING_PATH: /data/rule_tuning_profiles.json
       BS_RULE_AUTHORING_ROOT: /data/rule_authoring
       BS_RULE_ACTIVATION_PATH: /data/rule_activation.json
+      BS_SCIM_STORAGE_BACKEND: ${BS_SCIM_STORAGE_BACKEND:-json}
+      BS_SCIM_DATABASE_PATH: /data/scim_identity.db
       BS_SCIM_USER_STORE_PATH: /data/scim_users.json
       BS_SCIM_GROUP_STORE_PATH: /data/scim_groups.json
       BS_AUTH_RATE_LIMIT_PATH: /data/auth_rate_limit.json
