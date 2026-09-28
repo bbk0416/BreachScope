@@ -21,6 +21,7 @@ from jwt import PyJWKClient
 from api.services.scim_directory import (
     ScimDirectoryError,
     ScimUserDirectory,
+    scim_group_store_path,
     scim_is_configured,
     scim_user_store_path,
 )
@@ -236,7 +237,8 @@ def configured_oidc_roles(env: Mapping[str, str] | None = None) -> list[str]:
         try:
             roles.update(
                 ScimUserDirectory(
-                    path=scim_user_store_path(env)
+                    path=scim_user_store_path(env),
+                    group_path=scim_group_store_path(env),
                 ).active_roles()
             )
         except ScimDirectoryError:

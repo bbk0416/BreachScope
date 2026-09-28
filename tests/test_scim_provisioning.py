@@ -45,6 +45,7 @@ def _clear(monkeypatch) -> None:
         "BS_OIDC_TOKEN_AUTH_METHOD",
         "BS_SCIM_BEARER_TOKEN",
         "BS_SCIM_USER_STORE_PATH",
+        "BS_SCIM_GROUP_STORE_PATH",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -55,6 +56,10 @@ def _configure(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv(
         "BS_SCIM_USER_STORE_PATH",
         str(tmp_path / "scim_users.json"),
+    )
+    monkeypatch.setenv(
+        "BS_SCIM_GROUP_STORE_PATH",
+        str(tmp_path / "scim_groups.json"),
     )
     monkeypatch.setenv(
         "BS_OIDC_ISSUER_URL",
@@ -188,7 +193,7 @@ def test_scim_discovery_requires_dedicated_bearer(
         headers=_headers(),
     )
     assert resource_types.status_code == 200
-    assert resource_types.json()["totalResults"] == 1
+    assert resource_types.json()["totalResults"] == 2
     user_type = client.get(
         "/api/scim/v2/ResourceTypes/User",
         headers=_headers(),
@@ -201,7 +206,7 @@ def test_scim_discovery_requires_dedicated_bearer(
         headers=_headers(),
     )
     assert schemas.status_code == 200
-    assert schemas.json()["totalResults"] == 2
+    assert schemas.json()["totalResults"] == 4
 
 
 def test_scim_user_crud_filter_patch_and_audit(
@@ -342,53 +347,50 @@ def test_scim_user_crud_filter_patch_and_audit(
     )
 
 
-def test_scim_active_user_requires_role_and_organization(
+def test_scim_active_user_can_be_staged_without_direct_assignment(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
     _configure(tmp_path, monkeypatch)
     client = TestClient(app)
 
-    active_missing = client.post(
+    staged = client.post(
         "/api/scim/v2/Users",
         headers=_headers(),
         json={
             "schemas": [
                 "urn:ietf:params:scim:schemas:core:2.0:User"
             ],
-            "userName": "incomplete@example.test",
-            "externalId": "subject-incomplete",
+            "userName": "staged@example.test",
+            "externalId": "subject-staged",
             "active": True,
         },
     )
-    assert active_missing.status_code == 400
+    assert staged.status_code == 201, staged.text
+    body = staged.json()
+    assert body["active"] is True
+    assert "roles" not in body
+    assert BREACHSCOPE_USER_SCHEMA not in body
+    assert ScimUserDirectory().oidc_identity("subject-staged") is None
 
-    inactive = client.post(
+    partial = client.post(
         "/api/scim/v2/Users",
         headers=_headers(),
         json={
             "schemas": [
-                "urn:ietf:params:scim:schemas:core:2.0:User"
+                "urn:ietf:params:scim:schemas:core:2.0:User",
+                BREACHSCOPE_USER_SCHEMA,
             ],
-            "userName": "incomplete@example.test",
-            "externalId": "subject-incomplete",
-            "active": False,
+            "userName": "partial@example.test",
+            "externalId": "subject-partial",
+            "active": True,
+            BREACHSCOPE_USER_SCHEMA: {
+                "role": "operator",
+            },
         },
     )
-    assert inactive.status_code == 201
-    user_id = inactive.json()["id"]
-
-    activate_without_assignments = client.patch(
-        f"/api/scim/v2/Users/{user_id}",
-        headers=_headers(),
-        json={
-            "schemas": [SCIM_PATCH_SCHEMA],
-            "Operations": [
-                {"op": "replace", "path": "active", "value": True}
-            ],
-        },
-    )
-    assert activate_without_assignments.status_code == 400
+    assert partial.status_code == 400
+    assert "both role and organizationId" in partial.json()["detail"]
 
 
 def test_scim_configuration_allows_oidc_without_claim_role_mapping(
@@ -739,10 +741,17 @@ def test_scim_if_match_rejects_stale_mutations(
     assert wildcard_delete.status_code == 204
 
 
-def test_blank_scim_store_path_uses_default(monkeypatch) -> None:
+def test_blank_scim_store_paths_use_defaults(monkeypatch) -> None:
     monkeypatch.setenv("BS_SCIM_USER_STORE_PATH", "")
-    from api.services.scim_directory import scim_user_store_path
+    monkeypatch.setenv("BS_SCIM_GROUP_STORE_PATH", "")
+    from api.services.scim_directory import (
+        scim_group_store_path,
+        scim_user_store_path,
+    )
 
-    path = scim_user_store_path()
-    assert path.name == "scim_users.json"
-    assert ".breachscope" in path.parts
+    user_path = scim_user_store_path()
+    group_path = scim_group_store_path()
+    assert user_path.name == "scim_users.json"
+    assert group_path.name == "scim_groups.json"
+    assert ".breachscope" in user_path.parts
+    assert ".breachscope" in group_path.parts

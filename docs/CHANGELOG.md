@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add SCIM 2.0 Groups provisioning with User-ID membership, group role/organization assignments, ETag/If-Match mutation guards, audit events, immediate OIDC session revalidation on group lifecycle changes, separate persistent group storage, and fail-closed handling of conflicting User/Group assignments.
 - Add SCIM 2.0 Users provisioning subset with dedicated bearer authentication, JSON-backed user lifecycle state, OIDC externalId/sub binding, immediate session revocation on disable/delete/role or organization changes, discovery endpoints, audit events, and go-live/config diagnostics.
 - Add organization-specific RBAC permission overrides for rule author/review/operate, custom-rule analysis, and object-storage operations, with permission-aware web controls and go-live/config validation.
 - Add organization-bound delegated API keys with fail-closed JSON configuration, fixed organization scope, global-key backward compatibility, audit attribution, and go-live/ops validation.
