@@ -13,6 +13,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from api.rbac import (
+    OrganizationRbacPolicyError,
+    configured_organization_rbac_policies,
+    organization_rbac_policy_settings_present,
+)
 from api.services.audit_log import AuditLogService, audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
@@ -332,6 +337,12 @@ def _security_checks() -> list[Check]:
     except ApiKeyConfigurationError as exc:
         organization_api_keys = {}
         organization_api_key_error = str(exc)
+    try:
+        organization_rbac_policies = configured_organization_rbac_policies()
+        organization_rbac_policy_error = None
+    except OrganizationRbacPolicyError as exc:
+        organization_rbac_policies = {}
+        organization_rbac_policy_error = str(exc)
     admin_password = configured_admin_password()
     role_passwords = configured_role_passwords()
     session_secret = os.getenv("BS_SESSION_SECRET", "").strip()
@@ -370,6 +381,31 @@ def _security_checks() -> list[Check]:
                 {
                     "count": len(organization_api_keys),
                     "weak_organizations": weak_organizations,
+                },
+            )
+        )
+    if organization_rbac_policy_error:
+        checks.append(
+            Check(
+                "organization_rbac_policy",
+                "fail",
+                "BS_ORGANIZATION_RBAC_POLICIES is invalid.",
+                {"error": organization_rbac_policy_error},
+            )
+        )
+    elif organization_rbac_policy_settings_present():
+        override_count = sum(
+            len(role_map)
+            for role_map in organization_rbac_policies.values()
+        )
+        checks.append(
+            Check(
+                "organization_rbac_policy",
+                "pass",
+                "organization-specific RBAC policy is valid",
+                {
+                    "organization_count": len(organization_rbac_policies),
+                    "role_override_count": override_count,
                 },
             )
         )

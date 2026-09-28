@@ -35,8 +35,9 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 - Set `BS_API_KEY` to a long random value only for trusted deployment-wide automation. For delegated clients, prefer organization-bound keys in `BS_ORGANIZATION_API_KEYS`.
 - Set `BS_ADMIN_PASSWORD` and `BS_SESSION_SECRET` for browser console login. Browser sessions are signed and stored in an HttpOnly cookie.
 - Optional rule-lifecycle RBAC: set `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and/or `BS_OPERATOR_PASSWORD`. If none are set, the existing single-admin behavior is preserved.
+- Optional organization-specific RBAC overrides: set `BS_ORGANIZATION_RBAC_POLICIES` to a JSON object. Omitted roles keep built-in permissions; `[]` removes all role-gated permissions for that role. Known permission names are `rule.author`, `rule.review`, `rule.operate`, `analysis.custom_rules`, and `case.object_storage`.
 - Optional OIDC SSO: set issuer/client/redirect plus exact claim-to-role mappings. OIDC uses Authorization Code + PKCE, state/nonce verification, provider JWKS signature verification, and then issues the same HttpOnly BreachScope session cookie.
-- RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback and custom-rule opt-in analysis; admin/global API key retain deployment-wide access, while organization-bound API keys have admin-level access only in their bound organization.
+- Built-in RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback + custom-rule opt-in analysis + case object-storage operations. Browser/OIDC admin and organization-bound API keys follow an explicit organization admin override; the global API key retains deployment-wide break-glass access.
 - Set `BS_DISABLE_DOCS=1` if API docs should not be public.
 - Keep `BS_AUDIT_ENABLED=1` for shared deployments so login, analysis, download, and deletion events are retained.
 - Serve behind HTTPS or a VPN.
@@ -58,6 +59,7 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 | `BS_AUTHOR_PASSWORD` | Optional author account password for tuning/draft create-update-validate. | unset |
 | `BS_REVIEWER_PASSWORD` | Optional reviewer account password for approve/publish. | unset |
 | `BS_OPERATOR_PASSWORD` | Optional operator account password for activation/rollback and custom-rule opt-in analysis. | unset |
+| `BS_ORGANIZATION_RBAC_POLICIES` | Optional partial per-organization role permission overrides. | `{}` |
 | `BS_OIDC_ISSUER_URL` | OIDC issuer. HTTPS required except loopback development. | unset |
 | `BS_OIDC_CLIENT_ID` | OIDC client ID | unset |
 | `BS_OIDC_CLIENT_SECRET` | Optional confidential-client secret. Do not commit. | unset |
@@ -114,7 +116,25 @@ BS_COOKIE_SECURE=1
 
 The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. If `BS_OIDC_ORGANIZATION_CLAIM` is configured, that claim must resolve to exactly one safe organization ID and is embedded in the signed local session. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group or organization changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
 
-Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. The global `BS_API_KEY` may select the organization with `X-BreachScope-Organization`. Organization-bound keys in `BS_ORGANIZATION_API_KEYS` default to their bound organization and reject a different organization selector. Browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. Rule-tuning profiles, custom-rule authoring/published artifacts, and activation manifests are also organization-scoped. BS_DEFAULT_ORGANIZATION_ID keeps the configured base tuning/authoring/activation paths for backward compatibility; non-default organizations use derived organization namespaces. The canonical built-in rule pack remains deployment-wide and read-only. This is not full tenant isolation because organization-specific RBAC policy and SCIM/user lifecycle remain deployment-wide/future work.
+Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. The global `BS_API_KEY` may select the organization with `X-BreachScope-Organization`. Organization-bound keys in `BS_ORGANIZATION_API_KEYS` default to their bound organization and reject a different organization selector. Browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. Rule-tuning profiles, custom-rule authoring/published artifacts, and activation manifests are also organization-scoped. BS_DEFAULT_ORGANIZATION_ID keeps the configured base tuning/authoring/activation paths for backward compatibility; non-default organizations use derived organization namespaces. The canonical built-in rule pack remains deployment-wide and read-only. Organization-specific overrides apply to the existing server-enforced role gates; the deployment-wide global API key intentionally bypasses those overrides. SCIM/user provisioning and lifecycle synchronization remain future work.
+
+### Organization-specific RBAC policy
+
+`BS_ORGANIZATION_RBAC_POLICIES` is a partial JSON override. Example:
+
+```json
+{
+  "soc-blue": {
+    "operator": ["analysis.custom_rules"],
+    "author": []
+  },
+  "soc-red": {
+    "operator": ["rule.operate", "case.object_storage"]
+  }
+}
+```
+
+Built-in role permissions are: author → `rule.author`, reviewer → `rule.review`, operator → `rule.operate` + `analysis.custom_rules` + `case.object_storage`, admin → all. Omitted organizations/roles keep those defaults. An explicit empty array denies every role-gated permission for that role in that organization. Organization-bound API keys use the admin role inside their bound organization and therefore follow an explicit admin override; the global `BS_API_KEY` bypasses organization RBAC policy.
 
 ## 5. API-key examples
 

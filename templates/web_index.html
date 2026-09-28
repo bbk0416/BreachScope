@@ -456,6 +456,7 @@
     let ruleProfiles = [];
     let currentRuleProfile = null;
     let currentAuthRole = 'none';
+    let currentAuthPermissions = [];
     apiKeyInput.value = localStorage.getItem('breachscope_api_key') || '';
     apiKeyInput.addEventListener('change', () => {
       localStorage.setItem('breachscope_api_key', apiKeyInput.value.trim());
@@ -526,22 +527,29 @@
       return currentAuthRole === 'admin' || roles.includes(currentAuthRole);
     }
 
+    function permissionAllows(permission) {
+      return currentAuthPermissions.includes('*')
+        || currentAuthPermissions.includes(permission);
+    }
+
     function applyRoleUi() {
-      const canAuthor = roleAllows('author');
-      const canReview = roleAllows('reviewer');
-      const canOperate = roleAllows('operator');
+      const canAuthor = permissionAllows('rule.author');
+      const canReview = permissionAllows('rule.review');
+      const canOperateRules = permissionAllows('rule.operate');
+      const canCustomAnalyze = permissionAllows('analysis.custom_rules');
+      const canObjectStorage = permissionAllows('case.object_storage');
       [saveRuleProfileBtn, deleteRuleProfileBtn, saveRuleDraftBtn, validateRuleDraftBtn]
         .filter(Boolean).forEach(el => { el.disabled = !canAuthor; });
       [approveRuleDraftBtn, publishRuleDraftBtn]
         .filter(Boolean).forEach(el => { el.disabled = !canReview; });
       [activateRuleDraftBtn, deactivateRuleDraftBtn]
-        .filter(Boolean).forEach(el => { el.disabled = !canOperate; });
+        .filter(Boolean).forEach(el => { el.disabled = !canOperateRules; });
       document.querySelectorAll('[data-object-storage-action]')
-        .forEach(el => { el.disabled = !canOperate; });
+        .forEach(el => { el.disabled = !canObjectStorage; });
       const customToggle = document.getElementById('useCustomRules');
       if (customToggle) {
-        customToggle.disabled = !canOperate;
-        if (!canOperate) customToggle.checked = false;
+        customToggle.disabled = !canCustomAnalyze;
+        if (!canCustomAnalyze) customToggle.checked = false;
       }
     }
 
@@ -549,6 +557,7 @@
       if (oidcLoginBtn) oidcLoginBtn.style.display = payload && payload.oidc_login_enabled ? '' : 'none';
       if (!payload || !payload.auth_required) {
         currentAuthRole = 'admin';
+        currentAuthPermissions = ['*'];
         applyRoleUi();
         authStatus.innerHTML = '인증 비활성화: 로컬 데모 모드 · role=admin';
         return;
@@ -558,6 +567,9 @@
           ? (payload.session_authn === 'oidc' ? 'SSO 세션' : '세션 로그인')
           : 'API Key';
         currentAuthRole = payload.auth_method === 'api_key' ? 'admin' : (payload.session_role || 'admin');
+        currentAuthPermissions = Array.isArray(payload.active_permissions)
+          ? payload.active_permissions
+          : [];
         applyRoleUi();
         const organizationId = payload.active_organization_id
           || payload.session_organization_id
@@ -568,6 +580,7 @@
           + ' · org=' + escapeHtml(organizationId);
       } else if (payload.password_login_enabled || payload.oidc_login_enabled) {
         currentAuthRole = 'none';
+        currentAuthPermissions = [];
         applyRoleUi();
         const configured = (payload.configured_roles || []).join(', ');
         const methods = [payload.password_login_enabled ? '비밀번호' : '', payload.oidc_login_enabled ? 'SSO' : '', payload.api_key_enabled ? 'API Key' : ''].filter(Boolean).join(' / ');
@@ -576,6 +589,7 @@
           : '인증 필요: ' + escapeHtml(methods) + ' 중 하나를 사용하세요.';
       } else {
         currentAuthRole = 'none';
+        currentAuthPermissions = [];
         applyRoleUi();
         authStatus.innerHTML = '인증 필요: API Key를 입력하세요.';
       }

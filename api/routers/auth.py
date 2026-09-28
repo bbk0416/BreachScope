@@ -10,6 +10,13 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
+from api.rbac import (
+    OrganizationRbacPolicyError,
+    configured_organization_rbac_policies,
+    effective_role_permissions,
+    organization_rbac_policy_settings_present,
+    rbac_is_enabled,
+)
 from api.services.audit_log import AuditLogService
 from api.services.auth_rate_limit import AuthRateLimiter
 from api.services.oidc_auth import (
@@ -105,6 +112,44 @@ async def auth_status(request: Request):
         )
     )
     try:
+        organization_rbac_policies = configured_organization_rbac_policies()
+        organization_rbac_policy_config_valid = True
+    except OrganizationRbacPolicyError:
+        organization_rbac_policies = {}
+        organization_rbac_policy_config_valid = False
+
+    active_role = (
+        "admin"
+        if method == "api_key"
+        else (
+            str(cookie_payload.get("role") or "admin").strip().lower()
+            if cookie_payload
+            else ("admin" if not auth_is_enabled() else "none")
+        )
+    )
+    if (
+        method == "api_key"
+        and api_key_credential is not None
+        and api_key_credential.delegated is False
+    ):
+        active_permissions = ["*"]
+    elif not auth_is_enabled():
+        active_permissions = ["*"]
+    elif authenticated and organization_rbac_policy_config_valid:
+        try:
+            active_permissions = sorted(
+                effective_role_permissions(
+                    active_organization_id,
+                    active_role,
+                )
+            )
+        except OrganizationRbacPolicyError:
+            active_permissions = []
+            organization_rbac_policy_config_valid = False
+    else:
+        active_permissions = []
+
+    try:
         organization_api_keys = configured_organization_api_keys()
         organization_api_key_config_valid = True
     except ApiKeyConfigurationError:
@@ -126,8 +171,16 @@ async def auth_status(request: Request):
         "password_login_enabled": bool(
             configured_admin_password() or configured_role_passwords()
         ),
-        "rbac_enabled": bool(configured_role_passwords() or configured_oidc_roles()),
+        "rbac_enabled": rbac_is_enabled(),
         "configured_roles": sorted(set(configured_role_passwords()) | set(configured_oidc_roles())),
+        "organization_rbac_policy_settings_present": (
+            organization_rbac_policy_settings_present()
+        ),
+        "organization_rbac_policy_config_valid": (
+            organization_rbac_policy_config_valid
+        ),
+        "organization_rbac_policy_count": len(organization_rbac_policies),
+        "active_permissions": active_permissions,
         "oidc_settings_present": oidc_settings_present(),
         "oidc_login_enabled": oidc_is_configured(),
         "oidc_login_url": "/api/auth/oidc/login" if oidc_is_configured() else None,

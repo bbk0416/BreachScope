@@ -390,7 +390,9 @@ def test_web_ui_exposes_role_login_and_permission_hints() -> None:
     assert '<option value="operator">operator</option>' in body
     assert "function roleAllows(...roles)" in body
     assert "currentAuthRole === 'admin'" in body
-    assert "customToggle.disabled = !canOperate" in body
+    assert "permissionAllows('rule.operate')" in body
+    assert "permissionAllows('analysis.custom_rules')" in body
+    assert "customToggle.disabled = !canCustomAnalyze" in body
     assert "JSON.stringify({username: loginRole.value, password})" in body
 
 
