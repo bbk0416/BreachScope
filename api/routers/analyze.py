@@ -7,7 +7,12 @@ from typing import List, Optional
 import logging
 from api.services.upload_policy import UploadLimitError
 
-from api.rbac import ROLE_OPERATOR, identity_from_request, require_roles
+from api.rbac import (
+    PERMISSION_ANALYSIS_CUSTOM_RULES,
+    ROLE_OPERATOR,
+    identity_from_request,
+    require_roles,
+)
 from api.services.analysis_service import AnalysisService
 from api.services.artifact_encryption import ArtifactEncryptionError
 from api.services.audit_log import AuditLogService
@@ -47,7 +52,11 @@ async def analyze(
         분석 결과 및 리포트 다운로드 링크
     """
     if use_custom_rules:
-        require_roles(request, ROLE_OPERATOR)
+        require_roles(
+            request,
+            ROLE_OPERATOR,
+            permission=PERMISSION_ANALYSIS_CUSTOM_RULES,
+        )
 
     try:
         identity = identity_from_request(request)

@@ -394,3 +394,67 @@ def test_go_live_warns_for_weak_organization_api_key(
     )
     assert auth["status"] == "warn"
     assert "24+ random" in auth["message"]
+
+
+def test_go_live_validates_organization_rbac_policy(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env["BS_ORGANIZATION_RBAC_POLICIES"] = json.dumps(
+        {
+            "org-a": {
+                "operator": [
+                    "analysis.custom_rules",
+                    "rule.operate",
+                ],
+            }
+        }
+    )
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    policy = next(
+        row for row in result["checks"]
+        if row["name"] == "organization_rbac_policy"
+    )
+    assert policy["status"] == "pass"
+    assert policy["details"]["organization_count"] == 1
+    assert policy["details"]["role_override_count"] == 1
+
+
+def test_go_live_rejects_invalid_organization_rbac_policy(
+    tmp_path,
+    monkeypatch,
+):
+    env = _good_env(tmp_path)
+    env["BS_ORGANIZATION_RBAC_POLICIES"] = json.dumps(
+        {
+            "org-a": {
+                "operator": ["unknown.permission"],
+            }
+        }
+    )
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    policy = next(
+        row for row in result["checks"]
+        if row["name"] == "organization_rbac_policy"
+    )
+    assert policy["status"] == "fail"
+    assert result["status"] == "fail"
+    assert any(
+        "BS_ORGANIZATION_RBAC_POLICIES" in step
+        for step in result["next_steps"]
+    )

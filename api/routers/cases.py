@@ -20,7 +20,12 @@ from api.services.object_storage import (
     ObjectStorageError,
     ObjectStorageService,
 )
-from api.rbac import ROLE_OPERATOR, identity_from_request, require_roles
+from api.rbac import (
+    PERMISSION_CASE_OBJECT_STORAGE,
+    ROLE_OPERATOR,
+    identity_from_request,
+    require_roles,
+)
 
 router = APIRouter()
 
@@ -260,7 +265,11 @@ async def replicate_case_to_object_storage(
     case_id: str,
     request: Request,
 ):
-    identity = require_roles(request, ROLE_OPERATOR)
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
     try:
         case = _service(request).get_case(case_id)
     except KeyError:
@@ -355,7 +364,11 @@ async def restore_case_from_object_storage(
     request: Request,
     overwrite: bool = Query(False),
 ):
-    identity = require_roles(request, ROLE_OPERATOR)
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
     try:
         case = _service(request).get_case(case_id)
     except KeyError:
@@ -420,7 +433,11 @@ async def delete_case_object_storage_replica(
     request: Request,
     forget: bool = Query(False),
 ):
-    identity = require_roles(request, ROLE_OPERATOR)
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
     try:
         case = _service(request).get_case(case_id)
     except KeyError:

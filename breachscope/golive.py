@@ -11,6 +11,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from api.rbac import (
+    OrganizationRbacPolicyError,
+    configured_organization_rbac_policies,
+)
 from api.services.audit_log import audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.artifact_encryption import (
@@ -172,6 +176,44 @@ def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
             "rbac_roles": sorted(role_passwords),
             "oidc_login_enabled": oidc_ready,
             "oidc_roles": oidc_roles,
+        },
+    )
+
+
+def _check_organization_rbac_policy(
+    env: Mapping[str, str],
+) -> GoLiveCheck:
+    raw = str(env.get("BS_ORGANIZATION_RBAC_POLICIES", "") or "").strip()
+    if not raw:
+        return GoLiveCheck(
+            "organization_rbac_policy",
+            "pass",
+            "No organization RBAC overrides are configured; default role permissions apply.",
+            {
+                "configured": False,
+                "organization_count": 0,
+                "role_override_count": 0,
+            },
+        )
+    try:
+        policies = configured_organization_rbac_policies(env)
+    except OrganizationRbacPolicyError as exc:
+        return GoLiveCheck(
+            "organization_rbac_policy",
+            "fail",
+            "BS_ORGANIZATION_RBAC_POLICIES is invalid.",
+            {"configured": True, "error": str(exc)},
+        )
+    return GoLiveCheck(
+        "organization_rbac_policy",
+        "pass",
+        "Organization-specific RBAC policy is valid.",
+        {
+            "configured": True,
+            "organization_count": len(policies),
+            "role_override_count": sum(
+                len(role_map) for role_map in policies.values()
+            ),
         },
     )
 
@@ -394,6 +436,10 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
     for check in failed_or_warn:
         if check.name == "runtime_authentication":
             steps.append("Configure a strong API key/password login or complete the OIDC issuer/client/redirect/role mapping settings.")
+        elif check.name == "organization_rbac_policy":
+            steps.append(
+                "Fix BS_ORGANIZATION_RBAC_POLICIES JSON, role names, and permission names before go-live."
+            )
         elif check.name == "session_secret":
             steps.append("Set BS_SESSION_SECRET to a unique 32+ character random value.")
         elif check.name == "placeholder_secrets":
@@ -422,6 +468,7 @@ def run_go_live_check(root: str | Path = ".", *, env: Mapping[str, str] | None =
     mode = (deployment_mode or _env_value(env_map, "BS_DEPLOYMENT_MODE") or "local").strip().lower()
     checks: list[GoLiveCheck] = [
         _check_auth(env_map),
+        _check_organization_rbac_policy(env_map),
         _check_session_secret(env_map),
         _check_placeholders(env_map),
         _check_artifact_encryption(env_map),

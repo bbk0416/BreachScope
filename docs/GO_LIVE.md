@@ -26,6 +26,8 @@ For delegated automation, `BS_ORGANIZATION_API_KEYS` may be used instead of the 
 
 The bootstrap command intentionally keeps optional rule-lifecycle RBAC accounts disabled. To enable them, manually set one or more of `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and `BS_OPERATOR_PASSWORD` to long random values. The admin account remains the default first-run login.
 
+`BS_ORGANIZATION_RBAC_POLICIES` may further restrict those built-in roles per organization. It is a partial JSON override using only `rule.author`, `rule.review`, `rule.operate`, `analysis.custom_rules`, and `case.object_storage`. Omitted roles keep defaults; an empty list denies every role-gated permission for that role. Invalid JSON, unknown roles, and unknown permission names fail the go-live check. The global `BS_API_KEY` remains the deployment break-glass override.
+
 OIDC can replace local browser passwords for shared deployments. Set `BS_OIDC_ISSUER_URL`, `BS_OIDC_CLIENT_ID`, the exact registered `BS_OIDC_REDIRECT_URI`, a strong `BS_SESSION_SECRET`, and at least one exact role mapping such as `BS_OIDC_OPERATOR_VALUES=breachscope-operators`. `BS_OIDC_CLIENT_SECRET` is optional for public PKCE clients and required when using `client_secret_basic` or `client_secret_post`. Partial OIDC settings fail the production authentication check.
 
 At-rest case artifact encryption is also opt-in. To enable it, generate 32 random bytes and store them as URL-safe base64 in `BS_ARTIFACT_ENCRYPTION_KEY`. Keep this key outside backups of the encrypted case directory; losing or changing it makes retained encrypted cases unreadable.

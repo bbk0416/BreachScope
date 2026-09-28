@@ -9,6 +9,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api.rbac import (
+    PERMISSION_RULE_AUTHOR,
+    PERMISSION_RULE_OPERATE,
+    PERMISSION_RULE_REVIEW,
     ROLE_ADMIN,
     ROLE_AUTHOR,
     ROLE_OPERATOR,
@@ -153,7 +156,7 @@ async def get_rule_tuning_profile(profile_id: str, request: Request):
 
 @router.post("/rules/profiles", response_class=JSONResponse)
 async def create_rule_tuning_profile(payload: RuleTuningProfileCreate, request: Request):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         profile = _profile_service(actor.organization_id).create_profile(
             name=payload.name,
@@ -192,7 +195,7 @@ async def update_rule_tuning_profile(
     payload: RuleTuningProfileUpdate,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         profile = _profile_service(actor.organization_id).update_profile(
             profile_id,
@@ -252,7 +255,7 @@ async def delete_rule_tuning_profile(
     request: Request,
     expected_version: int = Query(..., ge=1),
 ):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         removed = _profile_service(actor.organization_id).delete_profile(
             profile_id,
@@ -324,7 +327,7 @@ async def get_rule_draft(draft_id: str, request: Request):
 
 @router.post("/rules/authoring/drafts", response_class=JSONResponse)
 async def create_rule_draft(payload: RuleDraftCreate, request: Request):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         draft = _authoring_service(actor.organization_id).create_draft(
             rule=payload.rule,
@@ -350,7 +353,7 @@ async def create_rule_draft(payload: RuleDraftCreate, request: Request):
 
 @router.put("/rules/authoring/drafts/{draft_id}", response_class=JSONResponse)
 async def update_rule_draft(draft_id: str, payload: RuleDraftUpdate, request: Request):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         draft = _authoring_service(actor.organization_id).update_draft(
             draft_id,
@@ -380,7 +383,7 @@ async def validate_rule_draft(
     payload: RuleDraftVersionAction,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_AUTHOR)
+    actor = require_roles(request, ROLE_AUTHOR, permission=PERMISSION_RULE_AUTHOR)
     try:
         draft = _authoring_service(actor.organization_id).validate_draft(
             draft_id,
@@ -419,7 +422,7 @@ async def approve_rule_draft(
     payload: RuleDraftApprove,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_REVIEWER)
+    actor = require_roles(request, ROLE_REVIEWER, permission=PERMISSION_RULE_REVIEW)
     try:
         draft = _authoring_service(actor.organization_id).approve_draft(
             draft_id,
@@ -458,7 +461,7 @@ async def publish_rule_draft(
     payload: RuleDraftVersionAction,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_REVIEWER)
+    actor = require_roles(request, ROLE_REVIEWER, permission=PERMISSION_RULE_REVIEW)
     try:
         draft = _authoring_service(actor.organization_id).publish_draft(
             draft_id,
@@ -504,7 +507,7 @@ async def activate_published_rule(
     payload: RuleActivationActivate,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_OPERATOR)
+    actor = require_roles(request, ROLE_OPERATOR, permission=PERMISSION_RULE_OPERATE)
     try:
         state = _activation_service(actor.organization_id).activate(
             draft_id=payload.draft_id,
@@ -546,7 +549,7 @@ async def deactivate_published_rule(
     payload: RuleActivationDeactivate,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_OPERATOR)
+    actor = require_roles(request, ROLE_OPERATOR, permission=PERMISSION_RULE_OPERATE)
     try:
         state = _activation_service(actor.organization_id).deactivate(
             draft_id=payload.draft_id,
@@ -576,7 +579,7 @@ async def rollback_rule_activation(
     payload: RuleActivationRollback,
     request: Request,
 ):
-    actor = require_roles(request, ROLE_OPERATOR)
+    actor = require_roles(request, ROLE_OPERATOR, permission=PERMISSION_RULE_OPERATE)
     try:
         state = _activation_service(actor.organization_id).rollback(
             target_version=payload.target_version,

@@ -127,3 +127,38 @@ def test_security_checks_reject_session_secret_reused_as_org_key(
     checks = {row.name: row for row in _security_checks()}
     assert checks["session_secret"].status == "warn"
     assert "should not equal" in checks["session_secret"].message
+
+
+def test_security_checks_validate_organization_rbac_policy(monkeypatch):
+    monkeypatch.setenv(
+        "BS_ORGANIZATION_RBAC_POLICIES",
+        json.dumps(
+            {
+                "org-a": {
+                    "operator": ["analysis.custom_rules"],
+                    "author": [],
+                }
+            }
+        ),
+    )
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["organization_rbac_policy"].status == "pass"
+    assert (
+        checks["organization_rbac_policy"].details[
+            "organization_count"
+        ]
+        == 1
+    )
+    assert (
+        checks["organization_rbac_policy"].details[
+            "role_override_count"
+        ]
+        == 2
+    )
+
+    monkeypatch.setenv(
+        "BS_ORGANIZATION_RBAC_POLICIES",
+        '{"org-a":{"operator":["not.real"]}}',
+    )
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["organization_rbac_policy"].status == "fail"

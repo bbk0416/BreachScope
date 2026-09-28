@@ -17,6 +17,12 @@
 
 OIDC SSO를 사용할 수 있습니다. `GET /api/auth/oidc/login`이 Authorization Code + PKCE 흐름을 시작하고, 등록 callback은 `GET /api/auth/oidc/callback`입니다. ID token의 issuer/audience/signature/nonce를 확인한 뒤 `BS_OIDC_ROLE_CLAIM` 값(기본 `groups`)을 `BS_OIDC_*_VALUES`와 정확히 비교해 하나의 BreachScope role로 매핑합니다. admin과 다른 role이 함께 매칭되면 admin, 둘 이상의 non-admin role이 동시에 매칭되면 403으로 거부합니다. `BS_OIDC_ORGANIZATION_CLAIM`을 설정하면 해당 claim은 정확히 하나의 안전한 organization ID로 매핑되어 서명된 브라우저 세션에 고정됩니다. Global `BS_API_KEY` 클라이언트는 `X-BreachScope-Organization` 헤더로 retained-case, audit, custom-rule lifecycle, object-storage, backup HTTP scope를 선택할 수 있습니다. `BS_ORGANIZATION_API_KEYS`의 key는 하나의 organization에 고정되며 헤더를 생략하거나 같은 organization만 지정할 수 있습니다. 다른 organization selector는 403, 잘못된 selector는 400입니다. 브라우저 세션은 이 헤더로 organization을 덮어쓸 수 없습니다.
 
+### Organization-specific RBAC policy
+
+`BS_ORGANIZATION_RBAC_POLICIES`는 기존 server-enforced role gate의 permission을 organization별로 부분 override합니다. 지원 permission은 `rule.author`, `rule.review`, `rule.operate`, `analysis.custom_rules`, `case.object_storage`입니다. 정책에 없는 organization/role은 기존 built-in permission을 유지하고, 특정 role에 `[]`를 지정하면 그 organization에서 해당 role의 role-gated 작업을 모두 차단합니다. 브라우저/OIDC admin과 organization-bound API key도 현재 organization의 admin policy를 따릅니다. Global `BS_API_KEY`는 deployment break-glass/admin credential이므로 이 policy를 우회합니다.
+
+`GET /api/auth/status`는 secret 없이 `organization_rbac_policy_settings_present`, `organization_rbac_policy_config_valid`, policy organization count, 현재 인증 주체의 `active_permissions`를 반환합니다. malformed JSON, unknown role, unknown permission은 role-gated 요청에서 fail-closed 처리되고 go-live/config-check에서도 실패로 표시됩니다.
+
 ### Backup API organization scope
 
 `GET/POST /api/backups`와 download/integrity/delete 경로는 현재 organization의 backup namespace만 사용합니다. 생성되는 ZIP에는 현재 organization의 case metadata/artifacts, audit events, rule-tuning profiles, custom-rule authoring/publication artifacts, activation state만 포함됩니다. 다른 organization의 backup ID는 404로 처리됩니다. `BS_DEFAULT_ORGANIZATION_ID`는 기존 `BS_BACKUP_ROOT`를 그대로 사용하고, non-default organization은 `BS_BACKUP_ROOT/organizations/<organization_id>/` 아래에 저장됩니다.
