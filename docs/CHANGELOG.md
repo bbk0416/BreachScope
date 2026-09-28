@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add SCIM 2.0 Users provisioning subset with dedicated bearer authentication, JSON-backed user lifecycle state, OIDC externalId/sub binding, immediate session revocation on disable/delete/role or organization changes, discovery endpoints, audit events, and go-live/config diagnostics.
 - Add organization-specific RBAC permission overrides for rule author/review/operate, custom-rule analysis, and object-storage operations, with permission-aware web controls and go-live/config validation.
 - Add organization-bound delegated API keys with fail-closed JSON configuration, fixed organization scope, global-key backward compatibility, audit attribution, and go-live/ops validation.
 - Add organization-scoped retained-case workspaces, audit reads, S3 replica namespaces, and custom-rule lifecycle stores: signed session organization IDs, optional OIDC organization-claim mapping, API-key organization selection, case/audit boundaries, v2 orgs/<organization_id>/<case_id> object keys, default-org-only legacy v1 replica compatibility, organization-specific tuning/authoring/activation storage, and organization-scoped backup archives. The canonical built-in rule pack remains intentionally deployment-wide/read-only.

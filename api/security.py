@@ -20,6 +20,11 @@ from api.services.oidc_auth import (
     oidc_role_is_configured,
     oidc_settings_present,
 )
+from api.services.scim_directory import (
+    ScimDirectoryError,
+    ScimUserDirectory,
+    scim_is_configured,
+)
 from api.services.organization_scope import (
     configured_default_organization,
     normalize_organization_id,
@@ -60,6 +65,7 @@ SAFE_PATH_PREFIXES = (
     # /api/info exposes operational/auth/path metadata and is intentionally
     # protected whenever runtime authentication is enabled.
     "/api/auth",
+    "/api/scim/v2",
     "/api/docs",
     "/api/redoc",
     "/openapi.json",
@@ -443,7 +449,30 @@ def _session_identity_is_enabled(payload: dict[str, object]) -> bool:
     role = str(payload.get("role") or payload.get("sub") or "admin").strip().lower()
     authn = str(payload.get("authn") or "password").strip().lower()
     if authn == "oidc":
-        return oidc_is_configured() and oidc_role_is_configured(role)
+        if not oidc_is_configured():
+            return False
+        if scim_is_configured():
+            subject = str(payload.get("sub") or "")
+            if not subject.startswith("oidc:"):
+                return False
+            try:
+                identity = ScimUserDirectory().oidc_identity(
+                    subject[len("oidc:"):]
+                )
+            except ScimDirectoryError:
+                return False
+            if identity is None:
+                return False
+            expected_role, expected_org = identity
+            try:
+                session_org = normalize_organization_id(
+                    payload.get("org"),
+                    default=configured_default_organization(),
+                )
+            except ValueError:
+                return False
+            return role == expected_role and session_org == expected_org
+        return oidc_role_is_configured(role)
     if role == "admin":
         return bool(configured_admin_password())
     if role in {"author", "reviewer", "operator"}:
@@ -486,7 +515,12 @@ def _public_when_auth_misconfigured(path: str) -> bool:
         "/api/health/ready",
         "/favicon.ico",
     }
-    return path in exact or path.startswith("/static/")
+    return (
+        path in exact
+        or path.startswith("/static/")
+        or path == "/api/scim/v2"
+        or path.startswith("/api/scim/v2/")
+    )
 
 
 class ApiKeyAuthMiddleware(BaseHTTPMiddleware):

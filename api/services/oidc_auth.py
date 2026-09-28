@@ -18,6 +18,12 @@ from urllib.parse import urlparse
 import jwt
 from jwt import PyJWKClient
 
+from api.services.scim_directory import (
+    ScimDirectoryError,
+    ScimUserDirectory,
+    scim_is_configured,
+    scim_user_store_path,
+)
 from api.services.organization_scope import (
     configured_default_organization,
     normalize_organization_id,
@@ -179,9 +185,13 @@ def configured_oidc_config(env: Mapping[str, str] | None = None) -> OidcConfig:
         role: _csv_values(env_name, env)
         for role, env_name in ROLE_VALUE_ENV.items()
     }
-    if not default_role and not any(role_values.values()):
+    if (
+        not scim_is_configured(env)
+        and not default_role
+        and not any(role_values.values())
+    ):
         raise OidcConfigurationError(
-            "OIDC requires at least one role mapping or BS_OIDC_DEFAULT_ROLE."
+            "OIDC requires at least one role mapping, BS_OIDC_DEFAULT_ROLE, or configured SCIM provisioning."
         )
 
     return OidcConfig(
@@ -222,6 +232,15 @@ def configured_oidc_roles(env: Mapping[str, str] | None = None) -> list[str]:
     }
     if config.default_role:
         roles.add(config.default_role)
+    if scim_is_configured(env):
+        try:
+            roles.update(
+                ScimUserDirectory(
+                    path=scim_user_store_path(env)
+                ).active_roles()
+            )
+        except ScimDirectoryError:
+            pass
     return sorted(roles)
 
 

@@ -38,6 +38,11 @@ from api.services.oidc_auth import (
     verify_oidc_flow_token,
 )
 from api.services.organization_scope import configured_default_organization
+from api.services.scim_directory import (
+    ScimDirectoryError,
+    ScimUserDirectory,
+    scim_is_configured,
+)
 from api.security import (
     SESSION_COOKIE_NAME,
     ApiKeyConfigurationError,
@@ -183,6 +188,10 @@ async def auth_status(request: Request):
         "active_permissions": active_permissions,
         "oidc_settings_present": oidc_settings_present(),
         "oidc_login_enabled": oidc_is_configured(),
+        "scim_provisioning_enabled": scim_is_configured(),
+        "scim_oidc_enforced": (
+            scim_is_configured() and oidc_is_configured()
+        ),
         "oidc_login_url": "/api/auth/oidc/login" if oidc_is_configured() else None,
         "authenticated": authenticated,
         "auth_method": method,
@@ -356,21 +365,34 @@ async def oidc_callback(
             id_token=str(tokens["id_token"]),
             nonce=str(flow["nonce"]),
         )
-        role = map_claims_to_role(claims, config)
-        organization_id = map_claims_to_organization(claims, config)
+        subject_value = str(claims.get("sub") or "")
+        if not subject_value or len(subject_value) > 512:
+            raise OidcAuthorizationError("OIDC subject is invalid.")
+        if scim_is_configured():
+            scim_identity = ScimUserDirectory().oidc_identity(
+                subject_value
+            )
+            if scim_identity is None:
+                raise OidcAuthorizationError(
+                    "OIDC identity is not active in the SCIM directory."
+                )
+            role, organization_id = scim_identity
+        else:
+            role = map_claims_to_role(claims, config)
+            organization_id = map_claims_to_organization(claims, config)
     except OidcAuthorizationError as exc:
-        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "role_mapping_denied"})
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "identity_mapping_denied"})
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except OidcConfigurationError as exc:
         audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "configuration_error"})
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ScimDirectoryError as exc:
+        audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "scim_directory_error"})
+        raise HTTPException(status_code=503, detail="SCIM user directory is unavailable.") from exc
     except OidcError as exc:
         audit.record("auth.oidc.callback", request=request, status="failure", details={"reason": "provider_or_token_error"})
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
-    subject_value = str(claims.get("sub") or "")
-    if not subject_value or len(subject_value) > 512:
-        raise HTTPException(status_code=401, detail="OIDC subject is invalid.")
     subject = "oidc:" + subject_value
     try:
         expires_at = int(claims["exp"])

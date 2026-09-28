@@ -11,7 +11,8 @@ from breachscope.common import setup_path
 setup_path()
 
 from breachscope.exceptions import BreachScopeError
-from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops
+from api.rbac import rbac_is_enabled
+from api.routers import analyze, report, rules, health, web, cases, auth, audit, backups, ops, scim
 from api.middleware import setup_middleware
 from api.security import (
     api_key_auth_is_configured,
@@ -20,6 +21,7 @@ from api.security import (
     password_login_is_enabled,
 )
 from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
+from api.services.scim_directory import scim_is_configured
 from api.services.artifact_encryption import artifact_encryption_enabled
 from api.services.object_storage import object_storage_configured
 from breachscope.release import runtime_build_info
@@ -49,6 +51,7 @@ setup_middleware(app)
 # 라우터 등록
 app.include_router(web.router)  # 루트 경로 (웹 UI)
 app.include_router(auth.router, prefix="/api", tags=["auth"])
+app.include_router(scim.router, prefix="/api", tags=["scim"])
 app.include_router(analyze.router, prefix="/api", tags=["analysis"])
 app.include_router(report.router, prefix="/api", tags=["reports"])
 app.include_router(cases.router, prefix="/api", tags=["cases"])
@@ -70,10 +73,14 @@ async def api_info():
         "auth_enabled": auth_is_enabled(),
         "api_key_enabled": api_key_auth_is_configured(),
         "password_login_enabled": password_login_is_enabled(),
-        "rbac_enabled": bool(configured_role_passwords() or configured_oidc_roles()),
+        "rbac_enabled": rbac_is_enabled(),
         "configured_roles": sorted(set(configured_role_passwords()) | set(configured_oidc_roles())),
         "oidc_settings_present": oidc_settings_present(),
         "oidc_login_enabled": oidc_is_configured(),
+        "scim_provisioning_enabled": scim_is_configured(),
+        "scim_oidc_enforced": (
+            scim_is_configured() and oidc_is_configured()
+        ),
         "artifact_encryption_enabled": artifact_encryption_enabled(),
         "object_storage_configured": object_storage_configured(),
         "case_history_path": os.getenv("BS_CASE_HISTORY_PATH", "~/.breachscope/case_history.json"),

@@ -36,6 +36,7 @@
 - **웹/API**: FastAPI 기반 분석·케이스·보고서·운영 API와 웹 콘솔을 제공합니다.
 - **케이스 이력**: 분석 결과 재열람, 다운로드, 삭제, 보존 정리를 지원합니다.
 - **감사 로그**: 로그인, 분석, 조회, 다운로드, 삭제 등 운영 이벤트를 기록하고 무결성 확인 기능을 제공합니다.
+- **SSO/조직 권한/SCIM**: OIDC SSO, organization-scoped RBAC/API key, SCIM 2.0 Users provisioning subset을 지원합니다. SCIM 사용 시 disable/delete/role·organization 변경은 기존 OIDC 세션에 즉시 반영됩니다. SCIM store는 현재 single-instance JSON 기반이며 Groups/Bulk·다중 replica 동시 쓰기는 지원하지 않습니다.
 - **백업/운영 점검**: 케이스 백업, health/readiness, project check, quality gate, go-live check를 제공합니다.
 - **Docker/릴리즈**: Docker, Compose, GitHub Actions, release ZIP/checksum/manifest 생성 절차를 포함합니다.
 

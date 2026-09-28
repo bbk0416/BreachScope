@@ -190,6 +190,7 @@ class AuditLogService:
         auth_method: str | None = None,
         case_id: str | None = None,
         target: str | None = None,
+        organization_id: str | None = None,
         details: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
         if not audit_is_enabled():
@@ -203,7 +204,11 @@ class AuditLogService:
             "status": str(status),
             "actor": actor or resolved.subject,
             "auth_method": auth_method or resolved.method,
-            "organization_id": resolved.organization_id,
+            "organization_id": (
+                normalize_organization_id(organization_id, default=None)
+                if organization_id is not None
+                else resolved.organization_id
+            ),
             "case_id": case_id,
             "target": target,
             "request": _request_meta(request),
