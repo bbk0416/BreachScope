@@ -32,11 +32,11 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 
 ## 3. Production checklist
 
-- Set `BS_API_KEY` to a long random value for automation/API clients.
+- Set `BS_API_KEY` to a long random value only for trusted deployment-wide automation. For delegated clients, prefer organization-bound keys in `BS_ORGANIZATION_API_KEYS`.
 - Set `BS_ADMIN_PASSWORD` and `BS_SESSION_SECRET` for browser console login. Browser sessions are signed and stored in an HttpOnly cookie.
 - Optional rule-lifecycle RBAC: set `BS_AUTHOR_PASSWORD`, `BS_REVIEWER_PASSWORD`, and/or `BS_OPERATOR_PASSWORD`. If none are set, the existing single-admin behavior is preserved.
 - Optional OIDC SSO: set issuer/client/redirect plus exact claim-to-role mappings. OIDC uses Authorization Code + PKCE, state/nonce verification, provider JWKS signature verification, and then issues the same HttpOnly BreachScope session cookie.
-- RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback and custom-rule opt-in analysis; admin and the API key retain full access.
+- RBAC permissions: author = profile/draft create-update-validate, reviewer = approve-publish, operator = activate-deactivate-rollback and custom-rule opt-in analysis; admin/global API key retain deployment-wide access, while organization-bound API keys have admin-level access only in their bound organization.
 - Set `BS_DISABLE_DOCS=1` if API docs should not be public.
 - Keep `BS_AUDIT_ENABLED=1` for shared deployments so login, analysis, download, and deletion events are retained.
 - Serve behind HTTPS or a VPN.
@@ -52,7 +52,8 @@ Case history and generated reports are stored in the `breachscope-data` Docker v
 |---|---|---|
 | `BS_BIND_ADDRESS` | Docker Compose host bind address | `127.0.0.1` |
 | `BS_HOST_PORT` | Docker Compose published host port | `8000` |
-| `BS_API_KEY` | Optional API key for protected API routes and integrations | unset |
+| `BS_API_KEY` | Optional deployment-wide API key. May select an organization with `X-BreachScope-Organization`. | unset |
+| `BS_ORGANIZATION_API_KEYS` | Optional JSON object mapping organization IDs to unique organization-bound API keys. | `{}` |
 | `BS_ADMIN_PASSWORD` | Optional admin web-console password. Admin can perform all operations. | unset |
 | `BS_AUTHOR_PASSWORD` | Optional author account password for tuning/draft create-update-validate. | unset |
 | `BS_REVIEWER_PASSWORD` | Optional reviewer account password for approve/publish. | unset |
@@ -113,13 +114,17 @@ BS_COOKIE_SECURE=1
 
 The browser starts SSO at `GET /api/auth/oidc/login`. The callback is `GET /api/auth/oidc/callback`. Claim values are matched exactly. Admin mapping wins if present; multiple matching non-admin roles are rejected instead of choosing an arbitrary privilege. If `BS_OIDC_ORGANIZATION_CLAIM` is configured, that claim must resolve to exactly one safe organization ID and is embedded in the signed local session. A local BreachScope session is issued only after ID-token issuer/audience/signature/nonce checks. IdP group or organization changes are not continuously introspected; they take effect on the next SSO login or after the local session expires. Local logout clears BreachScope's session but does not attempt provider-wide logout.
 
-Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. API-key clients may select the organization with `X-BreachScope-Organization`; browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. Rule-tuning profiles, custom-rule authoring/published artifacts, and activation manifests are also organization-scoped. BS_DEFAULT_ORGANIZATION_ID keeps the configured base tuning/authoring/activation paths for backward compatibility; non-default organizations use derived organization namespaces. The canonical built-in rule pack remains deployment-wide and read-only. This is not full tenant isolation because organization-specific RBAC policy, API-key delegation boundaries, and SCIM/user lifecycle remain deployment-wide/future work.
+Retained-case list/detail/workflow/delete/prune/report/object-storage API operations and audit list/export/integrity responses are scoped to the active organization. The global `BS_API_KEY` may select the organization with `X-BreachScope-Organization`. Organization-bound keys in `BS_ORGANIZATION_API_KEYS` default to their bound organization and reject a different organization selector. Browser sessions ignore that header and remain bound to their signed session organization. New S3 case replicas use `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>`; legacy v1 replicas without organization metadata are accepted only from `BS_DEFAULT_ORGANIZATION_ID`. The audit JSONL file remains one deployment-wide append-only physical store, while HTTP audit reads are filtered by organization. Rule-tuning profiles, custom-rule authoring/published artifacts, and activation manifests are also organization-scoped. BS_DEFAULT_ORGANIZATION_ID keeps the configured base tuning/authoring/activation paths for backward compatibility; non-default organizations use derived organization namespaces. The canonical built-in rule pack remains deployment-wide and read-only. This is not full tenant isolation because organization-specific RBAC policy and SCIM/user lifecycle remain deployment-wide/future work.
 
 ## 5. API-key examples
+
+`BS_ORGANIZATION_API_KEYS` uses JSON, for example `{"soc-blue":"<random-secret>","soc-red":"<random-secret>"}`. Organization IDs are normalized with the same safe identifier rules used elsewhere. Secrets must be unique and must not reuse `BS_API_KEY`.
 
 ```bash
 curl -H "X-API-Key: $BS_API_KEY" http://127.0.0.1:8000/api/cases
 curl -H "X-API-Key: $BS_API_KEY" -H "X-BreachScope-Organization: soc-blue" http://127.0.0.1:8000/api/cases
+# Organization-bound key: no organization header is required.
+curl -H "X-API-Key: $SOC_BLUE_API_KEY" http://127.0.0.1:8000/api/cases
 curl -H "Authorization: Bearer $BS_API_KEY" http://127.0.0.1:8000/api/rules
 curl -H "X-API-Key: $BS_API_KEY" -H "X-BreachScope-Organization: soc-blue" http://127.0.0.1:8000/api/audit?limit=20
 

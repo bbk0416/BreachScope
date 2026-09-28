@@ -1,7 +1,8 @@
+import json
 from fastapi.testclient import TestClient
 
 from api.main import app
-from api.services.ops_status import prometheus_metrics
+from api.services.ops_status import _security_checks, prometheus_metrics
 
 client = TestClient(app)
 
@@ -93,3 +94,36 @@ def test_config_check_accepts_static_s3_configuration(
     checks = {row["name"]: row for row in response.json()["checks"]}
     assert checks["object_storage"]["status"] == "pass"
     assert checks["object_storage"]["details"]["provider"] == "s3"
+
+
+def test_security_checks_validate_organization_api_keys(monkeypatch):
+    monkeypatch.delenv("BS_API_KEY", raising=False)
+    monkeypatch.setenv(
+        "BS_ORGANIZATION_API_KEYS",
+        json.dumps({"org-a": "a" * 32}),
+    )
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["auth_enabled"].status == "pass"
+    assert checks["organization_api_keys"].status == "pass"
+    assert checks["organization_api_keys"].details["count"] == 1
+
+    monkeypatch.setenv("BS_ORGANIZATION_API_KEYS", "{bad-json")
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["organization_api_keys"].status == "fail"
+
+
+def test_security_checks_reject_session_secret_reused_as_org_key(
+    monkeypatch,
+):
+    secret = "s" * 40
+    monkeypatch.delenv("BS_API_KEY", raising=False)
+    monkeypatch.setenv(
+        "BS_ORGANIZATION_API_KEYS",
+        json.dumps({"org-a": secret}),
+    )
+    monkeypatch.setenv("BS_ADMIN_PASSWORD", "admin-password-12345")
+    monkeypatch.setenv("BS_SESSION_SECRET", secret)
+
+    checks = {row.name: row for row in _security_checks()}
+    assert checks["session_secret"].status == "warn"
+    assert "should not equal" in checks["session_secret"].message

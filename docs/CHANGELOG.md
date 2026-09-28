@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add organization-bound delegated API keys with fail-closed JSON configuration, fixed organization scope, global-key backward compatibility, audit attribution, and go-live/ops validation.
 - Add organization-scoped retained-case workspaces, audit reads, S3 replica namespaces, and custom-rule lifecycle stores: signed session organization IDs, optional OIDC organization-claim mapping, API-key organization selection, case/audit boundaries, v2 orgs/<organization_id>/<case_id> object keys, default-org-only legacy v1 replica compatibility, organization-specific tuning/authoring/activation storage, and organization-scoped backup archives. The canonical built-in rule pack remains intentionally deployment-wide/read-only.
 - Add optional OIDC SSO using Authorization Code + PKCE, state/nonce/JWKS ID-token verification, exact claim-to-role RBAC mapping, OIDC-only production authentication, and a web-console SSO entry point.
 - Add explicit S3-compatible replication/restore/delete for client-side encrypted retained cases, operator/admin RBAC, manifest/object/AES-GCM verification, remote-replica deletion/prune guards, readiness/go-live checks, and web case controls.

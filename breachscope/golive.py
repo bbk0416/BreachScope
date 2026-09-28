@@ -19,7 +19,14 @@ from api.services.artifact_encryption import (
 )
 from api.services.case_history import CaseHistoryService
 from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
-from api.security import configured_admin_password, configured_api_key, configured_role_passwords, session_ttl_seconds
+from api.security import (
+    ApiKeyConfigurationError,
+    configured_admin_password,
+    configured_api_key,
+    configured_organization_api_keys,
+    configured_role_passwords,
+    session_ttl_seconds,
+)
 from api.services.ops_status import _path_info  # lightweight helper already used by readiness checks
 from breachscope.project_readiness import run_project_readiness
 from breachscope.quality_gate import run_quality_gate
@@ -66,6 +73,29 @@ def _looks_placeholder(value: str) -> bool:
 
 def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
     api_key = _env_value(env, "BS_API_KEY") or configured_api_key()
+    api_key_enabled = bool(api_key)
+    api_key_env = dict(env)
+    if api_key and not str(api_key_env.get("BS_API_KEY", "") or "").strip():
+        api_key_env["BS_API_KEY"] = api_key
+    if "BS_ORGANIZATION_API_KEYS" not in api_key_env:
+        inherited_org_keys = os.getenv("BS_ORGANIZATION_API_KEYS", "").strip()
+        if inherited_org_keys:
+            api_key_env["BS_ORGANIZATION_API_KEYS"] = inherited_org_keys
+    try:
+        organization_api_keys = configured_organization_api_keys(api_key_env)
+    except ApiKeyConfigurationError as exc:
+        return GoLiveCheck(
+            "runtime_authentication",
+            "fail",
+            "BS_ORGANIZATION_API_KEYS is invalid.",
+            {
+                "api_key_enabled": api_key_enabled,
+                "organization_api_key_count": 0,
+                "organization_api_key_config_valid": False,
+                "error": str(exc),
+            },
+        )
+    api_key_enabled = bool(api_key or organization_api_keys)
     admin = _env_value(env, "BS_ADMIN_PASSWORD") or configured_admin_password()
     role_passwords = {
         role: _env_value(env, f"BS_{role.upper()}_PASSWORD") or configured
@@ -85,23 +115,43 @@ def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
             "fail",
             "OIDC settings are present but incomplete or unsafe.",
             {
-                "api_key_enabled": bool(api_key),
+                "api_key_enabled": api_key_enabled,
+                "global_api_key_enabled": bool(api_key),
+                "organization_api_key_count": len(organization_api_keys),
+                "organization_api_key_config_valid": True,
                 "password_login_enabled": bool(admin or role_passwords),
                 "rbac_roles": sorted(role_passwords),
                 "oidc_login_enabled": False,
                 "oidc_roles": [],
             },
         )
-    if not api_key and not admin and not role_passwords and not oidc_ready:
+    if not api_key_enabled and not admin and not role_passwords and not oidc_ready:
         return GoLiveCheck(
             "runtime_authentication",
             "fail",
-            "BS_API_KEY, browser-login password, or valid OIDC configuration is required before shared use.",
-            {"api_key_enabled": False, "password_login_enabled": False, "rbac_roles": [], "oidc_login_enabled": False, "oidc_roles": []},
+            "API key, browser-login password, or valid OIDC configuration is required before shared use.",
+            {
+                "api_key_enabled": False,
+                "organization_api_key_count": 0,
+                "organization_api_key_config_valid": True,
+                "password_login_enabled": False,
+                "rbac_roles": [],
+                "oidc_login_enabled": False,
+                "oidc_roles": [],
+            },
         )
     warnings = []
     if api_key and (len(api_key) < 24 or _looks_placeholder(api_key)):
         warnings.append("BS_API_KEY should be 24+ random characters and not a placeholder.")
+    weak_organization_keys = sorted(
+        organization_id
+        for organization_id, secret in organization_api_keys.items()
+        if len(secret) < 24 or _looks_placeholder(secret)
+    )
+    if weak_organization_keys:
+        warnings.append(
+            "BS_ORGANIZATION_API_KEYS entries should use 24+ random characters."
+        )
     if admin and (len(admin) < 12 or _looks_placeholder(admin)):
         warnings.append("BS_ADMIN_PASSWORD should be 12+ random characters and not a placeholder.")
     for role, password in sorted(role_passwords.items()):
@@ -114,7 +164,10 @@ def _check_auth(env: Mapping[str, str]) -> GoLiveCheck:
         "warn" if warnings else "pass",
         "; ".join(warnings) if warnings else "Runtime authentication is configured.",
         {
-            "api_key_enabled": bool(api_key),
+            "api_key_enabled": api_key_enabled,
+            "global_api_key_enabled": bool(api_key),
+            "organization_api_key_count": len(organization_api_keys),
+            "organization_api_key_config_valid": True,
             "password_login_enabled": bool(admin or role_passwords),
             "rbac_roles": sorted(role_passwords),
             "oidc_login_enabled": oidc_ready,
