@@ -3,8 +3,10 @@ analysis_id: p2-36-current-rulepack-fresh-source-revalidation-v1
 status: PREREGISTERED_SOURCE_SELECTION_NOT_RUN
 created_date: 2026-09-30
 purpose: >-
-  Freeze a new attack source family and an unused exact benign archive for the
-  current 73-rule detector before any selected EVTX content is parsed or scored.
+  Freeze a new attack source family and an unused benign archive candidate for
+  the current 73-rule detector before any selected EVTX content is parsed or
+  scored. Exact-byte verification is deferred to a separately merged execution
+  contract and runner.
 
 preregistration:
   base_main_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
@@ -36,10 +38,11 @@ attack_revalidation:
     readme_size_bytes: 107
     source_intent_quote: "各大流行恶意软件家族入侵后的sysmon日志，可用于日志分析与研究。"
     source_family_previously_used_by_breachscope: false
-  freshness:
-    selected_source_paths_present_in_pre_p2_36_evidence: 0
-    selected_exact_bytes_previously_detector_evaluated: false
-    current_73_rule_development_used_selected_exact_bytes: false
+  freshness_evidence:
+    source_repository_reference_count_in_pre_p2_36_repo: 0
+    selected_source_path_reference_count_in_pre_p2_36_repo: 0
+    selected_git_blob_id_reference_count_in_pre_p2_36_repo: 0
+    exact_byte_sha256_not_yet_bound: true
     attack_event_contents_parsed_for_selection: false
   selection_policy:
     selector: ALL_TRACKED_BLOBS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
@@ -107,12 +110,11 @@ benign_revalidation:
     readme_size_bytes: 8570
     source_intent_quote: "A repository hosting example goodware evtx logs containing sample software installation and basic user interaction"
     source_family_previously_used_by_breachscope: true
-  freshness:
-    selected_archive_previously_detector_evaluated: false
-    selected_asset_name_present_in_pre_p2_36_evidence: 0
-    current_73_rule_development_used_selected_archive: false
-    benign_archive_inventory_before_merge: false
-    benign_event_contents_parsed_for_selection: false
+  freshness_evidence:
+    selected_asset_name_reference_count_in_pre_p2_36_repo: 0
+    selected_asset_sha256_reference_count_in_pre_p2_36_repo: 0
+    archive_inventory_before_merge: false
+    event_contents_parsed_for_selection: false
   archive:
     asset_name: win2022-0-20348-azure.tgz
     size_bytes: 143223928
@@ -141,12 +143,13 @@ execution_gate:
   separate_execution_contract_required: true
   execution_contract_must_freeze_runner_sha256: true
   execution_contract_must_freeze_product_commit_and_rules_tree: true
+  execution_contract_must_bind_attack_sha256_after_source_download: true
   execution_contract_must_define_permanent_global_lock: true
   detector_must_not_run_before_execution_contract_merge: true
   source_or_fixture_selection_must_not_depend_on_detector_output: true
 
 claim_boundary:
-  source_class: FRESH_ATTACK_SOURCE_FAMILY_PLUS_UNUSED_EXACT_BENIGN_ARCHIVE
+  source_class: NEW_ATTACK_SOURCE_FAMILY_PLUS_UNUSED_BENIGN_ASSET_PREREGISTRATION
   attack_source_family_previously_used_by_breachscope: false
   benign_source_family_previously_used_by_breachscope: true
   combined_independent_source_family_holdout: false
@@ -162,7 +165,7 @@ claim_boundary:
   production_false_positive_rate: NOT_CLAIMED
   representative_production_population: NOT_CLAIMED
 
-execution_state:
+execution_state_at_preregistration:
   source_contract_merged: false
   execution_contract_merged: false
   attack_detector_run: false
