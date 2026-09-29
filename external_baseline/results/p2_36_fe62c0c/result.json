@@ -1,0 +1,233 @@
+{
+  "schema": "breachscope.p2_36_current_rulepack_fresh_source_revalidation.v1",
+  "analysis_id": "p2-36-current-rulepack-fresh-source-revalidation-v1",
+  "status": "failed",
+  "contract_sha256": "fb95abdf30912b6764ed487686bd5c059a64e81c07300edd119f55114481d7f9",
+  "runner_sha256": "3f94334dcd7a9363b58625ed505a92483f022274b735293eae73e9e2ddd0d063",
+  "global_lock_path": "C:\\Users\\bbk0416\\.breachscope\\canonical_locks\\P2_36_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock",
+  "attack_revalidation": {
+    "datasets": [
+      {
+        "dataset_id": "powerghost",
+        "family_label": "PowerGhost",
+        "source_path": "Miner/PowerGhost/1.0/powerghost.evtx",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "raw_records": 18,
+        "parsed_events": 18,
+        "parse_errors": 0,
+        "findings": 3,
+        "flagged_events": 1,
+        "findings_by_rule": {
+          "R-PS-FromBase64String": 1,
+          "R-PS-InvokeExpression": 1,
+          "R-WINRM-RemoteCommand": 1
+        },
+        "findings_by_technique": {
+          "T1021.006": 1,
+          "T1059.001": 1,
+          "T1140": 1
+        },
+        "findings_by_source": {
+          "Microsoft-Windows-Sysmon": 3
+        }
+      },
+      {
+        "dataset_id": "wannamine",
+        "family_label": "WannMine",
+        "source_path": "Miner/WannMine/4.0/wannamine.evtx",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "raw_records": 67,
+        "parsed_events": 67,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {},
+        "findings_by_source": {}
+      },
+      {
+        "dataset_id": "medusalocker",
+        "family_label": "Medusalocker",
+        "source_path": "Ransom/Medusalocker/medusalocker.evtx",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "raw_records": 42,
+        "parsed_events": 42,
+        "parse_errors": 0,
+        "findings": 3,
+        "flagged_events": 3,
+        "findings_by_rule": {
+          "R-RANSOM-Delete-Shadows": 3
+        },
+        "findings_by_technique": {
+          "T1490": 3
+        },
+        "findings_by_source": {
+          "Microsoft-Windows-Sysmon": 3
+        }
+      },
+      {
+        "dataset_id": "ryuk",
+        "family_label": "Ryuk",
+        "source_path": "Ransom/Ryuk/ryuk.evtx",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "raw_records": 127,
+        "parsed_events": 127,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {},
+        "findings_by_source": {}
+      },
+      {
+        "dataset_id": "emotet",
+        "family_label": "Emotet",
+        "source_path": "Trojan/Emotet/emotet.evtx",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "raw_records": 10,
+        "parsed_events": 10,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {},
+        "findings_by_source": {}
+      },
+      {
+        "dataset_id": "sload",
+        "family_label": "sLoad",
+        "source_path": "Trojan/sLoad/sload.evtx",
+        "stage": "completed",
+        "fixture_status": "HIT",
+        "raw_records": 17,
+        "parsed_events": 17,
+        "parse_errors": 0,
+        "findings": 2,
+        "flagged_events": 2,
+        "findings_by_rule": {
+          "R-BITS-Transfer": 2
+        },
+        "findings_by_technique": {
+          "T1197": 2
+        },
+        "findings_by_source": {
+          "Microsoft-Windows-Sysmon": 2
+        }
+      },
+      {
+        "dataset_id": "morto",
+        "family_label": "Morto",
+        "source_path": "Worm/Morto/morto.evtx",
+        "stage": "completed",
+        "fixture_status": "MISS",
+        "raw_records": 15,
+        "parsed_events": 15,
+        "parse_errors": 0,
+        "findings": 0,
+        "flagged_events": 0,
+        "findings_by_rule": {},
+        "findings_by_technique": {},
+        "findings_by_source": {}
+      }
+    ],
+    "summary": {
+      "fixture_count": 7,
+      "hits": 3,
+      "misses": 4,
+      "errors": 0,
+      "fixture_hit_fraction": 0.42857142857142855
+    }
+  },
+  "benign_revalidation": {
+    "members": [
+      {
+        "name": "win2022-0-20348-azure/AD FS%4Admin.evtx",
+        "size_bytes": 69632,
+        "stage": "started"
+      }
+    ]
+  },
+  "frozen_product": {
+    "repo_commit": "a469378c0b26bb25ab005ecf2edd681a0b126713",
+    "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
+    "rule_count": 73,
+    "rule_file_count": 5
+  },
+  "preflight": {
+    "temp_space": {
+      "temp_free_bytes": 611302354944,
+      "minimum_required": 8589934592
+    },
+    "attack": {
+      "repository": "G4rb3n/Malware-EVTX",
+      "repo_commit": "d8d250d3b55779e81552adf2a5f98be1b1cfeb2f",
+      "readme_git_blob_sha1": "14e9fb5d59957d55c72b244a18b0a88d8d4739ad",
+      "readme_sha256": "c68c0575c246bd04505f2fd80b8e4e7c8edd33a1455e9c073ecd802c83975f56",
+      "datasets": [
+        {
+          "dataset_id": "powerghost",
+          "source_path": "Miner/PowerGhost/1.0/powerghost.evtx",
+          "git_blob_sha1": "4e6e6a07e23cb263a7a329912c5f7f764db91adb",
+          "size_bytes": 69632,
+          "sha256": "c23ecaa16a40cba47ae12f858766d4492e0a2de421b8dd8c0b21f02b9dc67c29"
+        },
+        {
+          "dataset_id": "wannamine",
+          "source_path": "Miner/WannMine/4.0/wannamine.evtx",
+          "git_blob_sha1": "c60b5510a8466288cbfc44931784dafc80d8b1e0",
+          "size_bytes": 69632,
+          "sha256": "825ff7c244dbd33eb2af8c95a170eed737fcf09ce2ad19465916b5fd52560f3a"
+        },
+        {
+          "dataset_id": "medusalocker",
+          "source_path": "Ransom/Medusalocker/medusalocker.evtx",
+          "git_blob_sha1": "4ba7f41186c03d7ab5908c65ae4b1045fc4819cd",
+          "size_bytes": 69632,
+          "sha256": "b88cfbb1ded06560e48cc91c48a806912cbd96363b837d1178d290119e8ba557"
+        },
+        {
+          "dataset_id": "ryuk",
+          "source_path": "Ransom/Ryuk/ryuk.evtx",
+          "git_blob_sha1": "bffa67bc4916d2ade188bce7efb7745d07882e45",
+          "size_bytes": 1118208,
+          "sha256": "3ce1c932cfe1b3403f337839732c92005938fae526ec804dfa4f867adc6d254d"
+        },
+        {
+          "dataset_id": "emotet",
+          "source_path": "Trojan/Emotet/emotet.evtx",
+          "git_blob_sha1": "71c60ffa114fdfdbad17a6d31ce2eff9c82f4a84",
+          "size_bytes": 69632,
+          "sha256": "0953932d6c146fd5fe186a4cfda8e42dbf3dee1c847fcce347709ec03a585c3c"
+        },
+        {
+          "dataset_id": "sload",
+          "source_path": "Trojan/sLoad/sload.evtx",
+          "git_blob_sha1": "11a36e9cdfcffe35aa67c40a9e14004f94753ba8",
+          "size_bytes": 69632,
+          "sha256": "ebc5809d4ae4fd4380d4a20f06f3607c814a7efd5cfd316b0218704463fb91fc"
+        },
+        {
+          "dataset_id": "morto",
+          "source_path": "Worm/Morto/morto.evtx",
+          "git_blob_sha1": "1591f4e075b2c5ee115252e1d9463d908674696a",
+          "size_bytes": 69632,
+          "sha256": "51ebdf27c6c3e6cf1727de29d62e9fa7ed59488fc06f242a1c2b2936e7898bbb"
+        }
+      ]
+    },
+    "benign": {
+      "asset_name": "win2022-0-20348-azure.tgz",
+      "size_bytes": 143223928,
+      "sha256": "4b3337d857f8e03273f831ad25db75e02a5a8b26b5ec14bb63727459250a5a73",
+      "evtx_member_count": 355,
+      "total_evtx_bytes": 2334142464,
+      "inventory_sha256": "6557bd513ba5a1b42c096eb6cde1306595d6b13f16c460aec1387548928e4666"
+    }
+  },
+  "error": "RuntimeError: EVTX parsed zero events: 00000_9bd6bccacaa4b3e0.evtx"
+}
