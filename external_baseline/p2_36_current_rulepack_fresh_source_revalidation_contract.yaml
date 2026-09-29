@@ -1,0 +1,164 @@
+schema: breachscope.p2_36_current_rulepack_fresh_source_execution_contract.v1
+analysis_id: p2-36-current-rulepack-fresh-source-revalidation-v1
+status: PREREGISTERED_EXECUTION_NOT_RUN
+created_date: 2026-09-30
+purpose: >-
+  Freeze exact source bytes, benign archive inventory, the current 73-rule
+  product commit, and the canonical runner before the one-time P2-36 detector run.
+
+source_preregistration:
+  path: external_baseline/p2_36_current_rulepack_fresh_source_preregistration.yaml
+  sha256: b85456b7aba3a0ee18176c3d3b7ecfab4bb933802cee12bcc5fec41b1ded236e
+  merge_commit: 6b20cac3c3b894912eada8f3c9fff32e8dd80ace
+  merged_before_source_download_and_inventory_binding: true
+
+frozen_product:
+  repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  execution_mode: SEPARATE_FROZEN_GIT_WORKTREE
+  source_contract_merge_is_not_part_of_detector_product: true
+
+runner:
+  path: scripts/p2_36_current_rulepack_fresh_source_revalidation.py
+  sha256: 3f94334dcd7a9363b58625ed505a92483f022274b735293eae73e9e2ddd0d063
+  hash_mode: LF_NORMALIZED_SHA256
+  permanent_global_lock: P2_36_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+  one_canonical_execution_only: true
+  same_analysis_id_retry_allowed: false
+  atomic_output_strategy: PID_SCOPED_TEMP_FILE_PLUS_PERMISSIONERROR_RETRY
+  temp_free_bytes_min: 8589934592
+  benign_member_processing: ONE_EVTX_TEMP_FILE_AT_A_TIME
+  detector_input_mode: STREAMING_EVENT_ITERATOR
+
+attack_revalidation:
+  source:
+    repository: G4rb3n/Malware-EVTX
+    pinned_commit: d8d250d3b55779e81552adf2a5f98be1b1cfeb2f
+    readme_path: README.md
+    readme_git_blob_sha1: 14e9fb5d59957d55c72b244a18b0a88d8d4739ad
+    readme_size_bytes: 107
+    readme_sha256: c68c0575c246bd04505f2fd80b8e4e7c8edd33a1455e9c073ecd802c83975f56
+  selection_policy:
+    selector: ALL_TRACKED_BLOBS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: SOURCE_PATH_CASEFOLD_ASCENDING
+    selected_fixture_count: 7
+    all_selector_matches_selected: true
+    post_execution_fixture_replacement_allowed: false
+  datasets:
+    - dataset_id: powerghost
+      family_label: PowerGhost
+      source_path: Miner/PowerGhost/1.0/powerghost.evtx
+      size_bytes: 69632
+      git_blob_sha1: 4e6e6a07e23cb263a7a329912c5f7f764db91adb
+      sha256: c23ecaa16a40cba47ae12f858766d4492e0a2de421b8dd8c0b21f02b9dc67c29
+    - dataset_id: wannamine
+      family_label: WannMine
+      source_path: Miner/WannMine/4.0/wannamine.evtx
+      size_bytes: 69632
+      git_blob_sha1: c60b5510a8466288cbfc44931784dafc80d8b1e0
+      sha256: 825ff7c244dbd33eb2af8c95a170eed737fcf09ce2ad19465916b5fd52560f3a
+    - dataset_id: medusalocker
+      family_label: Medusalocker
+      source_path: Ransom/Medusalocker/medusalocker.evtx
+      size_bytes: 69632
+      git_blob_sha1: 4ba7f41186c03d7ab5908c65ae4b1045fc4819cd
+      sha256: b88cfbb1ded06560e48cc91c48a806912cbd96363b837d1178d290119e8ba557
+    - dataset_id: ryuk
+      family_label: Ryuk
+      source_path: Ransom/Ryuk/ryuk.evtx
+      size_bytes: 1118208
+      git_blob_sha1: bffa67bc4916d2ade188bce7efb7745d07882e45
+      sha256: 3ce1c932cfe1b3403f337839732c92005938fae526ec804dfa4f867adc6d254d
+    - dataset_id: emotet
+      family_label: Emotet
+      source_path: Trojan/Emotet/emotet.evtx
+      size_bytes: 69632
+      git_blob_sha1: 71c60ffa114fdfdbad17a6d31ce2eff9c82f4a84
+      sha256: 0953932d6c146fd5fe186a4cfda8e42dbf3dee1c847fcce347709ec03a585c3c
+    - dataset_id: sload
+      family_label: sLoad
+      source_path: Trojan/sLoad/sload.evtx
+      size_bytes: 69632
+      git_blob_sha1: 11a36e9cdfcffe35aa67c40a9e14004f94753ba8
+      sha256: ebc5809d4ae4fd4380d4a20f06f3607c814a7efd5cfd316b0218704463fb91fc
+    - dataset_id: morto
+      family_label: Morto
+      source_path: Worm/Morto/morto.evtx
+      size_bytes: 69632
+      git_blob_sha1: 1591f4e075b2c5ee115252e1d9463d908674696a
+      sha256: 51ebdf27c6c3e6cf1727de29d62e9fa7ed59488fc06f242a1c2b2936e7898bbb
+  measurement:
+    fixture_status: HIT_IF_AT_LEAST_ONE_FINDING_ELSE_MISS
+    fixture_hit_fraction_is_event_level_recall: false
+    report_per_fixture_raw_records: true
+    report_per_fixture_parsed_events: true
+    report_per_fixture_parse_errors: true
+    report_per_fixture_findings: true
+    report_per_fixture_flagged_events: true
+    report_per_fixture_findings_by_rule: true
+    report_per_fixture_findings_by_technique: true
+
+benign_revalidation:
+  source:
+    repository: NextronSystems/evtx-baseline
+    release_tag: v0.8.5
+    source_family_previously_used_by_breachscope: true
+  archive:
+    asset_name: win2022-0-20348-azure.tgz
+    size_bytes: 143223928
+    sha256: 4b3337d857f8e03273f831ad25db75e02a5a8b26b5ec14bb63727459250a5a73
+  inventory:
+    selector: ALL_REGULAR_TAR_MEMBERS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: MEMBER_NAME_CASEFOLD_ASCENDING
+    evtx_member_count: 355
+    total_evtx_bytes: 2334142464
+    inventory_sha256: 6557bd513ba5a1b42c096eb6cde1306595d6b13f16c460aec1387548928e4666
+    inventory_uses_names_and_sizes_only: true
+    event_contents_parsed_while_binding_inventory: false
+    post_inventory_member_dropping_allowed: false
+  measurement:
+    label_policy: BENIGN_BY_SOURCE_INTENT_NOT_EVENT_LEVEL_ADJUDICATION
+    flagged_events_are_confirmed_false_positives: false
+    report_per_member_raw_records: true
+    report_per_member_parsed_events: true
+    report_per_member_parse_errors: true
+    report_per_member_findings: true
+    report_per_member_flagged_events: true
+    report_findings_by_rule: true
+    report_findings_by_technique: true
+    report_aggregate_flagged_event_fraction: true
+
+protocol:
+  execution_contract_must_be_merged_before_detector_run: true
+  permanent_lock_acquired_before_product_or_source_verification: true
+  result_acceptance_depends_on_measurement_value: false
+  source_selection_must_not_change_after_observation: true
+  runner_must_not_change_after_contract_merge: true
+  product_commit_must_not_change_after_contract_merge: true
+  attack_repo_must_be_clean_and_pinned: true
+  product_worktree_must_be_clean_and_pinned: true
+
+claim_boundary:
+  source_class: NEW_ATTACK_SOURCE_FAMILY_PLUS_UNUSED_BENIGN_ASSET
+  attack_source_family_previously_used_by_breachscope: false
+  benign_source_family_previously_used_by_breachscope: true
+  combined_independent_source_family_holdout: false
+  attack_fixture_hit_fraction_is_event_level_recall: false
+  attack_event_level_ground_truth: NOT_AVAILABLE
+  benign_event_level_ground_truth: NOT_AVAILABLE
+  benign_flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+
+execution_state:
+  canonical_execution_started: false
+  attack_detector_run: false
+  benign_detector_run: false
+  result_observed: false
