@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add explicit SCIM identity-store migration tooling for JSON/SQLite/PostgreSQL with dry-run, source validation, non-empty target refusal, target snapshot backup on `--replace`, rollback on failed write/verification, canonical digest verification, environment-only PostgreSQL URLs, and wheel/source CLI entry points.
 - Fix source-release hygiene so Ruff/Mypy/Pytest/Python cache directories are excluded from release ZIPs even when local tooling has populated them.
 - Add SCIM Users/Groups sorting with `sortBy`/`sortOrder`, documented attribute allowlists, filter-before-sort-before-pagination ordering, and fail-closed validation for unsupported sort parameters.
 - Add PostgreSQL-backed SCIM identity storage for shared deployments, including database advisory transaction locking across replicas, atomic If-Match/Bulk version checks within mutation transactions, REPEATABLE READ authorization snapshots, secret database-URL diagnostics, and locked psycopg runtime dependencies.

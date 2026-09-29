@@ -33,6 +33,8 @@ DEFAULT_EXCLUDES = (
     ".git/*",
     ".github/workflows/*.local.yml",
     ".pytest_cache/*",
+    ".ruff_cache/*",
+    ".mypy_cache/*",
     ".venv/*",
     "venv/*",
     "env/*",
@@ -132,7 +134,18 @@ def should_exclude(relative_path: str, patterns: Iterable[str] = DEFAULT_EXCLUDE
     if not rel:
         return True
     parts = rel.split("/")
-    if any(part in {"__pycache__", ".pytest_cache", ".venv", "venv", "env"} for part in parts):
+    if any(
+        part in {
+            "__pycache__",
+            ".pytest_cache",
+            ".ruff_cache",
+            ".mypy_cache",
+            ".venv",
+            "venv",
+            "env",
+        }
+        for part in parts
+    ):
         return True
     return any(fnmatch.fnmatch(rel, pattern) for pattern in patterns)
 

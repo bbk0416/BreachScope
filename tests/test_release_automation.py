@@ -30,6 +30,16 @@ requires-python = ">=3.10"
     (repo / "breachscope" / "__init__.py").write_text("", encoding="utf-8")
     (repo / "__pycache__").mkdir()
     (repo / "__pycache__" / "bad.pyc").write_bytes(b"bad")
+    (repo / ".ruff_cache").mkdir()
+    (repo / ".ruff_cache" / "cache-entry").write_text(
+        "ruff",
+        encoding="utf-8",
+    )
+    (repo / ".mypy_cache").mkdir()
+    (repo / ".mypy_cache" / "cache-entry").write_text(
+        "mypy",
+        encoding="utf-8",
+    )
     (repo / "out").mkdir()
     (repo / "out" / "report.json").write_text("{}", encoding="utf-8")
     (repo / ".env").write_text("SECRET=bad\n", encoding="utf-8")
@@ -45,6 +55,10 @@ def test_release_file_filter_excludes_runtime_and_secret_files(tmp_path):
     assert ".env" not in files
     assert "out/report.json" not in files
     assert "__pycache__/bad.pyc" not in files
+    assert ".ruff_cache/cache-entry" not in files
+    assert ".mypy_cache/cache-entry" not in files
+    assert should_exclude(".ruff_cache/cache-entry") is True
+    assert should_exclude("tools/.mypy_cache/cache-entry") is True
     assert should_exclude("dist/breachscope.zip") is True
 
 

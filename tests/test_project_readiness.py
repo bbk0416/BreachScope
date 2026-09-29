@@ -14,6 +14,7 @@ def test_project_readiness_module_passes_core_checks():
     assert "rulepack_coverage" in names
     assert "demo_scenarios" in names
     assert "github_collaboration_templates" in names
+    assert "scim_migration_tooling" in names
     markdown = render_markdown(result)
     assert "BreachScope Project Readiness Report" in markdown
     assert "rulepack_coverage" in markdown

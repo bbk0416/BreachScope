@@ -181,6 +181,17 @@ def run_project_readiness(root: str | Path = ".") -> dict[str, Any]:
         ),
         _exists_check(
             root_path,
+            "scim_migration_tooling",
+            [
+                "scripts/scim_store_migrate.py",
+                "breachscope/scim_migrate.py",
+                "api/services/scim_migration.py",
+                "docs/SCIM_MIGRATION.md",
+            ],
+            "SCIM identity-store migration tooling and documentation are present.",
+        ),
+        _exists_check(
+            root_path,
             "demo_pack_tooling",
             ["scripts/build_demo_pack.py", "breachscope/demo_pack.py", "docs/DEMO_PACK.md"],
             "Shareable demo/handoff pack tooling and documentation are present.",
