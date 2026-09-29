@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add verified remote case archive/offload: operator/admin can fully restore-verify an encrypted S3-compatible replica, re-check the recorded manifest SHA, and only then remove the managed local case payload while preserving case/remote metadata for later restore; expose the safe action in the web console and keep deletion/prune guards intact.
 - Add explicit SCIM identity-store migration tooling for JSON/SQLite/PostgreSQL with dry-run, source validation, non-empty target refusal, target snapshot backup on `--replace`, rollback on failed write/verification, canonical digest verification, environment-only PostgreSQL URLs, and wheel/source CLI entry points.
 - Fix source-release hygiene so Ruff/Mypy/Pytest/Python cache directories are excluded from release ZIPs even when local tooling has populated them.
 - Add SCIM Users/Groups sorting with `sortBy`/`sortOrder`, documented attribute allowlists, filter-before-sort-before-pagination ordering, and fail-closed validation for unsupported sort parameters.

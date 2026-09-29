@@ -31,14 +31,14 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8501 --reload
 - ✅ 커스텀 룰 draft → validate → approve → publish workflow
 - ✅ published custom rule activation/deactivation/manifest rollback; 분석별 custom rule 사용은 기본 OFF
 - ✅ 선택형 rule lifecycle RBAC: author / reviewer / operator / admin 역할 로그인과 버튼 권한 표시
-- ✅ S3-compatible encrypted case replica 상태 표시 및 operator/admin 전용 원격 복제/복원/삭제 버튼
+- ✅ S3-compatible encrypted case replica 상태 표시 및 operator/admin 전용 원격 복제/검증 후 로컬 비우기/복원/삭제 버튼
 - ✅ OIDC 설정 시 SSO 로그인 버튼 및 OIDC-mapped RBAC role 표시
 - ✅ 분석 실행
 - ✅ 리포트 다운로드 (HTML, JSON, CSV, PDF)
 - ✅ REST API 제공 (`/api/analyze`, `/api/rules`)
 - ✅ 자동 문서화 (`/docs`)
 
-원격 object storage의 bucket/endpoint/credential은 웹에서 편집하지 않습니다. deployment 환경에서만 설정합니다. 케이스 카드의 원격 복제/복원/삭제 버튼은 operator/admin에만 활성화되며, 로컬 case가 없을 때만 복원 버튼을 보여 줍니다. `overwrite=true`와 `forget=true` 같은 위험한 복구 옵션은 UI에서 제공하지 않습니다.
+원격 object storage의 bucket/endpoint/credential은 웹에서 편집하지 않습니다. deployment 환경에서만 설정합니다. 케이스 카드의 원격 복제/복원/삭제와 `로컬 비우기` 버튼은 operator/admin에만 활성화됩니다. remote replica와 로컬 case가 함께 있을 때만 `로컬 비우기`를 보여 주며, 클릭하면 remote 전체 복원 검증 후 로컬 encrypted payload를 삭제한다는 확인을 받습니다. 로컬 case가 없을 때만 복원 버튼을 보여 줍니다. `overwrite=true`와 `forget=true` 같은 위험한 복구 옵션은 UI에서 제공하지 않습니다.
 
 ### API 문서
 - Swagger UI: `http://localhost:8501/docs`

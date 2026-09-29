@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+from functools import wraps
+import threading
+
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -28,6 +31,27 @@ from api.rbac import (
 )
 
 router = APIRouter()
+
+_OBJECT_STORAGE_LOCKS_GUARD = threading.Lock()
+_OBJECT_STORAGE_LOCKS: dict[str, threading.Lock] = {}
+
+
+def _object_storage_operation_locked(func):
+    """Serialize object-storage operations for the same case in this process."""
+
+    @wraps(func)
+    def wrapped(case_id: str, *args, **kwargs):
+        key = str(case_id or "")
+        with _OBJECT_STORAGE_LOCKS_GUARD:
+            lock = _OBJECT_STORAGE_LOCKS.get(key)
+            if lock is None:
+                lock = threading.Lock()
+                _OBJECT_STORAGE_LOCKS[key] = lock
+        with lock:
+            return func(case_id, *args, **kwargs)
+
+    return wrapped
+
 
 class CaseWorkflowUpdate(BaseModel):
     """Analyst-owned case workflow fields.
@@ -261,7 +285,8 @@ async def get_case_report(
     "/cases/{case_id}/object-storage/replicate",
     response_class=JSONResponse,
 )
-async def replicate_case_to_object_storage(
+@_object_storage_operation_locked
+def replicate_case_to_object_storage(
     case_id: str,
     request: Request,
 ):
@@ -356,10 +381,124 @@ async def replicate_case_to_object_storage(
 
 
 @router.post(
+    "/cases/{case_id}/object-storage/archive",
+    response_class=JSONResponse,
+)
+@_object_storage_operation_locked
+def archive_case_to_object_storage(
+    case_id: str,
+    request: Request,
+):
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
+    try:
+        case = _service(request).get_case(case_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
+
+    remote = dict(case.get("object_storage") or {})
+    if not remote:
+        raise HTTPException(
+            status_code=409,
+            detail="원격 archive를 위해 먼저 원격 replica를 생성해야 합니다.",
+        )
+    if not case.get("exists"):
+        raise HTTPException(
+            status_code=409,
+            detail="로컬 케이스 파일이 이미 없습니다.",
+        )
+
+    storage = _object_storage_service()
+    try:
+        verification = storage.verify_replica(
+            case_id,
+            remote,
+            organization_id=identity.organization_id,
+        )
+    except ObjectStorageError as exc:
+        AuditLogService().record(
+            "case.object_storage.archive",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc), "stage": "remote_verify"},
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    if not verification.get("verified"):
+        AuditLogService().record(
+            "case.object_storage.archive",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": "remote_replica_not_verified",
+                "stage": "remote_verify",
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="원격 replica 복원 검증에 실패했습니다.",
+        )
+
+    result = _service(request).archive_local_case(
+        case_id,
+        expected_manifest_sha256=str(
+            verification.get("manifest_sha256") or ""
+        ),
+    )
+    if not result.get("archived"):
+        reason = str(result.get("reason") or "archive_failed")
+        AuditLogService().record(
+            "case.object_storage.archive",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": reason,
+                "stage": "local_remove",
+                "remote_verified": True,
+            },
+        )
+        status_code = 500 if reason == "file_removal_failed" else 409
+        raise HTTPException(
+            status_code=status_code,
+            detail=f"로컬 archive 실패: {reason}",
+        )
+
+    AuditLogService().record(
+        "case.object_storage.archive",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "provider": verification.get("provider"),
+            "bucket": verification.get("bucket"),
+            "case_prefix": verification.get("case_prefix"),
+            "manifest_sha256": verification.get("manifest_sha256"),
+            "verified_at": verification.get("verified_at"),
+            "file_count": verification.get("file_count"),
+            "removed_files": result.get("removed_files"),
+        },
+    )
+    return {
+        "success": True,
+        "archive": {
+            **result,
+            "verification": verification,
+        },
+    }
+
+
+@router.post(
     "/cases/{case_id}/object-storage/restore",
     response_class=JSONResponse,
 )
-async def restore_case_from_object_storage(
+@_object_storage_operation_locked
+def restore_case_from_object_storage(
     case_id: str,
     request: Request,
     overwrite: bool = Query(False),
@@ -428,7 +567,8 @@ async def restore_case_from_object_storage(
     "/cases/{case_id}/object-storage",
     response_class=JSONResponse,
 )
-async def delete_case_object_storage_replica(
+@_object_storage_operation_locked
+def delete_case_object_storage_replica(
     case_id: str,
     request: Request,
     forget: bool = Query(False),

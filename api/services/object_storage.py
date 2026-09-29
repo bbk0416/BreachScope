@@ -433,6 +433,39 @@ class ObjectStorageService:
             raise ObjectStorageError("Remote case is not client-side encrypted.")
         return manifest, manifest_bytes, expected_prefix
 
+    def verify_replica(
+        self,
+        case_id: str,
+        remote: dict[str, Any],
+        *,
+        organization_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Prove the remote replica can be fully restored and authenticated."""
+        probe = Path(tempfile.mkdtemp(prefix="bs_web_"))
+        try:
+            restored = self.restore_case(
+                case_id,
+                probe,
+                remote,
+                overwrite=False,
+                organization_id=organization_id,
+            )
+        finally:
+            if probe.exists():
+                shutil.rmtree(probe, ignore_errors=True)
+
+        return {
+            "provider": self.config.provider,
+            "bucket": self.config.bucket,
+            "case_prefix": str(remote.get("case_prefix") or ""),
+            "manifest_sha256": str(
+                remote.get("manifest_sha256") or ""
+            ),
+            "verified_at": _now_iso(),
+            "file_count": int(restored.get("file_count") or 0),
+            "verified": bool(restored.get("verified")),
+        }
+
     def delete_replica(
         self,
         case_id: str,
