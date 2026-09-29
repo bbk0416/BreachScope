@@ -200,6 +200,11 @@ source case가 아직 로컬에 있거나 retained `input/` evidence가 없으�
 
 로컬 retained case를 S3-compatible object storage에 복제합니다. `BS_ARTIFACT_ENCRYPTION_KEY`가 활성화되어 있고 case 내부 파일이 모두 `.enc` ciphertext여야 합니다. 새 replica는 `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>` namespace를 사용하고 v2 manifest에 organization ID를 기록합니다. 동일한 case ID라도 organization이 다르면 object key가 겹치지 않습니다. 이미 remote replica metadata가 있으면 409로 거부합니다.
 
+### POST `/api/cases/{case_id}/object-storage/verify`
+권한: operator 또는 admin.
+
+저장된 remote replica를 변경 없이 전체 검증합니다. manifest SHA-256, 각 object의 size/SHA-256, AES-GCM 인증과 organization namespace를 다시 확인하고 실제로 검증된 `manifest_sha256`, `verified_at`, `file_count`를 반환합니다. case index, `restore_count`, 로컬 payload는 변경하지 않습니다. 검증 실패는 503으로 fail-closed되며 성공/실패 모두 audit log에 기록됩니다. remote replica metadata가 없으면 409입니다.
+
 ### POST `/api/cases/{case_id}/object-storage/archive`
 권한: operator 또는 admin.
 
