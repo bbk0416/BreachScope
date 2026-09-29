@@ -38,6 +38,9 @@ dependencies = [
   "tomli>=2.0; python_version < \"3.11\"",
 ]
 
+[project.scripts]
+breachscope-scim-migrate = "breachscope.scim_migrate:main"
+
 [project.optional-dependencies]
 pdf = ["reportlab>=4", "weasyprint>=62"]
 evtx = ["python-evtx>=0.6"]
