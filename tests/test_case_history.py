@@ -183,10 +183,12 @@ def test_case_history_records_reanalysis_lineage_within_organization(
         _sample_report(),
     )
 
+    manifest_sha256 = "a" * 64
     updated = history.set_analysis_lineage(
         target.case_id,
         source_case_id=source.case_id,
         source="object_storage",
+        source_manifest_sha256=manifest_sha256,
         updated_by="operator",
     )
 
@@ -195,6 +197,19 @@ def test_case_history_records_reanalysis_lineage_within_organization(
     assert lineage["source"] == "object_storage"
     assert lineage["reanalyzed_by"] == "operator"
     assert lineage["reanalyzed_at"]
+    assert lineage["source_manifest_sha256"] == manifest_sha256
+
+    with pytest.raises(
+        ValueError,
+        match="source_manifest_sha256",
+    ):
+        history.set_analysis_lineage(
+            target.case_id,
+            source_case_id=source.case_id,
+            source="object_storage",
+            source_manifest_sha256="not-a-sha256",
+            updated_by="operator",
+        )
 
 
 def test_case_history_reanalysis_lineage_cannot_cross_organization(

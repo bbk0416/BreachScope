@@ -608,11 +608,12 @@ class ObjectStorageService:
                 "Restore target already contains files; set overwrite=true explicitly."
             )
 
-        manifest, _, expected_prefix = self._load_manifest(
+        manifest, manifest_bytes, expected_prefix = self._load_manifest(
             case_id,
             remote,
             organization_id=organization_id,
         )
+        verified_manifest_sha256 = _sha256_bytes(manifest_bytes)
         rows = manifest.get("files")
         if not isinstance(rows, list) or not rows:
             raise ObjectStorageError("Remote case manifest contains no files.")
@@ -699,6 +700,7 @@ class ObjectStorageService:
             "provider": self.config.provider,
             "bucket": self.config.bucket,
             "case_prefix": expected_prefix,
+            "manifest_sha256": verified_manifest_sha256,
             "restored_at": _now_iso(),
             "file_count": len(restored_files),
             "target_dir": str(target),

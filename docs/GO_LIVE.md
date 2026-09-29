@@ -49,7 +49,7 @@ BS_OBJECT_STORAGE_REGION=ap-northeast-2
 BS_OBJECT_STORAGE_ENDPOINT_URL=
 ```
 
-Go-Live/Readiness는 provider, bucket, client-side encryption 같은 정적 전제만 검사합니다. bucket 존재 여부나 실제 IAM 권한은 네트워크 probe하지 않으므로 배포 전에 retained `input/`이 있는 테스트 case 한 건으로 replicate → archive → remote-only preview/report read → remote-only re-analysis → restore를 직접 확인해야 합니다. `archive`는 remote 전체 복원 검증을 통과하기 전에는 로컬 payload를 삭제하지 않습니다. remote-only read/re-analysis 후 `bs_web_remote_*` 임시 복원 경로가 남지 않는지, re-analysis가 새 case와 `analysis_lineage.source_case_id`를 만들고 source case의 `restore_count`는 증가시키지 않는지도 확인합니다.
+Go-Live/Readiness는 provider, bucket, client-side encryption 같은 정적 전제만 검사합니다. bucket 존재 여부나 실제 IAM 권한은 네트워크 probe하지 않으므로 배포 전에 retained `input/`이 있는 테스트 case 한 건으로 replicate → archive → remote-only preview/report read → remote-only re-analysis → restore를 직접 확인해야 합니다. `archive`는 remote 전체 복원 검증을 통과하기 전에는 로컬 payload를 삭제하지 않습니다. remote-only read/re-analysis 후 `bs_web_remote_*` 임시 복원 경로가 남지 않는지, re-analysis가 새 case와 `analysis_lineage.source_case_id`/`source_manifest_sha256`을 만들고 source case의 `restore_count`는 증가시키지 않는지도 확인합니다.
 
 ## Run the go-live checker
 
