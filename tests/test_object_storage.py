@@ -166,6 +166,69 @@ def test_object_storage_round_trip_restore_and_delete(
     assert fake.objects == {}
 
 
+def test_object_storage_verify_replica_full_restore_keeps_local_case(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, report_bytes = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "verify-case",
+    )
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case("case-verify", work)
+
+    result = service.verify_replica(
+        "case-verify",
+        remote,
+    )
+
+    assert result["verified"] is True
+    assert result["file_count"] == 3
+    assert result["manifest_sha256"] == remote["manifest_sha256"]
+    assert work.exists()
+    assert read_artifact_bytes(
+        work / "out" / "report.json",
+        work,
+    ) == report_bytes
+
+
+def test_object_storage_verify_replica_tamper_keeps_local_case(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "verify-tamper-case",
+    )
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        "case-verify-tamper",
+        work,
+    )
+    manifest = json.loads(
+        fake.objects[(_config().bucket, remote["manifest_key"])].decode(
+            "utf-8"
+        )
+    )
+    first_key = manifest["files"][0]["object_key"]
+    fake.objects[(_config().bucket, first_key)] += b"tamper"
+
+    with pytest.raises(
+        ObjectStorageError,
+        match="size mismatch|SHA-256 mismatch",
+    ):
+        service.verify_replica(
+            "case-verify-tamper",
+            remote,
+        )
+
+    assert work.exists()
+
+
 def test_object_storage_rejects_plaintext_case(
     tmp_path: Path,
     monkeypatch,
@@ -286,11 +349,14 @@ def test_case_history_tracks_object_storage_state(
 class StubObjectStorageService:
     def __init__(self):
         self.replicated: list[str] = []
+        self.verified: list[str] = []
         self.restored: list[str] = []
         self.deleted: list[str] = []
         self.replicated_organizations: list[str] = []
+        self.verified_organizations: list[str] = []
         self.restored_organizations: list[str] = []
         self.deleted_organizations: list[str] = []
+        self.fail_verify = False
 
     def replicate_case(
         self,
@@ -317,6 +383,27 @@ class StubObjectStorageService:
             "client_side_encryption": "AES-256-GCM",
         }
 
+    def verify_replica(
+        self,
+        case_id: str,
+        remote: dict,
+        *,
+        organization_id: str | None = None,
+    ):
+        self.verified.append(case_id)
+        self.verified_organizations.append(organization_id or "default")
+        if self.fail_verify:
+            raise ObjectStorageError("simulated verification failure")
+        return {
+            "provider": "s3",
+            "bucket": "breachscope-test",
+            "case_prefix": remote["case_prefix"],
+            "manifest_sha256": remote["manifest_sha256"],
+            "verified_at": "2026-09-29T05:00:00Z",
+            "file_count": 3,
+            "verified": True,
+        }
+
     def restore_case(
         self,
         case_id: str,
@@ -328,6 +415,8 @@ class StubObjectStorageService:
     ):
         self.restored.append(case_id)
         self.restored_organizations.append(organization_id or "default")
+        target = Path(target_dir)
+        target.mkdir(parents=True, exist_ok=True)
         return {
             "provider": "s3",
             "bucket": "breachscope-test",
@@ -418,11 +507,29 @@ def test_object_storage_api_requires_operator_and_tracks_replica(
     )
     assert duplicate.status_code == 409
 
-    shutil.rmtree(work)
+    archive_forbidden = reviewer.post(
+        f"/api/cases/{record.case_id}/object-storage/archive"
+    )
+    assert archive_forbidden.status_code == 403
+
+    archived = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/archive"
+    )
+    assert archived.status_code == 200, archived.text
+    assert archived.json()["archive"]["verification"]["verified"] is True
+    assert stub.verified == [record.case_id]
+    assert not work.exists()
+
+    archived_detail = operator.get(f"/api/cases/{record.case_id}")
+    assert archived_detail.status_code == 200
+    assert archived_detail.json()["case"]["exists"] is False
+    assert archived_detail.json()["case"]["object_storage"] is not None
+
     restored = operator.post(
         f"/api/cases/{record.case_id}/object-storage/restore"
     )
     assert restored.status_code == 200, restored.text
+    assert work.exists()
 
     detail = operator.get(f"/api/cases/{record.case_id}")
     assert detail.status_code == 200
@@ -475,6 +582,112 @@ def test_remote_replica_blocks_case_delete_and_prune(
     assert pruned["blocked_remote_replicas"] == 1
     assert history.get_case(record.case_id)["case_id"] == record.case_id
     assert work.exists()
+
+
+def test_case_history_archive_requires_matching_verified_manifest(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "archive-history-case",
+    )
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "case_history.json"),
+    )
+    history = CaseHistoryService()
+    record = history.register_case(work, _sample_report())
+    remote = {
+        "provider": "s3",
+        "bucket": "breachscope-test",
+        "case_prefix": f"breachscope/cases/{record.case_id}",
+        "manifest_key": (
+            f"breachscope/cases/{record.case_id}/case_manifest.json"
+        ),
+        "manifest_sha256": "d" * 64,
+    }
+    history.set_object_storage_state(
+        record.case_id,
+        remote,
+        updated_by="operator",
+    )
+
+    stale = history.archive_local_case(
+        record.case_id,
+        expected_manifest_sha256="e" * 64,
+    )
+    assert stale["archived"] is False
+    assert stale["reason"] == "remote_replica_changed"
+    assert work.exists()
+
+    archived = history.archive_local_case(
+        record.case_id,
+        expected_manifest_sha256="d" * 64,
+    )
+    assert archived["archived"] is True
+    assert archived["removed_files"] is True
+    assert not work.exists()
+
+    detail = history.get_case(record.case_id)
+    assert detail["exists"] is False
+    assert detail["object_storage"]["manifest_sha256"] == "d" * 64
+
+    blocked_delete = history.delete_case(record.case_id)
+    assert blocked_delete["deleted"] is False
+    assert blocked_delete["reason"] == "remote_replica_exists"
+
+    pruned = history.prune_cases(
+        keep_last=0,
+        dry_run=False,
+        remove_files=True,
+    )
+    assert pruned["removed_case_records"] == 0
+    assert pruned["blocked_remote_replicas"] == 1
+
+
+def test_object_storage_archive_verification_failure_keeps_local_case(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "archive-verify-fail-case",
+    )
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "case_history.json"),
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / "audit.jsonl"),
+    )
+    record = CaseHistoryService().register_case(work, _sample_report())
+    stub = StubObjectStorageService()
+    monkeypatch.setattr(
+        cases_router_module,
+        "_object_storage_service",
+        lambda: stub,
+    )
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+
+    replicated = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/replicate"
+    )
+    assert replicated.status_code == 200
+
+    stub.fail_verify = True
+    archived = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/archive"
+    )
+
+    assert archived.status_code == 503
+    assert "verification failure" in archived.json()["detail"]
+    assert work.exists()
+    detail = operator.get(f"/api/cases/{record.case_id}")
+    assert detail.json()["case"]["object_storage"] is not None
 
 
 def test_object_storage_api_forget_clears_metadata_without_remote_delete(
@@ -533,8 +746,10 @@ def test_web_ui_exposes_operator_only_object_storage_controls() -> None:
     assert "data-object-storage-action" in source
     assert "원격 복제" in source
     assert "원격 복원" in source
+    assert "로컬 비우기" in source
     assert "원격 삭제" in source
     assert "/object-storage/replicate" in source
+    assert "/object-storage/archive" in source
     assert "/object-storage/restore" in source
     assert "roleAllows('operator')" in source
 
@@ -839,7 +1054,14 @@ def test_object_storage_api_passes_api_key_organization_to_remote_namespace(
     assert f"/orgs/org-blue/{record.case_id}" in remote["case_prefix"]
     assert stub.replicated_organizations == ["org-blue"]
 
-    shutil.rmtree(work)
+    archived = client.post(
+        f"/api/cases/{record.case_id}/object-storage/archive",
+        headers=headers,
+    )
+    assert archived.status_code == 200, archived.text
+    assert stub.verified_organizations == ["org-blue"]
+    assert not work.exists()
+
     restored = client.post(
         f"/api/cases/{record.case_id}/object-storage/restore",
         headers=headers,

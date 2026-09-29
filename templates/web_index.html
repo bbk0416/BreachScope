@@ -1352,7 +1352,9 @@
           : '';
         const canOperate = roleAllows('operator');
         const remoteActions = remote
-          ? `${c.exists === false ? `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="restore" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복원</button>` : ''}
+          ? `${c.exists === false
+              ? `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="restore" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복원</button>`
+              : `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="archive" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>로컬 비우기</button>`}
              <button type="button" class="btn btn-mini btn-download" data-object-storage-action="delete" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 삭제</button>`
           : (c.exists === false ? '' : `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="replicate" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복제</button>`);
         return `<div class="case-item" data-case-id="${escapeHtml(c.case_id)}">
@@ -1700,6 +1702,13 @@
       if (action === 'restore') {
         url = `/api/cases/${encoded}/object-storage/restore`;
         label = '원격 복원';
+      } else if (action === 'archive') {
+        url = `/api/cases/${encoded}/object-storage/archive`;
+        label = '로컬 비우기';
+        const confirmed = window.confirm(
+          '원격 replica를 전체 복원 검증한 뒤 로컬 암호화 케이스 파일을 삭제합니다. 계속할까요?'
+        );
+        if (!confirmed) return;
       } else if (action === 'delete') {
         url = `/api/cases/${encoded}/object-storage`;
         method = 'DELETE';

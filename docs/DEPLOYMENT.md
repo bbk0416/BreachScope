@@ -224,7 +224,7 @@ GET /api/backups/{backup_id}/integrity
 
 ### S3-compatible 원격 케이스 replica
 
-로컬 케이스 저장은 기본/기준 저장소로 유지됩니다. 선택적으로 operator/admin이 **이미 AES-256-GCM으로 client-side 암호화된 retained case**를 S3-compatible bucket에 복제하고, 로컬 파일이 없을 때 다시 복원할 수 있습니다. 평문 파일이 하나라도 남아 있는 case는 원격 복제가 거부됩니다.
+분석 결과는 먼저 로컬 케이스 저장소에 생성됩니다. 선택적으로 operator/admin이 **이미 AES-256-GCM으로 client-side 암호화된 retained case**를 S3-compatible bucket에 복제할 수 있고, remote 전체 복원 검증을 통과한 replica는 `archive`로 로컬 encrypted payload를 비운 뒤 나중에 복원할 수 있습니다. 평문 파일이 하나라도 남아 있는 case는 원격 복제가 거부됩니다.
 
 ```bash
 BS_ARTIFACT_ENCRYPTION_KEY=<32-byte-url-safe-base64-key>
@@ -240,11 +240,12 @@ AWS access key를 BreachScope 전용 변수로 저장하지 않습니다. boto3�
 
 ```http
 POST   /api/cases/{case_id}/object-storage/replicate
+POST   /api/cases/{case_id}/object-storage/archive
 POST   /api/cases/{case_id}/object-storage/restore?overwrite=false
 DELETE /api/cases/{case_id}/object-storage?forget=false
 ```
 
-복제는 object 파일을 먼저 업로드하고 `case_manifest.json`을 마지막에 기록합니다. case index에는 remote manifest의 SHA-256과 bucket/key metadata가 남습니다. 복원 시 manifest SHA-256, 각 object의 크기/SHA-256, AES-GCM 인증을 모두 확인한 뒤 임시 디렉터리를 원자적으로 교체합니다. 기본 restore는 비어 있지 않은 로컬 case를 덮어쓰지 않습니다.
+복제는 object 파일을 먼저 업로드하고 `case_manifest.json`을 마지막에 기록합니다. case index에는 remote manifest의 SHA-256과 bucket/key metadata가 남습니다. `archive`는 remote를 임시 위치에 끝까지 복원해 manifest/object/AES-GCM 검증을 통과한 뒤에만 관리 경계 안의 로컬 case 디렉터리를 제거합니다. 검증 실패나 replica metadata 변경이 감지되면 로컬 파일을 유지합니다. 복원 시에도 같은 검증을 수행한 뒤 임시 디렉터리를 원자적으로 교체합니다. 기본 restore는 비어 있지 않은 로컬 case를 덮어쓰지 않습니다.
 
 원격 replica metadata가 있는 case는 일반 case 삭제와 retention prune이 차단됩니다. 먼저 원격 replica를 삭제해야 합니다. `forget=true`는 원격 저장소 장애나 out-of-band 삭제 후 **metadata만 강제로 제거하는 복구 옵션**이라 remote orphan을 만들 수 있으므로 API에서 명시적으로 사용할 때만 허용합니다. readiness/config-check는 네트워크나 bucket 권한을 probe하지 않고 정적 설정과 client-side encryption 전제만 확인합니다.
 

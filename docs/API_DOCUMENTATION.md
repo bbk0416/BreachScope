@@ -183,6 +183,11 @@ Active user는 OIDC `sub`와 연결할 `externalId`가 필요합니다. role+org
 
 로컬 retained case를 S3-compatible object storage에 복제합니다. `BS_ARTIFACT_ENCRYPTION_KEY`가 활성화되어 있고 case 내부 파일이 모두 `.enc` ciphertext여야 합니다. 새 replica는 `<BS_OBJECT_STORAGE_PREFIX>/orgs/<organization_id>/<case_id>` namespace를 사용하고 v2 manifest에 organization ID를 기록합니다. 동일한 case ID라도 organization이 다르면 object key가 겹치지 않습니다. 이미 remote replica metadata가 있으면 409로 거부합니다.
 
+### POST `/api/cases/{case_id}/object-storage/archive`
+권한: operator 또는 admin.
+
+원격 replica를 전체 복원 검증한 뒤에만 로컬 encrypted case 디렉터리를 제거합니다. manifest SHA-256, 각 object 크기/SHA-256, AES-GCM 인증, organization namespace를 다시 확인하며 검증 실패 시 로컬 파일은 삭제하지 않습니다. 삭제 직전 case index의 `manifest_sha256`도 다시 비교해 검증 이후 replica metadata가 바뀐 경우 409로 거부합니다. case index와 remote metadata는 유지되므로 이후 restore가 가능합니다.
+
 ### POST `/api/cases/{case_id}/object-storage/restore?overwrite=false`
 권한: operator 또는 admin.
 

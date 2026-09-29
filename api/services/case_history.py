@@ -525,6 +525,79 @@ class CaseHistoryService:
         return True, True
 
     @case_history_locked
+    def archive_local_case(
+        self,
+        case_id: str,
+        *,
+        expected_manifest_sha256: str,
+    ) -> Dict[str, Any]:
+        """Remove a verified remote-backed local case payload but keep its index row."""
+        target: Dict[str, Any] | None = None
+        for row in self._read_index().get("cases") or []:
+            if row.get("case_id") == case_id and self._row_in_scope(row):
+                target = row
+                break
+        if target is None:
+            raise KeyError(case_id)
+        remote = dict(target.get("object_storage") or {})
+        if not remote:
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "remote_replica_missing",
+            }
+        expected_sha = str(expected_manifest_sha256 or "").strip()
+        current_sha = str(remote.get("manifest_sha256") or "").strip()
+        if not expected_sha or current_sha != expected_sha:
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "remote_replica_changed",
+            }
+
+        work_dir = Path(str(target.get("work_dir") or ""))
+        if not work_dir.exists():
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "local_case_missing",
+            }
+        if not self._is_safe_to_remove(work_dir):
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "unsafe_work_dir",
+            }
+
+        try:
+            shutil.rmtree(work_dir)
+        except OSError:
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "file_removal_failed",
+            }
+        if work_dir.exists():
+            return {
+                "case_id": case_id,
+                "archived": False,
+                "removed_files": False,
+                "reason": "file_removal_failed",
+            }
+
+        return {
+            "case_id": case_id,
+            "archived": True,
+            "removed_files": True,
+            "work_dir": str(work_dir),
+        }
+
+    @case_history_locked
     def delete_case(self, case_id: str, remove_files: bool = True) -> Dict[str, Any]:
         data = self._read_index()
         cases = data.get("cases") or []
