@@ -497,6 +497,8 @@ class ScimUserDirectory:
         filter_value: str = "",
         start_index: int = 1,
         count: int = 100,
+        sort_by: str = "",
+        sort_order: str = "",
         base_url: str = "",
     ) -> dict[str, Any]:
         start = max(1, int(start_index))
@@ -527,6 +529,64 @@ class ScimUserDirectory:
                     for row in rows
                     if str(row.get(canonical) or "") == expected
                 ]
+
+        sort_field = str(sort_by or "").strip()
+        order = str(sort_order or "").strip().casefold()
+        if not sort_field and order:
+            raise ScimValidationError(
+                "SCIM sortOrder requires sortBy."
+            )
+        if sort_field:
+            sort_key = sort_field.casefold()
+            field_map = {
+                "id": "id",
+                "username": "userName",
+                "externalid": "externalId",
+                "meta.created": "created",
+                "meta.lastmodified": "last_modified",
+            }
+            canonical = field_map.get(sort_key)
+            if canonical is None:
+                raise ScimValidationError(
+                    "Supported SCIM User sortBy values are "
+                    "id, userName, externalId, meta.created, "
+                    "and meta.lastModified."
+                )
+            if order not in {"", "ascending", "descending"}:
+                raise ScimValidationError(
+                    "SCIM sortOrder must be ascending or descending."
+                )
+            descending = order == "descending"
+
+            def user_sort_key(row: Mapping[str, Any]) -> tuple[str, str]:
+                value = str(row.get(canonical) or "")
+                if canonical == "userName":
+                    value = value.casefold()
+                return (
+                    value,
+                    str(row.get("id") or ""),
+                )
+
+            present = [
+                row
+                for row in filtered
+                if str(row.get(canonical) or "")
+            ]
+            missing = [
+                row
+                for row in filtered
+                if not str(row.get(canonical) or "")
+            ]
+            present = sorted(
+                present,
+                key=user_sort_key,
+                reverse=descending,
+            )
+            filtered = (
+                missing + present
+                if descending
+                else present + missing
+            )
 
         total = len(filtered)
         start_zero = start - 1
@@ -863,7 +923,7 @@ def scim_service_provider_config(base_url: str) -> dict[str, Any]:
         },
         "filter": {"supported": True, "maxResults": 200},
         "changePassword": {"supported": False},
-        "sort": {"supported": False},
+        "sort": {"supported": True},
         "etag": {"supported": True},
         "authenticationSchemes": [
             {
