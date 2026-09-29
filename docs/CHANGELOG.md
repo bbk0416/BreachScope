@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix source-release hygiene so Ruff/Mypy/Pytest/Python cache directories are excluded from release ZIPs even when local tooling has populated them.
+- Add SCIM Users/Groups sorting with `sortBy`/`sortOrder`, documented attribute allowlists, filter-before-sort-before-pagination ordering, and fail-closed validation for unsupported sort parameters.
 - Add PostgreSQL-backed SCIM identity storage for shared deployments, including database advisory transaction locking across replicas, atomic If-Match/Bulk version checks within mutation transactions, REPEATABLE READ authorization snapshots, secret database-URL diagnostics, and locked psycopg runtime dependencies.
 - Add optional SQLite-backed SCIM identity storage with structured Users/Groups/membership tables, JSON-backend compatibility, Docker/go-live/config diagnostics, and explicit single-instance/non-migrating storage semantics.
 - Add transitive SCIM nested-group authorization with User/Group member typing, recursive OIDC role/organization resolution, cycle rejection, parent-reference cleanup on Group deletion, Bulk forward-reference compatibility, and fail-closed assignment conflicts.

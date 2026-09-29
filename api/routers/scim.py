@@ -307,6 +307,8 @@ async def list_users(
     filter: str = Query(""),
     start_index: int = Query(1, alias="startIndex", ge=1),
     count: int = Query(100, ge=0, le=200),
+    sort_by: str = Query("", alias="sortBy"),
+    sort_order: str = Query("", alias="sortOrder"),
 ):
     denied = _require_scim_bearer(request)
     if denied:
@@ -316,6 +318,8 @@ async def list_users(
             filter_value=filter,
             start_index=start_index,
             count=count,
+            sort_by=sort_by,
+            sort_order=sort_order,
             base_url=_base_url(request),
         )
     except ScimDirectoryError as exc:
@@ -467,6 +471,8 @@ async def list_groups(
     filter: str = Query(""),
     start_index: int = Query(1, alias="startIndex", ge=1),
     count: int = Query(100, ge=0, le=200),
+    sort_by: str = Query("", alias="sortBy"),
+    sort_order: str = Query("", alias="sortOrder"),
 ):
     denied = _require_scim_bearer(request)
     if denied:
@@ -476,6 +482,8 @@ async def list_groups(
             filter_value=filter,
             start_index=start_index,
             count=count,
+            sort_by=sort_by,
+            sort_order=sort_order,
             base_url=_base_url(request),
         )
     except ScimDirectoryError as exc:

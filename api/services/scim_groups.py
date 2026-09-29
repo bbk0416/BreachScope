@@ -438,6 +438,8 @@ class ScimGroupDirectory:
         filter_value: str = "",
         start_index: int = 1,
         count: int = 100,
+        sort_by: str = "",
+        sort_order: str = "",
         base_url: str = "",
     ) -> dict[str, Any]:
         start = max(1, int(start_index))
@@ -470,6 +472,63 @@ class ScimGroupDirectory:
                     for row in rows
                     if str(row.get("id") or "") == expected
                 ]
+
+        sort_field = str(sort_by or "").strip()
+        order = str(sort_order or "").strip().casefold()
+        if not sort_field and order:
+            raise ScimValidationError(
+                "SCIM sortOrder requires sortBy."
+            )
+        if sort_field:
+            sort_key = sort_field.casefold()
+            field_map = {
+                "id": "id",
+                "displayname": "displayName",
+                "meta.created": "created",
+                "meta.lastmodified": "last_modified",
+            }
+            canonical = field_map.get(sort_key)
+            if canonical is None:
+                raise ScimValidationError(
+                    "Supported SCIM Group sortBy values are "
+                    "id, displayName, meta.created, and "
+                    "meta.lastModified."
+                )
+            if order not in {"", "ascending", "descending"}:
+                raise ScimValidationError(
+                    "SCIM sortOrder must be ascending or descending."
+                )
+            descending = order == "descending"
+
+            def group_sort_key(row: Mapping[str, Any]) -> tuple[str, str]:
+                value = str(row.get(canonical) or "")
+                if canonical == "displayName":
+                    value = value.casefold()
+                return (
+                    value,
+                    str(row.get("id") or ""),
+                )
+
+            present = [
+                row
+                for row in filtered
+                if str(row.get(canonical) or "")
+            ]
+            missing = [
+                row
+                for row in filtered
+                if not str(row.get(canonical) or "")
+            ]
+            present = sorted(
+                present,
+                key=group_sort_key,
+                reverse=descending,
+            )
+            filtered = (
+                missing + present
+                if descending
+                else present + missing
+            )
 
         total = len(filtered)
         page = filtered[start - 1 : start - 1 + page_count]
