@@ -47,8 +47,13 @@ def test_p2_36_attack_source_is_new_and_all_evtx_are_preselected() -> None:
         "14e9fb5d59957d55c72b244a18b0a88d8d4739ad"
     )
     assert source["source_family_previously_used_by_breachscope"] is False
-    assert attack["freshness"]["selected_exact_bytes_previously_detector_evaluated"] is False
-    assert attack["freshness"]["attack_event_contents_parsed_for_selection"] is False
+
+    fresh = attack["freshness_evidence"]
+    assert fresh["source_repository_reference_count_in_pre_p2_36_repo"] == 0
+    assert fresh["selected_source_path_reference_count_in_pre_p2_36_repo"] == 0
+    assert fresh["selected_git_blob_id_reference_count_in_pre_p2_36_repo"] == 0
+    assert fresh["exact_byte_sha256_not_yet_bound"] is True
+    assert fresh["attack_event_contents_parsed_for_selection"] is False
 
     policy = attack["selection_policy"]
     assert policy["all_selector_matches_selected"] is True
@@ -63,13 +68,18 @@ def test_p2_36_attack_source_is_new_and_all_evtx_are_preselected() -> None:
     assert sum(int(x["size_bytes"]) for x in datasets) == 1_536_000
 
 
-def test_p2_36_benign_archive_is_unused_exact_asset() -> None:
+def test_p2_36_benign_archive_is_unused_asset_candidate() -> None:
     benign = _load()["benign_revalidation"]
     assert benign["source"]["repository"] == "NextronSystems/evtx-baseline"
     assert benign["source"]["release_tag"] == "v0.8.5"
     assert benign["source"]["source_family_previously_used_by_breachscope"] is True
-    assert benign["freshness"]["selected_archive_previously_detector_evaluated"] is False
-    assert benign["freshness"]["selected_asset_name_present_in_pre_p2_36_evidence"] == 0
+
+    fresh = benign["freshness_evidence"]
+    assert fresh["selected_asset_name_reference_count_in_pre_p2_36_repo"] == 0
+    assert fresh["selected_asset_sha256_reference_count_in_pre_p2_36_repo"] == 0
+    assert fresh["archive_inventory_before_merge"] is False
+    assert fresh["event_contents_parsed_for_selection"] is False
+
     assert benign["archive"] == {
         "asset_name": "win2022-0-20348-azure.tgz",
         "size_bytes": 143_223_928,
@@ -97,10 +107,11 @@ def test_p2_36_execution_gate_prevents_premature_scoring() -> None:
     assert gate["source_preregistration_must_be_merged_before_runner_freeze"] is True
     assert gate["separate_execution_contract_required"] is True
     assert gate["execution_contract_must_freeze_runner_sha256"] is True
+    assert gate["execution_contract_must_bind_attack_sha256_after_source_download"] is True
     assert gate["execution_contract_must_define_permanent_global_lock"] is True
     assert gate["detector_must_not_run_before_execution_contract_merge"] is True
     assert gate["source_or_fixture_selection_must_not_depend_on_detector_output"] is True
-    assert row["execution_state"] == {
+    assert row["execution_state_at_preregistration"] == {
         "source_contract_merged": False,
         "execution_contract_merged": False,
         "attack_detector_run": False,
