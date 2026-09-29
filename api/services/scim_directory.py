@@ -7,6 +7,7 @@ import os
 import re
 import threading
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -16,6 +17,7 @@ from api.services.scim_store import (
     ScimIdentityStore,
     ScimStoreError,
     scim_database_path,
+    scim_database_url,
     scim_storage_backend,
 )
 
@@ -410,7 +412,7 @@ def _public_resource(row: Mapping[str, Any], base_url: str = "") -> dict[str, An
 
 
 class ScimUserDirectory:
-    """SCIM user directory backed by JSON files or SQLite."""
+    """SCIM user directory backed by JSON, SQLite, or PostgreSQL."""
 
     def __init__(
         self,
@@ -419,6 +421,7 @@ class ScimUserDirectory:
         group_path: Path | None = None,
         backend: str | None = None,
         database_path: Path | None = None,
+        database_url: str | None = None,
         env: Mapping[str, str] | None = None,
     ):
         self.path = path or scim_user_store_path(env)
@@ -428,12 +431,34 @@ class ScimUserDirectory:
             self.database_path = (
                 database_path or scim_database_path(env)
             )
+            self.database_url = (
+                database_url
+                if database_url is not None
+                else scim_database_url(env)
+            )
             self.store = ScimIdentityStore(
                 backend=self.backend,
                 user_path=self.path,
                 group_path=self.group_path,
                 database_path=self.database_path,
+                database_url=self.database_url,
             )
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
+
+    @contextmanager
+    def mutation(self):
+        try:
+            with _LOCK, self.store.mutation():
+                yield
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
+
+    @contextmanager
+    def snapshot(self):
+        try:
+            with _LOCK, self.store.snapshot():
+                yield
         except ScimStoreError as exc:
             raise ScimDirectoryError(str(exc)) from exc
 
@@ -536,7 +561,7 @@ class ScimUserDirectory:
         base_url: str = "",
     ) -> dict[str, Any]:
         row = _resource_from_payload(payload)
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             self._check_uniqueness(rows, row)
             rows.append(row)
@@ -550,7 +575,7 @@ class ScimUserDirectory:
         *,
         base_url: str = "",
     ) -> dict[str, Any]:
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             index = next(
                 (
@@ -597,7 +622,7 @@ class ScimUserDirectory:
                 "SCIM PATCH requires a non-empty Operations array."
             )
 
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             index = next(
                 (
@@ -739,7 +764,7 @@ class ScimUserDirectory:
         )
 
     def delete_user(self, user_id: str) -> dict[str, Any]:
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             index = next(
                 (
@@ -774,7 +799,7 @@ class ScimUserDirectory:
         return None
 
     def stats(self) -> dict[str, int]:
-        with _LOCK:
+        with self.snapshot():
             rows = self._load()
             from api.services.scim_groups import ScimGroupDirectory
             groups = ScimGroupDirectory(
@@ -797,7 +822,7 @@ class ScimUserDirectory:
 
     def active_roles(self) -> list[str]:
         roles: set[str] = set()
-        with _LOCK:
+        with self.snapshot():
             rows = self._load()
             from api.services.scim_groups import ScimGroupDirectory
             groups = ScimGroupDirectory(
@@ -814,16 +839,16 @@ class ScimUserDirectory:
         self,
         subject: str,
     ) -> tuple[str, str] | None:
-        row = self.find_by_oidc_subject(subject)
-        if row is None:
-            return None
-        with _LOCK:
+        with self.snapshot():
+            row = self.find_by_oidc_subject(subject)
+            if row is None:
+                return None
             from api.services.scim_groups import ScimGroupDirectory
             groups = ScimGroupDirectory(
                 path=self.group_path,
                 user_directory=self,
             ).all_rows()
-        return _resolved_identity(row, groups)
+            return _resolved_identity(row, groups)
 
 
 def scim_service_provider_config(base_url: str) -> dict[str, Any]:

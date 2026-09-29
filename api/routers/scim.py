@@ -379,18 +379,19 @@ async def replace_user(
         return denied
     directory = ScimUserDirectory()
     try:
-        current = directory.get_user(
-            user_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, current)
-        if denied_version:
-            return denied_version
-        resource = directory.replace_user(
-            user_id,
-            payload,
-            base_url=_base_url(request),
-        )
+        with directory.mutation():
+            current = directory.get_user(
+                user_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, current)
+            if denied_version:
+                return denied_version
+            resource = directory.replace_user(
+                user_id,
+                payload,
+                base_url=_base_url(request),
+            )
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_user(request, "scim.user.replace", resource)
@@ -414,18 +415,19 @@ async def patch_user(
         return denied
     directory = ScimUserDirectory()
     try:
-        current = directory.get_user(
-            user_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, current)
-        if denied_version:
-            return denied_version
-        resource = directory.patch_user(
-            user_id,
-            payload,
-            base_url=_base_url(request),
-        )
+        with directory.mutation():
+            current = directory.get_user(
+                user_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, current)
+            if denied_version:
+                return denied_version
+            resource = directory.patch_user(
+                user_id,
+                payload,
+                base_url=_base_url(request),
+            )
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_user(request, "scim.user.patch", resource)
@@ -445,14 +447,15 @@ async def delete_user(user_id: str, request: Request):
         return denied
     directory = ScimUserDirectory()
     try:
-        resource = directory.get_user(
-            user_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, resource)
-        if denied_version:
-            return denied_version
-        directory.delete_user(user_id)
+        with directory.mutation():
+            resource = directory.get_user(
+                user_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, resource)
+            if denied_version:
+                return denied_version
+            directory.delete_user(user_id)
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_user(request, "scim.user.delete", resource)
@@ -536,18 +539,19 @@ async def replace_group(
         return denied
     directory = ScimGroupDirectory()
     try:
-        current = directory.get_group(
-            group_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, current)
-        if denied_version:
-            return denied_version
-        resource = directory.replace_group(
-            group_id,
-            payload,
-            base_url=_base_url(request),
-        )
+        with directory.mutation():
+            current = directory.get_group(
+                group_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, current)
+            if denied_version:
+                return denied_version
+            resource = directory.replace_group(
+                group_id,
+                payload,
+                base_url=_base_url(request),
+            )
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_group(request, "scim.group.replace", resource)
@@ -571,18 +575,19 @@ async def patch_group(
         return denied
     directory = ScimGroupDirectory()
     try:
-        current = directory.get_group(
-            group_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, current)
-        if denied_version:
-            return denied_version
-        resource = directory.patch_group(
-            group_id,
-            payload,
-            base_url=_base_url(request),
-        )
+        with directory.mutation():
+            current = directory.get_group(
+                group_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, current)
+            if denied_version:
+                return denied_version
+            resource = directory.patch_group(
+                group_id,
+                payload,
+                base_url=_base_url(request),
+            )
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_group(request, "scim.group.patch", resource)
@@ -602,14 +607,15 @@ async def delete_group(group_id: str, request: Request):
         return denied
     directory = ScimGroupDirectory()
     try:
-        resource = directory.get_group(
-            group_id,
-            base_url=_base_url(request),
-        )
-        denied_version = _if_match_denied(request, resource)
-        if denied_version:
-            return denied_version
-        directory.delete_group(group_id)
+        with directory.mutation():
+            resource = directory.get_group(
+                group_id,
+                base_url=_base_url(request),
+            )
+            denied_version = _if_match_denied(request, resource)
+            if denied_version:
+                return denied_version
+            directory.delete_group(group_id)
     except ScimDirectoryError as exc:
         return _directory_error(exc)
     _audit_group(request, "scim.group.delete", resource)

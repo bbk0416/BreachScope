@@ -47,6 +47,7 @@ from api.services.scim_directory import (
 from api.services.scim_store import (
     ScimStoreError,
     scim_database_path,
+    scim_database_url,
     scim_storage_backend,
 )
 from api.services.object_storage import (
@@ -199,6 +200,15 @@ def _check_scim_provisioning() -> Check:
             "backend": backend,
             "database_path": database_path,
         }
+    elif backend == "postgres":
+        database_url = scim_database_url()
+        storage_details["database_url_configured"] = bool(
+            database_url
+        )
+        directory_kwargs = {
+            "backend": backend,
+            "database_url": database_url,
+        }
     else:
         user_path = scim_user_store_path()
         group_path = scim_group_store_path()
@@ -246,7 +256,7 @@ def _check_scim_provisioning() -> Check:
             (
                 "SCIM user/group store is invalid or unreadable."
                 if backend == "json"
-                else "SCIM SQLite identity store is invalid or unreadable."
+                else "SCIM database identity store is invalid or unreadable."
             ),
             {
                 "enabled": True,
