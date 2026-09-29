@@ -135,6 +135,8 @@ class AnalysisService:
         collect_hours: Optional[int] = None,
         work_dir: Optional[str] = None,
         organization_id: Optional[str] = None,
+        force_retain: bool = False,
+        require_case_record: bool = False,
     ) -> Dict[str, Any]:
         """
         로그 분석 실행
@@ -149,7 +151,8 @@ class AnalysisService:
         # 작업 디렉토리 생성
         work = self.workdir_service.create_work_directory(work_dir)
         cleanup_after_analysis = (
-            not (work_dir and str(work_dir).strip())
+            not force_retain
+            and not (work_dir and str(work_dir).strip())
             and os.getenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "0") == "1"
         )
         collected_dir = None  # collect_windows_logs에서 생성된 임시 디렉토리
@@ -346,6 +349,8 @@ class AnalysisService:
                     case_record = history.register_case(work, report_data)
                 except Exception as e:
                     logger.warning(f"케이스 이력 저장 실패: {e}")
+                    if require_case_record:
+                        raise
 
             retain_artifact_paths = not cleanup_succeeded
             def retained_path(path: Path | None) -> str | None:

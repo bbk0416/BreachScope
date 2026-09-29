@@ -1352,17 +1352,22 @@
         const remotePill = remote
           ? `<span class="pill">remote:${escapeHtml(remote.provider || 's3')}</span>`
           : '';
+        const lineage = c.analysis_lineage || {};
+        const lineagePill = lineage.source_case_id
+          ? `<span class="pill">reanalyzed:${escapeHtml(lineage.source_case_id)}</span>`
+          : '';
         const canOperate = roleAllows('operator');
         const remoteActions = remote
           ? `${c.exists === false
-              ? `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="restore" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복원</button>`
+              ? `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="reanalyze" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 재분석</button>
+                 <button type="button" class="btn btn-mini btn-open" data-object-storage-action="restore" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복원</button>`
               : `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="archive" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>로컬 비우기</button>`}
              <button type="button" class="btn btn-mini btn-download" data-object-storage-action="delete" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 삭제</button>`
           : (c.exists === false ? '' : `<button type="button" class="btn btn-mini btn-open" data-object-storage-action="replicate" data-case-id="${escapeHtml(c.case_id)}" ${canOperate ? '' : 'disabled'}>원격 복제</button>`);
         return `<div class="case-item" data-case-id="${escapeHtml(c.case_id)}">
           <div class="case-title"><span>${escapeHtml(c.title || c.case_id)}</span><span class="${riskClass(level)}">${escapeHtml(c.risk_score)}/100</span></div>
           <div class="case-meta mono">${escapeHtml(c.created_at)} · ${escapeHtml(hosts)}${escapeHtml(missing)}</div>
-          <div class="case-meta"><span class="pill">${escapeHtml(workflow)}</span><span class="pill">${escapeHtml(assignee)}</span>${remotePill}</div>
+          <div class="case-meta"><span class="pill">${escapeHtml(workflow)}</span><span class="pill">${escapeHtml(assignee)}</span>${remotePill}${lineagePill}</div>
           <div class="case-actions">
             <button type="button" class="btn btn-mini btn-open" data-open-case="${escapeHtml(c.case_id)}">열기</button>
             ${remoteActions}
@@ -1701,7 +1706,14 @@
       let url = `/api/cases/${encoded}/object-storage/replicate`;
       let method = 'POST';
       let label = '원격 복제';
-      if (action === 'restore') {
+      if (action === 'reanalyze') {
+        url = `/api/cases/${encoded}/object-storage/reanalyze`;
+        label = '원격 재분석';
+        const confirmed = window.confirm(
+          '원격에 보관된 원본 input을 검증·스트리밍 복호화해 현재 canonical rules로 새 케이스를 생성합니다. 원본 archived case는 유지됩니다. 계속할까요?'
+        );
+        if (!confirmed) return;
+      } else if (action === 'restore') {
         url = `/api/cases/${encoded}/object-storage/restore`;
         label = '원격 복원';
       } else if (action === 'archive') {
@@ -1720,7 +1732,13 @@
         const response = await authFetch(url, {method});
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.detail || `${label} 실패`);
-        results.innerHTML = `<div class="alert alert-success"><b>${escapeHtml(label)} 완료:</b> ${escapeHtml(caseId)}</div>`;
+        if (action === 'reanalyze' && payload.analysis) {
+          results.innerHTML = renderPreview(payload.analysis);
+          bindTabs();
+          bindWorkflow();
+        } else {
+          results.innerHTML = `<div class="alert alert-success"><b>${escapeHtml(label)} 완료:</b> ${escapeHtml(caseId)}</div>`;
+        }
         await fetchCases();
         await fetchAudit();
       } catch (error) {

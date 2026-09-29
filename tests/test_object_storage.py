@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import io
@@ -1038,6 +1039,328 @@ def test_object_storage_api_forget_clears_metadata_without_remote_delete(
     assert deleted.status_code == 200
 
 
+def test_archived_remote_case_reanalysis_streams_input_without_restore(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        work,
+        _report_bytes,
+        _fake,
+        service,
+        history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-reanalysis-case",
+    )
+
+    created_temporary: list[Path] = []
+    original_materialize = service.materialize_temporary_case
+
+    def capture_materialize(*args, **kwargs):
+        target, result = original_materialize(*args, **kwargs)
+        created_temporary.append(target)
+        return target, result
+
+    monkeypatch.setattr(
+        service,
+        "materialize_temporary_case",
+        capture_materialize,
+    )
+
+    class StubAnalysisService:
+        def __init__(self):
+            self.kwargs = None
+            self.payloads: dict[str, bytes] = {}
+            self.new_case_id: str | None = None
+
+        async def analyze(self, **kwargs):
+            self.kwargs = kwargs
+            for source in kwargs["files"]:
+                chunks: list[bytes] = []
+                while True:
+                    chunk = source.read(3)
+                    if not chunk:
+                        break
+                    chunks.append(chunk)
+                self.payloads[source.filename] = b"".join(chunks)
+
+            new_work = tmp_path / "cases" / "remote-reanalysis-result"
+            (new_work / "out").mkdir(parents=True, exist_ok=True)
+            (new_work / "out" / "report.json").write_text(
+                json.dumps(_sample_report(), ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            record = history.register_case(
+                new_work,
+                _sample_report(),
+            )
+            self.new_case_id = record.case_id
+            return {
+                "success": True,
+                "case_id": record.case_id,
+                "case": record.__dict__,
+                "count": 2,
+                "risk_score": 20,
+                "risk_level": "low",
+                "preview": {},
+                "work_dir": str(new_work),
+            }
+
+    analysis = StubAnalysisService()
+    monkeypatch.setattr(
+        cases_router_module,
+        "_analysis_service",
+        analysis,
+    )
+
+    reviewer = _rbac_client(tmp_path, monkeypatch, "reviewer")
+    forbidden = reviewer.post(
+        f"/api/cases/{record.case_id}/object-storage/reanalyze"
+    )
+    assert forbidden.status_code == 403
+
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+    response = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/reanalyze",
+        json={
+            "min_severity": "low",
+            "mitre_include": "T1059.001",
+            "use_custom_rules": True,
+            "redact": False,
+            "render_pdf": True,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["source_case_id"] == record.case_id
+    assert payload["source"] == "object_storage"
+    assert analysis.new_case_id
+    assert payload["analysis"]["case_id"] == analysis.new_case_id
+    lineage = payload["analysis"]["case"]["analysis_lineage"]
+    assert lineage["source_case_id"] == record.case_id
+    assert lineage["source"] == "object_storage"
+    assert lineage["reanalyzed_by"] == "operator"
+    assert set(analysis.payloads) == {"events.jsonl"}
+    assert analysis.payloads["events.jsonl"].replace(
+        b"\r\n",
+        b"\n",
+    ) == b'{"event":"test"}\n'
+    assert analysis.kwargs is not None
+    assert analysis.kwargs["use_repo_rules"] is True
+    assert analysis.kwargs["min_severity"] == "low"
+    assert analysis.kwargs["mitre_include"] == "T1059.001"
+    assert analysis.kwargs["use_custom_rules"] is True
+    assert analysis.kwargs["redact"] is False
+    assert analysis.kwargs["render_pdf"] is True
+    assert analysis.kwargs["do_evtx"] is False
+    assert analysis.kwargs["organization_id"] == "default"
+    assert analysis.kwargs["force_retain"] is True
+    assert analysis.kwargs["require_case_record"] is True
+
+    assert not work.exists()
+    current = history.get_case(record.case_id)
+    assert current["exists"] is False
+    assert int(
+        (current.get("object_storage") or {}).get("restore_count") or 0
+    ) == 0
+    assert created_temporary
+    assert all(not item.exists() for item in created_temporary)
+
+    audit_rows = [
+        json.loads(line)
+        for line in (
+            tmp_path / "remote-reanalysis-case-audit.jsonl"
+        ).read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    rows = [
+        row
+        for row in audit_rows
+        if row.get("action") == "case.object_storage.reanalyze"
+    ]
+    assert len(rows) == 1
+    assert rows[0]["status"] == "success"
+    assert (rows[0].get("details") or {}).get("new_case_id") == (
+        analysis.new_case_id
+    )
+
+
+def test_remote_reanalysis_custom_rules_requires_analysis_permission(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        _work,
+        _report_bytes,
+        _fake,
+        service,
+        _history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-reanalysis-rbac",
+    )
+
+    called = False
+    original_materialize = service.materialize_temporary_case
+
+    def capture_materialize(*args, **kwargs):
+        nonlocal called
+        called = True
+        return original_materialize(*args, **kwargs)
+
+    monkeypatch.setattr(
+        service,
+        "materialize_temporary_case",
+        capture_materialize,
+    )
+    monkeypatch.setenv(
+        "BS_ORGANIZATION_RBAC_POLICIES",
+        json.dumps(
+            {
+                "default": {
+                    "operator": ["case.object_storage"],
+                }
+            }
+        ),
+    )
+
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+    response = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/reanalyze",
+        json={"use_custom_rules": True},
+    )
+
+    assert response.status_code == 403
+    assert "analysis.custom_rules" in response.json()["detail"]
+    assert called is False
+
+
+def test_archived_remote_case_reanalysis_requires_retained_input(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "remote-reanalysis-no-input",
+    )
+    (work / "input" / "events.jsonl.enc").unlink()
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "remote-reanalysis-no-input-history.json"),
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / "remote-reanalysis-no-input-audit.jsonl"),
+    )
+    history = CaseHistoryService()
+    record = history.register_case(work, _sample_report())
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        record.case_id,
+        work,
+        organization_id="default",
+    )
+    history.set_object_storage_state(
+        record.case_id,
+        remote,
+        updated_by="operator",
+    )
+    archived = history.archive_local_case(
+        record.case_id,
+        expected_manifest_sha256=remote["manifest_sha256"],
+    )
+    assert archived["archived"] is True
+    monkeypatch.setattr(
+        cases_router_module,
+        "_object_storage_service",
+        lambda: service,
+    )
+
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+    response = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/reanalyze"
+    )
+
+    assert response.status_code == 409
+    assert "원본 input" in response.json()["detail"]
+    assert history.get_case(record.case_id)["exists"] is False
+
+
+def test_archived_remote_case_reanalysis_tamper_fails_closed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        work,
+        _report_bytes,
+        fake,
+        _service,
+        history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-reanalysis-tamper",
+    )
+    remote = history.get_case(record.case_id)["object_storage"]
+    manifest = json.loads(
+        fake.objects[(_config().bucket, remote["manifest_key"])].decode(
+            "utf-8"
+        )
+    )
+    input_row = next(
+        row
+        for row in manifest["files"]
+        if str(row.get("path") or "").startswith("input/")
+    )
+    key = input_row["object_key"]
+    fake.objects[(_config().bucket, key)] += b"tamper"
+
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+    response = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/reanalyze"
+    )
+
+    assert response.status_code == 503
+    assert "재분석" in response.json()["detail"]
+    assert not work.exists()
+    current = history.get_case(record.case_id)
+    assert current["exists"] is False
+    assert int(
+        (current.get("object_storage") or {}).get("restore_count") or 0
+    ) == 0
+
+
+def test_async_object_storage_case_lock_waits_without_blocking_event_loop() -> None:
+    case_id = "async-object-storage-lock-case"
+    lock = cases_router_module._object_storage_lock(case_id)
+
+    @cases_router_module._object_storage_operation_locked
+    async def operation(case_id: str):
+        await asyncio.sleep(0)
+        return case_id
+
+    async def scenario() -> str:
+        lock.acquire()
+        try:
+            task = asyncio.create_task(operation(case_id))
+            await asyncio.sleep(0.05)
+            assert not task.done()
+        finally:
+            lock.release()
+        return await asyncio.wait_for(task, timeout=1.0)
+
+    assert asyncio.run(scenario()) == case_id
+
+
 def test_web_ui_exposes_operator_only_object_storage_controls() -> None:
     source = Path("templates/web_index.html").read_text(encoding="utf-8")
     runtime = Path(
@@ -1047,12 +1370,15 @@ def test_web_ui_exposes_operator_only_object_storage_controls() -> None:
     assert "data-object-storage-action" in source
     assert "원격 복제" in source
     assert "원격 복원" in source
+    assert "원격 재분석" in source
     assert "원격 전용" in source
     assert "로컬 비우기" in source
     assert "원격 삭제" in source
     assert "/object-storage/replicate" in source
     assert "/object-storage/archive" in source
     assert "/object-storage/restore" in source
+    assert "/object-storage/reanalyze" in source
+    assert "reanalyzed:" in source
     assert "roleAllows('operator')" in source
 
 

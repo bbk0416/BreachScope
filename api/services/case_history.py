@@ -53,6 +53,7 @@ class CaseRecord:
     severity_override: str = ""
     closure_summary: str = ""
     updated_by: str = "system"
+    analysis_lineage: Dict[str, Any] = field(default_factory=dict)
 
 
 class CaseHistoryService:
@@ -345,6 +346,7 @@ class CaseHistoryService:
         item.setdefault("severity_override", "")
         item.setdefault("closure_summary", "")
         item.setdefault("updated_by", "system")
+        item.setdefault("analysis_lineage", {})
         item.setdefault("object_storage", None)
         return item
 
@@ -399,6 +401,61 @@ class CaseHistoryService:
         if not found or updated is None:
             raise KeyError(case_id)
         data["cases"] = sorted(cases, key=lambda row: row.get("updated_at") or row.get("created_at") or "", reverse=True)
+        self._write_index(data)
+        return updated
+
+    @case_history_locked
+    def set_analysis_lineage(
+        self,
+        case_id: str,
+        *,
+        source_case_id: str,
+        source: str,
+        updated_by: str = "system",
+    ) -> Dict[str, Any]:
+        if not str(source_case_id or "").strip():
+            raise ValueError("source_case_id is required")
+        if case_id == source_case_id:
+            raise ValueError("analysis lineage cannot reference the same case")
+
+        data = self._read_index()
+        cases = data.get("cases") or []
+        source_exists = any(
+            row.get("case_id") == source_case_id
+            and self._row_in_scope(row)
+            for row in cases
+        )
+        if not source_exists:
+            raise KeyError(source_case_id)
+
+        updated: Dict[str, Any] | None = None
+        for i, row in enumerate(cases):
+            if row.get("case_id") != case_id or not self._row_in_scope(row):
+                continue
+            item = self._with_workflow_defaults(row)
+            item["analysis_lineage"] = {
+                "source_case_id": source_case_id,
+                "source": self._truncate_text(source, 80) or "retained_case",
+                "reanalyzed_at": self._now(),
+                "reanalyzed_by": (
+                    self._truncate_text(updated_by, 120) or "system"
+                ),
+            }
+            item["updated_at"] = self._now()
+            cases[i] = item
+            updated = item
+            break
+
+        if updated is None:
+            raise KeyError(case_id)
+
+        data["cases"] = sorted(
+            cases,
+            key=lambda row: (
+                row.get("updated_at") or row.get("created_at") or ""
+            ),
+            reverse=True,
+        )
         self._write_index(data)
         return updated
 

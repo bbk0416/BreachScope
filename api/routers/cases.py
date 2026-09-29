@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from functools import wraps
+import inspect
 import threading
 from typing import Any
 
@@ -10,8 +11,15 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from starlette.background import BackgroundTask
+from starlette.concurrency import run_in_threadpool
 
+from api.services.analysis_service import AnalysisService
 from api.services.case_history import CaseHistoryService
+from api.services.case_reanalysis import (
+    CaseReanalysisError,
+    close_reanalysis_uploads,
+    retained_case_uploads,
+)
 from api.services.artifact_encryption import (
     ArtifactEncryptionError,
     artifact_exists,
@@ -20,12 +28,14 @@ from api.services.artifact_encryption import (
     verify_artifact,
 )
 from api.services.audit_log import AuditLogService, actor_from_request
+from api.services.upload_policy import UploadLimitError
 from api.services.report_preview import load_preview
 from api.services.object_storage import (
     ObjectStorageError,
     ObjectStorageService,
 )
 from api.rbac import (
+    PERMISSION_ANALYSIS_CUSTOM_RULES,
     PERMISSION_CASE_OBJECT_STORAGE,
     ROLE_OPERATOR,
     identity_from_request,
@@ -33,22 +43,40 @@ from api.rbac import (
 )
 
 router = APIRouter()
+_analysis_service = AnalysisService()
 
 _OBJECT_STORAGE_LOCKS_GUARD = threading.Lock()
 _OBJECT_STORAGE_LOCKS: dict[str, threading.Lock] = {}
 
 
+def _object_storage_lock(case_id: str) -> threading.Lock:
+    key = str(case_id or "")
+    with _OBJECT_STORAGE_LOCKS_GUARD:
+        lock = _OBJECT_STORAGE_LOCKS.get(key)
+        if lock is None:
+            lock = threading.Lock()
+            _OBJECT_STORAGE_LOCKS[key] = lock
+    return lock
+
+
 def _object_storage_operation_locked(func):
     """Serialize object-storage operations for the same case in this process."""
+    if inspect.iscoroutinefunction(func):
+
+        @wraps(func)
+        async def async_wrapped(case_id: str, *args, **kwargs):
+            lock = _object_storage_lock(case_id)
+            await run_in_threadpool(lock.acquire)
+            try:
+                return await func(case_id, *args, **kwargs)
+            finally:
+                lock.release()
+
+        return async_wrapped
 
     @wraps(func)
     def wrapped(case_id: str, *args, **kwargs):
-        key = str(case_id or "")
-        with _OBJECT_STORAGE_LOCKS_GUARD:
-            lock = _OBJECT_STORAGE_LOCKS.get(key)
-            if lock is None:
-                lock = threading.Lock()
-                _OBJECT_STORAGE_LOCKS[key] = lock
+        lock = _object_storage_lock(case_id)
         with lock:
             return func(case_id, *args, **kwargs)
 
@@ -69,6 +97,23 @@ class CaseWorkflowUpdate(BaseModel):
     severity_override: str | None = Field(None, description="none, low, medium, high, critical")
     closure_summary: str | None = Field(None, max_length=4000)
     title: str | None = Field(None, max_length=180)
+
+
+class RemoteReanalysisRequest(BaseModel):
+    """Options for a new analysis from retained remote evidence."""
+
+    min_severity: str = Field(
+        "medium",
+        pattern="^(low|medium|high|critical)$",
+    )
+    mitre_include: str = Field("", max_length=4000)
+    mitre_exclude: str = Field("", max_length=4000)
+    host_include: str = Field("", max_length=4000)
+    rule_include: str = Field("", max_length=4000)
+    rule_exclude: str = Field("", max_length=4000)
+    use_custom_rules: bool = False
+    redact: bool = True
+    render_pdf: bool = False
 
 
 def _service(request: Request) -> CaseHistoryService:
@@ -459,6 +504,206 @@ def get_case_report(
         },
         background=background,
     )
+
+
+@router.post(
+    "/cases/{case_id}/object-storage/reanalyze",
+    response_class=JSONResponse,
+)
+@_object_storage_operation_locked
+async def reanalyze_remote_case(
+    case_id: str,
+    request: Request,
+    payload: RemoteReanalysisRequest | None = None,
+):
+    """Create a new retained case from verified remote-only source evidence."""
+    options = payload or RemoteReanalysisRequest()
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
+    if options.use_custom_rules:
+        require_roles(
+            request,
+            ROLE_OPERATOR,
+            permission=PERMISSION_ANALYSIS_CUSTOM_RULES,
+        )
+
+    history = _service(request)
+    try:
+        case = history.get_case(case_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail="케이스를 찾을 수 없습니다.",
+        )
+
+    if case.get("exists"):
+        raise HTTPException(
+            status_code=409,
+            detail="이 기능은 원격 전용 archived case에만 사용할 수 있습니다.",
+        )
+
+    remote = dict(case.get("object_storage") or {})
+    if not remote:
+        raise HTTPException(
+            status_code=409,
+            detail="이 케이스에는 원격 replica 메타데이터가 없습니다.",
+        )
+
+    storage = _object_storage_service()
+    temporary_path: Path | None = None
+    sources = []
+    restored: dict[str, Any] | None = None
+    result: dict[str, Any] | None = None
+    try:
+        temporary_path, restored = await run_in_threadpool(
+            storage.materialize_temporary_case,
+            case_id,
+            remote,
+            organization_id=identity.organization_id,
+        )
+        sources = retained_case_uploads(temporary_path)
+        do_evtx = any(
+            source.filename.lower().endswith(".evtx")
+            for source in sources
+        )
+        result = await _analysis_service.analyze(
+            files=sources,
+            use_repo_rules=True,
+            min_severity=options.min_severity,
+            mitre_include=options.mitre_include,
+            mitre_exclude=options.mitre_exclude,
+            host_include=options.host_include,
+            rule_include=options.rule_include,
+            rule_exclude=options.rule_exclude,
+            use_custom_rules=options.use_custom_rules,
+            redact=options.redact,
+            render_pdf=options.render_pdf,
+            do_evtx=do_evtx,
+            collect_evtx=False,
+            collect_logs="",
+            collect_hours=None,
+            work_dir=None,
+            organization_id=identity.organization_id,
+            force_retain=True,
+            require_case_record=True,
+        )
+        new_case_id = str(result.get("case_id") or "").strip()
+        if not new_case_id:
+            raise RuntimeError("re-analysis did not create a retained case")
+        try:
+            lineage_case = history.set_analysis_lineage(
+                new_case_id,
+                source_case_id=case_id,
+                source="object_storage",
+                updated_by=identity.subject,
+            )
+        except Exception:
+            try:
+                history.delete_case(new_case_id, remove_files=True)
+            except Exception:
+                pass
+            raise
+        result["case"] = lineage_case
+    except CaseReanalysisError as exc:
+        AuditLogService().record(
+            "case.object_storage.reanalyze",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc), "stage": "retained_input"},
+        )
+        raise HTTPException(
+            status_code=409,
+            detail="재분석 가능한 원본 input이 보존되어 있지 않습니다.",
+        ) from exc
+    except UploadLimitError as exc:
+        AuditLogService().record(
+            "case.object_storage.reanalyze",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": "retained_input_limit_exceeded",
+                "stage": "analysis_upload",
+            },
+        )
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "code": "UPLOAD_LIMIT_EXCEEDED",
+                "message": str(exc),
+            },
+        ) from exc
+    except (ObjectStorageError, ArtifactEncryptionError) as exc:
+        AuditLogService().record(
+            "case.object_storage.reanalyze",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": str(exc),
+                "stage": "remote_verify_or_decrypt",
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="원격 보관 케이스를 검증해 재분석할 수 없습니다.",
+        ) from exc
+    except Exception as exc:
+        AuditLogService().record(
+            "case.object_storage.reanalyze",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={
+                "reason": type(exc).__name__,
+                "stage": "analysis",
+            },
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="원격 보관 케이스 재분석 중 내부 오류가 발생했습니다.",
+        ) from exc
+    finally:
+        close_reanalysis_uploads(sources)
+        if temporary_path is not None:
+            await run_in_threadpool(
+                storage.cleanup_temporary_case,
+                temporary_path,
+            )
+
+    assert result is not None
+    AuditLogService().record(
+        "case.object_storage.reanalyze",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "source": "object_storage",
+            "input_file_count": len(sources),
+            "remote_file_count": (
+                int(restored.get("file_count") or 0)
+                if restored is not None
+                else None
+            ),
+            "new_case_id": result.get("case_id"),
+            "finding_count": result.get("count"),
+            "min_severity": options.min_severity,
+            "render_pdf": options.render_pdf,
+            "redact": options.redact,
+            "canonical_rules": True,
+            "custom_rules": options.use_custom_rules,
+        },
+    )
+    return {
+        "success": True,
+        "source_case_id": case_id,
+        "source": "object_storage",
+        "analysis": result,
+    }
 
 
 @router.post(
