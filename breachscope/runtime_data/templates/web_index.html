@@ -1343,10 +1343,12 @@
       caseHistory.innerHTML = cases.map(c => {
         const level = c.risk_level || 'none';
         const hosts = (c.hosts || []).slice(0, 3).join(', ') || 'host 없음';
-        const missing = c.exists === false ? ' · 파일 없음' : '';
+        const remote = c.object_storage || null;
+        const missing = c.exists === false
+          ? (remote ? ' · 원격 전용' : ' · 파일 없음')
+          : '';
         const workflow = c.workflow_status || 'new';
         const assignee = c.assignee || 'unassigned';
-        const remote = c.object_storage || null;
         const remotePill = remote
           ? `<span class="pill">remote:${escapeHtml(remote.provider || 's3')}</span>`
           : '';

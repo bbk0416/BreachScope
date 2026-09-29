@@ -166,12 +166,12 @@ Active user는 OIDC `sub`와 연결할 `externalId`가 필요합니다. role+org
 ---
 
 ### GET `/api/cases/{case_id}`
-케이스 메타데이터와 대시보드 미리보기를 반환합니다.
+케이스 메타데이터와 대시보드 미리보기를 반환합니다. 로컬 payload가 없고 검증된 remote replica metadata가 있으면 요청 시 remote replica를 관리형 임시 디렉터리에 전체 복원해 manifest SHA-256, object size/SHA-256, AES-GCM 인증, organization namespace를 다시 검증한 뒤 preview를 읽고 즉시 임시 디렉터리를 제거합니다. 응답의 `preview_source`는 `local`, `object_storage`, 또는 preview가 없을 때 `null`입니다. 이 읽기는 case index의 `restore_count`를 증가시키지 않으며 persistent restore를 만들지 않습니다.
 
 ---
 
 ### GET `/api/cases/{case_id}/report`
-케이스 ID 기준으로 산출물을 다운로드합니다.
+케이스 ID 기준으로 산출물을 다운로드합니다. archived remote-only case는 persistent restore 없이 동일한 remote 전체 검증을 거친 임시 디렉터리에서 요청한 산출물을 스트리밍하고 응답 종료 후 임시 디렉터리를 제거합니다. remote 검증/복호화 전제 실패는 503으로 fail-closed되고, remote manifest에 해당 산출물이 없으면 404입니다.
 
 **파라미터**:
 - `file_type` (str): html, json, csv, iocs, rules, manifest, zip, pdf

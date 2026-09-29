@@ -7,10 +7,11 @@ import os
 import re
 import shutil
 import tempfile
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Iterator
 
 import boto3
 
@@ -432,6 +433,68 @@ class ObjectStorageService:
         if manifest.get("client_side_encryption") != "AES-256-GCM":
             raise ObjectStorageError("Remote case is not client-side encrypted.")
         return manifest, manifest_bytes, expected_prefix
+
+    def materialize_temporary_case(
+        self,
+        case_id: str,
+        remote: dict[str, Any],
+        *,
+        organization_id: str | None = None,
+    ) -> tuple[Path, dict[str, Any]]:
+        """Fully verify a remote replica into a managed temporary directory."""
+        target = Path(
+            tempfile.mkdtemp(prefix="bs_web_remote_")
+        )
+        try:
+            result = self.restore_case(
+                case_id,
+                target,
+                remote,
+                overwrite=False,
+                organization_id=organization_id,
+            )
+        except Exception:
+            if target.exists():
+                shutil.rmtree(target, ignore_errors=True)
+            raise
+        return target, result
+
+    @staticmethod
+    def cleanup_temporary_case(target_dir: str | Path) -> None:
+        """Remove only a BreachScope-owned direct temp restore directory."""
+        target = Path(target_dir)
+        if not target.exists():
+            return
+        try:
+            resolved = validate_managed_work_dir(
+                target,
+                allow_temp=True,
+                must_exist=True,
+            )
+        except (ValueError, FileNotFoundError, OSError):
+            return
+        if not resolved.name.startswith("bs_web_remote_"):
+            return
+        shutil.rmtree(resolved, ignore_errors=True)
+
+    @contextmanager
+    def temporary_case(
+        self,
+        case_id: str,
+        remote: dict[str, Any],
+        *,
+        organization_id: str | None = None,
+    ) -> Iterator[tuple[Path, dict[str, Any]]]:
+        """Yield a verified temporary remote case and always clean it up."""
+        target, result = self.materialize_temporary_case(
+            case_id,
+            remote,
+            organization_id=organization_id,
+        )
+        try:
+            yield target, result
+        finally:
+            self.cleanup_temporary_case(target)
 
     def verify_replica(
         self,
