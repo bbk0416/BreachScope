@@ -15,7 +15,6 @@ from api.services.scim_directory import (
     SCIM_BULK_MAX_OPERATIONS,
     SCIM_BULK_MAX_PAYLOAD_SIZE,
     SCIM_ERROR_SCHEMA,
-    SCIM_SCHEMA_SCHEMA,
     ScimConflictError,
     ScimDirectoryError,
     ScimFilterError,

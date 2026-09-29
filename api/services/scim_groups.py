@@ -852,7 +852,6 @@ class ScimGroupDirectory:
                     "SCIM group was not found."
                 )
             removed = rows.pop(index)
-            changed = False
             for row in rows:
                 original = [
                     str(value)
@@ -866,7 +865,6 @@ class ScimGroupDirectory:
                 if filtered != original:
                     row["member_ids"] = filtered
                     row["last_modified"] = _now_iso()
-                    changed = True
             self._save(rows)
         return dict(removed)
 
