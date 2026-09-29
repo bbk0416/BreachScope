@@ -4,10 +4,12 @@ from __future__ import annotations
 from pathlib import Path
 from functools import wraps
 import threading
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from starlette.background import BackgroundTask
 
 from api.services.case_history import CaseHistoryService
 from api.services.artifact_encryption import (
@@ -165,17 +167,20 @@ async def update_case_workflow(case_id: str, payload: CaseWorkflowUpdate, reques
     return {"success": True, "case": updated}
 
 @router.get("/cases/{case_id}", response_class=JSONResponse)
-async def get_case(case_id: str, request: Request):
+def get_case(case_id: str, request: Request):
     """단일 케이스 메타데이터와 대시보드 미리보기를 반환합니다."""
+    identity = identity_from_request(request)
     try:
         case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
     preview = None
+    preview_source: str | None = None
     if case.get("exists"):
         try:
             preview = load_preview(case["work_dir"])
+            preview_source = "local"
         except FileNotFoundError:
             preview = None
         except ArtifactEncryptionError as exc:
@@ -183,32 +188,81 @@ async def get_case(case_id: str, request: Request):
                 status_code=503,
                 detail="암호화된 케이스를 현재 키로 복호화할 수 없습니다.",
             ) from exc
-    AuditLogService().record("case.view", request=request, status="success", case_id=case_id, details={"exists": case.get("exists")})
-    return {"success": True, "case": case, "preview": preview}
+    else:
+        remote = dict(case.get("object_storage") or {})
+        if remote:
+            try:
+                storage = _object_storage_service()
+                with storage.temporary_case(
+                    case_id,
+                    remote,
+                    organization_id=identity.organization_id,
+                ) as (remote_work_dir, restored):
+                    try:
+                        preview = load_preview(remote_work_dir)
+                        preview_source = "object_storage"
+                    except FileNotFoundError:
+                        preview = None
+                    remote_file_count = int(
+                        restored.get("file_count") or 0
+                    )
+            except (ObjectStorageError, ArtifactEncryptionError) as exc:
+                AuditLogService().record(
+                    "case.view",
+                    request=request,
+                    status="failure",
+                    case_id=case_id,
+                    details={
+                        "reason": str(exc),
+                        "source": "object_storage",
+                    },
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail="원격 보관 케이스를 검증해 읽을 수 없습니다.",
+                ) from exc
+            AuditLogService().record(
+                "case.object_storage.read",
+                request=request,
+                status="success",
+                case_id=case_id,
+                details={
+                    "mode": "preview",
+                    "file_count": remote_file_count,
+                },
+            )
+
+    AuditLogService().record(
+        "case.view",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "exists": case.get("exists"),
+            "preview_source": preview_source,
+        },
+    )
+    return {
+        "success": True,
+        "case": case,
+        "preview": preview,
+        "preview_source": preview_source,
+    }
 
 
 @router.get("/cases/{case_id}/report")
-async def get_case_report(
+def get_case_report(
     case_id: str,
     request: Request,
     file_type: str = Query("html", pattern="^(html|json|csv|iocs|rules|pdf|manifest|zip)$"),
 ):
     """케이스 ID 기준으로 산출물을 다운로드합니다. 파일 시스템 경로를 URL에 노출하지 않습니다."""
+    identity = identity_from_request(request)
     try:
         case = _service(request).get_case(case_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="케이스를 찾을 수 없습니다.")
 
-    from api.services.path_boundary import WorkDirBoundaryError, validate_managed_work_dir
-    try:
-        work_path = validate_managed_work_dir(
-            str(case.get("work_dir") or ""), allow_temp=True, must_exist=True
-        )
-    except (WorkDirBoundaryError, FileNotFoundError):
-        raise HTTPException(status_code=404, detail="케이스 작업 디렉토리를 찾을 수 없습니다.")
-
-    # BREACHSCOPE_P0_11_CASE_REPORT_BOUNDARY_V1
-    report_prefix = work_path / "out" / "report"
     suffix_map = {
         "html": ".html",
         "json": ".json",
@@ -229,35 +283,119 @@ async def get_case_report(
         "manifest": "application/json",
         "zip": "application/zip",
     }
+
+    from api.services.path_boundary import (
+        WorkDirBoundaryError,
+        validate_managed_work_dir,
+    )
+
+    work_path: Path | None = None
+    artifact_source = "local"
+    storage: ObjectStorageService | None = None
+    temporary_path: Path | None = None
+    remote_restore: dict[str, Any] | None = None
+
+    if case.get("exists"):
+        try:
+            work_path = validate_managed_work_dir(
+                str(case.get("work_dir") or ""),
+                allow_temp=True,
+                must_exist=True,
+            )
+        except (WorkDirBoundaryError, FileNotFoundError):
+            raise HTTPException(
+                status_code=404,
+                detail="케이스 작업 디렉토리를 찾을 수 없습니다.",
+            )
+    else:
+        remote = dict(case.get("object_storage") or {})
+        if not remote:
+            raise HTTPException(
+                status_code=404,
+                detail="케이스 작업 디렉토리를 찾을 수 없습니다.",
+            )
+        try:
+            storage = _object_storage_service()
+            temporary_path, remote_restore = (
+                storage.materialize_temporary_case(
+                    case_id,
+                    remote,
+                    organization_id=identity.organization_id,
+                )
+            )
+            work_path = temporary_path
+            artifact_source = "object_storage"
+        except (ObjectStorageError, ArtifactEncryptionError) as exc:
+            AuditLogService().record(
+                "case.download",
+                request=request,
+                status="failure",
+                case_id=case_id,
+                details={
+                    "file_type": file_type,
+                    "reason": str(exc),
+                    "source": "object_storage",
+                },
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="원격 보관 케이스를 검증해 읽을 수 없습니다.",
+            ) from exc
+
+    assert work_path is not None
+    report_prefix = work_path / "out" / "report"
     file_path = report_prefix.with_suffix(suffix_map[file_type])
+
     if not artifact_exists(file_path):
-        raise HTTPException(status_code=404, detail=f"{file_type.upper()} 산출물을 찾을 수 없습니다.")
+        if storage is not None and temporary_path is not None:
+            storage.cleanup_temporary_case(temporary_path)
+        raise HTTPException(
+            status_code=404,
+            detail=f"{file_type.upper()} 산출물을 찾을 수 없습니다.",
+        )
 
     if file_path.exists():
+        background = None
+        if storage is not None and temporary_path is not None:
+            background = BackgroundTask(
+                storage.cleanup_temporary_case,
+                temporary_path,
+            )
         AuditLogService().record(
             "case.download",
             request=request,
             status="success",
             case_id=case_id,
             target=file_path.name,
-            details={"file_type": file_type, "encrypted_at_rest": False},
+            details={
+                "file_type": file_type,
+                "encrypted_at_rest": False,
+                "source": artifact_source,
+            },
         )
         return FileResponse(
             path=str(file_path),
             filename=file_path.name,
             media_type=media_map[file_type],
+            background=background,
         )
 
     try:
         verify_artifact(file_path, work_path)
     except ArtifactEncryptionError as exc:
+        if storage is not None and temporary_path is not None:
+            storage.cleanup_temporary_case(temporary_path)
         AuditLogService().record(
             "case.download",
             request=request,
             status="failure",
             case_id=case_id,
             target=encrypted_path(file_path).name,
-            details={"file_type": file_type, "reason": "decrypt_failed"},
+            details={
+                "file_type": file_type,
+                "reason": "decrypt_failed",
+                "source": artifact_source,
+            },
         )
         raise HTTPException(
             status_code=503,
@@ -270,14 +408,56 @@ async def get_case_report(
         status="success",
         case_id=case_id,
         target=file_path.name,
-        details={"file_type": file_type, "encrypted_at_rest": True},
+        details={
+            "file_type": file_type,
+            "encrypted_at_rest": True,
+            "source": artifact_source,
+            "remote_file_count": (
+                int(remote_restore.get("file_count") or 0)
+                if remote_restore is not None
+                else None
+            ),
+        },
     )
+    if artifact_source == "object_storage":
+        AuditLogService().record(
+            "case.object_storage.read",
+            request=request,
+            status="success",
+            case_id=case_id,
+            details={
+                "mode": "report",
+                "file_type": file_type,
+            },
+        )
+
+    background = None
+    stream = iter_artifact_chunks(file_path, work_path)
+    if storage is not None and temporary_path is not None:
+        cleanup_storage = storage
+        cleanup_path = temporary_path
+        source_stream = stream
+
+        def remote_stream():
+            try:
+                yield from source_stream
+            finally:
+                cleanup_storage.cleanup_temporary_case(cleanup_path)
+
+        stream = remote_stream()
+        background = BackgroundTask(
+            cleanup_storage.cleanup_temporary_case,
+            cleanup_path,
+        )
+
     return StreamingResponse(
-        iter_artifact_chunks(file_path, work_path),
+        stream,
         media_type=media_map[file_type],
         headers={
-            "Content-Disposition": f'attachment; filename="{file_path.name}"'
+            "Content-Disposition": f'attachment; filename="{file_path.name}"',
+            "X-BreachScope-Artifact-Source": artifact_source,
         },
+        background=background,
     )
 
 

@@ -5,6 +5,8 @@ import hashlib
 import io
 import json
 import shutil
+import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 
 import pytest
@@ -346,6 +348,256 @@ def test_case_history_tracks_object_storage_state(
     assert cleared["object_storage"] is None
 
 
+def _archived_remote_case(
+    tmp_path: Path,
+    monkeypatch,
+    name: str,
+):
+    work, report_bytes = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        name,
+    )
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / f"{name}-history.json"),
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / f"{name}-audit.jsonl"),
+    )
+    history = CaseHistoryService()
+    record = history.register_case(work, _sample_report())
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        record.case_id,
+        work,
+        organization_id="default",
+    )
+    history.set_object_storage_state(
+        record.case_id,
+        remote,
+        updated_by="operator",
+    )
+    archived = history.archive_local_case(
+        record.case_id,
+        expected_manifest_sha256=remote["manifest_sha256"],
+    )
+    assert archived["archived"] is True
+    assert not work.exists()
+    monkeypatch.setattr(
+        cases_router_module,
+        "_object_storage_service",
+        lambda: service,
+    )
+    return record, work, report_bytes, fake, service, history
+
+
+def test_object_storage_temporary_case_cleans_verified_workspace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, report_bytes = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "temporary-read-case",
+    )
+    fake = FakeS3()
+    service = ObjectStorageService(_config(), client=fake)
+    remote = service.replicate_case(
+        "case-temporary-read",
+        work,
+        organization_id="default",
+    )
+
+    with service.temporary_case(
+        "case-temporary-read",
+        remote,
+        organization_id="default",
+    ) as (temporary, restored):
+        assert temporary.exists()
+        assert restored["verified"] is True
+        assert read_artifact_bytes(
+            temporary / "out" / "report.json",
+            temporary,
+        ) == report_bytes
+
+    assert not temporary.exists()
+    assert work.exists()
+
+
+def test_archived_case_remote_preview_and_report_without_persistent_restore(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        work,
+        report_bytes,
+        _fake,
+        service,
+        history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-primary-case",
+    )
+
+    created_temporary: list[Path] = []
+    original_materialize = service.materialize_temporary_case
+
+    def capture_materialize(*args, **kwargs):
+        target, result = original_materialize(*args, **kwargs)
+        created_temporary.append(target)
+        return target, result
+
+    monkeypatch.setattr(
+        service,
+        "materialize_temporary_case",
+        capture_materialize,
+    )
+    reviewer = _rbac_client(tmp_path, monkeypatch, "reviewer")
+
+    detail = reviewer.get(f"/api/cases/{record.case_id}")
+    assert detail.status_code == 200, detail.text
+    payload = detail.json()
+    assert payload["case"]["exists"] is False
+    assert payload["preview_source"] == "object_storage"
+    assert payload["preview"]["total_findings"] == 1
+    assert not work.exists()
+    assert created_temporary
+    assert all(not path.exists() for path in created_temporary)
+
+    report = reviewer.get(
+        f"/api/cases/{record.case_id}/report",
+        params={"file_type": "json"},
+    )
+    assert report.status_code == 200, report.text
+    assert report.content == report_bytes
+    assert report.headers["x-breachscope-artifact-source"] == (
+        "object_storage"
+    )
+    assert not work.exists()
+    assert all(not path.exists() for path in created_temporary)
+
+    missing_report = reviewer.get(
+        f"/api/cases/{record.case_id}/report",
+        params={"file_type": "pdf"},
+    )
+    assert missing_report.status_code == 404
+    assert not work.exists()
+    assert all(not path.exists() for path in created_temporary)
+
+    current = history.get_case(record.case_id)
+    assert current["exists"] is False
+    assert int(
+        (current.get("object_storage") or {}).get("restore_count") or 0
+    ) == 0
+
+    audit_rows = [
+        json.loads(line)
+        for line in (
+            tmp_path / "remote-primary-case-audit.jsonl"
+        ).read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    remote_reads = [
+        row
+        for row in audit_rows
+        if row.get("action") == "case.object_storage.read"
+    ]
+    assert [
+        (row.get("details") or {}).get("mode")
+        for row in remote_reads
+    ] == ["preview", "report"]
+
+
+def test_archived_case_remote_preview_tamper_fails_closed_and_keeps_archived(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        work,
+        _report_bytes,
+        fake,
+        service,
+        history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-primary-tamper-case",
+    )
+    remote = history.get_case(record.case_id)["object_storage"]
+    manifest = json.loads(
+        fake.objects[(_config().bucket, remote["manifest_key"])].decode(
+            "utf-8"
+        )
+    )
+    first_key = manifest["files"][0]["object_key"]
+    fake.objects[(_config().bucket, first_key)] += b"tamper"
+
+    before = {
+        path
+        for path in Path(tempfile.gettempdir()).glob("bs_web_remote_*")
+        if path.is_dir()
+    }
+    reviewer = _rbac_client(tmp_path, monkeypatch, "reviewer")
+    detail = reviewer.get(f"/api/cases/{record.case_id}")
+
+    assert detail.status_code == 503
+    assert "원격 보관 케이스" in detail.json()["detail"]
+    assert not work.exists()
+    assert history.get_case(record.case_id)["exists"] is False
+    after = {
+        path
+        for path in Path(tempfile.gettempdir()).glob("bs_web_remote_*")
+        if path.is_dir()
+    }
+    assert after == before
+
+def test_archived_case_remote_report_missing_encryption_key_fails_closed(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    (
+        record,
+        work,
+        _report_bytes,
+        _fake,
+        _service,
+        history,
+    ) = _archived_remote_case(
+        tmp_path,
+        monkeypatch,
+        "remote-missing-key-case",
+    )
+    monkeypatch.delenv("BS_ARTIFACT_ENCRYPTION_KEY", raising=False)
+
+    before = {
+        path
+        for path in Path(tempfile.gettempdir()).glob("bs_web_remote_*")
+        if path.is_dir()
+    }
+    reviewer = _rbac_client(tmp_path, monkeypatch, "reviewer")
+    response = reviewer.get(
+        f"/api/cases/{record.case_id}/report",
+        params={"file_type": "json"},
+    )
+
+    assert response.status_code == 503
+    assert "원격 보관 케이스" in response.json()["detail"]
+    assert not work.exists()
+    assert history.get_case(record.case_id)["exists"] is False
+    after = {
+        path
+        for path in Path(tempfile.gettempdir()).glob("bs_web_remote_*")
+        if path.is_dir()
+    }
+    assert after == before
+
+
 class StubObjectStorageService:
     def __init__(self):
         self.replicated: list[str] = []
@@ -356,6 +608,8 @@ class StubObjectStorageService:
         self.verified_organizations: list[str] = []
         self.restored_organizations: list[str] = []
         self.deleted_organizations: list[str] = []
+        self.remote_reads: list[str] = []
+        self.cleaned_temporary_paths: list[Path] = []
         self.fail_verify = False
 
     def replicate_case(
@@ -382,6 +636,53 @@ class StubObjectStorageService:
             "total_bytes": 100,
             "client_side_encryption": "AES-256-GCM",
         }
+
+    def materialize_temporary_case(
+        self,
+        case_id: str,
+        remote: dict,
+        *,
+        organization_id: str | None = None,
+    ):
+        self.remote_reads.append(case_id)
+        target = Path(tempfile.mkdtemp(prefix="bs_web_remote_"))
+        (target / "out").mkdir(parents=True, exist_ok=True)
+        (target / "out" / "report.json").write_text(
+            json.dumps(_sample_report(), ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        return target, {
+            "provider": "s3",
+            "bucket": "breachscope-test",
+            "case_prefix": remote["case_prefix"],
+            "restored_at": "2026-09-29T05:30:00Z",
+            "file_count": 3,
+            "target_dir": str(target),
+            "verified": True,
+        }
+
+    def cleanup_temporary_case(self, target_dir: str | Path) -> None:
+        target = Path(target_dir)
+        self.cleaned_temporary_paths.append(target)
+        shutil.rmtree(target, ignore_errors=True)
+
+    @contextmanager
+    def temporary_case(
+        self,
+        case_id: str,
+        remote: dict,
+        *,
+        organization_id: str | None = None,
+    ):
+        target, result = self.materialize_temporary_case(
+            case_id,
+            remote,
+            organization_id=organization_id,
+        )
+        try:
+            yield target, result
+        finally:
+            self.cleanup_temporary_case(target)
 
     def verify_replica(
         self,
@@ -746,6 +1047,7 @@ def test_web_ui_exposes_operator_only_object_storage_controls() -> None:
     assert "data-object-storage-action" in source
     assert "원격 복제" in source
     assert "원격 복원" in source
+    assert "원격 전용" in source
     assert "로컬 비우기" in source
     assert "원격 삭제" in source
     assert "/object-storage/replicate" in source
