@@ -178,6 +178,23 @@ Active user는 OIDC `sub`와 연결할 `externalId`가 필요합니다. role+org
 
 ---
 
+### POST `/api/cases/{case_id}/object-storage/reanalyze`
+권한: operator 또는 admin. `use_custom_rules=true`이면 `analysis.custom_rules` 권한도 필요합니다.
+
+archived remote-only case의 verified replica를 요청 전용 `bs_web_remote_*` 디렉터리에 전체 복원해 manifest/object SHA-256, AES-GCM 인증, organization namespace를 다시 확인합니다. 보존된 `input/` evidence만 스트리밍 방식으로 현재 분석 파이프라인에 전달하며 source case를 persistent restore 상태로 바꾸지 않습니다. 분석 결과는 **새 retained case**로 생성되고 새 case의 `analysis_lineage.source_case_id`가 source case를 가리킵니다. source case의 `restore_count`는 증가하지 않으며 임시 remote restore는 성공/실패와 관계없이 제거됩니다.
+
+선택 JSON body:
+- `min_severity`: low, medium, high, critical (기본 medium)
+- `mitre_include` / `mitre_exclude` / `host_include`
+- `rule_include` / `rule_exclude`
+- `use_custom_rules` (기본 false)
+- `redact` (기본 true)
+- `render_pdf` (기본 false)
+
+source case가 아직 로컬에 있거나 retained `input/` evidence가 없으면 409입니다. 업로드 안전 한도를 넘으면 413, remote 검증/복호화 실패는 503으로 fail-closed됩니다. UI의 `원격 재분석` 버튼은 위 옵션의 안전한 기본값을 사용합니다.
+
+---
+
 ### POST `/api/cases/{case_id}/object-storage/replicate`
 권한: operator 또는 admin.
 

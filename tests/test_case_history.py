@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from fastapi.testclient import TestClient
 
 from api.main import app
@@ -148,3 +150,88 @@ def test_case_workflow_update_rejects_invalid_status(tmp_path: Path, monkeypatch
 
     response = client.patch(f"/api/cases/{record.case_id}/workflow", json={"workflow_status": "wat"})
     assert response.status_code == 400
+
+
+
+def test_case_history_records_reanalysis_lineage_within_organization(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    cases_root = tmp_path / "cases"
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "history.json"),
+    )
+    history = CaseHistoryService(organization_id="org-a")
+
+    source_work = cases_root / "source"
+    target_work = cases_root / "target"
+    for work in (source_work, target_work):
+        (work / "out").mkdir(parents=True)
+        (work / "out" / "report.json").write_text(
+            json.dumps(_sample_report()),
+            encoding="utf-8",
+        )
+
+    source = history.register_case(
+        source_work,
+        _sample_report(),
+    )
+    target = history.register_case(
+        target_work,
+        _sample_report(),
+    )
+
+    updated = history.set_analysis_lineage(
+        target.case_id,
+        source_case_id=source.case_id,
+        source="object_storage",
+        updated_by="operator",
+    )
+
+    lineage = updated["analysis_lineage"]
+    assert lineage["source_case_id"] == source.case_id
+    assert lineage["source"] == "object_storage"
+    assert lineage["reanalyzed_by"] == "operator"
+    assert lineage["reanalyzed_at"]
+
+
+def test_case_history_reanalysis_lineage_cannot_cross_organization(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    cases_root = tmp_path / "cases"
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "history.json"),
+    )
+    org_a = CaseHistoryService(organization_id="org-a")
+    org_b = CaseHistoryService(organization_id="org-b")
+
+    source_work = cases_root / "source"
+    target_work = cases_root / "target"
+    for work in (source_work, target_work):
+        (work / "out").mkdir(parents=True)
+        (work / "out" / "report.json").write_text(
+            json.dumps(_sample_report()),
+            encoding="utf-8",
+        )
+
+    source = org_a.register_case(
+        source_work,
+        _sample_report(),
+    )
+    target = org_b.register_case(
+        target_work,
+        _sample_report(),
+    )
+
+    with pytest.raises(KeyError):
+        org_b.set_analysis_lineage(
+            target.case_id,
+            source_case_id=source.case_id,
+            source="object_storage",
+            updated_by="operator",
+        )

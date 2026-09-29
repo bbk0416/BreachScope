@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import pytest
 from types import SimpleNamespace
 
 import api.services.analysis_service as analysis_module
@@ -30,7 +31,13 @@ class SuccessfulPipeline:
         return html_path, 0
 
 
-def _run(service: AnalysisService, *, work_dir=None):
+def _run(
+    service: AnalysisService,
+    *,
+    work_dir=None,
+    force_retain: bool = False,
+    require_case_record: bool = False,
+):
     return asyncio.run(
         service.analyze(
             files=[],
@@ -46,6 +53,8 @@ def _run(service: AnalysisService, *, work_dir=None):
             collect_logs="",
             collect_hours=None,
             work_dir=work_dir,
+            force_retain=force_retain,
+            require_case_record=require_case_record,
         )
     )
 
@@ -247,3 +256,75 @@ def test_p2_08h_marker_present():
 def test_p2_08i_marker_present():
     source = open(analysis_module.__file__, "r", encoding="utf-8").read()
     assert "BREACHSCOPE_P2_08I_CLEANUP_OUTCOME_CONSISTENCY_V1" in source
+
+
+
+def test_force_retain_overrides_cleanup_flag_for_auto_managed_case(
+    tmp_path,
+    monkeypatch,
+):
+    cases_root = tmp_path / "cases"
+    work = cases_root / "bs_case_force_retained"
+    work.mkdir(parents=True)
+    history_calls = []
+
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "1")
+    _install_success_fakes(monkeypatch, history_calls)
+
+    service = AnalysisService()
+    monkeypatch.setattr(
+        service.workdir_service,
+        "create_work_directory",
+        lambda work_dir=None: work,
+    )
+
+    result = _run(
+        service,
+        force_retain=True,
+        require_case_record=True,
+    )
+
+    assert result["case_id"] == "case-test"
+    assert history_calls == [work]
+    assert work.exists()
+    assert (work / "out" / "report.json").exists()
+
+
+def test_required_case_record_failure_removes_auto_managed_workdir(
+    tmp_path,
+    monkeypatch,
+):
+    cases_root = tmp_path / "cases"
+    work = cases_root / "bs_case_registration_failure"
+    work.mkdir(parents=True)
+
+    monkeypatch.setenv("BS_CASES_ROOT", str(cases_root))
+    monkeypatch.setenv("BS_WEB_CLEANUP_AFTER_ANALYSIS", "0")
+    monkeypatch.setattr(analysis_module, "Pipeline", SuccessfulPipeline)
+    monkeypatch.setattr(analysis_module, "build_preview", lambda report: {})
+
+    class FailingHistory:
+        def register_case(self, work, report_data):
+            raise OSError("simulated case index failure")
+
+    monkeypatch.setattr(
+        analysis_module,
+        "CaseHistoryService",
+        FailingHistory,
+    )
+    service = AnalysisService()
+    monkeypatch.setattr(
+        service.workdir_service,
+        "create_work_directory",
+        lambda work_dir=None: work,
+    )
+
+    with pytest.raises(OSError, match="case index failure"):
+        _run(
+            service,
+            force_retain=True,
+            require_case_record=True,
+        )
+
+    assert not work.exists()
