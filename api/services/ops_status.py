@@ -18,7 +18,7 @@ from api.rbac import (
     configured_organization_rbac_policies,
     organization_rbac_policy_settings_present,
 )
-from api.services.audit_log import AuditLogService, audit_is_enabled, audit_log_path
+from api.services.audit_log import audit_is_enabled, audit_log_path
 from api.services.backup_service import BackupService
 from api.services.case_history import CaseHistoryService
 from api.security import (

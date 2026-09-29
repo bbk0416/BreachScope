@@ -6,7 +6,7 @@ import os
 import sqlite3
 import threading
 import uuid
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
