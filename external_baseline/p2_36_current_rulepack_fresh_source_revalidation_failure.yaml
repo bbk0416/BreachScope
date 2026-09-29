@@ -1,0 +1,72 @@
+schema: breachscope.p2_36_current_rulepack_fresh_source_revalidation_failure.v1
+analysis_id: p2-36-current-rulepack-fresh-source-revalidation-v1
+status: FAILED_CANONICAL_NO_RETRY
+contract: external_baseline/p2_36_current_rulepack_fresh_source_revalidation_contract.yaml
+contract_merge_commit: fe62c0c078f17aa76b183cd39d8b35c0abb7e6ec
+canonical_repo_commit: fe62c0c078f17aa76b183cd39d8b35c0abb7e6ec
+frozen_product:
+  repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+runner:
+  sha256: 3f94334dcd7a9363b58625ed505a92483f022274b735293eae73e9e2ddd0d063
+  contract_sha256: fb95abdf30912b6764ed487686bd5c059a64e81c07300edd119f55114481d7f9
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_36_fe62c0c/result.json
+    size_bytes: 7692
+    sha256: d5ea35d6dcbddb9ab2348ec2d66c119e5729fd3f6a87080da55fc465f538328a
+  permanent_global_lock:
+    path: external_baseline/locks/P2_36_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+    size_bytes: 121
+    sha256: 8cb476cb7f1fd124a38f2ef2375f69b6a7d84cd8916a39b0a4ff3adf30686fb1
+    analysis_id: p2-36-current-rulepack-fresh-source-revalidation-v1
+execution:
+  canonical_execution_started: true
+  same_analysis_id_retry_allowed: false
+  duplicate_execution_performed: false
+  raw_status: failed
+  error: "RuntimeError: EVTX parsed zero events: 00000_9bd6bccacaa4b3e0.evtx"
+  failure_class: EVALUATOR_EMPTY_EVTX_FATAL_POLICY
+  failure_stage: BENIGN_FIRST_MEMBER_SCORING
+  product_or_rules_failure: false
+  source_identity_failure: false
+  source_preflight_completed: true
+  attack_phase_completed: true
+  attack_fixture_count: 7
+  attack_hits: 3
+  attack_misses: 4
+  attack_errors: 0
+  attack_fixture_hit_fraction: 0.42857142857142855
+  benign_member_inventory_count: 355
+  benign_attempted_member_count_before_failure: 1
+  benign_completed_member_count_before_failure: 0
+  benign_summary_completed: false
+  first_attempted_benign_member: win2022-0-20348-azure/AD FS%4Admin.evtx
+interpretation:
+  attack_partial_result_is_fresh_attack_revalidation_claim: false
+  benign_fresh_revalidation_completed: false
+  combined_fresh_revalidation_completed: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  reason: >-
+    The canonical one-shot completed all seven attack fixtures, then failed on
+    the first selected benign EVTX because the evaluator treated a channel with
+    zero parsed events as a fatal error. Source identity, frozen product, and
+    archive inventory preflight had already passed. The overall preregistered
+    attack-plus-benign revalidation therefore did not complete.
+next_analysis:
+  analysis_id: p2-36b-current-rulepack-fresh-source-revalidation-v1
+  requirements:
+    - do not reuse the P2-36 analysis id
+    - do not reuse the P2-36 attack fixtures because all seven outcomes were observed
+    - do not reuse the P2-36 benign archive because canonical evaluation already entered it
+    - select new attack source bytes and a different unused benign archive before observation
+    - treat empty or zero-event EVTX channels as reportable EMPTY members rather than fatal evaluator errors
+    - preserve the same 73-rule frozen product unless a separately preregistered product change is intended
+    - merge the successor source and execution contracts before detector execution
