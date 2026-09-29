@@ -33,6 +33,7 @@ from api.services.scim_directory import (
 from api.services.scim_store import (
     ScimStoreError,
     scim_database_path,
+    scim_database_url,
     scim_storage_backend,
 )
 from api.services.oidc_auth import configured_oidc_roles, oidc_is_configured, oidc_settings_present
@@ -284,6 +285,16 @@ def _check_scim_provisioning(
             "database_path": database_path,
             "env": env,
         }
+    elif backend == "postgres":
+        database_url = scim_database_url(env)
+        storage_details["database_url_configured"] = bool(
+            database_url
+        )
+        directory_kwargs = {
+            "backend": backend,
+            "database_url": database_url,
+            "env": env,
+        }
     else:
         user_path = scim_user_store_path(env)
         group_path = scim_group_store_path(env)
@@ -332,7 +343,7 @@ def _check_scim_provisioning(
             (
                 "SCIM user/group store is invalid or unreadable."
                 if backend == "json"
-                else "SCIM SQLite identity store is invalid or unreadable."
+                else "SCIM database identity store is invalid or unreadable."
             ),
             {
                 "enabled": True,
@@ -626,7 +637,7 @@ def _next_steps(checks: list[GoLiveCheck]) -> list[str]:
             )
         elif check.name == "scim_provisioning":
             steps.append(
-                "Use a unique strong BS_SCIM_BEARER_TOKEN, keep the configured SCIM JSON or SQLite storage path writable, and provision at least one active OIDC user before relying on SCIM enforcement."
+                "Use a unique strong BS_SCIM_BEARER_TOKEN, configure durable JSON/SQLite storage or a reachable secret PostgreSQL URL, and provision at least one active OIDC user before relying on SCIM enforcement."
             )
         elif check.name == "session_secret":
             steps.append("Set BS_SESSION_SECRET to a unique 32+ character random value.")

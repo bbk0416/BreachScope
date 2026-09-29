@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -10,6 +11,7 @@ from api.services.scim_store import (
     ScimIdentityStore,
     ScimStoreError,
     scim_database_path,
+    scim_database_url,
     scim_storage_backend,
 )
 
@@ -306,7 +308,7 @@ def public_group_resource(
 
 
 class ScimGroupDirectory:
-    """SCIM Group directory backed by JSON files or SQLite."""
+    """SCIM Group directory backed by JSON, SQLite, or PostgreSQL."""
 
     def __init__(
         self,
@@ -315,11 +317,13 @@ class ScimGroupDirectory:
         user_directory: ScimUserDirectory | None = None,
         backend: str | None = None,
         database_path: Path | None = None,
+        database_url: str | None = None,
         env: Mapping[str, str] | None = None,
     ):
         self.user_directory = user_directory or ScimUserDirectory(
             backend=backend,
             database_path=database_path,
+            database_url=database_url,
             env=env,
         )
         self.path = path or scim_group_store_path(env)
@@ -333,13 +337,58 @@ class ScimGroupDirectory:
             or getattr(self.user_directory, "database_path", None)
             or scim_database_path(env)
         )
+        self.database_url = (
+            database_url
+            if database_url is not None
+            else getattr(self.user_directory, "database_url", None)
+        )
+        if self.database_url is None:
+            self.database_url = scim_database_url(env)
+
+        same_store = False
+        if self.backend == getattr(self.user_directory, "backend", None):
+            if self.backend == "json":
+                same_store = (
+                    self.path == self.user_directory.group_path
+                )
+            elif self.backend == "sqlite":
+                same_store = (
+                    self.database_path
+                    == self.user_directory.database_path
+                )
+            elif self.backend == "postgres":
+                same_store = (
+                    self.database_url
+                    == self.user_directory.database_url
+                )
+
         try:
-            self.store = ScimIdentityStore(
-                backend=self.backend,
-                user_path=self.user_directory.path,
-                group_path=self.path,
-                database_path=self.database_path,
-            )
+            if same_store:
+                self.store = self.user_directory.store
+            else:
+                self.store = ScimIdentityStore(
+                    backend=self.backend,
+                    user_path=self.user_directory.path,
+                    group_path=self.path,
+                    database_path=self.database_path,
+                    database_url=self.database_url,
+                )
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
+
+    @contextmanager
+    def mutation(self):
+        try:
+            with _LOCK, self.store.mutation():
+                yield
+        except ScimStoreError as exc:
+            raise ScimDirectoryError(str(exc)) from exc
+
+    @contextmanager
+    def snapshot(self):
+        try:
+            with _LOCK, self.store.snapshot():
+                yield
         except ScimStoreError as exc:
             raise ScimDirectoryError(str(exc)) from exc
 
@@ -393,7 +442,7 @@ class ScimGroupDirectory:
     ) -> dict[str, Any]:
         start = max(1, int(start_index))
         page_count = max(0, min(200, int(count)))
-        with _LOCK:
+        with self.snapshot():
             rows = self._load()
             users = self._users()
 
@@ -446,7 +495,7 @@ class ScimGroupDirectory:
         *,
         base_url: str = "",
     ) -> dict[str, Any]:
-        with _LOCK:
+        with self.snapshot():
             rows = self._load()
             users = self._users()
         for row in rows:
@@ -465,7 +514,7 @@ class ScimGroupDirectory:
         *,
         base_url: str = "",
     ) -> dict[str, Any]:
-        with _LOCK:
+        with self.mutation():
             users = self._users()
             rows = self._load()
             valid_user_ids = {
@@ -499,7 +548,7 @@ class ScimGroupDirectory:
         *,
         base_url: str = "",
     ) -> dict[str, Any]:
-        with _LOCK:
+        with self.mutation():
             users = self._users()
             rows = self._load()
             index = next(
@@ -567,7 +616,7 @@ class ScimGroupDirectory:
                 "SCIM PATCH requires a non-empty Operations array."
             )
 
-        with _LOCK:
+        with self.mutation():
             users = self._users()
             valid_user_ids = {
                 str(row.get("id") or "")
@@ -788,7 +837,7 @@ class ScimGroupDirectory:
         )
 
     def delete_group(self, group_id: str) -> dict[str, Any]:
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             index = next(
                 (
@@ -822,7 +871,7 @@ class ScimGroupDirectory:
         return dict(removed)
 
     def remove_user_references(self, user_id: str) -> None:
-        with _LOCK:
+        with self.mutation():
             rows = self._load()
             changed = False
             for row in rows:

@@ -769,7 +769,7 @@ def test_go_live_rejects_invalid_scim_storage_backend(
 ):
     env = _good_env(tmp_path)
     env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
-    env["BS_SCIM_STORAGE_BACKEND"] = "postgres"
+    env["BS_SCIM_STORAGE_BACKEND"] = "not-a-backend"
 
     result = run_go_live_check(
         ".",
@@ -782,4 +782,54 @@ def test_go_live_rejects_invalid_scim_storage_backend(
     )
     assert check["status"] == "fail"
     assert "storage backend" in check["message"]
-    assert "json or sqlite" in check["details"]["error"]
+    assert "json, sqlite, or postgres" in check["details"]["error"]
+
+
+
+def test_go_live_postgres_scim_requires_database_url(
+    tmp_path,
+):
+    env = _good_env(tmp_path)
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_STORAGE_BACKEND"] = "postgres"
+    env.pop("BS_SCIM_DATABASE_URL", None)
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "scim_provisioning"
+    )
+    assert check["status"] == "fail"
+    assert check["details"]["storage_backend"] == "postgres"
+    assert check["details"]["database_url_configured"] is False
+    assert "BS_SCIM_DATABASE_URL is required" in check["details"]["error"]
+
+
+def test_go_live_postgres_scim_redacts_database_url_on_failure(
+    tmp_path,
+):
+    env = _good_env(tmp_path)
+    secret = "postgresql://secret-user:secret-password@127.0.0.1:1/breachscope"
+    env["BS_SCIM_BEARER_TOKEN"] = "s" * 40
+    env["BS_SCIM_STORAGE_BACKEND"] = "postgres"
+    env["BS_SCIM_DATABASE_URL"] = secret
+
+    result = run_go_live_check(
+        ".",
+        env=env,
+        deployment_mode="production",
+    )
+    check = next(
+        row for row in result["checks"]
+        if row["name"] == "scim_provisioning"
+    )
+    assert check["status"] == "fail"
+    assert check["details"]["database_url_configured"] is True
+    serialized = str(check)
+    assert "secret-password" not in serialized
+    assert secret not in serialized
+    assert "PostgreSQL database cannot be opened" in check["details"]["error"]

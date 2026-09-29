@@ -329,8 +329,8 @@ def test_sqlite_store_supports_bulk_forward_references(
 def test_invalid_scim_storage_backend_fails_closed() -> None:
     with pytest.raises(
         ScimDirectoryError,
-        match="must be json or sqlite",
+        match="must be json, sqlite, or postgres",
     ):
         ScimUserDirectory(
-            env={"BS_SCIM_STORAGE_BACKEND": "postgres"},
+            env={"BS_SCIM_STORAGE_BACKEND": "not-a-backend"},
         )

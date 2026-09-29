@@ -367,127 +367,133 @@ def _execute_operation(
     directory = user_directory if kind == "Users" else group_directory
     audit: dict[str, Any] | None = None
 
-    if method == "POST":
+    with directory.mutation():
+        if method == "POST":
+            if kind == "Users":
+                resource = user_directory.create_user(
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "user",
+                    "action": "scim.user.create",
+                    "resource": resource,
+                }
+            else:
+                resource = group_directory.create_group(
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "group",
+                    "action": "scim.group.create",
+                    "resource": resource,
+                }
+            resolved_ids[bulk_id] = str(resource["id"])
+            return (
+                {
+                    "method": method,
+                    "bulkId": bulk_id,
+                    "location": str(resource["meta"]["location"]),
+                    "version": str(resource["meta"]["version"]),
+                    "status": "201",
+                },
+                audit,
+            )
+
+        assert resource_id is not None
         if kind == "Users":
-            resource = directory.create_user(data, base_url=base_url)
-            audit = {
-                "kind": "user",
-                "action": "scim.user.create",
-                "resource": resource,
-            }
+            current = user_directory.get_user(
+                resource_id,
+                base_url=base_url,
+            )
         else:
-            resource = directory.create_group(data, base_url=base_url)
-            audit = {
-                "kind": "group",
-                "action": "scim.group.create",
-                "resource": resource,
-            }
-        resolved_ids[bulk_id] = str(resource["id"])
+            current = group_directory.get_group(
+                resource_id,
+                base_url=base_url,
+            )
+        _check_version(operation.get("version"), current)
+
+        if method == "DELETE":
+            if kind == "Users":
+                user_directory.delete_user(resource_id)
+                audit = {
+                    "kind": "user",
+                    "action": "scim.user.delete",
+                    "resource": current,
+                }
+            else:
+                group_directory.delete_group(resource_id)
+                audit = {
+                    "kind": "group",
+                    "action": "scim.group.delete",
+                    "resource": current,
+                }
+            return (
+                {
+                    "method": method,
+                    "location": str(current["meta"]["location"]),
+                    "status": "204",
+                },
+                audit,
+            )
+
+        if method == "PUT":
+            if kind == "Users":
+                resource = user_directory.replace_user(
+                    resource_id,
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "user",
+                    "action": "scim.user.replace",
+                    "resource": resource,
+                }
+            else:
+                resource = group_directory.replace_group(
+                    resource_id,
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "group",
+                    "action": "scim.group.replace",
+                    "resource": resource,
+                }
+        else:
+            if kind == "Users":
+                resource = user_directory.patch_user(
+                    resource_id,
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "user",
+                    "action": "scim.user.patch",
+                    "resource": resource,
+                }
+            else:
+                resource = group_directory.patch_group(
+                    resource_id,
+                    data,
+                    base_url=base_url,
+                )
+                audit = {
+                    "kind": "group",
+                    "action": "scim.group.patch",
+                    "resource": resource,
+                }
+
         return (
             {
                 "method": method,
-                "bulkId": bulk_id,
                 "location": str(resource["meta"]["location"]),
                 "version": str(resource["meta"]["version"]),
-                "status": "201",
+                "status": "200",
             },
             audit,
         )
-
-    assert resource_id is not None
-    if kind == "Users":
-        current = user_directory.get_user(
-            resource_id,
-            base_url=base_url,
-        )
-    else:
-        current = group_directory.get_group(
-            resource_id,
-            base_url=base_url,
-        )
-    _check_version(operation.get("version"), current)
-
-    if method == "DELETE":
-        if kind == "Users":
-            user_directory.delete_user(resource_id)
-            audit = {
-                "kind": "user",
-                "action": "scim.user.delete",
-                "resource": current,
-            }
-        else:
-            group_directory.delete_group(resource_id)
-            audit = {
-                "kind": "group",
-                "action": "scim.group.delete",
-                "resource": current,
-            }
-        return (
-            {
-                "method": method,
-                "location": str(current["meta"]["location"]),
-                "status": "204",
-            },
-            audit,
-        )
-
-    if method == "PUT":
-        if kind == "Users":
-            resource = user_directory.replace_user(
-                resource_id,
-                data,
-                base_url=base_url,
-            )
-            audit = {
-                "kind": "user",
-                "action": "scim.user.replace",
-                "resource": resource,
-            }
-        else:
-            resource = group_directory.replace_group(
-                resource_id,
-                data,
-                base_url=base_url,
-            )
-            audit = {
-                "kind": "group",
-                "action": "scim.group.replace",
-                "resource": resource,
-            }
-    else:
-        if kind == "Users":
-            resource = user_directory.patch_user(
-                resource_id,
-                data,
-                base_url=base_url,
-            )
-            audit = {
-                "kind": "user",
-                "action": "scim.user.patch",
-                "resource": resource,
-            }
-        else:
-            resource = group_directory.patch_group(
-                resource_id,
-                data,
-                base_url=base_url,
-            )
-            audit = {
-                "kind": "group",
-                "action": "scim.group.patch",
-                "resource": resource,
-            }
-
-    return (
-        {
-            "method": method,
-            "location": str(resource["meta"]["location"]),
-            "version": str(resource["meta"]["version"]),
-            "status": "200",
-        },
-        audit,
-    )
-
 
 
 def execute_scim_bulk(

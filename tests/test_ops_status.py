@@ -277,7 +277,7 @@ def test_config_check_rejects_invalid_scim_storage_backend(
     monkeypatch,
 ):
     monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "s" * 40)
-    monkeypatch.setenv("BS_SCIM_STORAGE_BACKEND", "postgres")
+    monkeypatch.setenv("BS_SCIM_STORAGE_BACKEND", "not-a-backend")
 
     response = client.get("/api/ops/config-check")
     assert response.status_code == 200
@@ -288,4 +288,25 @@ def test_config_check_rejects_invalid_scim_storage_backend(
     scim = rows["scim_provisioning"]
     assert scim["status"] == "fail"
     assert "storage backend" in scim["message"]
-    assert "json or sqlite" in scim["details"]["error"]
+    assert "json, sqlite, or postgres" in scim["details"]["error"]
+
+
+
+def test_config_check_postgres_scim_requires_database_url(
+    monkeypatch,
+):
+    monkeypatch.setenv("BS_SCIM_BEARER_TOKEN", "s" * 40)
+    monkeypatch.setenv("BS_SCIM_STORAGE_BACKEND", "postgres")
+    monkeypatch.delenv("BS_SCIM_DATABASE_URL", raising=False)
+
+    response = client.get("/api/ops/config-check")
+    assert response.status_code == 200
+    rows = {
+        row["name"]: row
+        for row in response.json()["checks"]
+    }
+    scim = rows["scim_provisioning"]
+    assert scim["status"] == "fail"
+    assert scim["details"]["storage_backend"] == "postgres"
+    assert scim["details"]["database_url_configured"] is False
+    assert "BS_SCIM_DATABASE_URL is required" in scim["details"]["error"]
