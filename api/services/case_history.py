@@ -411,6 +411,7 @@ class CaseHistoryService:
         *,
         source_case_id: str,
         source: str,
+        source_manifest_sha256: str = "",
         updated_by: str = "system",
     ) -> Dict[str, Any]:
         if not str(source_case_id or "").strip():
@@ -433,7 +434,7 @@ class CaseHistoryService:
             if row.get("case_id") != case_id or not self._row_in_scope(row):
                 continue
             item = self._with_workflow_defaults(row)
-            item["analysis_lineage"] = {
+            lineage = {
                 "source_case_id": source_case_id,
                 "source": self._truncate_text(source, 80) or "retained_case",
                 "reanalyzed_at": self._now(),
@@ -441,6 +442,22 @@ class CaseHistoryService:
                     self._truncate_text(updated_by, 120) or "system"
                 ),
             }
+            manifest_sha256 = str(
+                source_manifest_sha256 or ""
+            ).strip().lower()
+            if manifest_sha256:
+                if (
+                    len(manifest_sha256) != 64
+                    or any(
+                        char not in "0123456789abcdef"
+                        for char in manifest_sha256
+                    )
+                ):
+                    raise ValueError(
+                        "source_manifest_sha256 must be a SHA-256 hex digest"
+                    )
+                lineage["source_manifest_sha256"] = manifest_sha256
+            item["analysis_lineage"] = lineage
             item["updated_at"] = self._now()
             cases[i] = item
             updated = item

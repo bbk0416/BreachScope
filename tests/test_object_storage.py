@@ -159,6 +159,7 @@ def test_object_storage_round_trip_restore_and_delete(
     )
     assert restored["verified"] is True
     assert restored["file_count"] == 3
+    assert restored["manifest_sha256"] == remote["manifest_sha256"]
     assert read_artifact_bytes(
         work / "out" / "report.json",
         work,
@@ -446,11 +447,15 @@ def test_archived_case_remote_preview_and_report_without_persistent_restore(
     )
 
     created_temporary: list[Path] = []
+    verified_manifest_sha256: list[str] = []
     original_materialize = service.materialize_temporary_case
 
     def capture_materialize(*args, **kwargs):
         target, result = original_materialize(*args, **kwargs)
         created_temporary.append(target)
+        verified_manifest_sha256.append(
+            str(result.get("manifest_sha256") or "")
+        )
         return target, result
 
     monkeypatch.setattr(
@@ -1057,11 +1062,15 @@ def test_archived_remote_case_reanalysis_streams_input_without_restore(
     )
 
     created_temporary: list[Path] = []
+    verified_manifest_sha256: list[str] = []
     original_materialize = service.materialize_temporary_case
 
     def capture_materialize(*args, **kwargs):
         target, result = original_materialize(*args, **kwargs)
         created_temporary.append(target)
+        verified_manifest_sha256.append(
+            str(result.get("manifest_sha256") or "")
+        )
         return target, result
 
     monkeypatch.setattr(
@@ -1144,6 +1153,15 @@ def test_archived_remote_case_reanalysis_streams_input_without_restore(
     assert lineage["source_case_id"] == record.case_id
     assert lineage["source"] == "object_storage"
     assert lineage["reanalyzed_by"] == "operator"
+    source_manifest_sha256 = str(
+        (history.get_case(record.case_id).get("object_storage") or {}).get(
+            "manifest_sha256"
+        )
+        or ""
+    )
+    assert len(source_manifest_sha256) == 64
+    assert verified_manifest_sha256 == [source_manifest_sha256]
+    assert lineage["source_manifest_sha256"] == verified_manifest_sha256[0]
     assert set(analysis.payloads) == {"events.jsonl"}
     assert analysis.payloads["events.jsonl"].replace(
         b"\r\n",
@@ -1184,9 +1202,9 @@ def test_archived_remote_case_reanalysis_streams_input_without_restore(
     ]
     assert len(rows) == 1
     assert rows[0]["status"] == "success"
-    assert (rows[0].get("details") or {}).get("new_case_id") == (
-        analysis.new_case_id
-    )
+    details = rows[0].get("details") or {}
+    assert details.get("new_case_id") == analysis.new_case_id
+    assert details.get("source_manifest_sha256") == source_manifest_sha256
 
 
 def test_remote_reanalysis_custom_rules_requires_analysis_permission(

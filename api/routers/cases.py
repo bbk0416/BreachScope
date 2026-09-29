@@ -594,10 +594,14 @@ async def reanalyze_remote_case(
         if not new_case_id:
             raise RuntimeError("re-analysis did not create a retained case")
         try:
+            verified_manifest_sha256 = str(
+                (restored or {}).get("manifest_sha256") or ""
+            )
             lineage_case = history.set_analysis_lineage(
                 new_case_id,
                 source_case_id=case_id,
                 source="object_storage",
+                source_manifest_sha256=verified_manifest_sha256,
                 updated_by=identity.subject,
             )
         except Exception:
@@ -683,6 +687,9 @@ async def reanalyze_remote_case(
         case_id=case_id,
         details={
             "source": "object_storage",
+            "source_manifest_sha256": str(
+                (restored or {}).get("manifest_sha256") or ""
+            ),
             "input_file_count": len(sources),
             "remote_file_count": (
                 int(restored.get("file_count") or 0)
