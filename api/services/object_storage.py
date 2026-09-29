@@ -522,7 +522,7 @@ class ObjectStorageService:
             "bucket": self.config.bucket,
             "case_prefix": str(remote.get("case_prefix") or ""),
             "manifest_sha256": str(
-                remote.get("manifest_sha256") or ""
+                restored.get("manifest_sha256") or ""
             ),
             "verified_at": _now_iso(),
             "file_count": int(restored.get("file_count") or 0),

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add read-only remote replica integrity verification API: operator/admin can fully restore-verify manifest/object hashes, AES-GCM authentication, and organization namespace without changing case metadata, restore_count, or local payload; return the actually verified manifest SHA-256 and audit success/failure.
 - Add verified remote-only case re-analysis: operator/admin can verify/decrypt an archived replica into a request-scoped temporary restore, stream retained `input/` evidence through the current analysis pipeline, create a new retained case whose lineage records the source case and verified remote manifest SHA-256, preserve the archived source without incrementing `restore_count`, enforce upload/RBAC/custom-rule boundaries, expose the safe default action in the web console, and fail closed on missing input or remote tamper.
 - Add verified remote-only case reads: archived S3-compatible replicas can serve case preview and existing report artifacts through request-scoped temporary restore/verification without repopulating the persistent case directory; fail closed on tamper/key errors, clean temp state after response, expose `원격 전용` in the web console, and audit remote reads.
 - Add verified remote case archive/offload: operator/admin can fully restore-verify an encrypted S3-compatible replica, re-check the recorded manifest SHA, and only then remove the managed local case payload while preserving case/remote metadata for later restore; expose the safe action in the web console and keep deletion/prune guards intact.

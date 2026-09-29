@@ -814,6 +814,29 @@ def test_object_storage_api_requires_operator_and_tracks_replica(
     )
     assert duplicate.status_code == 409
 
+    verify_forbidden = reviewer.post(
+        f"/api/cases/{record.case_id}/object-storage/verify"
+    )
+    assert verify_forbidden.status_code == 403
+
+    before_verify = operator.get(
+        f"/api/cases/{record.case_id}"
+    ).json()["case"]
+    verified = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/verify"
+    )
+    assert verified.status_code == 200, verified.text
+    verification = verified.json()["verification"]
+    assert verification["verified"] is True
+    assert verification["manifest_sha256"] == "b" * 64
+    assert stub.verified == [record.case_id]
+    after_verify = operator.get(
+        f"/api/cases/{record.case_id}"
+    ).json()["case"]
+    assert after_verify["object_storage"] == before_verify["object_storage"]
+    assert after_verify["exists"] is True
+    assert work.exists()
+
     archive_forbidden = reviewer.post(
         f"/api/cases/{record.case_id}/object-storage/archive"
     )
@@ -824,7 +847,7 @@ def test_object_storage_api_requires_operator_and_tracks_replica(
     )
     assert archived.status_code == 200, archived.text
     assert archived.json()["archive"]["verification"]["verified"] is True
-    assert stub.verified == [record.case_id]
+    assert stub.verified == [record.case_id, record.case_id]
     assert not work.exists()
 
     archived_detail = operator.get(f"/api/cases/{record.case_id}")
@@ -848,6 +871,42 @@ def test_object_storage_api_requires_operator_and_tracks_replica(
     assert deleted.status_code == 200
     detail = operator.get(f"/api/cases/{record.case_id}")
     assert detail.json()["case"]["object_storage"] is None
+
+
+def test_object_storage_verify_requires_remote_metadata(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "verify-no-remote-case",
+    )
+    monkeypatch.setenv(
+        "BS_CASE_HISTORY_PATH",
+        str(tmp_path / "case_history.json"),
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / "audit.jsonl"),
+    )
+    record = CaseHistoryService().register_case(
+        work,
+        _sample_report(),
+    )
+    operator = _rbac_client(
+        tmp_path,
+        monkeypatch,
+        "operator",
+    )
+
+    response = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/verify"
+    )
+
+    assert response.status_code == 409
+    assert "replica" in response.json()["detail"]
+    assert work.exists()
 
 
 def test_remote_replica_blocks_case_delete_and_prune(
@@ -986,6 +1045,13 @@ def test_object_storage_archive_verification_failure_keeps_local_case(
     assert replicated.status_code == 200
 
     stub.fail_verify = True
+    verify_failed = operator.post(
+        f"/api/cases/{record.case_id}/object-storage/verify"
+    )
+    assert verify_failed.status_code == 503
+    assert "verification failure" in verify_failed.json()["detail"]
+    assert work.exists()
+
     archived = operator.post(
         f"/api/cases/{record.case_id}/object-storage/archive"
     )

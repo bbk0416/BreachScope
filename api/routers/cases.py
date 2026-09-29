@@ -813,6 +813,84 @@ def replicate_case_to_object_storage(
 
 
 @router.post(
+    "/cases/{case_id}/object-storage/verify",
+    response_class=JSONResponse,
+)
+@_object_storage_operation_locked
+def verify_case_object_storage_replica(
+    case_id: str,
+    request: Request,
+):
+    identity = require_roles(
+        request,
+        ROLE_OPERATOR,
+        permission=PERMISSION_CASE_OBJECT_STORAGE,
+    )
+    try:
+        case = _service(request).get_case(case_id)
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail="케이스를 찾을 수 없습니다.",
+        )
+
+    remote = dict(case.get("object_storage") or {})
+    if not remote:
+        raise HTTPException(
+            status_code=409,
+            detail="검증할 원격 replica 메타데이터가 없습니다.",
+        )
+
+    try:
+        verification = _object_storage_service().verify_replica(
+            case_id,
+            remote,
+            organization_id=identity.organization_id,
+        )
+    except ObjectStorageError as exc:
+        AuditLogService().record(
+            "case.object_storage.verify",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    if not verification.get("verified"):
+        AuditLogService().record(
+            "case.object_storage.verify",
+            request=request,
+            status="failure",
+            case_id=case_id,
+            details={"reason": "remote_replica_not_verified"},
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="원격 replica 복원 검증에 실패했습니다.",
+        )
+
+    AuditLogService().record(
+        "case.object_storage.verify",
+        request=request,
+        status="success",
+        case_id=case_id,
+        details={
+            "provider": verification.get("provider"),
+            "bucket": verification.get("bucket"),
+            "case_prefix": verification.get("case_prefix"),
+            "manifest_sha256": verification.get("manifest_sha256"),
+            "verified_at": verification.get("verified_at"),
+            "file_count": verification.get("file_count"),
+        },
+    )
+    return {
+        "success": True,
+        "verification": verification,
+    }
+
+
+@router.post(
     "/cases/{case_id}/object-storage/archive",
     response_class=JSONResponse,
 )
