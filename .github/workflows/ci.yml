@@ -131,6 +131,33 @@ jobs:
             out/publish/breachscope-public-launch-pack.zip
           if-no-files-found: error
 
+  clean-install:
+    name: Clean install (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11.16"
+          - os: macos-15-intel
+            python-version: "3.11"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Verify clean wheel install and runtime
+        run: python scripts/verify_clean_install_e2e.py
+
   windows-test:
     name: Windows Python 3.11
     runs-on: windows-latest

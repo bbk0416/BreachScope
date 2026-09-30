@@ -34,6 +34,12 @@ source_binding:
   quickstart:
     path: docs/QUICKSTART.md
     sha256: e3c01c449cb549e89b79bca9c1e46c166523fce4ce953e59b1c03a0ed079b74d
+  ci_workflow:
+    path: .github/workflows/ci.yml
+    sha256: 1f31a7596c4ceb17a9b51771a0262884187f87dd822d7b0de828e18cb5e41cf9
+  ci_contract_test:
+    path: tests/test_ci_workflow_contract.py
+    sha256: c411993e3258d06bb60a370259192c66778079db4ab34f95b06def57dadcacf4
 
 result:
   wheel_name: breachscope-2.1.2-py3-none-any.whl
@@ -48,6 +54,32 @@ result:
   fastapi_health: PASS
   fastapi_readiness: PASS
   cleanup: true
+
+cross_platform_ci:
+  verified_date: 2026-10-01
+  repository: bbk0416/BreachScope
+  pull_request: 353
+  workflow: CI
+  run_id: 36755495797
+  run_number: 510
+  head_repo_commit: 13aa7ca9215939e4160d3632a81af54f8c6f073f
+  tested_pull_merge_commit: 818fab95b308bfe5b93a51dfa8d8273c60f0d0d5
+  ubuntu:
+    job_id: 110024576797
+    runner: ubuntu-latest
+    setup_python: "3.11.16"
+    actual_python: "3.11.16"
+    conclusion: SUCCESS
+    verifier_status: PASS
+    cleanup: true
+  macos:
+    job_id: 110024576368
+    runner: macos-15-intel
+    setup_python: "3.11"
+    actual_python: "3.11.9"
+    conclusion: SUCCESS
+    verifier_status: PASS
+    cleanup: true
 
 runtime_path_correction:
   issue: >-
@@ -69,8 +101,8 @@ claim_boundary:
   fastapi_readiness_verified: true
   source_checkout_not_used_at_runtime: true
   windows_python_3_11_verified: true
-  linux_clean_install: NOT_TESTED
-  macos_clean_install: NOT_TESTED
+  linux_clean_install: PASS
+  macos_clean_install: PASS
   offline_dependency_install: NOT_TESTED
   public_release_asset_download_path: NOT_TESTED
   fresh_machine_without_cached_packages: NOT_TESTED

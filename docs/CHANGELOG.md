@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Verify clean wheel installation and runtime smoke on real GitHub-hosted Ubuntu and macOS Intel runners; both platforms pass wheel build, fresh venv install, packaged assets, demo CLI, live FastAPI health/readiness, and cleanup.
 - Add regression coverage for worst-case rollback failures: object-storage replication now has a test for case-index persistence failure plus remote rollback failure with operator/audit visibility; artifact encryption tests incomplete plaintext restoration; SCIM migration tests target-write failure plus rollback failure while preserving the recovery backup path.
 - Fix GitHub Actions CI reproducibility by explicitly fetching the pinned historical detection-evidence commit in Linux and Windows jobs, shell-quoting the default OIDC scopes in generated `.env` files, aligning the dev setuptools floor with the build backend, making dependency-lock validation version-agnostic for setuptools, correcting the pinned Python 3.11.16 matrix conditions so showcase/publish/artifact steps actually run, and capping demo artifact retention to one day.
 - Fix installed-wheel operations readiness/self-test to resolve packaged rules/templates through `breachscope.runtime_paths`; add a clean-install verifier that builds a wheel into a fresh Python 3.11 venv outside the source checkout and verifies packaged assets, demo CLI, and live FastAPI health/readiness. Also correct source-checkout Quickstart commands to use `scripts/run.py`.
