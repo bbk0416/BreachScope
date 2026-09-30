@@ -1,0 +1,181 @@
+schema: breachscope.p2_36c_current_rulepack_fresh_source_revalidation_contract.v1
+analysis_id: p2-36c-current-rulepack-fresh-source-revalidation-v1
+status: PREREGISTERED_EXECUTION_NOT_RUN
+created_date: 2026-09-30
+purpose: >-
+  Freeze exact P2-36C source bytes, benign archive inventory and metadata-only
+  member-size eligibility, the frozen 73-rule product, and the canonical
+  one-shot runner before any selected EVTX is scored.
+
+predecessor:
+  failed_analysis_id: p2-36b-current-rulepack-fresh-source-revalidation-v1
+  failure_record: external_baseline/p2_36b_current_rulepack_fresh_source_revalidation_failure.yaml
+  same_analysis_id_retry_forbidden: true
+  predecessor_sources_reused: false
+  failure_mitigation:
+    zero_event_benign_members: RECORD_EMPTY_AND_CONTINUE
+    benign_member_size_gate_bytes: 134217728
+    oversize_policy: REJECT_ENTIRE_ARCHIVE_BEFORE_SCORING
+
+source_preregistration:
+  path: external_baseline/p2_36c_current_rulepack_fresh_source_preregistration.yaml
+  sha256: 4b529725f021933a18f55f80dbe4c5ee9c91078c0ae766c164566e7bc035b0a0
+  merge_commit: edd4037ccae6805b061197c469c9fd9008ec8743
+  merged_before_exact_byte_binding: true
+  order_only_normalization:
+    reason: >-
+      The source contract selected all tracked EVTX blobs but listed PtH before
+      LaZagne while also declaring path-casefold ascending order. Execution
+      binding normalizes only the listing order; the selected path/blob set is
+      unchanged.
+    source_contract_listing:
+      - Demo evtx Files/PtH_02.evtx
+      - Demo evtx Files/lazagneProject.evtx
+    canonical_execution_order:
+      - Demo evtx Files/lazagneProject.evtx
+      - Demo evtx Files/PtH_02.evtx
+    selected_path_blob_set_changed: false
+    detector_output_observed_before_normalization: false
+
+frozen_product:
+  repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  execution_mode: SEPARATE_FROZEN_GIT_WORKTREE
+  product_changed_from_p2_36b: false
+
+runner:
+  path: scripts/p2_36c_current_rulepack_fresh_source_revalidation.py
+  sha256: 568db0010108f0b012f72b75b0f629b53f910c19a9a842af4b22d5dc18ffb797
+  hash_mode: LF_NORMALIZED_SHA256
+  permanent_global_lock: P2_36C_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+  one_canonical_execution_only: true
+  same_analysis_id_retry_allowed: false
+  atomic_output_strategy: PID_SCOPED_TEMP_FILE_PLUS_PERMISSIONERROR_RETRY
+  temp_free_bytes_min: 8589934592
+  benign_member_processing: ONE_EVTX_TEMP_FILE_AT_A_TIME
+  detector_input_mode: STREAMING_EVENT_ITERATOR
+  zero_parsed_event_benign_member_policy: RECORD_EMPTY_AND_CONTINUE
+  zero_parsed_event_attack_fixture_policy: FAIL_FIXTURE
+
+attack_revalidation:
+  source:
+    repository: ChristosSmiliotopoulos/Python_Evtx_Analyzer
+    pinned_commit: 74fc950130d63141e50ad4975fd9045dbcfb7825
+    pinned_tree: b85288eefe8542a6616026e5cbc5ae4b1dece264
+    readme_path: README.md
+    readme_git_blob_sha1: 20f520066fd5fbd236e01b3ee7eec66451e1e53d
+    readme_size_bytes: 4955
+    readme_sha256: 87930a474e334fae5ec6ecb3b6ca396c9e44ce8c376d5b0ef5fc1b33c48b849f
+    source_repository_previously_used_by_breachscope: false
+    author_overlap_with_prior_lmd_candidate: true
+  selection_policy:
+    selector: ALL_TRACKED_BLOBS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: SOURCE_PATH_CASEFOLD_ASCENDING
+    selected_fixture_count: 2
+    all_selector_matches_selected: true
+    post_execution_fixture_replacement_allowed: false
+  datasets:
+    - dataset_id: lazagne_project
+      family_label: LaZagne Demo
+      source_path: Demo evtx Files/lazagneProject.evtx
+      size_bytes: 10555392
+      git_blob_sha1: c865ffc64c9861ecb0c1875466d2661506ab8f90
+      sha256: a528bec6d64b47cd5d7743cb3b4ee6dc152aeb7d235834ce4c18215f178fd82e
+    - dataset_id: pth_02
+      family_label: PtH Demo
+      source_path: Demo evtx Files/PtH_02.evtx
+      size_bytes: 1118208
+      git_blob_sha1: d94902a0386400a6d5bdfb86919aa676ee7ade5a
+      sha256: cbbfb5a70d68c0c9c5f4329438784364f0a73c260425ce452bb7af4cad22459f
+  measurement:
+    fixture_status: HIT_IF_AT_LEAST_ONE_FINDING_ELSE_MISS
+    fixture_hit_fraction_is_event_level_recall: false
+    report_raw_records: true
+    report_parsed_events: true
+    report_parse_errors: true
+    report_findings: true
+    report_flagged_events: true
+    report_findings_by_rule: true
+    report_findings_by_technique: true
+
+benign_revalidation:
+  source:
+    repository: NextronSystems/evtx-baseline
+    release_tag: v0.8.5
+    source_family_previously_used_by_breachscope: true
+  archive:
+    asset_name: win7-x86.tgz
+    size_bytes: 11109250
+    sha256: e755f3cd48f8a3dc8877c46622339cd44fa0929981fcfd79ada63c2bafb62b9f
+  inventory:
+    selector: ALL_REGULAR_TAR_MEMBERS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: MEMBER_NAME_CASEFOLD_ASCENDING
+    evtx_member_count: 129
+    total_evtx_bytes: 145166336
+    inventory_sha256: 32cc564c6873c8800958c30677d7afdb5d2cc512fbc76de7f0c913d7bfe5e1d6
+    inventory_uses_names_and_sizes_only: true
+    event_contents_parsed_while_binding_inventory: false
+    post_inventory_member_dropping_allowed: false
+    maximum_member_name: win7-x86/Microsoft-Windows-Sysmon%4Operational.evtx
+    maximum_member_size_bytes: 129044480
+  metadata_size_gate:
+    maximum_selected_evtx_member_size_bytes: 134217728
+    maximum_observed_selected_member_size_bytes: 129044480
+    passed: true
+    oversize_member_policy: REJECT_ENTIRE_ARCHIVE_BEFORE_SCORING
+    oversize_member_may_not_be_dropped: true
+    detector_output_observed_before_gate: false
+  measurement:
+    label_policy: BENIGN_BY_SOURCE_INTENT_NOT_EVENT_LEVEL_ADJUDICATION
+    zero_parsed_event_member_policy: RECORD_EMPTY_AND_CONTINUE
+    report_member_inventory: true
+    report_per_member_status: true
+    report_empty_members: true
+    report_per_member_raw_records: true
+    report_per_member_parsed_events: true
+    report_per_member_parse_errors: true
+    report_per_member_findings: true
+    report_per_member_flagged_events: true
+    report_findings_by_rule: true
+    report_findings_by_technique: true
+    report_aggregate_flagged_event_fraction: true
+    flagged_events_are_confirmed_false_positives: false
+
+protocol:
+  execution_contract_must_be_merged_before_detector_run: true
+  permanent_lock_acquired_before_product_or_source_verification: true
+  result_acceptance_depends_on_measurement_value: false
+  source_selection_must_not_change_after_observation: true
+  runner_must_not_change_after_contract_merge: true
+  product_commit_must_not_change_after_contract_merge: true
+  attack_repo_must_be_clean_and_pinned: true
+  product_worktree_must_be_clean_and_pinned: true
+  empty_benign_member_is_not_a_detector_failure: true
+  entire_benign_archive_zero_events_is_failure: true
+  benign_member_size_gate_must_pass_before_scoring: true
+
+claim_boundary:
+  source_class: NEW_ATTACK_REPOSITORY_PLUS_UNUSED_BENIGN_EXACT_BYTES
+  attack_repository_previously_used_by_breachscope: false
+  attack_author_overlap_with_prior_candidate: true
+  benign_source_family_previously_used_by_breachscope: true
+  combined_independent_source_family_holdout: false
+  attack_fixture_hit_fraction_is_event_level_recall: false
+  attack_event_level_ground_truth: NOT_AVAILABLE
+  benign_event_level_ground_truth: NOT_AVAILABLE
+  benign_flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+
+execution_state:
+  canonical_execution_started: false
+  attack_detector_run: false
+  benign_detector_run: false
+  result_observed: false
