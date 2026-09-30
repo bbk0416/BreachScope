@@ -92,13 +92,13 @@ def test_p2_36_benign_archive_is_unused_asset_candidate() -> None:
     assert benign["member_selection_policy"]["fallback_to_different_asset_allowed"] is False
 
 
-def test_p2_36_current_evidence_still_requires_fresh_revalidation() -> None:
+def test_p2_36_current_evidence_now_points_to_p2_36c_completed_revalidation() -> None:
     current = yaml.safe_load(CURRENT.read_text(encoding="utf-8"))
     validation = current["current_rulepack_validation"]
-    assert validation["current_revalidation_id"] == "NOT_RUN"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_current_rulepack_performance_available"] is False
+    assert validation["current_revalidation_id"] == "p2-36c-current-rulepack-fresh-source-revalidation"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_current_rulepack_performance_available"] is True
 
 
 def test_p2_36_execution_gate_prevents_premature_scoring() -> None:

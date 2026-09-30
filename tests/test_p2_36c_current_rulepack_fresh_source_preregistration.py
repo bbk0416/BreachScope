@@ -118,13 +118,13 @@ def test_p2_36c_benign_member_size_gate_is_pre_scoring_and_fail_closed() -> None
     )
 
 
-def test_p2_36c_current_evidence_still_has_no_fresh_revalidation() -> None:
+def test_p2_36c_current_evidence_now_points_to_completed_revalidation() -> None:
     current = yaml.safe_load(CURRENT.read_text(encoding="utf-8"))
     validation = current["current_rulepack_validation"]
-    assert validation["current_revalidation_id"] == "NOT_RUN"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_current_rulepack_performance_available"] is False
+    assert validation["current_revalidation_id"] == "p2-36c-current-rulepack-fresh-source-revalidation"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_current_rulepack_performance_available"] is True
 
 
 def test_p2_36c_execution_gate_prevents_premature_scoring() -> None:

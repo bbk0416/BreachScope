@@ -1,5 +1,5 @@
 schema: breachscope.current_detection_evidence_chain.v1
-current_evidence_id: independent-command-coverage-remediation-current-detection-evidence
+current_evidence_id: p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence
 base_benchmark: external_baseline/p2_09e_benchmark.yaml
 base_rules_tree_sha256: 543b4e02ebb48d5e33eeb4405a6d489487a05d07ffebda4ba31206a059dae3ce
 current_frozen_detector:
@@ -131,14 +131,50 @@ post_remediation_revalidations:
   independent_source_family_holdout: false
   production_false_positive_rate: NOT_CLAIMED
   production_recall: NOT_CLAIMED
+- revalidation_id: p2-36c-current-rulepack-fresh-source-revalidation
+  class: fresh_current_rulepack_attack_and_benign_source_revalidation
+  contract_record: external_baseline/p2_36c_current_rulepack_fresh_source_revalidation_contract.yaml
+  result_record: external_baseline/p2_36c_current_rulepack_fresh_source_revalidation_result.yaml
+  measurement_record: external_baseline/results/p2_36c_3ce807d/result.json
+  permanent_lock_record: external_baseline/locks/P2_36C_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+  detector_repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  detector_rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  attack_repository_previously_used: false
+  attack_author_overlap_with_prior_candidate: true
+  fixture_count: 2
+  hits: 1
+  misses: 1
+  errors: 0
+  fixture_hit_rate: 0.5
+  attack_event_level_ground_truth: NOT_AVAILABLE
+  fixture_hit_rate_is_event_level_recall: false
+  fresh_attack_revalidation: COMPLETED
+  benign_source_family_previously_used: true
+  benign_evtx_member_count: 129
+  benign_empty_member_count: 94
+  benign_nonempty_member_count: 35
+  benign_parsed_events: 112411
+  benign_parse_errors: 0
+  benign_findings: 1
+  benign_flagged_events: 1
+  observed_source_intent_benign_flagged_event_fraction: 8.89592655523036e-06
+  observed_source_intent_benign_flagged_event_percent: 0.000889592655523036
+  benign_event_level_ground_truth: NOT_AVAILABLE
+  flagged_events_are_confirmed_false_positives: false
+  fresh_benign_revalidation: COMPLETED
+  independent_source_family_holdout: false
+  production_false_positive_rate: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
 current_rulepack_validation:
   rule_change_id: independent-command-coverage-remediation-v1
-  current_revalidation_id: NOT_RUN
-  fresh_attack_revalidation_after_current_rule_change: NOT_RUN
-  fresh_benign_revalidation_after_current_rule_change: NOT_RUN
+  current_revalidation_id: p2-36c-current-rulepack-fresh-source-revalidation
+  fresh_attack_revalidation_after_current_rule_change: COMPLETED
+  fresh_benign_revalidation_after_current_rule_change: COMPLETED
   prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack: false
   prior_p2_35m_revalidation_applies_to_current_rulepack: false
-  fresh_current_rulepack_performance_available: false
+  fresh_current_rulepack_performance_available: true
 parser_maintenance:
 - maintenance_id: p2-29-single-parse-evtx
   record: external_baseline/p2_29_single_parse_parser_maintenance.yaml
@@ -347,5 +383,9 @@ claim_boundary:
     independent-command-coverage-remediation-v1 changes the live detector to 73 rules
     using independent ATT&CK/Microsoft/Atomic-supported command semantics after the sealed
     BRAWL diagnosis. That change is post-hoc development, not fresh validation; the P2-35M
-    69-rule measurements do not apply to the current 73-rule detector, and fresh attack
-    and benign revalidation for the current rulepack remain NOT_RUN.'
+    69-rule measurements do not apply to the current 73-rule detector. P2-36C later
+    completed preregistered fresh attack and benign revalidation for the current 73-rule
+    rulepack: 1/2 attack fixtures produced at least one finding, and 1/112,411 parsed
+    source-intent benign events was flagged. These are bounded source-specific
+    observations, not event-level recall, confirmed false-positive rate, or production
+    performance.'

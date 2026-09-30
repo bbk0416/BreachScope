@@ -69,12 +69,12 @@ def test_independent_command_remediation_matches_live_rule_tree() -> None:
         assert actual == expected_blob
 
 
-def test_current_chain_marks_73_rule_detector_pending_fresh_revalidation() -> None:
+def test_current_chain_marks_73_rule_detector_revalidated_by_p2_36c() -> None:
     chain = _yaml(CHAIN)
 
     assert (
         chain["current_evidence_id"]
-        == "independent-command-coverage-remediation-current-detection-evidence"
+        == "p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     )
     assert chain["current_frozen_detector"] == {
         "repo_commit": DETECTOR_COMMIT,
@@ -92,18 +92,18 @@ def test_current_chain_marks_73_rule_detector_pending_fresh_revalidation() -> No
     current = chain["current_rulepack_validation"]
     assert current == {
         "rule_change_id": "independent-command-coverage-remediation-v1",
-        "current_revalidation_id": "NOT_RUN",
-        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
-        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "current_revalidation_id": "p2-36c-current-rulepack-fresh-source-revalidation",
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
         "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
         "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
-        "fresh_current_rulepack_performance_available": False,
+        "fresh_current_rulepack_performance_available": True,
     }
 
 
 def test_p2_35m_remains_historical_and_claims_stay_bounded() -> None:
     chain = _yaml(CHAIN)
-    p35m = chain["post_remediation_revalidations"][-1]
+    p35m = chain["post_remediation_revalidations"][-2]
 
     assert p35m["revalidation_id"] == "p2-35m-current-rulepack-fresh-source-revalidation"
     assert p35m["detector_rules_tree_sha256"] == OLD_HASH
