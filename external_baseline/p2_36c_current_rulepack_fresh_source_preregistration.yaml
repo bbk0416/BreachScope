@@ -1,0 +1,176 @@
+schema: breachscope.p2_36c_current_rulepack_fresh_source_preregistration.v1
+analysis_id: p2-36c-current-rulepack-fresh-source-revalidation-v1
+status: PREREGISTERED_SOURCE_SELECTION_NOT_RUN
+created_date: 2026-09-30
+purpose: >-
+  Replace the permanently retired P2-36B canonical analysis with new attack
+  source bytes and a different unused benign archive candidate for the frozen
+  73-rule detector. Freeze source selection and a metadata-only benign
+  per-member size gate before exact-byte binding, event parsing, or scoring.
+
+predecessor:
+  failure_record: external_baseline/p2_36b_current_rulepack_fresh_source_revalidation_failure.yaml
+  failed_analysis_id: p2-36b-current-rulepack-fresh-source-revalidation-v1
+  failure_record_main_commit: d4077c013729345cba7157654c34353086106767
+  same_analysis_id_retry_forbidden: true
+  predecessor_attack_fixture_reused: false
+  predecessor_benign_archive_reused: false
+  predecessor_failure_class: CANONICAL_EVALUATOR_PROCESS_LOST
+  predecessor_failure_stage: BENIGN_MEMBER_273_SYSMON_SCORING
+
+preregistration:
+  base_main_commit: d4077c013729345cba7157654c34353086106767
+  current_detection_evidence: external_baseline/current_detection_evidence.yaml
+  fresh_attack_revalidation_before_p2_36c: NOT_RUN
+  fresh_benign_revalidation_before_p2_36c: NOT_RUN
+  attack_tree_metadata_inspected_before_merge: true
+  attack_exact_bytes_downloaded_for_p2_36c_before_merge: false
+  attack_event_contents_parsed_for_p2_36c_before_merge: false
+  benign_archive_downloaded_for_p2_36c_before_merge: false
+  benign_archive_inventory_for_p2_36c_before_merge: false
+  benign_event_contents_parsed_for_p2_36c_before_merge: false
+  detector_executed_against_selected_sources_before_merge: false
+  source_selection_may_not_change_after_merge: true
+  execution_contract_required_before_any_detector_run: true
+
+frozen_product:
+  repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  product_changed_from_p2_36b: false
+
+attack_revalidation:
+  source:
+    repository: ChristosSmiliotopoulos/Python_Evtx_Analyzer
+    pinned_commit: 74fc950130d63141e50ad4975fd9045dbcfb7825
+    pinned_tree: b85288eefe8542a6616026e5cbc5ae4b1dece264
+    readme_path: README.md
+    readme_git_blob_sha1: 20f520066fd5fbd236e01b3ee7eec66451e1e53d
+    readme_size_bytes: 4955
+    source_intent_summary: >-
+      The repository describes Sysmon/Windows EVTX material for lateral-movement
+      analysis and a public dataset containing normal and normal-versus-malicious
+      subsets.
+    source_repository_previously_used_by_breachscope: false
+    author_overlap_with_prior_lmd_candidate: true
+  freshness_evidence:
+    source_repository_reference_count_in_pre_p2_36c_repo: 0
+    selected_source_path_reference_count_in_pre_p2_36c_repo: 0
+    selected_git_blob_id_reference_count_in_pre_p2_36c_repo: 0
+    exact_byte_sha256_not_yet_bound: true
+    attack_event_contents_parsed_for_selection: false
+  selection_policy:
+    selector: ALL_TRACKED_BLOBS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: SOURCE_PATH_CASEFOLD_ASCENDING
+    all_selector_matches_selected: true
+    selected_fixture_count: 2
+    post_execution_fixture_replacement_allowed: false
+    archive_contents_selected: false
+  datasets:
+    - dataset_id: pth_02
+      family_label: PtH Demo
+      source_path: Demo evtx Files/PtH_02.evtx
+      size_bytes: 1118208
+      git_blob_sha1: d94902a0386400a6d5bdfb86919aa676ee7ade5a
+    - dataset_id: lazagne_project
+      family_label: LaZagne Demo
+      source_path: Demo evtx Files/lazagneProject.evtx
+      size_bytes: 10555392
+      git_blob_sha1: c865ffc64c9861ecb0c1875466d2661506ab8f90
+  measurement:
+    fixture_status: HIT_IF_AT_LEAST_ONE_FINDING_ELSE_MISS
+    report_raw_records: true
+    report_parsed_events: true
+    report_parse_errors: true
+    report_findings: true
+    report_flagged_events: true
+    report_findings_by_rule: true
+    report_findings_by_technique: true
+    fixture_hit_fraction_is_event_level_recall: false
+
+benign_revalidation:
+  source:
+    repository: NextronSystems/evtx-baseline
+    release_tag: v0.8.5
+    release_tag_commit: 394bd48339f84b16053ad4804b894ab00c8a6c74
+    source_family_previously_used_by_breachscope: true
+  freshness_evidence:
+    selected_asset_name_reference_count_in_pre_p2_36c_repo: 0
+    selected_asset_sha256_reference_count_in_pre_p2_36c_repo: 0
+    archive_inventory_before_merge: false
+    event_contents_parsed_for_selection: false
+  archive:
+    asset_name: win7-x86.tgz
+    size_bytes: 11109250
+    sha256: e755f3cd48f8a3dc8877c46622339cd44fa0929981fcfd79ada63c2bafb62b9f
+    digest_source: GITHUB_RELEASE_V0_8_5_ASSET_METADATA
+  member_selection_policy:
+    selector: ALL_REGULAR_TAR_MEMBERS_WITH_CASE_INSENSITIVE_DOT_EVTX_SUFFIX
+    ordering: MEMBER_NAME_CASEFOLD_ASCENDING
+    minimum_evtx_member_count: 1
+    post_inventory_member_dropping_allowed: false
+    fallback_to_different_asset_allowed: false
+    zero_parsed_event_member_policy: RECORD_EMPTY_AND_CONTINUE
+  metadata_only_execution_eligibility_gate:
+    evaluated_after_source_preregistration_merge: true
+    evaluated_before_execution_contract_merge: true
+    event_contents_may_not_be_parsed_for_gate: true
+    maximum_selected_evtx_member_size_bytes: 134217728
+    comparison: EACH_SELECTED_MEMBER_SIZE_LE_MAXIMUM
+    oversize_member_policy: REJECT_ENTIRE_ARCHIVE_BEFORE_SCORING
+    oversize_member_may_not_be_dropped: true
+    detector_run_allowed_if_gate_fails: false
+    same_analysis_id_detector_retry_allowed_if_gate_fails: false
+  measurement:
+    label_policy: BENIGN_BY_SOURCE_INTENT_NOT_EVENT_LEVEL_ADJUDICATION
+    report_member_inventory: true
+    report_per_member_status: true
+    report_empty_members: true
+    report_per_member_raw_records: true
+    report_per_member_parsed_events: true
+    report_per_member_parse_errors: true
+    report_per_member_findings: true
+    report_per_member_flagged_events: true
+    report_findings_by_rule: true
+    report_aggregate_flagged_event_fraction: true
+    flagged_events_are_confirmed_false_positives: false
+
+execution_gate:
+  source_preregistration_must_be_merged_before_exact_byte_binding: true
+  separate_execution_contract_required: true
+  execution_contract_must_freeze_runner_sha256: true
+  execution_contract_must_freeze_product_commit_and_rules_tree: true
+  execution_contract_must_bind_attack_sha256_after_source_download: true
+  execution_contract_must_bind_benign_inventory_after_archive_download: true
+  execution_contract_must_assert_benign_member_size_gate_passed: true
+  execution_contract_must_define_permanent_global_lock: true
+  successor_runner_must_record_zero_event_evtx_as_empty: true
+  detector_must_not_run_before_execution_contract_merge: true
+  source_or_fixture_selection_must_not_depend_on_detector_output: true
+
+claim_boundary:
+  source_class: NEW_ATTACK_REPOSITORY_PLUS_UNUSED_BENIGN_ASSET_PREREGISTRATION
+  attack_repository_previously_used_by_breachscope: false
+  attack_author_overlap_with_prior_candidate: true
+  benign_source_family_previously_used_by_breachscope: true
+  combined_independent_source_family_holdout: false
+  attack_fixture_hit_fraction_is_event_level_recall: false
+  attack_event_level_ground_truth: NOT_AVAILABLE
+  benign_event_level_ground_truth: NOT_AVAILABLE
+  benign_flagged_events_are_confirmed_false_positives: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  representative_production_population: NOT_CLAIMED
+
+execution_state_at_preregistration:
+  source_contract_merged: false
+  benign_metadata_size_gate_evaluated: false
+  execution_contract_merged: false
+  attack_detector_run: false
+  benign_detector_run: false
+  result_observed: false
