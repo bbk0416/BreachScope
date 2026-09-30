@@ -1507,6 +1507,72 @@ def test_api_replication_rolls_back_remote_when_case_index_persist_fails(
     assert stub_storage.deleted == ["case-persist-fail"]
 
 
+def test_api_replication_surfaces_operator_action_when_remote_rollback_also_fails(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    work, _ = _encrypted_case(
+        tmp_path,
+        monkeypatch,
+        "persist-and-rollback-fail-case",
+    )
+    monkeypatch.setenv(
+        "BS_AUDIT_LOG_PATH",
+        str(tmp_path / "audit.jsonl"),
+    )
+
+    class RollbackFailingStorage(StubObjectStorageService):
+        def delete_replica(
+            self,
+            case_id: str,
+            remote: dict,
+            *,
+            organization_id: str | None = None,
+        ):
+            self.deleted.append(case_id)
+            self.deleted_organizations.append(organization_id or "default")
+            raise ObjectStorageError("forced remote rollback failure")
+
+    class FailingHistory:
+        def get_case(self, case_id: str):
+            return {
+                "case_id": case_id,
+                "exists": True,
+                "work_dir": str(work),
+                "object_storage": None,
+            }
+
+        def set_object_storage_state(self, *args, **kwargs):
+            raise OSError("forced case index write failure")
+
+    storage = RollbackFailingStorage()
+    monkeypatch.setattr(
+        cases_router_module,
+        "_object_storage_service",
+        lambda: storage,
+    )
+    monkeypatch.setattr(
+        cases_router_module,
+        "_service",
+        lambda request: FailingHistory(),
+    )
+    operator = _rbac_client(tmp_path, monkeypatch, "operator")
+
+    response = operator.post(
+        "/api/cases/case-persist-rollback-fail/object-storage/replicate"
+    )
+
+    assert response.status_code == 500
+    assert "rollback이 모두 실패" in response.json()["detail"]
+    assert "운영자 확인" in response.json()["detail"]
+    assert storage.replicated == ["case-persist-rollback-fail"]
+    assert storage.deleted == ["case-persist-rollback-fail"]
+
+    audit_text = (tmp_path / "audit.jsonl").read_text(encoding="utf-8")
+    assert "case_index_persist_failed" in audit_text
+    assert "forced remote rollback failure" in audit_text
+
+
 def _legacy_replica(
     service: ObjectStorageService,
     fake: FakeS3,

@@ -330,6 +330,68 @@ def test_json_target_is_restored_byte_for_byte_on_write_failure(
     assert len(list(backups.glob("scim-identity-*.json"))) == 1
 
 
+def test_migration_reports_backup_when_target_rollback_also_fails(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import api.services.scim_migration as migration_module
+
+    source = _config(tmp_path / "source", "sqlite")
+    target = _config(tmp_path / "target", "json")
+    backups = tmp_path / "backups"
+    _seed(source)
+    _seed(
+        target,
+        users=[
+            {
+                **_users()[0],
+                "id": "old-user",
+                "userName": "old@example.test",
+                "externalId": "old-subject",
+            }
+        ],
+        groups=[],
+    )
+
+    original_save_groups = ScimIdentityStore.save_groups
+
+    def fail_target_groups(
+        self: ScimIdentityStore,
+        rows: list[dict],
+    ) -> None:
+        if self.backend == "json" and self.group_path == target.group_path:
+            raise ScimStoreError("forced target write failure")
+        original_save_groups(self, rows)
+
+    def fail_restore(*args, **kwargs):
+        raise ScimStoreError("forced target rollback failure")
+
+    monkeypatch.setattr(ScimIdentityStore, "save_groups", fail_target_groups)
+    monkeypatch.setattr(
+        migration_module,
+        "_restore_identity_target",
+        fail_restore,
+    )
+
+    with pytest.raises(
+        ScimMigrationError,
+        match="target rollback also failed",
+    ) as exc_info:
+        migrate_scim_identity_store(
+            source,
+            target,
+            replace=True,
+            backup_dir=backups,
+        )
+
+    backup_files = list(backups.glob("scim-identity-*.json"))
+    assert len(backup_files) == 1
+    assert str(backup_files[0]) in str(exc_info.value)
+    backup = json.loads(backup_files[0].read_text(encoding="utf-8"))
+    assert [row["id"] for row in backup["users"]] == ["old-user"]
+    assert backup["groups"] == []
+
+
 def test_cli_dry_run_json_to_sqlite(
     tmp_path: Path,
 ) -> None:
