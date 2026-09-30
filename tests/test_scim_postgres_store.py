@@ -55,6 +55,15 @@ class _FakePostgresConnection:
         )
         return _Result()
 
+    def cursor(self):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
     def commit(self):
         self.commits += 1
         self._release()
@@ -147,6 +156,68 @@ def test_postgres_mutation_uses_one_advisory_transaction(
     assert connections[0].commits == 1
     assert connections[0].rollbacks == 0
     assert connections[0].closed is True
+
+
+def test_postgres_save_users_uses_cursor_executemany(
+    monkeypatch,
+) -> None:
+    store = _store()
+    lock = threading.Lock()
+    statements: list[tuple[str, object]] = []
+    conn = _FakePostgresConnection(lock, statements)
+    monkeypatch.setattr(store, "_postgres_connect", lambda: conn)
+
+    store.save_users(
+        [
+            {
+                "id": "u-1",
+                "userName": "one@example.test",
+                "externalId": "sub-u-1",
+                "active": True,
+                "role": "viewer",
+                "organization_id": "org-one",
+                "created": "2026-09-30T00:00:00Z",
+                "last_modified": "2026-09-30T00:00:00Z",
+            }
+        ]
+    )
+
+    sql = [row[0] for row in statements]
+    assert any("INSERT INTO scim_users" in statement for statement in sql)
+    assert conn.commits == 1
+    assert conn.rollbacks == 0
+    assert conn.closed is True
+
+
+def test_postgres_save_groups_and_members_use_cursor_executemany(
+    monkeypatch,
+) -> None:
+    store = _store()
+    lock = threading.Lock()
+    statements: list[tuple[str, object]] = []
+    conn = _FakePostgresConnection(lock, statements)
+    monkeypatch.setattr(store, "_postgres_connect", lambda: conn)
+
+    store.save_groups(
+        [
+            {
+                "id": "g-1",
+                "displayName": "Group One",
+                "member_ids": ["u-1"],
+                "role": "viewer",
+                "organization_id": "org-one",
+                "created": "2026-09-30T00:00:00Z",
+                "last_modified": "2026-09-30T00:00:00Z",
+            }
+        ]
+    )
+
+    sql = [row[0] for row in statements]
+    assert any("INSERT INTO scim_groups" in statement for statement in sql)
+    assert any("INSERT INTO scim_group_members" in statement for statement in sql)
+    assert conn.commits == 1
+    assert conn.rollbacks == 0
+    assert conn.closed is True
 
 
 def test_postgres_mutation_rolls_back_on_error(

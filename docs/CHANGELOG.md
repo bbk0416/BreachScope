@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix real psycopg PostgreSQL SCIM writes to use `cursor.executemany()` instead of the fake-only `Connection.executemany()` API; add an isolated real-PostgreSQL E2E runner that verifies schema creation, shared state across independent stores, REPEATABLE READ snapshots, rollback, advisory-lock serialization, group membership persistence, and SQLite→PostgreSQL migration with digest verification. The verified local run used PostgreSQL 16.15 and did not modify the configured system PostgreSQL service.
 - Add read-only remote replica integrity verification API: operator/admin can fully restore-verify manifest/object hashes, AES-GCM authentication, and organization namespace without changing case metadata, restore_count, or local payload; return the actually verified manifest SHA-256 and audit success/failure.
 - Add verified remote-only case re-analysis: operator/admin can verify/decrypt an archived replica into a request-scoped temporary restore, stream retained `input/` evidence through the current analysis pipeline, create a new retained case whose lineage records the source case and verified remote manifest SHA-256, preserve the archived source without incrementing `restore_count`, enforce upload/RBAC/custom-rule boundaries, expose the safe default action in the web console, and fail closed on missing input or remote tamper.
 - Add verified remote-only case reads: archived S3-compatible replicas can serve case preview and existing report artifacts through request-scoped temporary restore/verification without repopulating the persistent case directory; fail closed on tamper/key errors, clean temp state after response, expose `원격 전용` in the web console, and audit remote reads.
@@ -36,7 +37,7 @@
 - Seal the one-pass BRAWL result at 0/133 step-technique HITs, then record a separate post-hoc diagnosis: 34 pairs lack current rule coverage, 96 have in-window telemetry but no expected-technique finding, and 3 T1105 pairs lack normalized telemetry in the frozen window.
 - Preserve the sealed BRAWL result unchanged and redact credential-like arguments from stored post-hoc command evidence.
 - Add independently documented command-coverage remediation for T1016, T1069.001/T1069.002, and T1021.002; broaden existing T1547.001 Run-key and T1047 WMIC process-create patterns with synthetic regression coverage, while deliberately leaving T1105 unchanged to avoid BRAWL-specific overfitting.
-- Advance the live detector from 69 to 73 rules and move P2-35M to historical evidence for the prior rulepack; fresh attack and benign revalidation for the 73-rule detector remain `NOT_RUN`, and production accuracy/recall/FPR remain `NOT_CLAIMED`.
+- Advance the live detector from 69 to 73 rules and move P2-35M to historical evidence for the prior rulepack; P2-36C later completes fresh current-rulepack attack+benign source revalidation (1/2 attack fixtures HIT, 1/112,411 source-intent benign events flagged, 0 parse errors) while keeping event-level recall, confirmed FPR, and production accuracy/recall/FPR `NOT_CLAIMED`.
 
 ## 2.1.2 - Released 2026-09-25
 
