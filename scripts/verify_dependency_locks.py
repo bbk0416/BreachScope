@@ -143,9 +143,15 @@ def verify_repo_contract() -> list[str]:
         issues.append(".python-version must be exactly 3.11.16")
 
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    if '"setuptools>=61.0"' not in pyproject:
+    dev_block = re.search(
+        r"\[project\.optional-dependencies\].*?^dev\s*=\s*\[(.*?)\]",
+        pyproject,
+        re.MULTILINE | re.DOTALL,
+    )
+    dev_text = dev_block.group(1) if dev_block else ""
+    if not re.search(r'"setuptools(?:[<>=!~].*)?"', dev_text):
         issues.append("dev extra does not include setuptools")
-    if '"wheel"' not in pyproject:
+    if '"wheel"' not in dev_text:
         issues.append("dev extra does not include wheel")
 
     ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
