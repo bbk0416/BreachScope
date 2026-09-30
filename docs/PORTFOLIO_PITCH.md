@@ -10,7 +10,7 @@ I built BreachScope to show that I can take a security idea beyond a simple scri
 
 ## 60-second version
 
-BreachScope starts from JSONL or collected Windows event logs and runs a YAML-based detection engine mapped to MITRE ATT&CK. The output is not just a list of hits: it builds a risk score, executive summary, incident timeline, host risk summary, recommended actions, false-positive questions, IOC CSV, rule catalog, manifest hashes, ZIP package, and Korean PDF report. I also added the operational pieces that real internal tools need: web console, case history, workflow status, analyst notes, authentication, audit trail, backup/prune APIs, health/readiness, Prometheus metrics, configuration diagnostics, self-test, Docker Compose, CI, and release checksums.
+BreachScope starts from JSONL or collected Windows event logs and runs a YAML-based detection engine mapped to MITRE ATT&CK. The output is not just a list of hits: it builds a risk score, executive summary, incident timeline, host risk summary, recommended actions, false-positive questions, IOC CSV, rule catalog, manifest hashes, ZIP package, and Korean PDF report. I also added the operational pieces that real internal tools need: web console, case history, workflow status, analyst notes, local/OIDC authentication, SCIM provisioning, role-and-organization RBAC, audit trail, backup/prune APIs, PostgreSQL-backed shared identity storage, health/readiness, Prometheus metrics, configuration diagnostics, self-test, Docker Compose, CI, and release checksums.
 
 ## What to emphasize in an interview
 
@@ -23,5 +23,5 @@ BreachScope starts from JSONL or collected Windows event logs and runs a YAML-ba
 ## Honest limitations
 
 - It is a portfolio/internal-console project, not a certified forensic suite.
-- Real customer deployment would need additional log parsers, RBAC, database migration strategy, retention policy review, and production security review.
+- Real customer deployment would still need environment-specific parser/rule tuning, retention-policy review, TLS/IdP/SCIM operational setup, backup/restore and credential-rotation procedures, HA/provisioning where required, and a production security review. RBAC, OIDC/SCIM provisioning, and SQLite→PostgreSQL identity migration exist, but they are not proof of enterprise-scale operations.
 - Rules are useful for demonstration and triage, but should be tuned against each organization’s baseline to reduce false positives.
