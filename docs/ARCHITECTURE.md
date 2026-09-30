@@ -45,7 +45,7 @@ EVTX / JSONL / Windows collection
 
 Windows에서는 `wevtutil.exe`를 호출해 Security, System, Application, PowerShell Operational 등의 이벤트 로그를 수집할 수 있습니다.
 
-이 기능은 Windows 전용입니다. 현재 기본 GitHub Actions Python CI는 Ubuntu에서 실행되므로 Windows-native 동작은 별도의 Windows CI 보강 대상입니다.
+이 기능은 Windows 전용입니다. GitHub Actions에는 별도 Windows Python 3.11 lane이 있으며 Windows path semantics, EVTX contract, case-history locking, native EVTX collect/convert smoke, CLI, rulepack을 직접 검증합니다. 이는 CI runner 범위의 검증이며 실제 고객 단말·도메인 환경의 운영 적합성을 의미하지는 않습니다.
 
 ### 추가 artifact 모듈
 
@@ -164,7 +164,7 @@ Case history에는 다음 보호가 있습니다.
 - 삭제 실패 시 history 보존
 - 관리 경계 밖 경로 삭제 방지
 
-이 구조는 소규모/내부 운영을 위한 경량 case management입니다. 엔터프라이즈 DB cluster나 멀티테넌트 case platform을 대체하지 않습니다.
+Case/audit/backup/rule 관리 API에는 organization identity가 전달되고 저장·조회 경로가 organization scope로 분리됩니다. 즉 멀티조직 격리 기능 자체는 구현돼 있습니다. 다만 이 구현을 대규모 엔터프라이즈 멀티테넌트 서비스나 HA case cluster가 검증됐다는 뜻으로 해석하지 않습니다.
 
 ## 10. SQLite 모듈
 
@@ -181,40 +181,41 @@ Case history에는 다음 보호가 있습니다.
 
 BreachScope에는 다음 방어 기능이 있습니다.
 
-- API key
-- admin login/session
+- API key 및 organization-bound API key
+- local admin login/session
+- OIDC Authorization Code + PKCE SSO
+- SCIM 2.0 Users/Groups/Bulk provisioning
+- role/organization 기반 RBAC
 - login lockout
-- HttpOnly cookie
-- Secure cookie option
-- audit log
-- HMAC audit integrity option
+- HttpOnly/Secure cookie controls
+- organization-scoped audit/case/backup/rule access
+- audit log 및 integrity option
 - upload limits
 - managed path boundary
-- cleanup policy
-- backup controls
+- retained artifact encryption / release signing 경로
+- cleanup / backup controls
 - production configuration checks
 
-하지만 `SECURITY.md`의 원칙대로 외부 공개 서비스 수준의 인증/TLS/RBAC/retention/검토 workflow가 별도로 준비되지 않았다면 **internal tool**로 취급하는 것이 맞습니다.
+OIDC/SCIM/RBAC이 구현돼 있다는 사실과 외부 서비스 운영 준비가 끝났다는 주장은 구분합니다. TLS termination, 실제 IdP/SCIM 운영 설정, retention 정책, backup/restore 절차, credential rotation, HA/복구 설계, 조직별 보안 검토는 배포 환경에서 별도로 확인해야 합니다.
 
 ## 12. CI/릴리즈
 
-현재 기본 CI는 다음을 수행합니다.
+현재 CI는 다음을 수행합니다.
 
-- Python 3.10 / 3.11 / 3.12
+- Linux Python 3.10 / 3.11 / 3.12
+- Windows Python 3.11
+- Linux/macOS clean wheel install + runtime smoke
 - compile check
 - pytest
 - demo CLI smoke
+- Windows native EVTX collect/convert smoke
 - rulepack validation
 - project readiness check
 - quality gate
 - go-live check
 - showcase/publish-prep build
 
-기본 Python CI runner는 Ubuntu입니다.
-
-Docker workflow와 release workflow도 별도로 존재합니다.
-
-Windows Event Log 중심 프로젝트라는 특성을 고려하면 Windows runner에서 EVTX fixture, path semantics, `msvcrt` locking, Windows collection boundary를 직접 검증하는 lane이 다음 보강 대상입니다.
+Docker workflow와 release workflow도 별도로 존재합니다. Public GitHub-hosted CI에서 Linux, Windows, Linux clean-install, macOS clean-install lane을 실제 실행해 통과한 기록이 있으며, 이는 지원 runtime 재현성 근거로 사용합니다. 실제 조직 배포·부하·HA를 검증하는 근거로는 사용하지 않습니다.
 
 ## 13. 평가 구조
 
@@ -230,7 +231,7 @@ Windows Event Log 중심 프로젝트라는 특성을 고려하면 Windows runne
 
 외부 평가에서는 commit/rule/corpus를 고정하고 TP/FP/TN/FN, precision, recall, FPR, scenario hit, 실행 시간, peak memory 등을 기록해야 합니다.
 
-외부 baseline 결과가 충분히 쌓이기 전에는 “90% 정확도” 같은 제품 수치를 주장하지 않습니다.
+현재 73-rule rulepack에는 fresh attack/benign source revalidation 기록이 있습니다. 다만 attack 쪽은 fixture hit/miss 관찰이고 benign 쪽은 source-intent corpus의 flagged-event 관찰값이며, event-level authoritative ground truth가 아닙니다. 따라서 이를 production precision/recall/FPR이나 “90% 정확도” 같은 제품 수치로 표현하지 않습니다.
 
 ## 14. 성능 구조
 
@@ -246,21 +247,20 @@ Detection에는 병렬 경로가 있지만 전체 ingest→correlation→scenari
 
 - Hayabusa/Chainsaw보다 빠른 raw detection engine
 - 모든 Windows forensic artifact의 완전한 수집/파싱
-- enterprise multi-tenancy
-- HA/cluster orchestration
+- 검증된 enterprise-scale multi-tenant 운영
+- multi-host HA/cluster orchestration
 - SIEM 규모의 장기 log storage
 - 사람 검토 없는 자동 차단/사고 확정
 - 외부 독립 평가가 끝난 production accuracy 보장
 
 ## 16. 현재 개발 우선순위
 
-기능을 더 늘리기 전에 다음 증거를 만드는 것이 우선입니다.
+Windows-native CI, fresh attack/benign revalidation, 실제 PostgreSQL E2E, Windows/Linux/macOS clean-install 재현성은 이미 확보했습니다. 다음 증거가 우선입니다.
 
-1. Windows-native CI
-2. 공개 공격 EVTX baseline
-3. 실제적인 benign Windows baseline
-4. FP/FN 및 scenario miss 분석
-5. 재현 가능한 10k/100k/1m benchmark
-6. 결과에 따라 필요한 parser/rule/correlation만 수정
+1. 재현 가능한 10k/100k/1m throughput·peak-memory benchmark
+2. authoritative event-level label을 가진 더 대표적인 attack/benign 평가 corpus
+3. multi-host HA/장애복구, backup/restore, credential rotation의 실제 운영 검증
+4. public Release asset을 새 환경에서 내려받아 설치하는 경로와 cache 없는 fresh-machine 검증
+5. 위 결과에서 드러난 parser/rule/correlation 문제만 선택적으로 수정
 
 이 순서는 “기능이 많아 보이는 프로젝트”보다 **실제 결과를 설명할 수 있는 프로젝트**로 만들기 위한 것입니다.
