@@ -49,6 +49,17 @@ def test_init_env_generates_non_placeholder_secrets(tmp_path):
     assert "BS_SESSION_SECRET" in summary["generated_keys"]
 
 
+def test_repo_env_template_keeps_oidc_scopes_shell_safe() -> None:
+    root = Path(__file__).resolve().parents[1]
+    body, _summary = generate_env_text(
+        root / ".env.example",
+        production=True,
+        https=True,
+    )
+    assert 'BS_OIDC_SCOPES="openid profile email"' in body
+    assert "BS_OIDC_SCOPES=openid profile email" not in body
+
+
 def test_write_env_refuses_overwrite_without_force(tmp_path):
     template = tmp_path / ".env.example"
     template.write_text("BS_API_KEY=change-me\n", encoding="utf-8")

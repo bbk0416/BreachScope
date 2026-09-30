@@ -52,6 +52,13 @@ def test_ci_uses_exact_patch_versions_and_hashed_locks():
     assert "--require-hashes" in text
 
 
+def test_dev_build_tools_match_current_build_backend_floor() -> None:
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'requires = ["setuptools>=77.0.0", "wheel"]' in text
+    assert '"setuptools>=77.0.0"' in text
+    assert '"wheel"' in text
+
+
 def test_release_and_docker_reuse_locked_build_tools():
     release = (ROOT / ".github/workflows/release.yml").read_text(
         encoding="utf-8"

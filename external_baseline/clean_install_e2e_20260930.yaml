@@ -1,7 +1,7 @@
 schema: breachscope.clean_install_e2e.v1
 status: PASS
-executed_date: 2026-09-30
-base_repo_commit: eae5d2cd0dc10a665f7277803b46f235bccf7ee8
+executed_date: 2026-10-01
+base_repo_commit: 4626dd8cea11edec9131a128df44238fd748fe83
 scope: CLEAN_WHEEL_INSTALL_AND_RUNTIME_SMOKE
 
 environment:
@@ -30,7 +30,7 @@ source_binding:
     sha256: 62ff27b9468b6245316e7e8c0388489b8c4e61d318df0630e7fa9d9d0f09208f
   packaging:
     path: pyproject.toml
-    sha256: 9852f2400d21f0725be4ae02cc34901ee834a2b8d4f496e9ca0250039e20496b
+    sha256: 73fff9a9dc08e496e5ccfa37cf1dc577f2f594624c0d7cd1697ebad81e5eb42f
   quickstart:
     path: docs/QUICKSTART.md
     sha256: e3c01c449cb549e89b79bca9c1e46c166523fce4ce953e59b1c03a0ed079b74d
