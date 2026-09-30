@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix GitHub Actions CI historical-evidence verification by explicitly fetching the pinned historical detection-evidence commit in Linux and Windows jobs; correct the pinned Python 3.11.16 matrix conditions so showcase/publish/artifact steps actually run, and cap the demo artifact retention to one day.
 - Fix installed-wheel operations readiness/self-test to resolve packaged rules/templates through `breachscope.runtime_paths`; add a clean-install verifier that builds a wheel into a fresh Python 3.11 venv outside the source checkout and verifies packaged assets, demo CLI, and live FastAPI health/readiness. Also correct source-checkout Quickstart commands to use `scripts/run.py`.
 - Fix real psycopg PostgreSQL SCIM writes to use `cursor.executemany()` instead of the fake-only `Connection.executemany()` API; add an isolated real-PostgreSQL E2E runner that verifies schema creation, shared state across independent stores, REPEATABLE READ snapshots, rollback, advisory-lock serialization, group membership persistence, and SQLite→PostgreSQL migration with digest verification. The verified local run used PostgreSQL 16.15 and did not modify the configured system PostgreSQL service.
 - Add read-only remote replica integrity verification API: operator/admin can fully restore-verify manifest/object hashes, AES-GCM authentication, and organization namespace without changing case metadata, restore_count, or local payload; return the actually verified manifest SHA-256 and audit success/failure.

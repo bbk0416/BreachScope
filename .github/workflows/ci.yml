@@ -24,6 +24,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
+      - name: Fetch pinned historical detection evidence commit
+        run: git fetch --no-tags origin bad0c88037d489f5b375c120002be74ac6082ffa
+
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
@@ -84,7 +87,7 @@ jobs:
           python scripts/go_live_check.py --deployment-mode production
 
       - name: Static showcase build
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.11.16'
         run: |
           python scripts/build_showcase.py --clean --no-pdf
           test -f out/showcase/index.html
@@ -93,7 +96,7 @@ jobs:
           test -f out/showcase/breachscope-showcase.zip
 
       - name: Public publish prep build
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.11.16'
         run: |
           python scripts/publish_prep.py --clean --no-pdf
           test -f out/publish/PUBLIC_LAUNCH_SUMMARY.md
@@ -103,10 +106,11 @@ jobs:
           test -f out/publish/breachscope-public-launch-pack.zip
 
       - name: Upload demo report artifacts
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.11.16'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: breachscope-demo-report
+          retention-days: 1
           path: |
             out_ci/report.html
             out_ci/report.json
@@ -135,6 +139,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Fetch pinned historical detection evidence commit
+        run: git fetch --no-tags origin bad0c88037d489f5b375c120002be74ac6082ffa
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
