@@ -162,6 +162,49 @@ def test_encrypt_tree_rolls_back_when_plaintext_commit_fails(
 
 
 
+def test_encrypt_tree_reports_incomplete_rollback_when_plaintext_restore_fails(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import api.services.artifact_encryption as module
+
+    monkeypatch.setenv("BS_ARTIFACT_ENCRYPTION_KEY", _key(16))
+    root = tmp_path / "rollback-fail"
+    root.mkdir()
+    first = root / "a.txt"
+    second = root / "b.txt"
+    first.write_text("alpha", encoding="utf-8")
+    second.write_text("beta", encoding="utf-8")
+
+    original_unlink = Path.unlink
+    failed_unlink = False
+
+    def fail_second_source(path: Path, *args, **kwargs):
+        nonlocal failed_unlink
+        if path.resolve() == second.resolve() and not failed_unlink:
+            failed_unlink = True
+            raise PermissionError("forced commit unlink failure")
+        return original_unlink(path, *args, **kwargs)
+
+    def fail_restore(*args, **kwargs):
+        raise OSError("forced plaintext restore failure")
+
+    monkeypatch.setattr(Path, "unlink", fail_second_source)
+    monkeypatch.setattr(module, "_restore_plaintext", fail_restore)
+
+    with pytest.raises(
+        ArtifactEncryptionError,
+        match="rollback was incomplete",
+    ) as exc_info:
+        encrypt_tree(root)
+
+    assert "forced plaintext restore failure" in str(exc_info.value)
+    assert not first.exists()
+    assert second.read_text(encoding="utf-8") == "beta"
+    assert (root / "a.txt.enc").exists()
+    assert (root / "b.txt.enc").exists()
+
+
 def test_artifact_encryption_key_rejects_non_base64_characters(
     monkeypatch,
 ) -> None:
