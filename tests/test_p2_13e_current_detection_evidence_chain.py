@@ -10,7 +10,7 @@ EVIDENCE = ROOT / "external_baseline" / "current_detection_evidence.yaml"
 def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     data = yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
-    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "bad0c88037d489f5b375c120002be74ac6082ffa",
         "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
@@ -50,7 +50,7 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     assert benign["adjudication"]["confirmed_false_positives"] == "NOT_CLAIMED"
 
     revalidation = data["post_remediation_revalidations"]
-    assert len(revalidation) == 3
+    assert len(revalidation) == 4
     assert revalidation[:2] == [
         {
             "revalidation_id": "p2-25-deepbluecli-fresh-attack",
@@ -104,6 +104,17 @@ def test_p2_13e_current_detection_evidence_chain_is_current_and_bounded():
     assert m["fresh_attack_revalidation"] == "COMPLETED"
     assert m["fresh_benign_revalidation"] == "COMPLETED"
     assert m["independent_source_family_holdout"] is False
+
+    current = revalidation[3]
+    assert current["revalidation_id"] == "p2-36c-current-rulepack-fresh-source-revalidation"
+    assert current["detector_rules_tree_sha256"] == data["current_frozen_detector"]["rules_tree_sha256"]
+    assert current["fixture_count"] == 2
+    assert current["hits"] == 1
+    assert current["misses"] == 1
+    assert current["benign_parsed_events"] == 112411
+    assert current["benign_flagged_events"] == 1
+    assert current["fixture_hit_rate_is_event_level_recall"] is False
+    assert current["flagged_events_are_confirmed_false_positives"] is False
 
     boundary = data["claim_boundary"]
     for key in (

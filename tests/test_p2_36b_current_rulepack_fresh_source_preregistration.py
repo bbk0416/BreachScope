@@ -111,12 +111,12 @@ def test_p2_36b_execution_gate_fixes_empty_evtx_failure_mode() -> None:
     assert gate["detector_must_not_run_before_execution_contract_merge"] is True
 
 
-def test_p2_36b_current_evidence_still_has_no_completed_fresh_revalidation() -> None:
+def test_p2_36b_current_evidence_now_points_to_p2_36c_completed_revalidation() -> None:
     current = yaml.safe_load(CURRENT.read_text(encoding="utf-8"))
     validation = current["current_rulepack_validation"]
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_current_rulepack_performance_available"] is False
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_current_rulepack_performance_available"] is True
 
 
 def test_p2_36b_claim_boundary_stays_narrow() -> None:

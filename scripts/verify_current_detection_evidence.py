@@ -86,6 +86,17 @@ CMDGAP_RECORD = "external_baseline/independent_command_coverage_remediation.yaml
 CMDGAP_CURRENT_ID = "independent-command-coverage-remediation-current-detection-evidence"
 CMDGAP_EXAMPLE_BLOB = "554f7bf200b31f85bb6fa3df9ff4651d8fe0eb6c"
 CMDGAP_P20_BLOB = "787a510c233d7ccedc38bd88a2de2f7cbb34ac6b"
+P36C_ID = "p2-36c-current-rulepack-fresh-source-revalidation"
+P36C_ANALYSIS_ID = "p2-36c-current-rulepack-fresh-source-revalidation-v1"
+P36C_CURRENT_ID = "p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence"
+P36C_RESULT_RECORD = "external_baseline/p2_36c_current_rulepack_fresh_source_revalidation_result.yaml"
+P36C_RAW = "external_baseline/results/p2_36c_3ce807d/result.json"
+P36C_LOCK = "external_baseline/locks/P2_36C_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock"
+P36C_RAW_SHA = "9d1beda76d8e2da10ddd706c70dc7d98343c9b215fbc6c3e535b799e1357c7a4"
+P36C_LOCK_SHA = "c7a671fd30cc7ad0c6f76f635cc1c702d997ef0563fad75e6efc6ff704a97fc4"
+P36C_CONTRACT_SHA = "df803196661baac8fa2b8b1002e210e5b283502e2234f7c942b037d732ff045e"
+P36C_RUNNER_SHA = "568db0010108f0b012f72b75b0f629b53f910c19a9a842af4b22d5dc18ffb797"
+P36C_PRODUCT_COMMIT = "a469378c0b26bb25ab005ecf2edd681a0b126713"
 
 
 
@@ -1505,21 +1516,116 @@ def _verify_p2_35m(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def _verify_p2_36c(repo: Path, row: Mapping[str, Any]) -> dict[str, Any]:
+    label = "P2-36C"
+    _require(row.get("revalidation_id"), P36C_ID, f"{label} chain id")
+    _require(row.get("class"), "fresh_current_rulepack_attack_and_benign_source_revalidation", f"{label} class")
+    _require(row.get("result_record"), P36C_RESULT_RECORD, f"{label} result record")
+    _require(row.get("measurement_record"), P36C_RAW, f"{label} raw record")
+    _require(row.get("permanent_lock_record"), P36C_LOCK, f"{label} lock record")
+    _require(row.get("detector_repo_commit"), P36C_PRODUCT_COMMIT, f"{label} product commit")
+    _require(row.get("detector_rules_tree_sha256"), CMDGAP_HASH, f"{label} rule hash")
+    _require(row.get("rule_count"), 73, f"{label} rule count")
+    _require(row.get("fresh_attack_revalidation"), "COMPLETED", f"{label} attack completion")
+    _require(row.get("fresh_benign_revalidation"), "COMPLETED", f"{label} benign completion")
+    _require(row.get("independent_source_family_holdout"), False, f"{label} holdout")
+    _require(row.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} production FPR")
+    _require(row.get("production_recall"), "NOT_CLAIMED", f"{label} production recall")
+
+    summary = legacy._load_yaml(legacy._relative_file(repo, P36C_RESULT_RECORD, f"{label} summary"))
+    _require(summary.get("schema"), "breachscope.p2_36c_current_rulepack_fresh_source_revalidation_result.v1", f"{label} summary schema")
+    _require(summary.get("analysis_id"), P36C_ANALYSIS_ID, f"{label} summary id")
+    _require(summary.get("status"), "COMPLETED", f"{label} summary status")
+    decision = _mapping(summary.get("decision"), f"{label} decision")
+    _require(decision.get("fresh_attack_revalidation_after_current_rule_change"), "COMPLETED", f"{label} decision attack")
+    _require(decision.get("fresh_benign_revalidation_after_current_rule_change"), "COMPLETED", f"{label} decision benign")
+    _require(decision.get("fresh_current_rulepack_performance_available"), True, f"{label} decision performance")
+
+    raw = _locked_json(repo, P36C_RAW, P36C_RAW_SHA, f"{label} raw")
+    _require(raw.get("schema"), "breachscope.p2_36c_current_rulepack_fresh_source_revalidation.v1", f"{label} raw schema")
+    _require(raw.get("analysis_id"), P36C_ANALYSIS_ID, f"{label} raw id")
+    _require(raw.get("status"), "completed", f"{label} raw status")
+    _require(raw.get("contract_sha256"), P36C_CONTRACT_SHA, f"{label} contract SHA")
+    _require(raw.get("runner_sha256"), P36C_RUNNER_SHA, f"{label} runner SHA")
+
+    frozen = _mapping(raw.get("frozen_product"), f"{label} frozen product")
+    _require(frozen.get("repo_commit"), P36C_PRODUCT_COMMIT, f"{label} frozen commit")
+    _require(frozen.get("rules_tree_sha256"), CMDGAP_HASH, f"{label} frozen rule hash")
+    _require(frozen.get("rule_count"), 73, f"{label} frozen rule count")
+    _require(frozen.get("rule_file_count"), 5, f"{label} frozen rule files")
+
+    lock_path = legacy._relative_file(repo, P36C_LOCK, f"{label} lock")
+    _require(_sha256(lock_path), P36C_LOCK_SHA, f"{label} lock SHA")
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    _require(lock.get("analysis_id"), P36C_ANALYSIS_ID, f"{label} lock id")
+
+    attack = _mapping(raw.get("attack_revalidation"), f"{label} attack")
+    a = _mapping(attack.get("summary"), f"{label} attack summary")
+    for key, expected in {"fixture_count":2,"hits":1,"misses":1,"errors":0,"fixture_hit_fraction":0.5}.items():
+        _require(a.get(key), expected, f"{label} attack {key}")
+    datasets = attack.get("datasets")
+    if not isinstance(datasets, list) or len(datasets) != 2:
+        raise CurrentEvidenceError(f"{label} must contain two attack rows")
+    _require([(x.get("dataset_id"), x.get("fixture_status")) for x in datasets], [("lazagne_project","HIT"),("pth_02","MISS")], f"{label} attack outcomes")
+
+    benign = _mapping(raw.get("benign_revalidation"), f"{label} benign")
+    b = _mapping(benign.get("summary"), f"{label} benign summary")
+    expected_b={"evtx_member_count":129,"empty_member_count":94,"nonempty_member_count":35,"raw_records":112411,"parsed_events":112411,"parse_errors":0,"findings":1,"flagged_events":1}
+    for key, expected in expected_b.items():
+        _require(b.get(key), expected, f"{label} benign {key}")
+    _require(b.get("observed_source_intent_benign_flagged_event_fraction"), 8.89592655523036e-06, f"{label} benign fraction")
+    _require(b.get("observed_source_intent_benign_flagged_event_percent"), 0.000889592655523036, f"{label} benign percent")
+    _require(b.get("findings_by_rule"), {"R-WMI-QUERY-GET":1}, f"{label} benign rule")
+    members = benign.get("members")
+    if not isinstance(members, list) or len(members) != 129:
+        raise CurrentEvidenceError(f"{label} must contain 129 benign rows")
+    flagged=[x for x in members if x.get("flagged_events")]
+    if len(flagged) != 1:
+        raise CurrentEvidenceError(f"{label} must contain one flagged benign member")
+    _require(flagged[0].get("name"), "win7-x86/Microsoft-Windows-Sysmon%4Operational.evtx", f"{label} flagged member")
+
+    claims=_mapping(raw.get("claim_boundary"), f"{label} claims")
+    _require(claims.get("attack_fixture_hit_fraction_is_event_level_recall"), False, f"{label} recall boundary")
+    _require(claims.get("benign_flagged_events_are_confirmed_false_positives"), False, f"{label} FP boundary")
+    _require(claims.get("confirmed_false_positive_rate"), "NOT_CLAIMED", f"{label} confirmed FPR")
+    _require(claims.get("production_false_positive_rate"), "NOT_CLAIMED", f"{label} production FPR")
+    _require(claims.get("production_accuracy"), "NOT_CLAIMED", f"{label} production accuracy")
+    _require(claims.get("production_recall"), "NOT_CLAIMED", f"{label} production recall")
+
+    return {
+        "revalidation_id":P36C_ID,
+        "detector_repo_commit":P36C_PRODUCT_COMMIT,
+        "detector_rules_tree_sha256":CMDGAP_HASH,
+        "fixture_count":2,"hits":1,"misses":1,"errors":0,"fixture_hit_rate":0.5,
+        "fixture_hit_rate_is_event_level_recall":False,
+        "benign_evtx_member_count":129,"benign_empty_member_count":94,"benign_nonempty_member_count":35,
+        "benign_parsed_events":112411,"benign_parse_errors":0,"benign_findings":1,"benign_flagged_events":1,
+        "observed_source_intent_benign_flagged_event_fraction":8.89592655523036e-06,
+        "observed_source_intent_benign_flagged_event_percent":0.000889592655523036,
+        "flagged_events_are_confirmed_false_positives":False,
+        "fresh_attack_revalidation":"COMPLETED","fresh_benign_revalidation":"COMPLETED",
+        "independent_source_family_holdout":False,
+        "production_false_positive_rate":"NOT_CLAIMED","production_recall":"NOT_CLAIMED",
+    }
+
+
 def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     live_current_chain = legacy._load_yaml(chain_path)
     _require(live_current_chain.get("schema"), CHAIN_SCHEMA, "current evidence schema")
     _require(
         live_current_chain.get("current_evidence_id"),
-        CMDGAP_CURRENT_ID,
+        P36C_CURRENT_ID,
         "current evidence id",
     )
 
     live_rows = live_current_chain.get("post_remediation_revalidations")
-    if not isinstance(live_rows, list) or len(live_rows) != 3:
+    if not isinstance(live_rows, list) or len(live_rows) != 4:
         raise CurrentEvidenceError(
-            "post_remediation_revalidations must contain P2-25, P2-26C, then P2-35M"
+            "post_remediation_revalidations must contain P2-25, P2-26C, P2-35M, then P2-36C"
         )
     p35m = _verify_p2_35m(repo, _mapping(live_rows[2], "P2-35M chain row"))
+    p36c = _verify_p2_36c(repo, _mapping(live_rows[3], "P2-36C chain row"))
 
     live_posthoc_rows = live_current_chain.get("posthoc_remediations")
     if not isinstance(live_posthoc_rows, list) or len(live_posthoc_rows) != 3:
@@ -1599,17 +1705,17 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     _require(live_validation.get("rule_change_id"), CMDGAP_ID, "live validation rule change")
     _require(
         live_validation.get("current_revalidation_id"),
-        "NOT_RUN",
+        P36C_ID,
         "live validation revalidation",
     )
     _require(
         live_validation.get("fresh_attack_revalidation_after_current_rule_change"),
-        "NOT_RUN",
+        "COMPLETED",
         "live validation attack",
     )
     _require(
         live_validation.get("fresh_benign_revalidation_after_current_rule_change"),
-        "NOT_RUN",
+        "COMPLETED",
         "live validation benign",
     )
     _require(
@@ -1624,7 +1730,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     )
     _require(
         live_validation.get("fresh_current_rulepack_performance_available"),
-        False,
+        True,
         "live validation performance",
     )
 
@@ -1657,6 +1763,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "rule_file_count": 5,
     }
     p35m_chain["posthoc_remediations"] = live_posthoc_rows[:2]
+    p35m_chain["post_remediation_revalidations"] = live_rows[:3]
     p35m_chain["current_rulepack_validation"] = {
         "rule_change_id": P35I_ID,
         "current_revalidation_id": P35M_ID,
@@ -1832,7 +1939,7 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
     )
 
     return {
-        "schema": "breachscope.current_detection_evidence_verification.v13",
+        "schema": "breachscope.current_detection_evidence_verification.v14",
         "current_evidence_id": live_current_chain.get("current_evidence_id"),
         "status": "PASS",
         "base_rules_tree_sha256": history["base_rules_tree_sha256"],
@@ -1842,8 +1949,8 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "current_attack_scenario_hits": history["current_attack_scenario_hits"],
         "current_attack_scenario_hits_applies_to_current_rulepack": False,
         "attack_scenario_total": history["attack_scenario_total"],
-        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
-        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
         "prior_revalidations_apply_to_current_rulepack": False,
         "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
         "prior_attack_fixture_hits": p25["hits"],
@@ -1863,16 +1970,16 @@ def verify(repo: Path, chain_path: Path) -> dict[str, Any]:
         "remediations": history["remediations"],
         "calibrations": [*history["calibrations"], j, p20],
         "posthoc_remediations": [p24d, p35i, cmdgap],
-        "post_remediation_revalidations": [p25, p26c, p35m],
+        "post_remediation_revalidations": [p25, p26c, p35m, p36c],
         "parser_maintenance": [p29],
         "current_rulepack_validation": {
             "rule_change_id": CMDGAP_ID,
-            "current_revalidation_id": "NOT_RUN",
-            "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
-            "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+            "current_revalidation_id": P36C_ID,
+            "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+            "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
             "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
             "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
-            "fresh_current_rulepack_performance_available": False,
+            "fresh_current_rulepack_performance_available": True,
         },
         "claim_boundary": {
             "production_accuracy": "NOT_CLAIMED",

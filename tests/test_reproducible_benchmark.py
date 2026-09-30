@@ -64,8 +64,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     data = json.loads(proc.stdout)
 
     assert data["status"] == "PASS"
-    assert data["schema"] == "breachscope.current_detection_evidence_verification.v13"
-    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
+    assert data["schema"] == "breachscope.current_detection_evidence_verification.v14"
+    assert data["current_evidence_id"] == "p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_rules_tree_sha256"] == (
         "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88"
     )
@@ -74,8 +74,8 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert data["current_attack_scenario_hits"] == 10
     assert data["current_attack_scenario_hits_applies_to_current_rulepack"] is False
     assert data["attack_scenario_total"] == 10
-    assert data["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert data["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert data["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert data["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
     assert data["prior_revalidations_apply_to_current_rulepack"] is False
 
     assert data["prior_attack_fixture_hits"] == 6
@@ -138,7 +138,7 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert cmdgap["fresh_attack_revalidation"] == "NOT_RUN"
     assert cmdgap["fresh_benign_revalidation"] == "NOT_RUN"
 
-    assert len(data["post_remediation_revalidations"]) == 3
+    assert len(data["post_remediation_revalidations"]) == 4
     p25 = data["post_remediation_revalidations"][0]
     assert p25["revalidation_id"] == "p2-25-deepbluecli-fresh-attack"
     assert p25["detector_rules_tree_sha256"] == (
@@ -181,6 +181,23 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
     assert p35m["fresh_benign_revalidation"] == "COMPLETED"
     assert p35m["independent_source_family_holdout"] is False
 
+    p36c = data["post_remediation_revalidations"][3]
+    assert p36c["revalidation_id"] == "p2-36c-current-rulepack-fresh-source-revalidation"
+    assert p36c["detector_rules_tree_sha256"] == data["current_rules_tree_sha256"]
+    assert p36c["fixture_count"] == 2
+    assert p36c["hits"] == 1
+    assert p36c["misses"] == 1
+    assert p36c["fixture_hit_rate"] == 0.5
+    assert p36c["fixture_hit_rate_is_event_level_recall"] is False
+    assert p36c["benign_parsed_events"] == 112411
+    assert p36c["benign_parse_errors"] == 0
+    assert p36c["benign_findings"] == 1
+    assert p36c["benign_flagged_events"] == 1
+    assert p36c["flagged_events_are_confirmed_false_positives"] is False
+    assert p36c["fresh_attack_revalidation"] == "COMPLETED"
+    assert p36c["fresh_benign_revalidation"] == "COMPLETED"
+    assert p36c["independent_source_family_holdout"] is False
+
     assert len(data["parser_maintenance"]) == 1
     p29 = data["parser_maintenance"][0]
     assert p29["maintenance_id"] == "p2-29-single-parse-evtx"
@@ -192,17 +209,17 @@ def test_current_detection_evidence_chain_verifies_without_network() -> None:
 
     validation = data["current_rulepack_validation"]
     assert validation["rule_change_id"] == "independent-command-coverage-remediation-v1"
-    assert validation["current_revalidation_id"] == "NOT_RUN"
-    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "NOT_RUN"
-    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "NOT_RUN"
+    assert validation["current_revalidation_id"] == "p2-36c-current-rulepack-fresh-source-revalidation"
+    assert validation["fresh_attack_revalidation_after_current_rule_change"] == "COMPLETED"
+    assert validation["fresh_benign_revalidation_after_current_rule_change"] == "COMPLETED"
     assert validation["prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack"] is False
     assert validation["prior_p2_35m_revalidation_applies_to_current_rulepack"] is False
-    assert validation["fresh_current_rulepack_performance_available"] is False
+    assert validation["fresh_current_rulepack_performance_available"] is True
 
 def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     data = yaml.safe_load(CURRENT_CHAIN.read_text(encoding="utf-8"))
     assert data["schema"] == "breachscope.current_detection_evidence_chain.v1"
-    assert data["current_evidence_id"] == "independent-command-coverage-remediation-current-detection-evidence"
+    assert data["current_evidence_id"] == "p2-36c-current-rulepack-fresh-source-revalidation-current-detection-evidence"
     assert data["current_frozen_detector"] == {
         "repo_commit": "bad0c88037d489f5b375c120002be74ac6082ffa",
         "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
@@ -240,12 +257,12 @@ def test_current_chain_keeps_claim_boundaries_explicit() -> None:
     )
     assert data["current_rulepack_validation"] == {
         "rule_change_id": "independent-command-coverage-remediation-v1",
-        "current_revalidation_id": "NOT_RUN",
-        "fresh_attack_revalidation_after_current_rule_change": "NOT_RUN",
-        "fresh_benign_revalidation_after_current_rule_change": "NOT_RUN",
+        "current_revalidation_id": "p2-36c-current-rulepack-fresh-source-revalidation",
+        "fresh_attack_revalidation_after_current_rule_change": "COMPLETED",
+        "fresh_benign_revalidation_after_current_rule_change": "COMPLETED",
         "prior_p2_25_p2_26c_revalidations_apply_to_current_rulepack": False,
         "prior_p2_35m_revalidation_applies_to_current_rulepack": False,
-        "fresh_current_rulepack_performance_available": False,
+        "fresh_current_rulepack_performance_available": True,
     }
     assert data["claim_boundary"]["production_accuracy"] == "NOT_CLAIMED"
     assert data["claim_boundary"]["production_false_positive_rate"] == "NOT_CLAIMED"
