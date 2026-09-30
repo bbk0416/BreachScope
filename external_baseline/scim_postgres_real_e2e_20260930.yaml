@@ -1,0 +1,63 @@
+schema: breachscope.scim_postgres_real_e2e.v1
+status: PASS
+executed_date: 2026-09-30
+base_repo_commit: 6f6e47cd6b3df00ffc631ad331d177668d444d7a
+scope: REAL_POSTGRESQL_EPHEMERAL_LOCALHOST_E2E
+
+environment:
+  os_family: windows
+  postgres_server_version: "16.15"
+  psycopg_version: "3.3.5"
+  cluster_isolation: ephemeral_localhost_only
+  system_postgres_service_modified: false
+
+source_binding:
+  scim_store:
+    path: api/services/scim_store.py
+    sha256: 1cfba31da97b0eafbc7287ff3ee266c6d53284582f2d0a1c95ba8abae19d5a97
+  e2e_runner:
+    path: scripts/verify_scim_postgres_e2e.py
+    sha256: 9e605184b7330905251f211fdb4f2b7acbb0cfa0a485f444a63890d8d02b5112
+  postgres_store_unit_test:
+    path: tests/test_scim_postgres_store.py
+    sha256: 9986271fcbc846c56d0d49a71aba2229095f2dbb9fa3dd731498aaa9e107a0f8
+
+result:
+  initdb: PASS
+  server_start: PASS
+  real_schema_tables: 3
+  cross_instance_shared_state: PASS
+  repeatable_read_snapshot: PASS
+  transaction_rollback: PASS
+  advisory_lock_two_store_serialization: PASS
+  advisory_lock_max_simultaneous_critical_sections: 1
+  advisory_lock_elapsed_seconds: 0.718
+  real_advisory_lock_function: PASS
+  sqlite_to_postgres_migration: PASS
+  migration_digest_verified: true
+  server_stop: PASS
+  cluster_path_removed: true
+
+bug_found_and_fixed:
+  symptom: >-
+    The first real PostgreSQL save_users call failed because psycopg.Connection
+    does not expose executemany().
+  root_cause: >-
+    PostgreSQL save paths used connection.executemany(), while the fake
+    PostgreSQL test connection exposed that non-psycopg API.
+  fix: >-
+    PostgreSQL batch writes now use cursor.executemany() through a dedicated
+    helper, and the fake connection implements the matching cursor context API.
+
+claim_boundary:
+  actual_real_postgresql_server_e2e: true
+  actual_postgresql_write_path_exercised: true
+  actual_postgresql_group_membership_path_exercised: true
+  actual_postgresql_advisory_lock_exercised: true
+  actual_sqlite_to_postgresql_migration_exercised: true
+  multi_host_postgresql_ha: NOT_TESTED
+  managed_cloud_postgresql: NOT_TESTED
+  cross_machine_breachscope_replicas: NOT_TESTED
+  production_load: NOT_TESTED
+  backup_restore: NOT_TESTED
+  credential_rotation: NOT_TESTED

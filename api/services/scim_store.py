@@ -499,7 +499,8 @@ class ScimIdentityStore:
                     (SCIM_POSTGRES_LOCK_ID,),
                 )
             conn.execute("DELETE FROM scim_users")
-            conn.executemany(
+            self._postgres_executemany(
+                conn,
                 """
                 INSERT INTO scim_users (
                     id,
@@ -587,7 +588,8 @@ class ScimIdentityStore:
                 )
             conn.execute("DELETE FROM scim_group_members")
             conn.execute("DELETE FROM scim_groups")
-            conn.executemany(
+            self._postgres_executemany(
+                conn,
                 """
                 INSERT INTO scim_groups (
                     id,
@@ -613,7 +615,8 @@ class ScimIdentityStore:
             )
             member_rows = self._member_rows(rows)
             if member_rows:
-                conn.executemany(
+                self._postgres_executemany(
+                conn,
                     """
                     INSERT INTO scim_group_members (
                         group_id,
@@ -657,6 +660,15 @@ class ScimIdentityStore:
             raise ScimStoreError(
                 "SCIM SQLite database cannot be opened."
             ) from exc
+
+    @staticmethod
+    def _postgres_executemany(
+        conn: Any,
+        statement: str,
+        params: list[tuple[Any, ...]],
+    ) -> None:
+        with conn.cursor() as cursor:
+            cursor.executemany(statement, params)
 
     def _postgres_connect(self) -> Any:
         if psycopg is None or dict_row is None:

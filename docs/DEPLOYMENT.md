@@ -133,6 +133,8 @@ For OIDC lifecycle enforcement, provision `externalId` as the exact OIDC `sub`. 
 
 JSON and SQLite remain single-host SCIM storage choices. The PostgreSQL backend supports shared identity state and serializes all BreachScope SCIM mutations across replicas with `pg_advisory_xact_lock`; If-Match and Bulk operation version checks are performed inside the same mutation transaction. Bulk is still processed per operation rather than as one all-or-nothing transaction. Password management is not implemented. The bundled migration tool handles SCIM identity snapshot transfer and target rollback/backup, but live cutover coordination remains operational work. PostgreSQL HA/provisioning, database backup, and credential rotation remain operator responsibilities. SCIM identity storage is deployment-wide state and is not included in organization-scoped case backups.
 
+Source checkouts can run `python scripts/verify_scim_postgres_e2e.py` to exercise the SCIM PostgreSQL backend against a temporary real PostgreSQL cluster bound only to localhost. The verifier discovers `initdb`/`pg_ctl` (or accepts `--pg-bin`), creates and deletes its own temporary cluster, and does not use or modify `BS_SCIM_DATABASE_URL` or the configured system PostgreSQL service. It verifies real schema creation, Users/Groups/membership persistence, cross-instance shared state, REPEATABLE READ snapshots, rollback, advisory-lock serialization, and SQLite→PostgreSQL migration/digest equality. This is a single-host integration check; it does not establish multi-host HA, managed-cloud compatibility, production load capacity, backup/restore, or credential-rotation behavior.
+
 ### Organization-specific RBAC policy
 
 `BS_ORGANIZATION_RBAC_POLICIES` is a partial JSON override. Example:
