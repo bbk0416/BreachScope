@@ -15,6 +15,12 @@ python -m breachscope.cli --demo
 
 아래의 `run.bat`, `run.sh`, `scripts/run.py` 예시는 저장소를 clone한 경우에 사용합니다.
 
+클린 설치 재현성을 직접 확인하려면 저장소 루트에서 다음을 실행합니다. 이 검증은 소스 트리 밖에 새 wheel/venv를 만들고 CLI와 FastAPI health/readiness까지 확인한 뒤 임시 파일을 삭제합니다.
+
+```bash
+python scripts/verify_clean_install_e2e.py
+```
+
 ## 🚀 가장 간단한 실행 방법
 
 ### 방법 1: 간편 스크립트 사용 (가장 간단!)
@@ -26,7 +32,7 @@ run.bat
 
 또는
 ```cmd
-python run.py
+python scripts/run.py
 ```
 
 #### Linux/Mac
@@ -37,7 +43,7 @@ chmod +x run.sh
 
 또는
 ```bash
-python3 run.py
+python3 scripts/run.py
 ```
 
 **기본 동작**: 데모 모드로 실행 (샘플 로그 자동 생성)
@@ -69,40 +75,40 @@ python -m breachscope.cli --input logs
 
 ```bash
 # 데모 실행
-python run.py --demo
+python scripts/run.py --demo
 
 # 실제 로그 분석
-python run.py --input logs
+python scripts/run.py --input logs
 
 # 옵션 추가
-python run.py --input logs --min-severity high --export-json
+python scripts/run.py --input logs --min-severity high --export-json
 ```
 
 ## 🎯 자주 사용하는 명령어
 
 ### 1. 데모 실행 (테스트)
 ```bash
-python run.py --demo
+python scripts/run.py --demo
 ```
 
 ### 2. 실제 로그 분석
 ```bash
-python run.py --input <로그폴더>
+python scripts/run.py --input <로그폴더>
 ```
 
 ### 3. JSON/CSV도 함께 생성
 ```bash
-python run.py --input logs --export-json --export-csv
+python scripts/run.py --input logs --export-json --export-csv
 ```
 
 ### 4. 브라우저에서 자동 열기
 ```bash
-python run.py --demo --open
+python scripts/run.py --demo --open
 ```
 
 ### 5. 필터 적용
 ```bash
-python run.py --input logs --min-severity high --mitre-include T1059.001
+python scripts/run.py --input logs --min-severity high --mitre-include T1059.001
 ```
 
 ## 🌐 웹 UI (가장 편리)
@@ -136,7 +142,7 @@ min_severity: medium
 
 그러면 명령어가 더 간단해집니다:
 ```bash
-python run.py --input logs
+python scripts/run.py --input logs
 ```
 
 ## 🧹 임시 파일 정리
@@ -155,7 +161,7 @@ python scripts/cleanup_temp.py --yes
 
 ## 💡 팁
 
-1. **가장 빠른 테스트**: `python run.py --demo`
+1. **가장 빠른 테스트**: `python scripts/run.py --demo`
 2. **웹 UI가 가장 편함**: `run_web_fastapi.bat` (Windows) 또는 `./run_web_fastapi.sh` (Linux/Mac)
 3. **자주 쓰는 옵션은 설정 파일에**: `breachscope.yaml`
 4. **분석 후 정리**: `python scripts/cleanup_temp.py --yes`로 임시 파일 정리
