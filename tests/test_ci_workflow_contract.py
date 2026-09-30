@@ -10,7 +10,7 @@ def test_ci_fetches_pinned_historical_evidence_commit() -> None:
         "git fetch --no-tags origin "
         "bad0c88037d489f5b375c120002be74ac6082ffa"
     )
-    assert text.count("uses: actions/checkout@") == 2
+    assert text.count("uses: actions/checkout@") == 3
     assert text.count(command) == 2
     assert "fetch-depth: 0" not in text
 
@@ -25,3 +25,11 @@ def test_ci_demo_artifact_retention_is_bounded() -> None:
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "name: breachscope-demo-report" in text
     assert "retention-days: 1" in text
+
+def test_ci_runs_clean_install_on_linux_and_macos() -> None:
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "clean-install:" in text
+    assert "os: [ubuntu-latest, macos-latest]" in text
+    assert 'python-version: "3.11.16"' in text
+    assert "python scripts/verify_clean_install_e2e.py" in text
+    assert "timeout-minutes: 20" in text
