@@ -1,0 +1,76 @@
+schema: breachscope.clean_install_e2e.v1
+status: PASS
+executed_date: 2026-09-30
+base_repo_commit: eae5d2cd0dc10a665f7277803b46f235bccf7ee8
+scope: CLEAN_WHEEL_INSTALL_AND_RUNTIME_SMOKE
+
+environment:
+  os_family: windows
+  python_version: "3.11.9"
+  base_python_command:
+    - py
+    - -3.11
+  source_checkout_used_at_runtime: false
+
+source_binding:
+  ops_status:
+    path: api/services/ops_status.py
+    sha256: 8d74aea6c6004acefa2d9a3b6394f2749ba35f3170e8d54f1d8ec0087642f321
+  runtime_paths:
+    path: breachscope/runtime_paths.py
+    sha256: 58a16707cf94fc82b89f57655d1e3d4bee18fd88b04c858a647d0c94e0425dac
+  clean_install_verifier:
+    path: scripts/verify_clean_install_e2e.py
+    sha256: 5ce2a52269d0803bcdaaad4e54be4ce1ff5aa9d60fd2b436fedf35e4f9c42d45
+  ops_status_test:
+    path: tests/test_ops_status.py
+    sha256: 734324ca17fc115fd989d4481a867ceb94eec37552f2fd9f5f24798059d2457f
+  wheel_runtime_test:
+    path: tests/test_wheel_runtime_assets.py
+    sha256: 62ff27b9468b6245316e7e8c0388489b8c4e61d318df0630e7fa9d9d0f09208f
+  packaging:
+    path: pyproject.toml
+    sha256: 9852f2400d21f0725be4ae02cc34901ee834a2b8d4f496e9ca0250039e20496b
+  quickstart:
+    path: docs/QUICKSTART.md
+    sha256: e3c01c449cb549e89b79bca9c1e46c166523fce4ce953e59b1c03a0ed079b74d
+
+result:
+  wheel_name: breachscope-2.1.2-py3-none-any.whl
+  wheel_build: PASS
+  fresh_venv: PASS
+  wheel_install_with_dependencies: PASS
+  installed_imports: PASS
+  installed_version: "2.1.2"
+  packaged_rule_files: 5
+  packaged_templates: PASS
+  demo_cli_exit: 0
+  fastapi_health: PASS
+  fastapi_readiness: PASS
+  cleanup: true
+
+runtime_path_correction:
+  issue: >-
+    Operations readiness and self-test used source-checkout-root rules/templates
+    directly, which is not the installed-wheel runtime layout.
+  fix: >-
+    Operations checks now resolve rules and templates through
+    breachscope.runtime_paths so installed wheels use packaged runtime assets.
+  quickstart_path_fix: >-
+    Source-checkout examples now invoke scripts/run.py instead of the
+    nonexistent repository-root run.py.
+
+claim_boundary:
+  clean_wheel_build_and_install_verified: true
+  fresh_venv_verified: true
+  packaged_runtime_assets_verified: true
+  demo_cli_verified: true
+  fastapi_health_verified: true
+  fastapi_readiness_verified: true
+  source_checkout_not_used_at_runtime: true
+  windows_python_3_11_verified: true
+  linux_clean_install: NOT_TESTED
+  macos_clean_install: NOT_TESTED
+  offline_dependency_install: NOT_TESTED
+  public_release_asset_download_path: NOT_TESTED
+  fresh_machine_without_cached_packages: NOT_TESTED

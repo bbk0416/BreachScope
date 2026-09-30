@@ -58,6 +58,7 @@ from api.services.object_storage import (
 from breachscope.demo_scenarios import SCENARIOS, write_demo_scenario
 from breachscope.pipeline import Pipeline
 from breachscope.rulepack import summarize_rules
+from breachscope.runtime_paths import default_rules_dir, default_templates_dir
 from breachscope.rules import load_rules
 from breachscope.version import get_project_version
 
@@ -129,7 +130,7 @@ def _safe_count_file_lines(path: Path, limit: int = 100_000) -> int:
 
 
 def _current_rule_summary() -> dict[str, Any]:
-    rules = load_rules(PROJECT_ROOT / "rules")
+    rules = load_rules(default_rules_dir())
     summary = summarize_rules(rules)
     return {
         "total_rules": len(rules),
@@ -373,7 +374,8 @@ def _check_rulepack() -> Check:
 
 
 def _check_templates() -> Check:
-    required = [PROJECT_ROOT / "templates" / "web_index.html", PROJECT_ROOT / "templates" / "report.html.j2"]
+    templates_dir = default_templates_dir()
+    required = [templates_dir / "web_index.html", templates_dir / "report.html.j2"]
     missing = [str(p) for p in required if not p.exists()]
     if missing:
         return Check("templates", "fail", "required templates are missing", {"missing": missing})
@@ -652,7 +654,7 @@ def run_self_test(*, render_pdf: bool = False) -> dict[str, Any]:
         input_dir = tmp_path / "input"
         out_prefix = tmp_path / "out" / "report"
         write_demo_scenario("powershell_downloader", input_dir)
-        pipeline = Pipeline(rules_dir=PROJECT_ROOT / "rules", min_severity="low", max_events=1000)
+        pipeline = Pipeline(rules_dir=default_rules_dir(), min_severity="low", max_events=1000)
         html_path, finding_count = pipeline.run(input_dir=input_dir, out_prefix=out_prefix, export_json=True, export_csv=True, render_pdf=render_pdf)
         artifacts = {
             "html": html_path.exists(),

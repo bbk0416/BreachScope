@@ -1,10 +1,44 @@
+from pathlib import Path
 import json
 from fastapi.testclient import TestClient
 
 from api.main import app
+from api.services import ops_status
 from api.services.ops_status import _security_checks, prometheus_metrics
 
 client = TestClient(app)
+
+
+def test_packaged_runtime_assets_back_ops_readiness_and_self_test(
+    tmp_path,
+    monkeypatch,
+):
+    root = Path(__file__).resolve().parents[1]
+    packaged = root / "breachscope" / "runtime_data"
+
+    monkeypatch.setattr(ops_status, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(
+        ops_status,
+        "default_rules_dir",
+        lambda: packaged / "rules",
+    )
+    monkeypatch.setattr(
+        ops_status,
+        "default_templates_dir",
+        lambda: packaged / "templates",
+    )
+
+    rulepack = ops_status._check_rulepack()
+    assert rulepack.status == "pass"
+    assert rulepack.details["total_rules"] == 73
+
+    templates = ops_status._check_templates()
+    assert templates.status == "pass"
+
+    self_test = ops_status.run_self_test()
+    assert self_test["success"] is True
+    assert self_test["findings"] > 0
+    assert self_test["artifacts"]["zip"] is True
 
 
 def test_liveness_and_readiness_endpoints():
