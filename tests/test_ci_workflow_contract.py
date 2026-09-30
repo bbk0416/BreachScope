@@ -29,7 +29,10 @@ def test_ci_demo_artifact_retention_is_bounded() -> None:
 def test_ci_runs_clean_install_on_linux_and_macos() -> None:
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "clean-install:" in text
-    assert "os: [ubuntu-latest, macos-15-intel]" in text
+    assert "- os: ubuntu-latest" in text
+    assert '- os: macos-15-intel' in text
     assert 'python-version: "3.11.16"' in text
+    assert 'python-version: "3.11"' in text
+    assert "python-version: ${{ matrix.python-version }}" in text
     assert "python scripts/verify_clean_install_e2e.py" in text
     assert "timeout-minutes: 20" in text
