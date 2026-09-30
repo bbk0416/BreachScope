@@ -1,0 +1,119 @@
+schema: breachscope.p2_36b_current_rulepack_fresh_source_revalidation_failure.v1
+analysis_id: p2-36b-current-rulepack-fresh-source-revalidation-v1
+status: FAILED_CANONICAL_NO_RETRY
+contract: external_baseline/p2_36b_current_rulepack_fresh_source_revalidation_contract.yaml
+contract_merge_commit: 97f6fdd727dfc174e8caf8ab15bd3e249e79ddfe
+canonical_repo_commit: 97f6fdd727dfc174e8caf8ab15bd3e249e79ddfe
+
+frozen_product:
+  repo_commit: a469378c0b26bb25ab005ecf2edd681a0b126713
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+
+runner:
+  sha256: d31372ea9bf88a21322d59a8a65d3ac5650768e5c1f4ee1edc44df1273f2c77a
+  contract_sha256: 358a5076dc69aeb367d1833805750803288ba962f3768c0fc1a987dd700499da
+
+canonical_artifacts:
+  result:
+    path: external_baseline/results/p2_36b_97f6fdd/result.json
+    size_bytes: 126048
+    sha256: 87f45b32f2b5242e6ee65ac9d21c774867a8e45ba30ae02d876bdc932d8eba3b
+    last_modified_unix: 1790728341.0136182
+  permanent_global_lock:
+    path: external_baseline/locks/P2_36B_CURRENT_RULEPACK_FRESH_SOURCE_REVALIDATION.lock
+    size_bytes: 123
+    sha256: f18900330f6e41684358ef591073f36a7bc8a0e2272fa47df652b5b6a0058142
+    analysis_id: p2-36b-current-rulepack-fresh-source-revalidation-v1
+    pid: 22100
+    created_unix: 1790727299.5014808
+
+execution:
+  canonical_execution_started: true
+  same_analysis_id_retry_allowed: false
+  duplicate_execution_performed: false
+  raw_status: sources_verified
+  runner_reported_error: null
+  failure_class: CANONICAL_EVALUATOR_PROCESS_LOST
+  failure_stage: BENIGN_MEMBER_273_SYSMON_SCORING
+  root_cause: NOT_ESTABLISHED
+  product_or_rules_failure: false
+  source_identity_failure: false
+  source_preflight_completed: true
+  managed_job_id: 59cc574ab0014b20b30fd9987d9bebee
+  managed_job_terminal_state: failed
+  managed_job_terminal_error: >-
+    Managed process worker and child are no longer running; recovered stale
+    running state.
+  managed_job_created_unix: 1790727299
+  managed_job_stale_recovery_unix: 1790742230
+  evaluator_pid_present_after_recovery: false
+  managed_child_pid_present_after_recovery: false
+  managed_worker_pid_present_after_recovery: false
+  windows_reboot_event_observed_in_execution_window: false
+  explicit_python_crash_event_observed_in_execution_window: false
+
+attack_partial_execution:
+  phase_completed: true
+  fixture_count: 1
+  hits: 0
+  misses: 1
+  errors: 0
+  fixture_hit_fraction: 0.0
+  parsed_events: 2497
+  parse_errors: 0
+  findings: 0
+  flagged_events: 0
+
+benign_partial_execution:
+  inventory_member_count: 355
+  member_rows_persisted: 273
+  completed_member_count: 272
+  empty_member_count: 196
+  nonempty_completed_member_count: 76
+  started_but_not_completed_member_count: 1
+  completed_raw_records: 23554
+  completed_parsed_events: 23546
+  completed_parse_errors: 8
+  completed_findings: 0
+  completed_flagged_events: 0
+  benign_summary_completed: false
+  interrupted_member:
+    ordinal_one_based: 273
+    name: Logs_Win11/Microsoft-Windows-Sysmon%4Operational.evtx
+    size_bytes: 1743781888
+    stage: started
+
+interpretation:
+  attack_partial_result_is_fresh_attack_revalidation_claim: false
+  benign_partial_result_is_fresh_benign_revalidation_claim: false
+  combined_fresh_revalidation_completed: false
+  partial_zero_findings_is_confirmed_false_positive_rate: false
+  confirmed_false_positive_rate: NOT_CLAIMED
+  fresh_full_benign_fpr_for_current_rulepack: NOT_CLAIMED
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  reason: >-
+    The canonical one-shot completed the single attack fixture and 272 benign
+    EVTX members, then persisted member 273 (the 1.74 GB Sysmon Operational
+    EVTX) as started. No later result update, runner error, or benign summary
+    was persisted. The managed worker and evaluator process later disappeared.
+    Windows event-log checks found no reboot or explicit Python crash event in
+    the execution window, so the root cause is not established. Because the
+    permanent lock exists and source outcomes were observed, this analysis id
+    is permanently retired and must not be retried.
+
+next_analysis:
+  analysis_id: p2-36c-current-rulepack-fresh-source-revalidation-v1
+  requirements:
+    - do not reuse the P2-36B analysis id
+    - do not reuse the P2-36B attack fixture because its outcome was observed
+    - do not reuse the P2-36B benign archive because 272 members completed and member 273 was entered
+    - select new attack source bytes and a different unused benign archive before any scoring
+    - bound the largest selected benign EVTX member using metadata-only selection criteria fixed before scoring
+    - preserve zero-event benign members as EMPTY and continue
+    - preserve the same frozen 73-rule product unless a separately preregistered product change is intended
+    - merge successor source and execution contracts before detector execution
