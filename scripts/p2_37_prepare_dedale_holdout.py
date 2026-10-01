@@ -107,8 +107,22 @@ def _provider_identity_payload(row: Mapping[str, Any]) -> dict[str, str]:
     timestamp = str(row.get("@timestamp") or "").strip()
     hostname = str(host.get("name") or winlog.get("computer_name") or "").strip()
     channel = str(winlog.get("channel") or "").strip()
-    record_id = str(winlog.get("record_id") or "").strip()
-    event_id = str(winlog.get("event_id") or event.get("code") or "").strip()
+
+    record_id_value = winlog.get("record_id")
+    record_id = (
+        ""
+        if record_id_value in (None, "")
+        else str(record_id_value).strip()
+    )
+
+    event_id_value = winlog.get("event_id")
+    if event_id_value in (None, ""):
+        event_id_value = event.get("code")
+    event_id = (
+        ""
+        if event_id_value in (None, "")
+        else str(event_id_value).strip()
+    )
 
     required = {
         "@timestamp": timestamp,

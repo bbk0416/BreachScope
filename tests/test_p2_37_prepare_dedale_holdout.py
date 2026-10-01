@@ -183,6 +183,26 @@ def test_provider_identity_uses_windows_record_identity() -> None:
     assert adapter.provider_identity(base) != adapter.provider_identity(changed)
 
 
+def test_provider_identity_preserves_zero_event_and_record_ids() -> None:
+    row = _row(
+        timestamp="2025-01-07T17:38:06.407Z",
+        host="CLIENT1.breach.local",
+        record_id=0,
+        event_id=0,
+    )
+
+    payload = adapter._provider_identity_payload(row)
+    assert payload["record_id"] == "0"
+    assert payload["event_id"] == "0"
+    assert adapter.normalize_winlogbeat_row(row)["EventID"] == "0"
+    assert adapter.normalize_winlogbeat_row(row)["RecordNumber"] == "0"
+
+    fallback = json.loads(json.dumps(row))
+    fallback["winlog"]["event_id"] = None
+    assert adapter._provider_identity_payload(fallback)["event_id"] == "0"
+    assert adapter.provider_identity(fallback) == adapter.provider_identity(row)
+
+
 def test_bind_labels_maps_class1_ignore_and_exact_complement(
     tmp_path: Path,
 ) -> None:

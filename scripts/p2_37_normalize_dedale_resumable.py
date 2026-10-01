@@ -22,7 +22,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-EXPECTED_ADAPTER_GIT_BLOB_SHA1 = "31bf09ada2f5f511f0eea8ff492732178d848233"
+EXPECTED_ADAPTER_GIT_BLOB_SHA1 = "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
 MARKER_SCHEMA = "breachscope.p2_37_normalization_member.v1"
 _G: dict[str, Any] = {}
 

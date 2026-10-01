@@ -1,0 +1,80 @@
+schema: breachscope.p2_37_dedale_identity_zero_value_amendment.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_SCORING_IDENTITY_SEMANTICS_AMENDMENT
+recorded_date: 2026-10-02
+
+reason:
+  issue: >-
+    The frozen adapter used Python truthiness when selecting winlog.event_id,
+    event.code, and winlog.record_id. Numeric zero is a valid Windows event
+    identity value but was treated as missing.
+  discovered_during: LABEL_BLIND_NORMALIZATION
+  labels_read_before_amendment: false
+  detector_run_before_amendment: false
+  result_observed_before_amendment: false
+  source_changed: false
+  scoring_window_changed: false
+  label_mapping_changed: false
+  detector_changed: false
+  rules_changed: false
+
+source_evidence:
+  winlogbeat_sha256: d65572bdf8fa2f19e8fbb0ee925f646649cff53bf5e8f9948578602082fac206
+  member: daily_winlogbeat/D16_H17_2025-01-07T17_winlogbeat_F378.jsonl.bz2
+  source_line: 749057
+  timestamp: "2025-01-07T17:38:06.407Z"
+  host: CLIENT1.breach.local
+  winlog_channel: Application
+  winlog_record_id: 1609
+  provider: Dwminit
+  event_code: 0
+  observed_failure: "DEDALE Winlogbeat identity is incomplete: event_id"
+
+identity_semantics:
+  field_set_changed: false
+  event_id_source_order:
+    - winlog.event_id
+    - event.code
+  record_id_source: winlog.record_id
+  missing_definition: VALUE_IS_NONE_OR_EMPTY_STRING
+  numeric_zero_is_missing: false
+  numeric_zero_canonical_text: "0"
+  event_id_zero_normalized_EventID: "0"
+  record_id_zero_normalized_RecordNumber: "0"
+  fuzzy_matching_added: false
+
+adapter:
+  path: scripts/p2_37_prepare_dedale_holdout.py
+  previous_git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
+  amended_git_blob_sha1: 8216eea575ce4dcd8dfb75cdc15c0d6f402c1432
+  amended_exact_sha256: 4757a3a5efc3627cbab12becb91eb4f46d15f5821a8c91f8898ed4d8f36f2fdb
+
+prior_execution:
+  window_gate_result_remains_valid: true
+  window_gate_reason: >-
+    Window derivation used JSON decoding, Winlogbeat validation, and timestamp
+    dates; it did not use provider_identity or normalized EventID/RecordNumber.
+  prior_normalization_final_corpus_created: false
+  prior_normalization_final_identity_map_created: false
+  prior_partial_chunks_canonical: false
+  prior_partial_chunks_may_be_used_with_amended_adapter: false
+  normalization_must_restart_or_use_only_checkpoints_created_by_amended_adapter: true
+
+execution_state_after_amendment:
+  exact_source_bytes_bound: true
+  window_gate_passed: true
+  normalized_corpus_created: false
+  provider_identity_map_created: false
+  evaluator_index_created: false
+  labels_read_for_scoring: false
+  evaluator_labels_created: false
+  detector_run: false
+  result_observed: false
+
+claim_boundary:
+  evaluation_class: external_baseline
+  representative_production_population: false
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
