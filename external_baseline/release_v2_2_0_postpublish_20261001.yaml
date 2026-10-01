@@ -1,0 +1,113 @@
+schema: breachscope.release_v2_2_0_postpublish.v1
+status: PUBLISHED_AND_PUBLIC_DOWNLOAD_VERIFIED
+executed_date: 2026-10-01
+release_version: "2.2.0"
+release_tag: v2.2.0
+tag_commit: c08266e5c57e8e9cbf050cfc46f94c38482924a3
+
+source_binding:
+  packaging:
+    path: pyproject.toml
+    sha256: e380cd0557d36c04e2e6ad1868df25dd6061e18a35238942968ede463a4c41b8
+  release_workflow:
+    path: .github/workflows/release.yml
+    sha256: 363577d77214b8957c6547426abf3ac7ec3f05eea60cfa619fc704f44b7a79b6
+  release_notes:
+    path: docs/RELEASE_NOTES_2_2_0.md
+    sha256: 6f8b246670056ab08906efaa5b57ece31a3413ea172ea04dc2ed8178453f97a8
+  clean_install_verifier:
+    path: scripts/verify_clean_install_e2e.py
+    sha256: 5ce2a52269d0803bcdaaad4e54be4ce1ff5aa9d60fd2b436fedf35e4f9c42d45
+
+manual_release_preflight:
+  run_id: 36799868461
+  head_sha: c08266e5c57e8e9cbf050cfc46f94c38482924a3
+  event: workflow_dispatch
+  conclusion: SUCCESS
+  artifact_name: breachscope-release-artifacts
+  artifact_digest: sha256:30f4cfe2110f0d55d7fa6e5cac623a1e1f06e8e69319a388c4cb2deebfc3913e
+  manifest_git_sha: c08266e5c57e8e9cbf050cfc46f94c38482924a3
+  manifest_git_tag: v2.2.0-preflight
+
+tag_release_execution:
+  tag_push_created_workflow_run: false
+  execution_mode: workflow_dispatch_on_tag_ref
+  run_id: 36805575766
+  job_id: 110189087573
+  ref: v2.2.0
+  head_sha: c08266e5c57e8e9cbf050cfc46f94c38482924a3
+  conclusion: SUCCESS
+  verify_release_tag_matches_package_version: SUCCESS
+  test_before_release: SUCCESS
+  build_source_release_bundle: SUCCESS
+  build_python_package: SUCCESS
+  refresh_release_manifest: SUCCESS
+  verify_release_manifest_signature_when_present: SUCCESS
+  upload_release_build_artifacts: SUCCESS
+  publish_github_release: SUCCESS
+
+github_release:
+  url: https://github.com/bbk0416/BreachScope/releases/tag/v2.2.0
+  name: v2.2.0
+  draft: false
+  prerelease: false
+  published_at: "2026-10-01T02:25:00Z"
+  public: true
+
+release_manifest:
+  generated_at: "2026-10-01T02:24:54Z"
+  git_sha: c08266e5c57e8e9cbf050cfc46f94c38482924a3
+  git_tag: v2.2.0
+  build_number: "5"
+  size_bytes: 1143
+  sha256: 6be74dcd135a44064a793086ac1e4f6967ef5e34ae12b7af3cca8a826641d70e
+
+release_assets:
+  - name: breachscope-2.2.0-py3-none-any.whl
+    size_bytes: 351247
+    sha256: 259425afca4d5381550b74ed116ab43306ab5eb6d0b93539aba0f3cea7f133a5
+  - name: breachscope-2.2.0-source.zip
+    size_bytes: 1996908
+    sha256: d9528fb3d52a9cde78312290c6bfb5d9a8c2ba9713a082833bdd9e645e39e27b
+  - name: breachscope-2.2.0.tar.gz
+    size_bytes: 577138
+    sha256: a677f0be59004cb8ff391a3c023243f34640e667da0f2aff10d217ed313e6160
+  - name: SHA256SUMS.txt
+    size_bytes: 284
+    sha256: b6dd3233d328331d41481070d5795abe9de99e62726b8cc1be551a2d1166c924
+  - name: release_manifest.json
+    size_bytes: 1143
+    sha256: 6be74dcd135a44064a793086ac1e4f6967ef5e34ae12b7af3cca8a826641d70e
+
+public_download_verification:
+  method: unauthenticated_https_curl
+  all_five_release_assets_downloaded: true
+  manifest_and_checksum_hashes_match: true
+  wheel_python_version: "3.11.9"
+  fresh_venv: PASS
+  public_wheel_install: PASS
+  installed_version: "2.2.0"
+  installed_imports: PASS
+  packaged_rule_files: 5
+  packaged_templates: PASS
+  demo_cli_exit: 0
+  fastapi_health: PASS
+  fastapi_readiness: PASS
+  source_checkout_used_at_runtime: false
+  cleanup: true
+
+release_signing:
+  signing_mechanism_implemented: true
+  workflow_log_state: disabled
+  detached_signature_generated: false
+  detached_signature_asset_published: false
+
+claim_boundary:
+  github_release_v2_2_0: PUBLISHED
+  public_release_asset_download_path: PASS
+  public_wheel_clean_install_and_runtime_smoke: PASS
+  detached_release_signature_for_v2_2_0: NOT_PUBLISHED
+  production_detection_accuracy: NOT_CLAIMED
+  production_detection_precision: NOT_CLAIMED
+  production_detection_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
