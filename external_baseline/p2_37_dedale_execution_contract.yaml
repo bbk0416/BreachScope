@@ -48,7 +48,8 @@ window_gate:
   verifier_path: scripts/p2_37_verify_dedale_window_sentinels.py
   verifier_git_blob_sha1: 13dfc222fcc8868306323a63758b0856f68d0e44
   verifier_sha256: 5c306142aefca18b552dc0b51e78809231e29c21a8da657c9b6e929e20b607f4
-  local_result_artifact_sha256: 536cc1bac99b491b1f56511b4f524a3a2df0e594b7fc06f7dae9c9c643ad9f59
+  local_result_artifact_sha256: 0536327c25f04cb75fa3db216831fc92258c84101b041787b33d162788758563
+  local_result_artifact_size_bytes: 5777
   result:
     status: PASS
     returncode: 0
