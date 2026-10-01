@@ -1,0 +1,75 @@
+schema: breachscope.p2_37_dedale_window_inspection_amendment.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_SCORING_METHOD_AMENDMENT
+recorded_date: 2026-10-01
+
+reason:
+  original_gate: EXHAUSTIVE_EVENT_TIMESTAMP_SCAN_OF_ALL_WINLOGBEAT_ROWS
+  issue: >-
+    The exact 27 GB archive contains very large inner BZip2 JSONL members.
+    The exhaustive row-by-row window preflight is computationally disproportionate
+    to the narrow purpose of deriving the provider-recommended last-two-weeks
+    split. This amendment is made before provider labels are read and before the
+    detector is executed against DEDALE.
+  labels_read_before_amendment: false
+  detector_run_before_amendment: false
+  detection_result_observed_before_amendment: false
+  source_changed: false
+  label_mapping_changed: false
+  scoring_window_policy_changed: false
+  frozen_detector_changed: false
+  frozen_rules_changed: false
+
+bound_source:
+  winlogbeat_sha256: d65572bdf8fa2f19e8fbb0ee925f646649cff53bf5e8f9948578602082fac206
+  provider_md5: 7af54ba2977f7535d4c07beb6b1ec657
+  source_binding_merge_commit: 5c0c753d87252b5789e268421c3a885b96b7ed7b
+  frozen_adapter_git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
+
+full_archive_metadata_contract:
+  outer_file_count: 673
+  winlogbeat_data_member_count: 672
+  member_name_regex: '^daily_winlogbeat/D([0-9]+)_H([0-9]+)_([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2})_winlogbeat_F([0-9]+)\.jsonl\.bz2$'
+  required_distinct_utc_dates: 28
+  required_members_per_date: 24
+  required_hours_per_date: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+  require_filename_H_equals_timestamp_hour_component_in_member_name: true
+  require_D_index_matches_ordered_date_index: true
+  observed_first_date_before_amendment_merge: '2024-12-23'
+  observed_last_date_before_amendment_merge: '2025-01-19'
+
+payload_sentinel_contract:
+  selection: SMALLEST_NONEMPTY_MEMBER_PER_UTC_DATE
+  nonempty_definition: inner_bz2_file_size_greater_than_14_bytes
+  tie_breaker: LEXICOGRAPHIC_MEMBER_NAME
+  sentinel_count: 28
+  observed_total_selected_inner_bz2_bytes: 370101047
+  parser: FROZEN_P2_37_ADAPTER_EXACT_JSON_AND_TIMESTAMP_HELPERS
+  require_every_sentinel_has_at_least_one_event: true
+  require_every_event_in_sentinel_matches_filename_utc_date: true
+  labels_may_be_read: false
+  detector_may_run: false
+  if_any_sentinel_fails: ABORT_BEFORE_NORMALIZATION
+
+window_derivation:
+  method: FULL_MEMBER_METADATA_PLUS_ONE_EXACT_FULL_PAYLOAD_SENTINEL_PER_DATE
+  derive_dates_from_all_672_member_names: true
+  require_payload_sentinel_pass_before_freezing_window: true
+  scoring_window: LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES
+  expected_start: '2025-01-06T00:00:00+00:00'
+  expected_end_exclusive: '2025-01-20T00:00:00+00:00'
+  if_metadata_or_sentinel_contract_fails: ABORT_BEFORE_NORMALIZATION
+
+superseded_execution:
+  exhaustive_full_row_window_scan_required_for_window_derivation: false
+  prior_partial_full_row_scans_are_canonical_evidence: false
+  prior_partial_scan_results_may_influence_scoring_or_labels: false
+
+claim_boundary:
+  evaluation_class: external_baseline
+  final_blind_holdout: false
+  representative_production_population: false
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
