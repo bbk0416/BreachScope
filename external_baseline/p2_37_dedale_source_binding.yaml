@@ -1,0 +1,79 @@
+schema: breachscope.p2_37_dedale_source_binding.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: EXACT_SOURCE_BYTES_BOUND_WINDOW_NOT_INSPECTED
+recorded_date: 2026-10-01
+
+repository:
+  main_commit_at_binding: f07a846fa4125137b4d8fb857b69938219a3f029
+  preregistration_path: external_baseline/p2_37_dedale_event_level_holdout_preregistration.yaml
+  source_preregistration_merge_commit: 4a6a5605e524ea3b742a7194a720effce7d48fb6
+  adapter_merge_commit: 47b0b6701209c89c8df366c2b9edc49a771fd1b7
+  window_lock_commit: f07a846fa4125137b4d8fb857b69938219a3f029
+  adapter_path: scripts/p2_37_prepare_dedale_holdout.py
+  adapter_git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
+  detector_code_changed_for_p2_37: false
+  rule_tree_changed_for_p2_37: false
+
+frozen_product:
+  repo_commit: 0fcad967c4d1a04b58800c5d0e761a91c47b8773
+  reference_detector_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+
+source_bytes:
+  winlogbeat:
+    filename: system_logs_winlogbeat.zip
+    file_persistent_id: doi:10.57745/ATR0QO
+    size_bytes: 27123250952
+    provider_md5: 7af54ba2977f7535d4c07beb6b1ec657
+    verified_local_md5: 7af54ba2977f7535d4c07beb6b1ec657
+    provider_md5_match: true
+    sha256: d65572bdf8fa2f19e8fbb0ee925f646649cff53bf5e8f9948578602082fac206
+    full_download_complete: true
+  labels:
+    filename: system_logs_labels.zip
+    file_persistent_id: doi:10.57745/GFI7BE
+    size_bytes: 2669407
+    provider_md5: 455d0a7042531eff74285006f97822e4
+    verified_local_md5: 455d0a7042531eff74285006f97822e4
+    provider_md5_match: true
+    sha256: 729ac223a89c70f771861920b6b9ee3ab1bb5569e12ec54c04f380aadf574dc7
+    full_download_complete: true
+
+download_integrity:
+  prior_incomplete_winlogbeat_bytes_rejected: true
+  rejected_md5: c9f0cee9d8e80bec3c0a0ee2b38ff8a4
+  rejected_sha256: 37d81fab9a586249abd24b206b8dfd91924dfbd7fd7926e4fec906fea5bc3ac7
+  rejected_zip_open: BAD_ZIP_FILE
+  rejected_bytes_used_for_p2_37: false
+  fresh_range_download_chunks: 203
+  fresh_range_download_complete: true
+  provider_md5_required_before_processing: true
+
+next_gate:
+  command: inspect-window
+  labels_may_be_read: false
+  detector_may_run: false
+  require_exactly_28_consecutive_utc_dates: true
+  expected_test_window_start: "2025-01-06T00:00:00+00:00"
+  expected_test_window_end_exclusive: "2025-01-20T00:00:00+00:00"
+  abort_on_window_mismatch: true
+
+execution_state:
+  exact_source_bytes_bound: true
+  window_inspected: false
+  normalized_corpus_created: false
+  event_index_created: false
+  labels_read_for_scoring: false
+  label_file_created: false
+  execution_contract_merged: false
+  detector_run: false
+  result_observed: false
+
+claim_boundary:
+  evaluation_class: external_baseline
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
