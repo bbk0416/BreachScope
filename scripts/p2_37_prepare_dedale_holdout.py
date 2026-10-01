@@ -13,19 +13,23 @@ No detector code is imported or executed here.
 from __future__ import annotations
 
 import argparse
+import bz2
 import hashlib
+import io
 import json
 import sqlite3
 import sys
 import tempfile
+import zipfile
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from itertools import zip_longest
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
 CLASS1_NAME = "malicious_events_class_1.jsonl"
-CLASS2_NAME = "malicious_events_class_2.jsonl"
+CLASS1_AND_2_NAME = "malicious_events_class_1_and_2.jsonl"
+WINLOGBEAT_LABEL_SUBDIR = "clients_1_and_2"
 
 
 class DedalePreparationError(RuntimeError):
@@ -251,15 +255,85 @@ def _iter_jsonl(paths: Iterable[Path]) -> Iterator[tuple[Path, int, dict[str, An
                 yield path, line_number, row
 
 
-def _source_paths(root: Path) -> list[Path]:
-    paths = sorted(
-        path
-        for path in root.rglob("*.jsonl")
-        if path.is_file()
-    )
-    if not paths:
-        raise DedalePreparationError(f"no JSONL files found under {root}")
-    return paths
+def _decode_json_line(text: str, source_name: str, line_number: int) -> dict[str, Any]:
+    try:
+        row = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise DedalePreparationError(
+            f"invalid JSONL row: {source_name}:{line_number}: {exc}"
+        ) from exc
+    if not isinstance(row, dict):
+        raise DedalePreparationError(
+            f"JSONL row must be an object: {source_name}:{line_number}"
+        )
+    return row
+
+
+def _iter_text_jsonl(handle: Iterable[str], source_name: str) -> Iterator[tuple[str, int, dict[str, Any]]]:
+    for line_number, line in enumerate(handle, 1):
+        text = line.strip()
+        if not text:
+            continue
+        yield source_name, line_number, _decode_json_line(
+            text, source_name, line_number
+        )
+
+
+def _winlogbeat_source_names(source: Path) -> list[str]:
+    source = source.resolve()
+    if source.is_file():
+        if source.suffix.casefold() != ".zip":
+            raise DedalePreparationError(
+                f"Winlogbeat source file must be a ZIP archive: {source}"
+            )
+        with zipfile.ZipFile(source) as archive:
+            names = sorted(
+                info.filename
+                for info in archive.infolist()
+                if not info.is_dir()
+                and info.filename.casefold().endswith((".jsonl", ".jsonl.bz2"))
+            )
+    elif source.is_dir():
+        names = sorted(
+            path.relative_to(source).as_posix()
+            for path in source.rglob("*")
+            if path.is_file()
+            and path.name.casefold().endswith((".jsonl", ".jsonl.bz2"))
+        )
+    else:
+        raise DedalePreparationError(f"Winlogbeat source not found: {source}")
+
+    if not names:
+        raise DedalePreparationError(
+            f"no .jsonl or .jsonl.bz2 Winlogbeat members found under {source}"
+        )
+    return names
+
+
+def _iter_winlogbeat_rows(source: Path) -> Iterator[tuple[str, int, dict[str, Any]]]:
+    source = source.resolve()
+    names = _winlogbeat_source_names(source)
+
+    if source.is_file():
+        with zipfile.ZipFile(source) as archive:
+            for name in names:
+                with archive.open(name, "r") as binary:
+                    if name.casefold().endswith(".bz2"):
+                        with bz2.open(binary, "rt", encoding="utf-8") as handle:
+                            yield from _iter_text_jsonl(handle, name)
+                    else:
+                        with io.TextIOWrapper(binary, encoding="utf-8") as handle:
+                            yield from _iter_text_jsonl(handle, name)
+        return
+
+    for name in names:
+        path = source / Path(name)
+        if name.casefold().endswith(".bz2"):
+            with bz2.open(path, "rt", encoding="utf-8") as handle:
+                yield from _iter_text_jsonl(handle, name)
+        else:
+            with path.open("r", encoding="utf-8") as handle:
+                yield from _iter_text_jsonl(handle, name)
 
 
 def _row_digest(row: Mapping[str, Any]) -> str:
@@ -300,7 +374,7 @@ def normalize_corpus(
 ) -> dict[str, Any]:
     start_dt, end_dt = _window(start, end)
     root = winlogbeat_root.resolve()
-    paths = _source_paths(root)
+    source_names = _winlogbeat_source_names(root)
 
     out_corpus.parent.mkdir(parents=True, exist_ok=True)
     out_identity_map.parent.mkdir(parents=True, exist_ok=True)
@@ -319,7 +393,7 @@ def normalize_corpus(
                 out_corpus.open("wb") as corpus_handle,
                 out_identity_map.open("wb") as identity_handle,
             ):
-                for path, line_number, row in _iter_jsonl(paths):
+                for source_name, line_number, row in _iter_winlogbeat_rows(root):
                     source_rows += 1
                     _require_winlogbeat(row)
                     if not _in_window(row, start_dt, end_dt):
@@ -340,7 +414,7 @@ def normalize_corpus(
 
                     normalized = normalize_winlogbeat_row(row)
                     selected += 1
-                    rel = path.relative_to(root).as_posix()
+                    rel = source_name
                     selected_files.add(rel)
 
                     corpus_handle.write(_json_bytes(normalized))
@@ -371,7 +445,7 @@ def normalize_corpus(
         "labels_read": False,
         "window_start": start_dt.isoformat(),
         "window_end": end_dt.isoformat(),
-        "source_jsonl_files": len(paths),
+        "source_data_files": len(source_names),
         "selected_source_files": len(selected_files),
         "source_rows": source_rows,
         "outside_window_rows": outside_window,
@@ -426,63 +500,182 @@ def _load_identity_map(conn: sqlite3.Connection, path: Path) -> int:
     return count
 
 
-def _label_paths(labels_dir: Path, filename: str) -> list[Path]:
-    paths = sorted(
-        path
-        for path in labels_dir.rglob(filename)
-        if path.is_file()
-    )
-    if not paths:
-        raise DedalePreparationError(
-            f"{filename} not found under {labels_dir}"
+def _label_member_name(source: Path, filename: str) -> str:
+    source = source.resolve()
+    wanted_suffix = f"/{WINLOGBEAT_LABEL_SUBDIR}/{filename}".casefold()
+
+    if source.is_file():
+        if source.suffix.casefold() != ".zip":
+            raise DedalePreparationError(
+                f"label source file must be a ZIP archive: {source}"
+            )
+        with zipfile.ZipFile(source) as archive:
+            matches = sorted(
+                info.filename
+                for info in archive.infolist()
+                if not info.is_dir()
+                and ("/" + info.filename.lstrip("/")).casefold().endswith(
+                    wanted_suffix
+                )
+            )
+    elif source.is_dir():
+        matches = sorted(
+            path.relative_to(source).as_posix()
+            for path in source.rglob(filename)
+            if path.is_file()
+            and path.parent.name.casefold() == WINLOGBEAT_LABEL_SUBDIR.casefold()
         )
-    return paths
+    else:
+        raise DedalePreparationError(f"label source not found: {source}")
+
+    if len(matches) != 1:
+        raise DedalePreparationError(
+            f"expected exactly one Winlogbeat {filename}, found {len(matches)}"
+        )
+    return matches[0]
 
 
-def _apply_provider_class(
+def _iter_label_rows(source: Path, filename: str) -> Iterator[tuple[str, int, dict[str, Any]]]:
+    source = source.resolve()
+    name = _label_member_name(source, filename)
+    if source.is_file():
+        with zipfile.ZipFile(source) as archive:
+            with archive.open(name, "r") as binary:
+                with io.TextIOWrapper(binary, encoding="utf-8") as handle:
+                    yield from _iter_text_jsonl(handle, name)
+        return
+
+    with (source / Path(name)).open("r", encoding="utf-8") as handle:
+        yield from _iter_text_jsonl(handle, name)
+
+
+def _prepare_membership_table(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        CREATE TABLE label_membership (
+            provider_identity TEXT PRIMARY KEY,
+            in_class1 INTEGER NOT NULL DEFAULT 0,
+            in_class1_and_2 INTEGER NOT NULL DEFAULT 0
+        )
+        """
+    )
+
+
+def _record_provider_membership(
     *,
     conn: sqlite3.Connection,
-    paths: list[Path],
-    class_label: str,
+    source: Path,
+    filename: str,
+    membership: str,
     start: datetime,
     end: datetime,
 ) -> int:
+    if membership not in {"in_class1", "in_class1_and_2"}:
+        raise DedalePreparationError(f"invalid membership column: {membership}")
+
     count = 0
-    seen: set[str] = set()
-    for path, line_number, row in _iter_jsonl(paths):
+    for source_name, line_number, row in _iter_label_rows(source, filename):
         _require_winlogbeat(row)
         if not _in_window(row, start, end):
             raise DedalePreparationError(
                 "provider ground-truth event falls outside frozen test window: "
-                f"{path}:{line_number}"
+                f"{source_name}:{line_number}"
             )
         provider_id = provider_identity(row)
-        if provider_id in seen:
-            raise DedalePreparationError(
-                f"duplicate provider ground-truth identity: {provider_id}"
-            )
-        seen.add(provider_id)
-
-        existing = conn.execute(
-            "SELECT class_label FROM selected WHERE provider_identity = ?",
+        selected = conn.execute(
+            "SELECT 1 FROM selected WHERE provider_identity = ?",
             (provider_id,),
         ).fetchone()
-        if existing is None:
+        if selected is None:
             raise DedalePreparationError(
                 "provider ground-truth event is not an exact subset of selected "
                 f"Winlogbeat events: {provider_id}"
             )
-        if existing[0] is not None:
-            raise DedalePreparationError(
-                "provider ground-truth identity appears in more than one class: "
-                f"{provider_id}"
+
+        existing = conn.execute(
+            """
+            SELECT in_class1, in_class1_and_2
+            FROM label_membership
+            WHERE provider_identity = ?
+            """,
+            (provider_id,),
+        ).fetchone()
+        if existing is None:
+            conn.execute(
+                """
+                INSERT INTO label_membership(
+                    provider_identity, in_class1, in_class1_and_2
+                ) VALUES (?, 0, 0)
+                """,
+                (provider_id,),
             )
+            current = 0
+        else:
+            current = existing[0] if membership == "in_class1" else existing[1]
+
+        if current:
+            raise DedalePreparationError(
+                "duplicate provider ground-truth identity in "
+                f"{filename}: {provider_id}"
+            )
+
         conn.execute(
-            "UPDATE selected SET class_label = ? WHERE provider_identity = ?",
-            (class_label, provider_id),
+            f"UPDATE label_membership SET {membership} = 1 "
+            "WHERE provider_identity = ?",
+            (provider_id,),
         )
         count += 1
     return count
+
+
+def _apply_membership_labels(conn: sqlite3.Connection) -> tuple[int, int]:
+    missing_from_combined = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM label_membership
+        WHERE in_class1 = 1 AND in_class1_and_2 = 0
+        """
+    ).fetchone()[0]
+    if missing_from_combined:
+        raise DedalePreparationError(
+            "DEDALE class_1 must be an exact subset of class_1_and_2; "
+            f"missing={missing_from_combined}"
+        )
+
+    conn.execute(
+        """
+        UPDATE selected
+        SET class_label = 'malicious'
+        WHERE provider_identity IN (
+            SELECT provider_identity
+            FROM label_membership
+            WHERE in_class1 = 1
+        )
+        """
+    )
+    conn.execute(
+        """
+        UPDATE selected
+        SET class_label = 'ignore'
+        WHERE provider_identity IN (
+            SELECT provider_identity
+            FROM label_membership
+            WHERE in_class1 = 0 AND in_class1_and_2 = 1
+        )
+        """
+    )
+
+    malicious = conn.execute(
+        "SELECT COUNT(*) FROM label_membership WHERE in_class1 = 1"
+    ).fetchone()[0]
+    ignored = conn.execute(
+        """
+        SELECT COUNT(*)
+        FROM label_membership
+        WHERE in_class1 = 0 AND in_class1_and_2 = 1
+        """
+    ).fetchone()[0]
+    return int(malicious), int(ignored)
 
 
 def _iter_index(path: Path) -> Iterator[dict[str, Any]]:
@@ -518,30 +711,34 @@ def bind_labels(
     start_dt, end_dt = _window(start, end)
     out_labels.parent.mkdir(parents=True, exist_ok=True)
 
-    class1_paths = _label_paths(winlogbeat_labels_dir, CLASS1_NAME)
-    class2_paths = _label_paths(winlogbeat_labels_dir, CLASS2_NAME)
+    label_source = winlogbeat_labels_dir.resolve()
 
     malicious = 0
     ignored = 0
     benign = 0
+    combined_class_1_and_2 = 0
 
     try:
         with _temporary_db("p2-37-labels-") as conn:
             selected_count = _load_identity_map(conn, identity_map)
-            malicious = _apply_provider_class(
+            _prepare_membership_table(conn)
+            _record_provider_membership(
                 conn=conn,
-                paths=class1_paths,
-                class_label="malicious",
+                source=label_source,
+                filename=CLASS1_NAME,
+                membership="in_class1",
                 start=start_dt,
                 end=end_dt,
             )
-            ignored = _apply_provider_class(
+            combined_class_1_and_2 = _record_provider_membership(
                 conn=conn,
-                paths=class2_paths,
-                class_label="ignore",
+                source=label_source,
+                filename=CLASS1_AND_2_NAME,
+                membership="in_class1_and_2",
                 start=start_dt,
                 end=end_dt,
             )
+            malicious, ignored = _apply_membership_labels(conn)
 
             class_rows = conn.execute(
                 """
@@ -607,9 +804,63 @@ def bind_labels(
         "window_end": end_dt.isoformat(),
         "selected_events": malicious + ignored + benign,
         "malicious_class_1": malicious,
-        "ignored_class_2": ignored,
+        "combined_class_1_and_2": combined_class_1_and_2,
+        "ignored_derived_class_2": ignored,
         "benign_complement": benign,
         "labels_sha256": _sha256_file(out_labels),
+    }
+
+
+
+def inspect_window(*, winlogbeat_root: Path) -> dict[str, Any]:
+    """Derive the provider-recommended last-two-weeks window without labels/detection."""
+    root = winlogbeat_root.resolve()
+    source_names = _winlogbeat_source_names(root)
+    dates: set[Any] = set()
+    rows = 0
+
+    for _, _, row in _iter_winlogbeat_rows(root):
+        rows += 1
+        _require_winlogbeat(row)
+        dates.add(_parse_time(row.get("@timestamp"), "event").date())
+
+    ordered = sorted(dates)
+    if len(ordered) != 28:
+        raise DedalePreparationError(
+            "DEDALE source must expose exactly 28 distinct UTC dates before "
+            f"freezing the last-two-weeks window; observed={len(ordered)}"
+        )
+    for previous, current in zip(ordered, ordered[1:]):
+        if (current - previous).days != 1:
+            raise DedalePreparationError(
+                "DEDALE source UTC dates are not consecutive: "
+                f"{previous.isoformat()} -> {current.isoformat()}"
+            )
+
+    test_dates = ordered[-14:]
+    start_dt = datetime.combine(
+        test_dates[0],
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+    end_dt = datetime.combine(
+        test_dates[-1] + timedelta(days=1),
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+
+    return {
+        "status": "PASS",
+        "detection_rules_executed": False,
+        "labels_read": False,
+        "source_data_files": len(source_names),
+        "source_rows": rows,
+        "distinct_utc_dates": len(ordered),
+        "first_utc_date": ordered[0].isoformat(),
+        "last_utc_date": ordered[-1].isoformat(),
+        "test_window_policy": "LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES",
+        "test_window_start": start_dt.isoformat(),
+        "test_window_end_exclusive": end_dt.isoformat(),
     }
 
 
@@ -619,9 +870,15 @@ def parser() -> argparse.ArgumentParser:
     )
     sub = ap.add_subparsers(dest="command", required=True)
 
+    inspect = sub.add_parser(
+        "inspect-window",
+        help="Derive the frozen last-two-weeks window from a directory or ZIP without labels/detection.",
+    )
+    inspect.add_argument("--winlogbeat-root", required=True)
+
     normalize = sub.add_parser(
         "normalize",
-        help="Normalize the full Winlogbeat corpus without reading labels.",
+        help="Normalize a Winlogbeat directory or ZIP without reading labels.",
     )
     normalize.add_argument("--winlogbeat-root", required=True)
     normalize.add_argument("--out-corpus", required=True)
@@ -631,7 +888,7 @@ def parser() -> argparse.ArgumentParser:
 
     labels = sub.add_parser(
         "bind-labels",
-        help="Bind DEDALE class-1/class-2 labels after evaluator indexing.",
+        help="Bind DEDALE class-1 and class-1+2 labels after evaluator indexing.",
     )
     labels.add_argument("--index", required=True)
     labels.add_argument("--identity-map", required=True)
@@ -646,7 +903,11 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
-        if args.command == "normalize":
+        if args.command == "inspect-window":
+            result = inspect_window(
+                winlogbeat_root=Path(args.winlogbeat_root),
+            )
+        elif args.command == "normalize":
             result = normalize_corpus(
                 winlogbeat_root=Path(args.winlogbeat_root),
                 out_corpus=Path(args.out_corpus),
