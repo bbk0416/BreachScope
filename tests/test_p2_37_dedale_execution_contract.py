@@ -34,8 +34,9 @@ def test_p2_37_execution_contract_binds_exact_source_and_window() -> None:
         "13dfc222fcc8868306323a63758b0856f68d0e44"
     )
     assert gate["local_result_artifact_sha256"] == (
-        "536cc1bac99b491b1f56511b4f524a3a2df0e594b7fc06f7dae9c9c643ad9f59"
+        "0536327c25f04cb75fa3db216831fc92258c84101b041787b33d162788758563"
     )
+    assert gate["local_result_artifact_size_bytes"] == 5777
     result = gate["result"]
     assert result["status"] == "PASS"
     assert result["returncode"] == 0
