@@ -1,0 +1,71 @@
+schema: breachscope.p2_37_fast_normalization_evidence.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_SCORING_ACCELERATION_EVIDENCE
+recorded_date: 2026-10-02
+
+boundary:
+  labels_read: false
+  detector_run: false
+  detection_result_observed: false
+  source_changed: false
+  scoring_window_changed: false
+  adapter_changed_for_acceleration: false
+  output_contract_changed: false
+
+bound_source:
+  winlogbeat_sha256: d65572bdf8fa2f19e8fbb0ee925f646649cff53bf5e8f9948578602082fac206
+  amended_adapter_git_blob_sha1: 8216eea575ce4dcd8dfb75cdc15c0d6f402c1432
+  amended_adapter_sha256: 4757a3a5efc3627cbab12becb91eb4f46d15f5821a8c91f8898ed4d8f36f2fdb
+  resumable_normalizer_git_blob_sha1: 6ce4940b83f7b063c2101c4a1138c8609718805b
+  resumable_normalizer_sha256: c1566176c40b3bd42c65da17ae76e33ddd37e0fa05c90dcea121b0eb765579c1
+
+acceleration_environment:
+  json_decoder: orjson
+  orjson_version: "3.12.0"
+  orjson_wheel: orjson-3.12.0-cp313-cp313-win_amd64.whl
+  orjson_wheel_sha256: b85931be5b6763c31283805c9bdaae1ca03ad9f6f12a15f1cbf6745b907932c2
+  bzip2_decoder: 7-Zip
+  seven_zip_version: "26.02 x64"
+  seven_zip_release_date: "2026-06-25"
+  canonical_json_writer: AMENDED_FROZEN_ADAPTER_JSON_BYTES
+  canonical_identity_function: AMENDED_FROZEN_ADAPTER_PROVIDER_IDENTITY
+  canonical_normalizer: AMENDED_FROZEN_ADAPTER_NORMALIZE_WINLOGBEAT_ROW
+
+actual_source_equivalence:
+  source_member_index: 152
+  source_member: daily_winlogbeat/D16_H17_2025-01-07T17_winlogbeat_F378.jsonl.bz2
+  compressed_member_bytes: 146254945
+  source_rows: 1028001
+  selected_rows: 1028001
+  outside_window_rows: 0
+  canonical_checkpoint_adapter_git_blob_sha1: 8216eea575ce4dcd8dfb75cdc15c0d6f402c1432
+  canonical_corpus_size_bytes: 1432934179
+  canonical_corpus_sha256: b1e25b41401a1afbdae9af85d10b99915118579f8a0201c775cde33f1fd92701
+  canonical_identity_size_bytes: 202433094
+  canonical_identity_sha256: bd593e6015ef7a3a98e068ac00047ad94de0d99a8ab6b4dc9677b4ea9fd9a33d
+  accelerated_corpus_size_bytes: 1432934179
+  accelerated_corpus_sha256: b1e25b41401a1afbdae9af85d10b99915118579f8a0201c775cde33f1fd92701
+  accelerated_identity_size_bytes: 202433094
+  accelerated_identity_sha256: bd593e6015ef7a3a98e068ac00047ad94de0d99a8ab6b4dc9677b4ea9fd9a33d
+  exact_match: true
+  local_result_artifact: P2_37_FAST_COMPARE_152.json
+  local_result_artifact_size_bytes: 1018
+  local_result_artifact_sha256: 651a2d95d01cd29af73979559d11d907828768e1c6b0cc12c531faf13a68095c
+  fast_compare_exit_code: 0
+  fast_compare_stderr_bytes: 0
+
+reuse_contract:
+  marker_schema: breachscope.p2_37_normalization_member.v1
+  existing_valid_markers_may_be_reused: true
+  marker_validation_authority: scripts/p2_37_normalize_dedale_resumable.py
+  final_merge_authority: scripts/p2_37_normalize_dedale_resumable.py
+  invalid_or_missing_marker_requires_reprocessing: true
+  fast_path_may_not_modify_existing_valid_marker: true
+
+claim_boundary:
+  this_evidence_only_establishes_byte_equivalence_for_the_recorded_actual_member: true
+  full_corpus_equivalence_is_not_claimed_before_full_run_completion: true
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
