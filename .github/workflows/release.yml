@@ -61,6 +61,8 @@ jobs:
 
       - name: Add Python distribution checksums and refresh manifest
         env:
+          BS_BUILD_SHA: ${{ github.sha }}
+          BS_BUILD_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}
           BS_RELEASE_SIGNING_PRIVATE_KEY: ${{ secrets.BS_RELEASE_SIGNING_PRIVATE_KEY }}
         run: |
           python - <<'PY'

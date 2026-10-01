@@ -116,5 +116,7 @@ def test_release_workflow_manual_version_labels_build_and_bounds_artifact_retent
     root = Path(__file__).resolve().parents[1]
     workflow = (root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "inputs.version" in workflow
+    assert workflow.count("BS_BUILD_SHA: ${{ github.sha }}") == 2
+    assert workflow.count("BS_BUILD_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.version }}") == 2
     assert "startsWith(github.ref, 'refs/tags/')" in workflow
     assert "retention-days: 1" in workflow
