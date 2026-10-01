@@ -21,7 +21,7 @@ source_binding:
     sha256: 8d74aea6c6004acefa2d9a3b6394f2749ba35f3170e8d54f1d8ec0087642f321
   release_workflow:
     path: .github/workflows/release.yml
-    sha256: e6b52d17041ae7530dfb5857f0ccf3179e0a8e513281fc7dcc52262b7f96ef8f
+    sha256: 363577d77214b8957c6547426abf3ac7ec3f05eea60cfa619fc704f44b7a79b6
 
 windows_clean_install:
   runner_class: local_windows
