@@ -1,5 +1,5 @@
 schema: breachscope.release_v2_2_0_preflight.v1
-status: LOCAL_PREFLIGHT_PASS_CROSS_PLATFORM_PENDING
+status: RELEASE_PR_CI_PASS_READY_FOR_MANUAL_RELEASE_PREFLIGHT
 executed_date: 2026-10-01
 release_branch: release/v2.2.0
 base_repo_commit: ee0bf67e5206ed8d3b1cf29840267569eb51e41f
@@ -44,14 +44,27 @@ windows_clean_install:
   cleanup: true
 
 final_release_ci:
-  pull_request: PENDING
-  head_repo_commit: PENDING
-  workflow_run_id: PENDING
-  ci: PENDING_PR_CI
-  docker_build: PENDING_PR_CI
-  ubuntu_clean_install: PENDING_PR_CI
-  macos_clean_install: PENDING_PR_CI
-  windows_full_suite: PENDING_PR_CI
+  pull_request: 355
+  tested_package_commit: 4b93aec15eaced84d40c2e2566400c2203ca7c81
+  ci_run_id: 36798347765
+  ci_run_number: 515
+  ci: SUCCESS
+  docker_run_id: 36798347815
+  docker_run_number: 515
+  docker_build: SUCCESS
+  python_3_10_job_id: 110166842559
+  python_3_10: SUCCESS
+  python_3_11_job_id: 110166842840
+  python_3_11: SUCCESS
+  python_3_12_job_id: 110166842781
+  python_3_12: SUCCESS
+  windows_job_id: 110166842775
+  windows_full_suite: SUCCESS
+  ubuntu_clean_install_job_id: 110166842795
+  ubuntu_clean_install: SUCCESS
+  macos_clean_install_job_id: 110166842886
+  macos_clean_install: SUCCESS
+  docker_job_id: 110166842741
 
 release_state:
   tag_created: false
@@ -61,9 +74,9 @@ release_state:
 
 claim_boundary:
   windows_final_v2_2_0_wheel_clean_install_verified: true
-  final_v2_2_0_linux_clean_install: PENDING_PR_CI
-  final_v2_2_0_macos_clean_install: PENDING_PR_CI
-  final_v2_2_0_github_actions_ci: PENDING_PR_CI
+  final_v2_2_0_linux_clean_install: PASS
+  final_v2_2_0_macos_clean_install: PASS
+  final_v2_2_0_github_actions_ci: PASS
   github_release_v2_2_0: NOT_PUBLISHED
   public_release_asset_download_path: NOT_TESTED
   production_detection_accuracy: NOT_CLAIMED

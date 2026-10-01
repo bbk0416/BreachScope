@@ -16,9 +16,9 @@ v2.1.2 이후의 기능·운영 검증을 묶은 minor release입니다.
 
 ## 검증 상태
 
-- 최신 main GitHub Actions CI: Linux Python 3.10 / 3.11 / 3.12, Windows Python 3.11, Windows EVTX smoke, Linux go-live, Docker Build PASS
-- 최종 `2.2.0` wheel clean install: Windows 로컬 PASS
-- 최종 `2.2.0` Ubuntu/macOS clean install 및 release-PR CI: PENDING
+- release PR #355 / CI run #515: Linux Python 3.10 / 3.11 / 3.12, Windows Python 3.11, Windows EVTX smoke, Linux go-live PASS
+- Docker Build run #515: build + container smoke PASS
+- 최종 `2.2.0` wheel clean install: Windows 로컬 / Ubuntu GitHub-hosted / macOS Intel GitHub-hosted PASS
 - project readiness: 100/100
 - quality gate: 100/100
 - current detection evidence verifier: PASS

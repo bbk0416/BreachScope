@@ -26,7 +26,7 @@ def _row() -> dict:
 def test_v2_2_0_preflight_is_bound_to_release_sources() -> None:
     row = _row()
     assert row["schema"] == "breachscope.release_v2_2_0_preflight.v1"
-    assert row["status"] == "LOCAL_PREFLIGHT_PASS_CROSS_PLATFORM_PENDING"
+    assert row["status"] == "RELEASE_PR_CI_PASS_READY_FOR_MANUAL_RELEASE_PREFLIGHT"
     assert row["release_version"] == "2.2.0"
     assert row["release_tag"] == "v2.2.0"
 
@@ -73,11 +73,21 @@ def test_v2_2_0_release_version_is_consistent_in_public_docs() -> None:
     assert not re.search(r"breachscope-2\.1\.2-py3-none-any\.whl", quickstart)
 
 
-def test_v2_2_0_release_is_not_claimed_published_before_tag() -> None:
+def test_v2_2_0_release_pr_ci_is_recorded_before_tag() -> None:
     row = _row()
-    assert row["final_release_ci"]["ci"] == "PENDING_PR_CI"
-    assert row["final_release_ci"]["ubuntu_clean_install"] == "PENDING_PR_CI"
-    assert row["final_release_ci"]["macos_clean_install"] == "PENDING_PR_CI"
+    ci = row["final_release_ci"]
+    assert ci["pull_request"] == 355
+    assert ci["tested_package_commit"] == "4b93aec15eaced84d40c2e2566400c2203ca7c81"
+    assert ci["ci_run_id"] == 36798347765
+    assert ci["ci"] == "SUCCESS"
+    assert ci["docker_run_id"] == 36798347815
+    assert ci["docker_build"] == "SUCCESS"
+    assert ci["python_3_10"] == "SUCCESS"
+    assert ci["python_3_11"] == "SUCCESS"
+    assert ci["python_3_12"] == "SUCCESS"
+    assert ci["windows_full_suite"] == "SUCCESS"
+    assert ci["ubuntu_clean_install"] == "SUCCESS"
+    assert ci["macos_clean_install"] == "SUCCESS"
     assert row["release_state"]["tag_created"] is False
     assert row["release_state"]["github_release_published"] is False
     assert row["release_state"]["release_workflow_executed_for_v2_2_0"] is False
