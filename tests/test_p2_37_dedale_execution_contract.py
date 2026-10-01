@@ -27,7 +27,22 @@ def test_p2_37_execution_contract_binds_exact_source_and_window() -> None:
     assert source["labels"]["provider_md5_match"] is True
 
     adapter = row["frozen_adapter"]
-    assert adapter["git_blob_sha1"] == "31bf09ada2f5f511f0eea8ff492732178d848233"
+    assert adapter["git_blob_sha1"] == "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
+    assert adapter["local_exact_sha256"] == (
+        "4757a3a5efc3627cbab12becb91eb4f46d15f5821a8c91f8898ed4d8f36f2fdb"
+    )
+
+    amendment = row["identity_zero_value_amendment"]
+    assert amendment["previous_adapter_git_blob_sha1"] == (
+        "31bf09ada2f5f511f0eea8ff492732178d848233"
+    )
+    assert amendment["current_adapter_git_blob_sha1"] == (
+        "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
+    )
+    assert amendment["labels_read_before_amendment"] is False
+    assert amendment["detector_run_before_amendment"] is False
+    assert amendment["result_observed_before_amendment"] is False
+    assert amendment["prior_partial_old_adapter_chunks_canonical"] is False
 
     gate = row["window_gate"]
     assert gate["verifier_git_blob_sha1"] == (
