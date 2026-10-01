@@ -1,0 +1,152 @@
+schema: breachscope.p2_37_dedale_execution_contract.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_NORMALIZATION_EXECUTION_CONTRACT
+recorded_date: 2026-10-01
+
+contract_base:
+  repository_main_commit_before_contract: aea063d6ee49b098c7ec2035243d60e39d49e7ee
+  source_binding_merge_commit: 5c0c753d87252b5789e268421c3a885b96b7ed7b
+  window_inspection_amendment_merge_commit: aea063d6ee49b098c7ec2035243d60e39d49e7ee
+  preregistration_merge_commit: 4a6a5605e524ea3b742a7194a720effce7d48fb6
+  adapter_merge_commit: 47b0b6701209c89c8df366c2b9edc49a771fd1b7
+  source_window_lock_merge_commit: f07a846fa4125137b4d8fb857b69938219a3f029
+
+frozen_product:
+  repo_commit: 0fcad967c4d1a04b58800c5d0e761a91c47b8773
+  reference_detector_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  detector_code_changed_for_p2_37: false
+  rule_bytes_changed_for_p2_37: false
+
+source_bytes:
+  winlogbeat:
+    filename: system_logs_winlogbeat.zip
+    file_persistent_id: doi:10.57745/ATR0QO
+    size_bytes: 27123250952
+    provider_md5: 7af54ba2977f7535d4c07beb6b1ec657
+    verified_md5: 7af54ba2977f7535d4c07beb6b1ec657
+    sha256: d65572bdf8fa2f19e8fbb0ee925f646649cff53bf5e8f9948578602082fac206
+    provider_md5_match: true
+  labels:
+    filename: system_logs_labels.zip
+    file_persistent_id: doi:10.57745/GFI7BE
+    size_bytes: 2669407
+    provider_md5: 455d0a7042531eff74285006f97822e4
+    verified_md5: 455d0a7042531eff74285006f97822e4
+    sha256: 729ac223a89c70f771861920b6b9ee3ab1bb5569e12ec54c04f380aadf574dc7
+    provider_md5_match: true
+
+frozen_adapter:
+  path: scripts/p2_37_prepare_dedale_holdout.py
+  git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
+  local_exact_sha256: 626130fe91ed82fbad4e5943ad311235ad7f7f699b4efe930835ec0090004437
+
+window_gate:
+  amendment_path: external_baseline/p2_37_dedale_window_inspection_amendment.yaml
+  verifier_path: scripts/p2_37_verify_dedale_window_sentinels.py
+  verifier_git_blob_sha1: 13dfc222fcc8868306323a63758b0856f68d0e44
+  verifier_sha256: 5c306142aefca18b552dc0b51e78809231e29c21a8da657c9b6e929e20b607f4
+  local_result_artifact_sha256: 536cc1bac99b491b1f56511b4f524a3a2df0e594b7fc06f7dae9c9c643ad9f59
+  result:
+    status: PASS
+    returncode: 0
+    detection_rules_executed: false
+    labels_read: false
+    outer_file_count: 673
+    source_data_files: 672
+    distinct_utc_dates: 28
+    members_per_date: 24
+    first_utc_date: "2024-12-23"
+    last_utc_date: "2025-01-19"
+    sentinel_count: 28
+    sentinel_inner_bz2_bytes: 370101047
+    sentinel_rows: 2538961
+    test_window_policy: LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES
+    test_window_start: "2025-01-06T00:00:00+00:00"
+    test_window_end_exclusive: "2025-01-20T00:00:00+00:00"
+
+label_contract:
+  winlogbeat_label_subtree: system_labels/clients_1_and_2
+  class_1_member: malicious_events_class_1.jsonl
+  class_1_and_2_member: malicious_events_class_1_and_2.jsonl
+  class_1_to_label: malicious
+  class_2_derivation: CLASS_1_AND_2_EXACT_SET_MINUS_CLASS_1_EXACT_SET
+  derived_class_2_to_label: ignore
+  remaining_reconciled_event_to_label: benign
+  fuzzy_matching_allowed: false
+  unmatched_or_duplicate_label_match_policy: ABORT_BEFORE_SCORING
+
+execution_order:
+  - id: 1
+    action: NORMALIZE_LABEL_BLIND
+    labels_may_be_read: false
+    detector_may_run: false
+    input_window_start: "2025-01-06T00:00:00+00:00"
+    input_window_end_exclusive: "2025-01-20T00:00:00+00:00"
+    required_outputs:
+      - normalized_corpus
+      - provider_identity_map
+  - id: 2
+    action: CREATE_EVALUATOR_INDEX_WITHOUT_DETECTION
+    labels_may_be_read: false
+    detector_may_run: false
+    required_outputs:
+      - evaluator_index
+  - id: 3
+    action: BIND_PROVIDER_LABELS_POST_INDEX
+    labels_may_be_read: true
+    detector_may_run: false
+    required_outputs:
+      - evaluator_labels
+  - id: 4
+    action: HASH_AND_BIND_EXECUTION_ARTIFACTS
+    detector_may_run: false
+    required_hashes:
+      - normalized_corpus_sha256
+      - provider_identity_map_sha256
+      - evaluator_index_sha256
+      - evaluator_labels_sha256
+  - id: 5
+    action: MERGE_EXECUTION_ARTIFACT_BINDING
+    detector_may_run: false
+  - id: 6
+    action: RUN_SINGLE_CANONICAL_SCORE
+    detector_may_run: true
+    maximum_canonical_scoring_runs: 1
+
+execution_state_at_contract:
+  exact_source_bytes_bound: true
+  window_gate_passed: true
+  normalized_corpus_created: false
+  provider_identity_map_created: false
+  evaluator_index_created: false
+  labels_read_for_scoring: false
+  evaluator_labels_created: false
+  execution_artifact_binding_merged: false
+  detector_run: false
+  result_observed: false
+
+abort_conditions:
+  source_or_adapter_hash_mismatch: ABORT
+  normalization_failure: ABORT
+  duplicate_provider_identity: ABORT
+  evaluator_index_mismatch: ABORT
+  class_1_not_subset_of_class_1_and_2: ABORT
+  provider_label_not_in_selected_event_index: ABORT
+  cross_class_or_duplicate_label_identity: ABORT
+  execution_artifact_hash_not_bound_before_scoring: ABORT
+  attempted_second_canonical_score: ABORT
+
+claim_boundary:
+  evaluation_class: external_baseline
+  final_blind_holdout: false
+  provider_labels_are_independent_adjudication: false
+  representative_production_population: false
+  successful_metrics_may_be_named_dedale_holdout_metrics: true
+  successful_metrics_may_be_named_production_metrics: false
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
