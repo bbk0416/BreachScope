@@ -49,12 +49,22 @@ def test_p2_37_selects_previously_unused_dedale_windows_source() -> None:
     assert source["groundtruth_archive"]["provider_filename"] == (
         "system_logs_labels.zip"
     )
-    assert source["corpus_archive"]["sha256"] == (
-        "TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE"
+    assert source["corpus_archive"]["sha256"] == "TO_BE_BOUND_AFTER_FULL_DOWNLOAD"
+    assert source["groundtruth_archive"]["sha256"] == "TO_BE_BOUND_AFTER_FULL_DOWNLOAD"
+    assert source["corpus_archive"]["file_persistent_id"] == "doi:10.57745/ATR0QO"
+    assert source["corpus_archive"]["size_bytes"] == 27_123_250_952
+    assert source["corpus_archive"]["provider_md5"] == (
+        "7af54ba2977f7535d4c07beb6b1ec657"
     )
-    assert source["groundtruth_archive"]["sha256"] == (
-        "TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE"
+    assert source["corpus_archive"]["outer_zip_file_count"] == 673
+    assert source["corpus_archive"]["member_format"] == "JSONL_BZ2"
+    assert source["corpus_archive"]["extraction_required_before_adapter_run"] is False
+    assert source["groundtruth_archive"]["file_persistent_id"] == "doi:10.57745/GFI7BE"
+    assert source["groundtruth_archive"]["size_bytes"] == 2_669_407
+    assert source["groundtruth_archive"]["provider_md5"] == (
+        "455d0a7042531eff74285006f97822e4"
     )
+    assert source["groundtruth_archive"]["separate_class_2_member_exists"] is False
 
 
 def test_p2_37_uses_provider_recommended_test_window_without_tuning() -> None:
@@ -78,16 +88,21 @@ def test_p2_37_uses_provider_recommended_test_window_without_tuning() -> None:
 
 def test_p2_37_label_mapping_excludes_attack_related_context() -> None:
     labels = _load()["label_mapping_contract"]
-    assert labels["class_1_to_external_holdout_label"] == "malicious"
-    assert labels["class_2_to_external_holdout_label"] == "ignore"
+    assert labels["provider_class_1_to_external_holdout_label"] == "malicious"
+    assert labels["provider_class_2_derivation"] == (
+        "CLASS_1_AND_2_EXACT_SET_MINUS_CLASS_1_EXACT_SET"
+    )
+    assert labels["derived_class_2_to_external_holdout_label"] == "ignore"
     assert labels["remaining_test_window_event_to_external_holdout_label"] == "benign"
-    assert labels["class_2_excluded_from_confusion_matrix_denominators"] is True
+    assert labels["derived_class_2_excluded_from_confusion_matrix_denominators"] is True
+    assert labels["class_1_must_be_exact_subset_of_class_1_and_2"] is True
     assert (
         labels[
-            "class_1_and_class_2_must_be_exact_subsets_of_selected_winlogbeat_events"
+            "class_1_and_class_1_and_2_must_be_exact_subsets_of_selected_winlogbeat_events"
         ]
         is True
     )
+    assert labels["auditbeat_internal_server_labels_must_not_enter_winlogbeat_scoring"] is True
     assert labels["exact_reconciliation_required_before_scoring"] is True
     assert labels["fuzzy_timestamp_or_process_name_matching_allowed"] is False
     assert labels["unmatched_groundtruth_event_policy"] == "ABORT_BEFORE_SCORING"
@@ -107,6 +122,9 @@ def test_p2_37_blocks_detector_until_hashes_labels_and_contract_are_frozen() -> 
     gate = row["execution_gate"]
     assert gate["source_preregistration_must_be_merged_before_download"] is True
     assert gate["bind_exact_archive_hashes_before_indexing"] is True
+    assert gate["provider_md5_must_match_before_processing"] is True
+    assert gate["full_download_sha256_must_be_recorded_before_processing"] is True
+    assert gate["outer_zip_must_be_streamed_without_bulk_extraction"] is True
     assert gate["freeze_current_repo_and_rule_tree_before_scoring"] is True
     assert gate["index_without_detection_before_label_generation"] is True
     assert gate["generated_label_file_must_be_hash_bound_before_scoring"] is True
@@ -154,7 +172,7 @@ def test_p2_37_locks_source_derived_window_and_adapter_blob() -> None:
     )
     assert lock["adapter_path"] == "scripts/p2_37_prepare_dedale_holdout.py"
     assert lock["adapter_git_blob_sha1"] == (
-        "fbb168585b1c5ab9450b039085fc07ea5a9371ab"
+        "31bf09ada2f5f511f0eea8ff492732178d848233"
     )
     assert lock["adapter_may_not_change_after_window_lock_merge"] is True
     assert lock["detector_code_changed_by_adapter_work"] is False
@@ -182,6 +200,8 @@ def test_p2_37_requires_window_inspection_before_normalization() -> None:
     assert row["post_window_lock_state"] == {
         "source_contract_merged": True,
         "window_lock_tool_merged": False,
+        "remote_archive_metadata_inspected_by_range_only": True,
+        "event_member_payload_read_during_remote_inspection": False,
         "corpus_downloaded": False,
         "groundtruth_downloaded": False,
         "exact_archive_hashes_bound": False,
