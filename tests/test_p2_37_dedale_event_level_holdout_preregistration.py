@@ -141,3 +141,55 @@ def test_p2_37_claim_boundary_does_not_turn_dataset_metrics_into_production_clai
     assert claim["production_precision"] == "NOT_CLAIMED"
     assert claim["production_recall"] == "NOT_CLAIMED"
     assert claim["production_false_positive_rate"] == "NOT_CLAIMED"
+
+
+def test_p2_37_locks_source_derived_window_and_adapter_blob() -> None:
+    row = _load()
+    lock = row["post_preregistration_tool_lock"]
+    assert lock["source_preregistration_merge_commit"] == (
+        "4a6a5605e524ea3b742a7194a720effce7d48fb6"
+    )
+    assert lock["adapter_merge_commit_before_window_lock"] == (
+        "47b0b6701209c89c8df366c2b9edc49a771fd1b7"
+    )
+    assert lock["adapter_path"] == "scripts/p2_37_prepare_dedale_holdout.py"
+    assert lock["adapter_git_blob_sha1"] == (
+        "fbb168585b1c5ab9450b039085fc07ea5a9371ab"
+    )
+    assert lock["adapter_may_not_change_after_window_lock_merge"] is True
+    assert lock["detector_code_changed_by_adapter_work"] is False
+    assert lock["rule_tree_changed_by_adapter_work"] is False
+
+    window = row["selection_policy"]["test_window_derivation"]
+    assert window == {
+        "method": "LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES",
+        "required_distinct_utc_dates": 28,
+        "require_consecutive_utc_dates": True,
+        "derive_from_full_winlogbeat_before_normalization": True,
+        "labels_may_be_read_during_window_derivation": False,
+        "detector_may_run_during_window_derivation": False,
+        "expected_start_and_end_must_be_recorded_in_execution_contract": True,
+        "if_date_contract_fails": "ABORT_BEFORE_NORMALIZATION",
+    }
+
+
+def test_p2_37_requires_window_inspection_before_normalization() -> None:
+    row = _load()
+    gate = row["execution_gate"]
+    assert gate["inspect_window_before_normalization"] is True
+    assert gate["window_inspection_must_not_read_labels_or_run_detection"] is True
+    assert gate["execution_contract_must_bind_derived_window_start_and_end"] is True
+    assert row["post_window_lock_state"] == {
+        "source_contract_merged": True,
+        "window_lock_tool_merged": False,
+        "corpus_downloaded": False,
+        "groundtruth_downloaded": False,
+        "exact_archive_hashes_bound": False,
+        "window_inspected": False,
+        "normalized_corpus_created": False,
+        "event_index_created": False,
+        "label_file_created": False,
+        "execution_contract_merged": False,
+        "detector_run": False,
+        "result_observed": False,
+    }
