@@ -40,8 +40,20 @@ source_bytes:
 
 frozen_adapter:
   path: scripts/p2_37_prepare_dedale_holdout.py
-  git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
-  local_exact_sha256: 626130fe91ed82fbad4e5943ad311235ad7f7f699b4efe930835ec0090004437
+  git_blob_sha1: 8216eea575ce4dcd8dfb75cdc15c0d6f402c1432
+  local_exact_sha256: 4757a3a5efc3627cbab12becb91eb4f46d15f5821a8c91f8898ed4d8f36f2fdb
+
+identity_zero_value_amendment:
+  path: external_baseline/p2_37_dedale_identity_zero_value_amendment.yaml
+  previous_adapter_git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
+  current_adapter_git_blob_sha1: 8216eea575ce4dcd8dfb75cdc15c0d6f402c1432
+  labels_read_before_amendment: false
+  detector_run_before_amendment: false
+  result_observed_before_amendment: false
+  source_changed: false
+  scoring_window_changed: false
+  label_mapping_changed: false
+  prior_partial_old_adapter_chunks_canonical: false
 
 window_gate:
   amendment_path: external_baseline/p2_37_dedale_window_inspection_amendment.yaml
