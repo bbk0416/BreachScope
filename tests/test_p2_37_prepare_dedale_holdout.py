@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import bz2
 import importlib.util
 import json
+import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -235,7 +237,10 @@ def test_bind_labels_maps_class1_ignore_and_exact_complement(
 
     label_dir = tmp_path / "labels" / "clients_1_and_2"
     _write_jsonl(label_dir / adapter.CLASS1_NAME, [rows[1]])
-    _write_jsonl(label_dir / adapter.CLASS2_NAME, [rows[2]])
+    _write_jsonl(
+        label_dir / adapter.CLASS1_AND_2_NAME,
+        [rows[1], rows[2]],
+    )
 
     labels = tmp_path / "labels.jsonl"
     result = adapter.bind_labels(
@@ -251,7 +256,8 @@ def test_bind_labels_maps_class1_ignore_and_exact_complement(
     assert result["detection_rules_executed"] is False
     assert result["selected_events"] == 3
     assert result["malicious_class_1"] == 1
-    assert result["ignored_class_2"] == 1
+    assert result["combined_class_1_and_2"] == 2
+    assert result["ignored_derived_class_2"] == 1
     assert result["benign_complement"] == 1
 
     output = _read_jsonl(labels)
@@ -320,9 +326,9 @@ def test_bind_labels_fails_closed_when_provider_label_is_not_in_corpus(
         ],
     )
 
-    label_dir = tmp_path / "labels"
+    label_dir = tmp_path / "labels" / "clients_1_and_2"
     _write_jsonl(label_dir / adapter.CLASS1_NAME, [missing])
-    _write_jsonl(label_dir / adapter.CLASS2_NAME, [])
+    _write_jsonl(label_dir / adapter.CLASS1_AND_2_NAME, [missing])
 
     with pytest.raises(
         adapter.DedalePreparationError,
@@ -338,7 +344,7 @@ def test_bind_labels_fails_closed_when_provider_label_is_not_in_corpus(
         )
 
 
-def test_bind_labels_rejects_same_event_in_class1_and_class2(
+def test_bind_labels_rejects_class1_missing_from_class1_and_2(
     tmp_path: Path,
 ) -> None:
     source = tmp_path / "winlogbeat"
@@ -371,13 +377,13 @@ def test_bind_labels_rejects_same_event_in_class1_and_class2(
         ],
     )
 
-    label_dir = tmp_path / "labels"
+    label_dir = tmp_path / "labels" / "clients_1_and_2"
     _write_jsonl(label_dir / adapter.CLASS1_NAME, [selected])
-    _write_jsonl(label_dir / adapter.CLASS2_NAME, [selected])
+    _write_jsonl(label_dir / adapter.CLASS1_AND_2_NAME, [])
 
     with pytest.raises(
         adapter.DedalePreparationError,
-        match="more than one class",
+        match="class_1 must be an exact subset of class_1_and_2",
     ):
         adapter.bind_labels(
             evaluator_index=index,
@@ -474,3 +480,127 @@ def test_inspect_window_fails_closed_if_source_is_not_exactly_28_days(
         match="exactly 28 distinct UTC dates",
     ):
         adapter.inspect_window(winlogbeat_root=source)
+
+
+def test_normalize_streams_realistic_outer_zip_with_jsonl_bz2_member(
+    tmp_path: Path,
+) -> None:
+    source_zip = tmp_path / "system_logs_winlogbeat.zip"
+    row = _row(
+        timestamp="2025-01-08T15:07:55.919Z",
+        host="CLIENT2.breach.local",
+        record_id=4104297,
+        event_id=11,
+    )
+    payload = (json.dumps(row, ensure_ascii=False) + "\n").encode("utf-8")
+    compressed = bz2.compress(payload)
+    with zipfile.ZipFile(source_zip, "w", compression=zipfile.ZIP_STORED) as archive:
+        archive.writestr(
+            "daily_winlogbeat/D17_H15_2025-01-08T15_winlogbeat_F400.jsonl.bz2",
+            compressed,
+        )
+
+    corpus = tmp_path / "normalized.jsonl"
+    identity_map = tmp_path / "identity.jsonl"
+    result = adapter.normalize_corpus(
+        winlogbeat_root=source_zip,
+        out_corpus=corpus,
+        out_identity_map=identity_map,
+        start=START,
+        end=END,
+    )
+
+    assert result["source_data_files"] == 1
+    assert result["source_rows"] == 1
+    assert result["selected_rows"] == 1
+    assert _read_jsonl(corpus)[0]["RecordNumber"] == "4104297"
+
+
+def test_bind_labels_reads_only_clients_winlogbeat_from_realistic_label_zip(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "winlogbeat"
+    malicious = _row(
+        timestamp="2025-01-08T15:07:55.919Z",
+        host="CLIENT2.breach.local",
+        record_id=4104297,
+        event_id=11,
+    )
+    related = _row(
+        timestamp="2025-01-08T15:07:56.919Z",
+        host="CLIENT2.breach.local",
+        record_id=4104298,
+        event_id=11,
+    )
+    benign = _row(
+        timestamp="2025-01-08T15:07:57.919Z",
+        host="CLIENT2.breach.local",
+        record_id=4104299,
+        event_id=11,
+    )
+    _write_jsonl(source / "day.jsonl", [malicious, related, benign])
+
+    corpus = tmp_path / "normalized.jsonl"
+    identity_map = tmp_path / "identity.jsonl"
+    adapter.normalize_corpus(
+        winlogbeat_root=source,
+        out_corpus=corpus,
+        out_identity_map=identity_map,
+        start=START,
+        end=END,
+    )
+    normalized = _read_jsonl(corpus)
+    index = tmp_path / "index.jsonl"
+    _write_jsonl(
+        index,
+        [
+            {
+                "event_key": evaluator.event_key(row),
+                "record_index": i,
+            }
+            for i, row in enumerate(normalized, 1)
+        ],
+    )
+
+    label_zip = tmp_path / "system_logs_labels.zip"
+    def jsonl_bytes(rows: list[dict]) -> bytes:
+        return "".join(
+            json.dumps(row, ensure_ascii=False) + "\n" for row in rows
+        ).encode("utf-8")
+
+    with zipfile.ZipFile(label_zip, "w") as archive:
+        archive.writestr(
+            "system_labels/clients_1_and_2/malicious_events_class_1.jsonl",
+            jsonl_bytes([malicious]),
+        )
+        archive.writestr(
+            "system_labels/clients_1_and_2/malicious_events_class_1_and_2.jsonl",
+            jsonl_bytes([malicious, related]),
+        )
+        archive.writestr(
+            "system_labels/internal_server/malicious_events_class_1.jsonl",
+            b'{"agent":{"type":"auditbeat"}}\n',
+        )
+        archive.writestr(
+            "system_labels/internal_server/malicious_events_class_1_and_2.jsonl",
+            b'{"agent":{"type":"auditbeat"}}\n',
+        )
+
+    out = tmp_path / "labels.jsonl"
+    result = adapter.bind_labels(
+        evaluator_index=index,
+        identity_map=identity_map,
+        winlogbeat_labels_dir=label_zip,
+        out_labels=out,
+        start=START,
+        end=END,
+    )
+    assert result["malicious_class_1"] == 1
+    assert result["combined_class_1_and_2"] == 2
+    assert result["ignored_derived_class_2"] == 1
+    assert result["benign_complement"] == 1
+    assert [row["label"] for row in _read_jsonl(out)] == [
+        "malicious",
+        "ignore",
+        "benign",
+    ]
