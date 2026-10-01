@@ -24,7 +24,7 @@ post_preregistration_tool_lock:
   source_preregistration_merge_commit: 4a6a5605e524ea3b742a7194a720effce7d48fb6
   adapter_merge_commit_before_window_lock: 47b0b6701209c89c8df366c2b9edc49a771fd1b7
   adapter_path: scripts/p2_37_prepare_dedale_holdout.py
-  adapter_git_blob_sha1: fbb168585b1c5ab9450b039085fc07ea5a9371ab
+  adapter_git_blob_sha1: 31bf09ada2f5f511f0eea8ff492732178d848233
   adapter_may_not_change_after_window_lock_merge: true
   detector_code_changed_by_adapter_work: false
   rule_tree_changed_by_adapter_work: false
@@ -49,10 +49,29 @@ source:
   host_log_type: WINLOGBEAT_WINDOWS_EVENTS
   corpus_archive:
     provider_filename: system_logs_winlogbeat.zip
-    sha256: TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE
+    file_persistent_id: doi:10.57745/ATR0QO
+    size_bytes: 27123250952
+    provider_md5: 7af54ba2977f7535d4c07beb6b1ec657
+    sha256: TO_BE_BOUND_AFTER_FULL_DOWNLOAD
+    http_range_verified: true
+    outer_zip_file_count: 673
+    member_format: JSONL_BZ2
+    outer_member_bytes_total: 27207479360
+    extraction_required_before_adapter_run: false
   groundtruth_archive:
     provider_filename: system_logs_labels.zip
-    sha256: TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE
+    file_persistent_id: doi:10.57745/GFI7BE
+    size_bytes: 2669407
+    provider_md5: 455d0a7042531eff74285006f97822e4
+    sha256: TO_BE_BOUND_AFTER_FULL_DOWNLOAD
+    http_range_verified: true
+    outer_zip_file_count: 5
+    extraction_required_before_adapter_run: false
+    winlogbeat_label_subtree: system_labels/clients_1_and_2
+    winlogbeat_class_1_member: system_labels/clients_1_and_2/malicious_events_class_1.jsonl
+    winlogbeat_class_1_and_2_member: system_labels/clients_1_and_2/malicious_events_class_1_and_2.jsonl
+    separate_class_2_member_exists: false
+    auditbeat_label_subtree_excluded: system_labels/internal_server
   provider_documented_label_classes:
     benign: LOGS_RELATED_TO_BENIGN_ACTIVITY
     class_1: LOGS_CLEARLY_LINKED_TO_A_MALICIOUS_ACTION
@@ -88,11 +107,14 @@ selection_policy:
   if_test_window_cannot_be_reproduced: ABORT_BEFORE_SCORING
 
 label_mapping_contract:
-  class_1_to_external_holdout_label: malicious
-  class_2_to_external_holdout_label: ignore
+  provider_class_1_to_external_holdout_label: malicious
+  provider_class_2_derivation: CLASS_1_AND_2_EXACT_SET_MINUS_CLASS_1_EXACT_SET
+  derived_class_2_to_external_holdout_label: ignore
   remaining_test_window_event_to_external_holdout_label: benign
-  class_2_excluded_from_confusion_matrix_denominators: true
-  class_1_and_class_2_must_be_exact_subsets_of_selected_winlogbeat_events: true
+  derived_class_2_excluded_from_confusion_matrix_denominators: true
+  class_1_must_be_exact_subset_of_class_1_and_2: true
+  class_1_and_class_1_and_2_must_be_exact_subsets_of_selected_winlogbeat_events: true
+  auditbeat_internal_server_labels_must_not_enter_winlogbeat_scoring: true
   exact_reconciliation_required_before_scoring: true
   fuzzy_timestamp_or_process_name_matching_allowed: false
   unmatched_groundtruth_event_policy: ABORT_BEFORE_SCORING
@@ -103,6 +125,9 @@ label_mapping_contract:
 execution_gate:
   source_preregistration_must_be_merged_before_download: true
   bind_exact_archive_hashes_before_indexing: true
+  provider_md5_must_match_before_processing: true
+  full_download_sha256_must_be_recorded_before_processing: true
+  outer_zip_must_be_streamed_without_bulk_extraction: true
   inspect_window_before_normalization: true
   window_inspection_must_not_read_labels_or_run_detection: true
   execution_contract_must_bind_derived_window_start_and_end: true
@@ -153,6 +178,8 @@ execution_state_at_preregistration:
 post_window_lock_state:
   source_contract_merged: true
   window_lock_tool_merged: false
+  remote_archive_metadata_inspected_by_range_only: true
+  event_member_payload_read_during_remote_inspection: false
   corpus_downloaded: false
   groundtruth_downloaded: false
   exact_archive_hashes_bound: false
