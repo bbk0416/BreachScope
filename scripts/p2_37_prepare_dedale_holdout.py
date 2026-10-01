@@ -19,7 +19,7 @@ import sqlite3
 import sys
 import tempfile
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from itertools import zip_longest
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
@@ -613,11 +613,70 @@ def bind_labels(
     }
 
 
+
+def inspect_window(*, winlogbeat_root: Path) -> dict[str, Any]:
+    """Derive the provider-recommended last-two-weeks window without labels/detection."""
+    root = winlogbeat_root.resolve()
+    paths = _source_paths(root)
+    dates: set[Any] = set()
+    rows = 0
+
+    for _, _, row in _iter_jsonl(paths):
+        rows += 1
+        _require_winlogbeat(row)
+        dates.add(_parse_time(row.get("@timestamp"), "event").date())
+
+    ordered = sorted(dates)
+    if len(ordered) != 28:
+        raise DedalePreparationError(
+            "DEDALE source must expose exactly 28 distinct UTC dates before "
+            f"freezing the last-two-weeks window; observed={len(ordered)}"
+        )
+    for previous, current in zip(ordered, ordered[1:]):
+        if (current - previous).days != 1:
+            raise DedalePreparationError(
+                "DEDALE source UTC dates are not consecutive: "
+                f"{previous.isoformat()} -> {current.isoformat()}"
+            )
+
+    test_dates = ordered[-14:]
+    start_dt = datetime.combine(
+        test_dates[0],
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+    end_dt = datetime.combine(
+        test_dates[-1] + timedelta(days=1),
+        datetime.min.time(),
+        tzinfo=timezone.utc,
+    )
+
+    return {
+        "status": "PASS",
+        "detection_rules_executed": False,
+        "labels_read": False,
+        "source_jsonl_files": len(paths),
+        "source_rows": rows,
+        "distinct_utc_dates": len(ordered),
+        "first_utc_date": ordered[0].isoformat(),
+        "last_utc_date": ordered[-1].isoformat(),
+        "test_window_policy": "LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES",
+        "test_window_start": start_dt.isoformat(),
+        "test_window_end_exclusive": end_dt.isoformat(),
+    }
+
+
 def parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         description="Prepare DEDALE Winlogbeat external-holdout material."
     )
     sub = ap.add_subparsers(dest="command", required=True)
+
+    inspect = sub.add_parser(
+        "inspect-window",
+        help="Derive the frozen last-two-weeks window without labels or detection.",
+    )
+    inspect.add_argument("--winlogbeat-root", required=True)
 
     normalize = sub.add_parser(
         "normalize",
@@ -646,7 +705,11 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
-        if args.command == "normalize":
+        if args.command == "inspect-window":
+            result = inspect_window(
+                winlogbeat_root=Path(args.winlogbeat_root),
+            )
+        elif args.command == "normalize":
             result = normalize_corpus(
                 winlogbeat_root=Path(args.winlogbeat_root),
                 out_corpus=Path(args.out_corpus),
