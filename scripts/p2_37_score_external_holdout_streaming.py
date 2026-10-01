@@ -261,13 +261,18 @@ def _per_source(
     )
     out: dict[str, dict[str, int]] = {}
     for row in rows:
-        out[str(row[0])] = {
+        counts = {
             "events": int(row[1]),
             "malicious": int(row[2]),
             "benign": int(row[3]),
             "ignore": int(row[4]),
             "scored": int(row[5]),
             "flagged": int(row[6]),
+        }
+        out[str(row[0])] = {
+            key: value
+            for key, value in counts.items()
+            if value
         }
     return out
 
