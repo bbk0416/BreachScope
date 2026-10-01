@@ -4,10 +4,10 @@
 
 ### 공개 Release wheel
 
-GitHub Releases에서 `breachscope-2.1.2-py3-none-any.whl`을 내려받은 뒤 설치합니다. 이 방식은 저장소의 `scripts/`, `rules/`, `templates/`를 별도로 checkout하지 않아도 됩니다.
+GitHub Releases에서 `breachscope-2.2.0-py3-none-any.whl`을 내려받은 뒤 설치합니다. 이 방식은 저장소의 `scripts/`, `rules/`, `templates/`를 별도로 checkout하지 않아도 됩니다.
 
 ```bash
-python -m pip install breachscope-2.1.2-py3-none-any.whl
+python -m pip install breachscope-2.2.0-py3-none-any.whl
 python -m breachscope.cli --demo
 ```
 
