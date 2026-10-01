@@ -1,0 +1,66 @@
+schema: breachscope.p2_37_orjson_serialization_equivalence.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_SCORING_CANONICAL_SERIALIZATION_EQUIVALENCE
+recorded_date: 2026-10-02
+
+boundary:
+  labels_read: false
+  detector_run: false
+  detection_result_observed: false
+  source_changed: false
+  scoring_window_changed: false
+  amended_adapter_changed: false
+  provider_identity_changed: false
+  normalization_semantics_changed: false
+  canonical_output_bytes_changed: false
+
+implementation:
+  json_backend: orjson
+  orjson_version: "3.12.0"
+  option: OPT_SORT_KEYS
+  newline_suffix_for_jsonl: true
+  accelerated_operations:
+    - normalized_corpus_json_serialization
+    - raw_source_row_canonicalization_for_sha256
+    - identity_slice_json_serialization
+  fallback_backend: stdlib
+  fallback_contract:
+    sort_keys: true
+    separators: [",", ":"]
+    ensure_ascii: false
+
+actual_source_equivalence:
+  source_member_index: 152
+  source_member: daily_winlogbeat/D16_H17_2025-01-07T17_winlogbeat_F378.jsonl.bz2
+  source_rows: 1028001
+  selected_rows: 1028001
+  outside_window_rows: 0
+  canonical_corpus_size_bytes: 1432934179
+  accelerated_corpus_size_bytes: 1432934179
+  canonical_identity_size_bytes: 202433094
+  accelerated_identity_size_bytes: 202433094
+  canonical_corpus_sha256: b1e25b41401a1afbdae9af85d10b99915118579f8a0201c775cde33f1fd92701
+  accelerated_corpus_sha256: b1e25b41401a1afbdae9af85d10b99915118579f8a0201c775cde33f1fd92701
+  canonical_identity_sha256: bd593e6015ef7a3a98e068ac00047ad94de0d99a8ab6b4dc9677b4ea9fd9a33d
+  accelerated_identity_sha256: bd593e6015ef7a3a98e068ac00047ad94de0d99a8ab6b4dc9677b4ea9fd9a33d
+  exact_match: true
+  local_result_artifact: P2_37_ORJSON_SERIALIZATION_COMPARE_152.json
+  local_result_artifact_size_bytes: 1010
+  local_result_artifact_sha256: 59f9a49879f0678a862d0ce7db4dd50de26ed3ee15f07d7e22875afb2cee8dd1
+  compare_exit_code: 0
+  compare_stderr_bytes: 0
+
+compatibility:
+  slice_state_schema_changed: false
+  member_marker_schema_changed: false
+  existing_stdlib_slices_may_be_reused: true
+  existing_member_markers_may_be_reused: true
+  final_merge_authority: scripts/p2_37_normalize_dedale_resumable.py
+
+claim_boundary:
+  evidence_establishes_exact_bytes_for_recorded_actual_member: true
+  full_corpus_equivalence_not_claimed_before_full_run_completion: true
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
