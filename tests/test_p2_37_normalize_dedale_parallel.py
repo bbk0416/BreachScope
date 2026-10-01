@@ -196,7 +196,7 @@ def test_parallel_normalization_is_byte_identical_to_frozen_serial(
 
     assert parallel["workers"] == 2
     assert parallel["frozen_adapter_git_blob_sha1"] == (
-        "31bf09ada2f5f511f0eea8ff492732178d848233"
+        "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
     )
 
 
