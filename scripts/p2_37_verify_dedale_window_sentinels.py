@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-EXPECTED_ADAPTER_GIT_BLOB_SHA1 = "31bf09ada2f5f511f0eea8ff492732178d848233"
+EXPECTED_ADAPTER_GIT_BLOB_SHA1 = "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
 MEMBER_RE = re.compile(
     r"^daily_winlogbeat/D([0-9]+)_H([0-9]+)_([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2})_winlogbeat_F([0-9]+)\.jsonl\.bz2$"
 )
