@@ -20,6 +20,15 @@ preregistration:
   exact_source_bytes_must_be_bound_after_merge_before_indexing: true
   separate_execution_contract_required_before_scoring: true
 
+post_preregistration_tool_lock:
+  source_preregistration_merge_commit: 4a6a5605e524ea3b742a7194a720effce7d48fb6
+  adapter_merge_commit_before_window_lock: 47b0b6701209c89c8df366c2b9edc49a771fd1b7
+  adapter_path: scripts/p2_37_prepare_dedale_holdout.py
+  adapter_git_blob_sha1: fbb168585b1c5ab9450b039085fc07ea5a9371ab
+  adapter_may_not_change_after_window_lock_merge: true
+  detector_code_changed_by_adapter_work: false
+  rule_tree_changed_by_adapter_work: false
+
 frozen_product:
   repo_commit: 0fcad967c4d1a04b58800c5d0e761a91c47b8773
   reference_detector_commit: bad0c88037d489f5b375c120002be74ac6082ffa
@@ -59,10 +68,20 @@ selection_policy:
   scoring_window: LAST_TWO_WEEKS_ONLY
   first_two_weeks_used_for_rule_tuning: false
   first_two_weeks_scored_in_p2_37: false
+  test_window_derivation:
+    method: LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES
+    required_distinct_utc_dates: 28
+    require_consecutive_utc_dates: true
+    derive_from_full_winlogbeat_before_normalization: true
+    labels_may_be_read_during_window_derivation: false
+    detector_may_run_during_window_derivation: false
+    expected_start_and_end_must_be_recorded_in_execution_contract: true
+    if_date_contract_fails: ABORT_BEFORE_NORMALIZATION
   source_member_selection: >-
-    Select every Winlogbeat JSONL event that belongs to the provider-defined
-    last-two-weeks test window. Derive the window only from provider archive
-    structure and/or provider timestamps before any detector execution.
+    Select every Winlogbeat JSONL event whose @timestamp falls inside the
+    automatically derived last 14 UTC dates of an exactly 28-day consecutive
+    Winlogbeat source. The exact start/end are frozen after source download and
+    before normalization, labeling, or detector execution.
   post_score_member_or_event_dropping_allowed: false
   fallback_to_first_two_weeks_allowed: false
   fallback_to_different_dataset_allowed: false
@@ -84,6 +103,9 @@ label_mapping_contract:
 execution_gate:
   source_preregistration_must_be_merged_before_download: true
   bind_exact_archive_hashes_before_indexing: true
+  inspect_window_before_normalization: true
+  window_inspection_must_not_read_labels_or_run_detection: true
+  execution_contract_must_bind_derived_window_start_and_end: true
   freeze_current_repo_and_rule_tree_before_scoring: true
   index_without_detection_before_label_generation: true
   generated_label_file_must_be_hash_bound_before_scoring: true
@@ -122,6 +144,20 @@ execution_state_at_preregistration:
   corpus_downloaded: false
   groundtruth_downloaded: false
   exact_archive_hashes_bound: false
+  event_index_created: false
+  label_file_created: false
+  execution_contract_merged: false
+  detector_run: false
+  result_observed: false
+
+post_window_lock_state:
+  source_contract_merged: true
+  window_lock_tool_merged: false
+  corpus_downloaded: false
+  groundtruth_downloaded: false
+  exact_archive_hashes_bound: false
+  window_inspected: false
+  normalized_corpus_created: false
   event_index_created: false
   label_file_created: false
   execution_contract_merged: false
