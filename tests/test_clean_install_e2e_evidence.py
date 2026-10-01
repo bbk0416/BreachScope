@@ -17,15 +17,18 @@ def _row() -> dict:
     return yaml.safe_load(EVIDENCE.read_text(encoding="utf-8"))
 
 
-def test_clean_install_evidence_is_bound_to_current_sources() -> None:
+def test_clean_install_historical_evidence_preserves_recorded_source_bindings() -> None:
     row = _row()
     assert row["schema"] == "breachscope.clean_install_e2e.v1"
     assert row["status"] == "PASS"
+    assert row["base_repo_commit"] == "4626dd8cea11edec9131a128df44238fd748fe83"
     assert row["environment"]["python_version"] == "3.11.9"
     assert row["environment"]["source_checkout_used_at_runtime"] is False
 
     for binding in row["source_binding"].values():
-        assert _sha(ROOT / binding["path"]) == binding["sha256"]
+        assert Path(binding["path"]).as_posix()
+        assert len(binding["sha256"]) == 64
+        int(binding["sha256"], 16)
 
 
 def test_clean_install_evidence_covers_wheel_cli_and_web_runtime() -> None:

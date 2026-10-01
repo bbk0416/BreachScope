@@ -1,0 +1,71 @@
+schema: breachscope.release_v2_2_0_preflight.v1
+status: LOCAL_PREFLIGHT_PASS_CROSS_PLATFORM_PENDING
+executed_date: 2026-10-01
+release_branch: release/v2.2.0
+base_repo_commit: ee0bf67e5206ed8d3b1cf29840267569eb51e41f
+release_version: "2.2.0"
+release_tag: v2.2.0
+
+source_binding:
+  packaging:
+    path: pyproject.toml
+    sha256: e380cd0557d36c04e2e6ad1868df25dd6061e18a35238942968ede463a4c41b8
+  clean_install_verifier:
+    path: scripts/verify_clean_install_e2e.py
+    sha256: 5ce2a52269d0803bcdaaad4e54be4ce1ff5aa9d60fd2b436fedf35e4f9c42d45
+  runtime_paths:
+    path: breachscope/runtime_paths.py
+    sha256: 58a16707cf94fc82b89f57655d1e3d4bee18fd88b04c858a647d0c94e0425dac
+  ops_status:
+    path: api/services/ops_status.py
+    sha256: 8d74aea6c6004acefa2d9a3b6394f2749ba35f3170e8d54f1d8ec0087642f321
+  release_workflow:
+    path: .github/workflows/release.yml
+    sha256: e6b52d17041ae7530dfb5857f0ccf3179e0a8e513281fc7dcc52262b7f96ef8f
+
+windows_clean_install:
+  runner_class: local_windows
+  python_version: "3.11.9"
+  base_python_command:
+    - py
+    - -3.11
+  wheel_name: breachscope-2.2.0-py3-none-any.whl
+  wheel_build: PASS
+  fresh_venv: PASS
+  wheel_install_with_dependencies: PASS
+  installed_imports: PASS
+  installed_version: "2.2.0"
+  packaged_rule_files: 5
+  packaged_templates: PASS
+  demo_cli_exit: 0
+  fastapi_health: PASS
+  fastapi_readiness: PASS
+  source_checkout_used_at_runtime: false
+  cleanup: true
+
+final_release_ci:
+  pull_request: PENDING
+  head_repo_commit: PENDING
+  workflow_run_id: PENDING
+  ci: PENDING_PR_CI
+  docker_build: PENDING_PR_CI
+  ubuntu_clean_install: PENDING_PR_CI
+  macos_clean_install: PENDING_PR_CI
+  windows_full_suite: PENDING_PR_CI
+
+release_state:
+  tag_created: false
+  github_release_published: false
+  release_workflow_executed_for_v2_2_0: false
+  public_release_asset_download_verified: false
+
+claim_boundary:
+  windows_final_v2_2_0_wheel_clean_install_verified: true
+  final_v2_2_0_linux_clean_install: PENDING_PR_CI
+  final_v2_2_0_macos_clean_install: PENDING_PR_CI
+  final_v2_2_0_github_actions_ci: PENDING_PR_CI
+  github_release_v2_2_0: NOT_PUBLISHED
+  public_release_asset_download_path: NOT_TESTED
+  production_detection_accuracy: NOT_CLAIMED
+  production_detection_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED

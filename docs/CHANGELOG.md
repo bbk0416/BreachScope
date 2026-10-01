@@ -1,6 +1,6 @@
 # BreachScope 변경 이력
 
-## Unreleased
+## 2.2.0 - 2026-10-01
 
 - Verify clean wheel installation and runtime smoke on real GitHub-hosted Ubuntu and macOS Intel runners; both platforms pass wheel build, fresh venv install, packaged assets, demo CLI, live FastAPI health/readiness, and cleanup.
 - Add regression coverage for worst-case rollback failures: object-storage replication now has a test for case-index persistence failure plus remote rollback failure with operator/audit visibility; artifact encryption tests incomplete plaintext restoration; SCIM migration tests target-write failure plus rollback failure while preserving the recovery backup path.

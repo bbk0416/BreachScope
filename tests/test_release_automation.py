@@ -106,3 +106,15 @@ def test_release_workflow_resigns_and_verifies_final_manifest():
     assert "sign_release_manifest(manifest.path, signature_path)" in workflow
     assert "scripts/verify_release_signature.py" in workflow
     assert "DEFAULT_SIGNATURE_NAME" in workflow
+    assert (
+        "git fetch --no-tags origin "
+        "bad0c88037d489f5b375c120002be74ac6082ffa"
+    ) in workflow
+
+
+def test_release_workflow_manual_version_labels_build_and_bounds_artifact_retention():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    assert "inputs.version" in workflow
+    assert "startsWith(github.ref, 'refs/tags/')" in workflow
+    assert "retention-days: 1" in workflow

@@ -332,7 +332,7 @@ publish된 특정 draft/version을 activation manifest에 등록합니다. `expe
 ```json
 {
   "status": "healthy",
-  "version": "2.1.2"
+  "version": "2.2.0"
 }
 ```
 

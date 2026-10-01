@@ -20,14 +20,15 @@ make validate
 
 ### 평가 증거 / 공개 문구 확인
 
-릴리즈 노트, README, 포트폴리오, 고객 전달 문구에서 탐지 성능을 언급할 경우 다음 문서와 반드시 맞춰 확인합니다.
+릴리즈 노트, README, 포트폴리오, 고객 전달 문구에서 탐지 성능을 언급할 경우 **현재 evidence chain**을 먼저 확인합니다.
 
+- `external_baseline/current_detection_evidence.yaml`
+- `external_baseline/p2_36c_current_rulepack_fresh_source_revalidation_result.yaml`
 - `docs/EXTERNAL_HOLDOUT_EVALUATION.md`
-- `docs/evidence/p2_14e_canonical_one_pass_result.md`
 
-P2-14E는 고정된 corpus·rule pack·scoring contract로 수행한 한 번의 final blind one-pass 결과를 봉인한 기록입니다. 여기서 나온 event/finding/rule-hit 수치는 **operational output**으로만 다룹니다. 별도의 authoritative ground truth가 없으므로 이 결과를 production accuracy, precision, recall, detection rate, false-positive rate의 근거로 표현하지 않습니다.
+현재 73-rule detector의 fresh revalidation은 P2-36C입니다. 2개 attack fixture 중 1개가 HIT였고 source-intent benign 112,411 events 중 1개가 flagged됐지만, fixture hit fraction은 event-level recall이 아니며 이 benign 비율도 confirmed 또는 production false-positive rate가 아닙니다. Production accuracy, precision, recall, false-positive rate는 계속 `NOT_CLAIMED`입니다.
 
-이미 봉인된 P2-14E 결과를 더 좋아 보이게 만들기 위한 재실행, threshold 조정, rule tuning, denominator 변경은 기존 final-blind claim을 보존하는 릴리즈 절차에 포함하지 않습니다.
+`docs/evidence/p2_14e_canonical_one_pass_result.md`와 P2-35M 등 이전 rulepack 결과는 역사 evidence로 보존합니다. 이미 봉인된 canonical 결과를 더 좋아 보이게 만들기 위한 재실행, threshold 조정, rule tuning, denominator 변경은 릴리즈 절차에 포함하지 않습니다.
 
 ## 2. 로컬 릴리즈 번들 생성
 

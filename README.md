@@ -12,14 +12,15 @@
 
 ## 현재 상태
 
-- 최신 공개 릴리즈: `v2.1.2`
-- 현재 소스 패키지 버전: `2.1.2` (GitHub Release 발행 완료)
+- 릴리즈 대상: `v2.2.0`
+- 이전 공개 릴리즈: `v2.1.2`
+- 현재 소스 패키지 버전: `2.2.0` (GitHub Release 발행 대상)
 - 패키지 메타데이터 상태: Beta
 - Python: 3.10 / 3.11 / 3.12 CI
 - 기본 회귀 CI: Ubuntu에서 Python 3.10 / 3.11 / 3.12를 검증합니다.
 - Windows 네이티브 CI: `windows-latest` / Python 3.11에서 전체 테스트, Windows 경로, EVTX 수집·변환, case-history 파일 잠금, CLI smoke를 검증합니다. 이는 실제 기업 환경의 로그·권한·운영 조건까지 검증했다는 뜻은 아닙니다.
 - 내장 demo/evaluation 데이터는 **합성(synthetic) 회귀 데이터**입니다. 실제 기업 환경의 탐지 정확도나 오탐률을 증명하지 않습니다.
-- P2-14E final blind one-pass 결과는 `docs/evidence/p2_14e_canonical_one_pass_result.md`에 봉인되어 있습니다. 이 결과는 고정된 입력·룰·실행에서 얻은 **operational output**을 기록하며, production accuracy·precision·recall·detection rate·false-positive rate를 입증하는 근거로 사용하지 않습니다.
+- 현재 73-rule detector의 최신 fresh revalidation은 P2-36C이며 `external_baseline/current_detection_evidence.yaml`과 `external_baseline/p2_36c_current_rulepack_fresh_source_revalidation_result.yaml`에 고정되어 있습니다. Attack fixture 2개 중 1개가 HIT였고 source-intent benign 112,411 events 중 1개가 flagged됐지만, fixture hit fraction은 event-level recall이 아니며 이 benign 비율도 confirmed/production FPR이 아닙니다. P2-14E는 이전 rulepack의 역사 evidence로 보존합니다.
 
 따라서 현재 BreachScope는 **포트폴리오, 연구, 내부 DFIR 보조, 사고 triage** 용도로 보는 것이 맞습니다. 사람의 확인 없이 자동 차단·법적 판단·기업 전사 운영을 맡기는 production-grade DFIR 플랫폼으로 주장하지 않습니다.
 
@@ -44,10 +45,10 @@
 
 ### 설치
 
-공개 Release wheel을 사용할 경우 소스 checkout 없이 실행할 수 있습니다. GitHub Releases에서 `breachscope-2.1.2-py3-none-any.whl`을 내려받은 뒤:
+공개 Release wheel을 사용할 경우 소스 checkout 없이 실행할 수 있습니다. GitHub Releases에서 `breachscope-2.2.0-py3-none-any.whl`을 내려받은 뒤:
 
 ```bash
-python -m pip install breachscope-2.1.2-py3-none-any.whl
+python -m pip install breachscope-2.2.0-py3-none-any.whl
 python -m breachscope.cli --demo --export-json --export-csv
 ```
 
