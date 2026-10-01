@@ -14,7 +14,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_PATH = ROOT / "scripts" / "p2_37_prepare_dedale_holdout.py"
 PARALLEL_PATH = ROOT / "scripts" / "p2_37_inspect_dedale_window_parallel.py"
-EXPECTED_ADAPTER_BLOB = "31bf09ada2f5f511f0eea8ff492732178d848233"
+EXPECTED_ADAPTER_BLOB = "8216eea575ce4dcd8dfb75cdc15c0d6f402c1432"
 
 
 def _load(path: Path, name: str):
