@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -411,3 +412,65 @@ def test_normalize_rejects_duplicate_provider_identity(
             start=START,
             end=END,
         )
+
+
+def test_inspect_window_derives_last_14_of_exactly_28_consecutive_utc_dates(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "winlogbeat"
+    first = datetime(2024, 12, 23, 12, 0, 0, tzinfo=timezone.utc)
+    rows = []
+    for offset in range(28):
+        timestamp = (first + timedelta(days=offset)).isoformat().replace(
+            "+00:00", "Z"
+        )
+        rows.append(
+            _row(
+                timestamp=timestamp,
+                host="CLIENT1.breach.local",
+                record_id=1000 + offset,
+                event_id=1,
+            )
+        )
+    _write_jsonl(source / "all.jsonl", rows)
+
+    result = adapter.inspect_window(winlogbeat_root=source)
+
+    assert result["status"] == "PASS"
+    assert result["detection_rules_executed"] is False
+    assert result["labels_read"] is False
+    assert result["distinct_utc_dates"] == 28
+    assert result["first_utc_date"] == "2024-12-23"
+    assert result["last_utc_date"] == "2025-01-19"
+    assert result["test_window_policy"] == (
+        "LAST_14_OF_EXACTLY_28_CONSECUTIVE_UTC_DATES"
+    )
+    assert result["test_window_start"] == "2025-01-06T00:00:00+00:00"
+    assert result["test_window_end_exclusive"] == "2025-01-20T00:00:00+00:00"
+
+
+def test_inspect_window_fails_closed_if_source_is_not_exactly_28_days(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "winlogbeat"
+    first = datetime(2024, 12, 23, 12, 0, 0, tzinfo=timezone.utc)
+    rows = []
+    for offset in range(27):
+        timestamp = (first + timedelta(days=offset)).isoformat().replace(
+            "+00:00", "Z"
+        )
+        rows.append(
+            _row(
+                timestamp=timestamp,
+                host="CLIENT1.breach.local",
+                record_id=2000 + offset,
+                event_id=1,
+            )
+        )
+    _write_jsonl(source / "all.jsonl", rows)
+
+    with pytest.raises(
+        adapter.DedalePreparationError,
+        match="exactly 28 distinct UTC dates",
+    ):
+        adapter.inspect_window(winlogbeat_root=source)
