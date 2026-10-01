@@ -1,0 +1,129 @@
+schema: breachscope.p2_37_dedale_event_level_holdout_preregistration.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PREREGISTERED_SOURCE_SELECTION_NOT_DOWNLOADED_NOT_RUN
+created_date: 2026-10-01
+purpose: >-
+  Evaluate the unchanged current 73-rule detector against a previously unused
+  Windows Winlogbeat corpus with dataset-supplied event-level attack labels.
+  Freeze the source, split, label mapping, and abort conditions before archive
+  download, event parsing, label parsing, or detector execution.
+
+preregistration:
+  base_main_commit: 0fcad967c4d1a04b58800c5d0e761a91c47b8773
+  current_detection_evidence: external_baseline/current_detection_evidence.yaml
+  source_metadata_inspected_before_merge: true
+  archive_bytes_downloaded_before_merge: false
+  corpus_event_contents_parsed_before_merge: false
+  groundtruth_event_contents_parsed_before_merge: false
+  detector_executed_against_selected_source_before_merge: false
+  source_selection_may_not_change_after_merge: true
+  exact_source_bytes_must_be_bound_after_merge_before_indexing: true
+  separate_execution_contract_required_before_scoring: true
+
+frozen_product:
+  repo_commit: 0fcad967c4d1a04b58800c5d0e761a91c47b8773
+  reference_detector_commit: bad0c88037d489f5b375c120002be74ac6082ffa
+  rules_tree_sha256: 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88
+  rule_count: 73
+  rule_file_count: 5
+  rule_bytes_unchanged_from_reference_detector: true
+
+source:
+  dataset_name: DEDALE
+  dataset_long_name: Dataset for Evaluating Detection of APT among Logs and Events
+  dataset_version: "2.0"
+  persistent_id: doi:10.57745/Y5JLDG
+  publisher: Recherche Data Gouv
+  dataset_homepage: https://dedale.inria.fr/download.html
+  repository_usage_before_p2_37: 0
+  source_previously_used_by_breachscope: false
+  host_log_type: WINLOGBEAT_WINDOWS_EVENTS
+  corpus_archive:
+    provider_filename: system_logs_winlogbeat.zip
+    sha256: TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE
+  groundtruth_archive:
+    provider_filename: system_logs_labels.zip
+    sha256: TO_BE_BOUND_AFTER_PREREGISTRATION_MERGE
+  provider_documented_label_classes:
+    benign: LOGS_RELATED_TO_BENIGN_ACTIVITY
+    class_1: LOGS_CLEARLY_LINKED_TO_A_MALICIOUS_ACTION
+    class_2: LOGS_THAT_ARE_CONSEQUENCES_OR_DEPENDENT_ON_ATTACK_STEP_OPERATION
+  provider_documented_usage:
+    first_two_weeks: BENIGN_ONLY
+    third_week_attack_start: true
+    attack_duration_days: 8
+    recommended_training_validation_window: FIRST_TWO_WEEKS
+    recommended_test_window: LAST_TWO_WEEKS
+
+selection_policy:
+  scoring_window: LAST_TWO_WEEKS_ONLY
+  first_two_weeks_used_for_rule_tuning: false
+  first_two_weeks_scored_in_p2_37: false
+  source_member_selection: >-
+    Select every Winlogbeat JSONL event that belongs to the provider-defined
+    last-two-weeks test window. Derive the window only from provider archive
+    structure and/or provider timestamps before any detector execution.
+  post_score_member_or_event_dropping_allowed: false
+  fallback_to_first_two_weeks_allowed: false
+  fallback_to_different_dataset_allowed: false
+  if_test_window_cannot_be_reproduced: ABORT_BEFORE_SCORING
+
+label_mapping_contract:
+  class_1_to_external_holdout_label: malicious
+  class_2_to_external_holdout_label: ignore
+  remaining_test_window_event_to_external_holdout_label: benign
+  class_2_excluded_from_confusion_matrix_denominators: true
+  class_1_and_class_2_must_be_exact_subsets_of_selected_winlogbeat_events: true
+  exact_reconciliation_required_before_scoring: true
+  fuzzy_timestamp_or_process_name_matching_allowed: false
+  unmatched_groundtruth_event_policy: ABORT_BEFORE_SCORING
+  ambiguous_or_duplicate_groundtruth_match_policy: ABORT_BEFORE_SCORING
+  remaining_event_may_be_called_benign_only_after_subset_reconciliation_passes: true
+  dataset_labels_treated_as_provider_ground_truth_not_independent_adjudication: true
+
+execution_gate:
+  source_preregistration_must_be_merged_before_download: true
+  bind_exact_archive_hashes_before_indexing: true
+  freeze_current_repo_and_rule_tree_before_scoring: true
+  index_without_detection_before_label_generation: true
+  generated_label_file_must_be_hash_bound_before_scoring: true
+  label_generation_must_follow_only_the_preregistered_mapping: true
+  detector_must_not_run_before_execution_contract_merge: true
+  source_split_or_labels_must_not_depend_on_detector_output: true
+  single_canonical_scoring_run_required: true
+
+measurement:
+  report_tp_fp_tn_fn: true
+  report_precision: true
+  report_recall: true
+  report_false_positive_rate: true
+  report_flagged_ignored_events: true
+  report_expected_technique_accounting_when_source_labels_support_it: true
+  report_runtime_seconds: true
+  report_peak_memory_mb: true
+  report_per_source_counts: true
+
+claim_boundary:
+  evaluation_class: external_baseline
+  final_blind_holdout: false
+  source_family_previously_used_by_breachscope: false
+  event_level_labels_available_from_source: true
+  ground_truth_quality_independently_proven_by_breachscope: false
+  representative_production_population: false
+  successful_metrics_may_be_named_dedale_holdout_metrics: true
+  successful_metrics_may_be_named_production_metrics: false
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+
+execution_state_at_preregistration:
+  source_contract_merged: false
+  corpus_downloaded: false
+  groundtruth_downloaded: false
+  exact_archive_hashes_bound: false
+  event_index_created: false
+  label_file_created: false
+  execution_contract_merged: false
+  detector_run: false
+  result_observed: false
