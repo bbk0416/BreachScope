@@ -1,0 +1,49 @@
+schema: breachscope.p2_37_fast_final_merge_equivalence.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_SCORING_FINAL_MERGE_ACCELERATION_EVIDENCE
+recorded_date: 2026-10-02
+
+boundary:
+  labels_read: false
+  detector_run: false
+  detection_result_observed: false
+  normalization_member_markers_changed: false
+  final_merge_state_schema_changed: false
+  canonical_identity_bytes_changed: false
+
+implementation:
+  json_backend: orjson
+  orjson_version: "3.12.0"
+  identity_serializer: orjson.OPT_SORT_KEYS_plus_newline
+  sqlite_insert_mode: executemany
+  sqlite_insert_batch_size: 10000
+  fallback_json_backend: stdlib
+  fallback_insert_batch_size: 1
+
+actual_source_equivalence:
+  normalized_member_index: 121
+  selected_rows: 650004
+  canonical_identity_size_bytes: 194778990
+  accelerated_identity_size_bytes: 194778990
+  canonical_identity_sha256: 30b28c6b221b16d1c1b265b3ac883f1a4b7d19fc39d2c72f0a26a7b4c7d47cea
+  accelerated_identity_sha256: 30b28c6b221b16d1c1b265b3ac883f1a4b7d19fc39d2c72f0a26a7b4c7d47cea
+  exact_match: true
+  accelerated_sqlite_seen_rows: 650004
+  elapsed_seconds: 34.49850739999965
+  local_result_artifact: P2_37_IDENTITY_BATCH_COMPARE_121.json
+  local_result_artifact_size_bytes: 431
+  local_result_artifact_sha256: 77df052c49dace371298d94256de4a22d82bd081ce8fdc91f832cc6c7c9c1bf0
+
+compatibility:
+  current_final_merge_state_next_index: 122
+  existing_state_may_resume_with_fast_backend: true
+  existing_sqlite_seen_state_may_resume_with_fast_backend: true
+  canonical_output_order_changed: false
+  duplicate_provider_identity_fail_closed_changed: false
+
+claim_boundary:
+  evidence_establishes_exact_identity_bytes_for_recorded_actual_member: true
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
