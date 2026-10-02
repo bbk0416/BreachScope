@@ -1,0 +1,90 @@
+schema: breachscope.p2_37_semantic_duplicate_amendment.v1
+analysis_id: p2-37-dedale-event-level-holdout-v1
+status: PRE_LABEL_PRE_SCORE_NORMALIZATION_AMENDMENT
+recorded_date: 2026-10-02
+
+boundary:
+  labels_read_before_amendment: false
+  detector_run_before_amendment: false
+  detection_result_observed_before_amendment: false
+  source_changed: false
+  scoring_window_changed: false
+  amended_adapter_changed: false
+  detector_changed: false
+  rules_changed: false
+
+reason:
+  original_merge_policy: ABORT_ON_ANY_DUPLICATE_PROVIDER_IDENTITY
+  issue: >-
+    The exact selected DEDALE corpus contains at least one pair of source rows
+    with the same provider identity whose only source-level differences are
+    ingestion metadata fields that are intentionally excluded from canonical
+    normalized events. Treating this as an identity-contract failure would
+    reject two byte-identical canonical representations of the same Windows
+    event rather than distinguish two different normalized events.
+  amendment_timing: BEFORE_PROVIDER_LABELS_AND_BEFORE_DETECTION
+
+actual_source_evidence:
+  provider_identity: 81b4753d3cb0681f161c3e01e74cf2346028c263674c77c03db865f51dea6875
+  source_member_index: 129
+  source_member: daily_winlogbeat/D15_H18_2025-01-06T18_winlogbeat_F355.jsonl.bz2
+  first_source_line: 25715
+  second_source_line: 25716
+  first_source_row_sha256: 81be91749c9533a1f004c620b283750778739098259ada709d547ef658182c09
+  second_source_row_sha256: 0fe515137e0f93009b143bafaca57ba77fe2711b99699b039d54e26568e55f57
+  source_rows_byte_identical: false
+  differing_source_fields:
+    - agent.ephemeral_id
+    - event.created
+  provider_identity_fields_equal:
+    timestamp: "2025-01-06T18:03:24.824Z"
+    host: CLIENT3.breach.local
+    channel: Microsoft-Windows-Sysmon/Operational
+    record_id: "3718784"
+    event_id: "26"
+  normalized_row_size_bytes: 1410
+  first_normalized_row_sha256: 0978a388f037ccd741752980e762360e0cdd932b6273c596aac9b7efe1b5e1f3
+  second_normalized_row_sha256: 0978a388f037ccd741752980e762360e0cdd932b6273c596aac9b7efe1b5e1f3
+  normalized_rows_byte_identical: true
+  target_identity_raw_search_hit_count: 2
+  target_identity_raw_search_scope: ALL_NONEMPTY_COMMITTED_IDENTITY_CHUNKS
+
+canonical_duplicate_policy:
+  ordering: CANONICAL_MEMBER_INDEX_THEN_SOURCE_LINE
+  on_first_provider_identity: KEEP
+  on_duplicate_provider_identity:
+    if_normalized_row_bytes_sha256_equal: DROP_LATER_COPY
+    if_normalized_row_bytes_sha256_different: ABORT_BEFORE_LABEL_BINDING
+  canonical_record_index: RESEQUENCED_AFTER_DEDUPLICATION
+  identity_map_contains_only_kept_events: true
+  source_row_digest_remains_evidence_only: true
+  no_label_information_used_to_choose_kept_copy: true
+  no_detection_information_used_to_choose_kept_copy: true
+
+merge_state:
+  previous_fail_closed_merge_state_may_be_reused: false
+  reason: >-
+    The previous seen table does not persist normalized-row digests and its
+    selected-row accounting assumes no deduplication.
+  new_state_schema: breachscope.p2_37_semantic_dedupe_merge_state.v1
+  restart_final_merge_from_member_index: 0
+  normalization_member_markers_reused: true
+  normalization_member_chunks_reused: true
+
+fail_closed:
+  require_all_672_committed_markers: true
+  require_member_corpus_sha256_match: true
+  require_member_identity_sha256_match: true
+  require_corpus_identity_row_alignment: true
+  require_duplicate_normalized_sha256_match: true
+  conflicting_duplicate_aborts: true
+  labels_may_be_read: false
+  detector_may_run: false
+
+claim_boundary:
+  deterministic_transport_duplicate_removal_only: true
+  provider_ground_truth_not_independently_adjudicated: true
+  production_accuracy: NOT_CLAIMED
+  production_precision: NOT_CLAIMED
+  production_recall: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
