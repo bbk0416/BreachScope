@@ -34,6 +34,12 @@ class _FakeOrjson:
     OPT_SORT_KEYS = 1
 
     @staticmethod
+    def loads(value):
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
+        return json.loads(value)
+
+    @staticmethod
     def dumps(value, option=0):
         assert option == _FakeOrjson.OPT_SORT_KEYS
         return json.dumps(
