@@ -505,13 +505,66 @@ def advance(
     started = time.monotonic()
     processed = 0
     try:
-        _recover(
-            state=state,
-            corpus_partial=corpus_partial,
-            identity_partial=identity_partial,
-            conn=conn,
-            current_identity_temp=current_identity_temp,
-        )
+        if int(state["next_index"]) == expected_members:
+            current_identity_temp.unlink(missing_ok=True)
+            conn.execute(
+                "DELETE FROM seen WHERE member_index >= ?",
+                (expected_members,),
+            )
+            conn.commit()
+            seen_count = int(
+                conn.execute("SELECT COUNT(*) FROM seen").fetchone()[0]
+            )
+            if seen_count != int(state["seen_count"]):
+                raise FinalMergeError(
+                    "SQLite seen count mismatch during finalization recovery: "
+                    f"{seen_count} != {state['seen_count']}"
+                )
+
+            for partial, final, committed, label in (
+                (
+                    corpus_partial,
+                    out_corpus,
+                    int(state["corpus_committed_size"]),
+                    "corpus",
+                ),
+                (
+                    identity_partial,
+                    out_identity,
+                    int(state["identity_committed_size"]),
+                    "identity",
+                ),
+            ):
+                if final.exists():
+                    if final.stat().st_size != committed:
+                        raise FinalMergeError(
+                            f"existing final {label} size mismatch"
+                        )
+                    if partial.exists():
+                        raise FinalMergeError(
+                            f"both partial and final {label} outputs exist"
+                        )
+                else:
+                    if not partial.exists():
+                        raise FinalMergeError(
+                            f"missing partial {label} during finalization"
+                        )
+                    if partial.stat().st_size != committed:
+                        raise FinalMergeError(
+                            f"partial {label} size mismatch during finalization"
+                        )
+                    os.replace(partial, final)
+
+            state["complete"] = True
+            _atomic_json(state_path, state)
+        else:
+            _recover(
+                state=state,
+                corpus_partial=corpus_partial,
+                identity_partial=identity_partial,
+                conn=conn,
+                current_identity_temp=current_identity_temp,
+            )
 
         while int(state["next_index"]) < expected_members:
             if processed >= max_members:
