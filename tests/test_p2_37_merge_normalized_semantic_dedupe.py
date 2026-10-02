@@ -325,8 +325,11 @@ def test_semantic_duplicate_amendment_records_actual_source_evidence() -> None:
     assert actual["second_normalized_row_sha256"] == (
         "0978a388f037ccd741752980e762360e0cdd932b6273c596aac9b7efe1b5e1f3"
     )
-    assert policy["if_normalized_row_bytes_sha256_equal"] == "DROP_LATER_COPY"
-    assert policy["if_normalized_row_bytes_sha256_different"] == (
+    duplicate_policy = policy["on_duplicate_provider_identity"]
+    assert duplicate_policy["if_normalized_row_bytes_sha256_equal"] == (
+        "DROP_LATER_COPY"
+    )
+    assert duplicate_policy["if_normalized_row_bytes_sha256_different"] == (
         "ABORT_BEFORE_LABEL_BINDING"
     )
     assert (
