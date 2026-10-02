@@ -14,6 +14,7 @@ import importlib.util
 import json
 import os
 import sqlite3
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -308,6 +309,42 @@ def _append_corpus_validated(
         raise
 
 
+def _decode_identity_json(
+    raw: bytes,
+    *,
+    backend: str,
+    orjson_module,
+) -> dict[str, Any]:
+    try:
+        if backend == "orjson":
+            row = orjson_module.loads(raw)
+        else:
+            row = json.loads(raw)
+    except Exception as exc:
+        raise FinalMergeError(f"invalid identity JSON: {exc}") from exc
+    if not isinstance(row, dict):
+        raise FinalMergeError("identity JSON row must be an object")
+    return row
+
+
+def _identity_output_bytes(
+    row: dict[str, Any],
+    *,
+    backend: str,
+    orjson_module,
+    adapter,
+) -> bytes:
+    if backend == "orjson":
+        return (
+            orjson_module.dumps(
+                row,
+                option=orjson_module.OPT_SORT_KEYS,
+            )
+            + b"\n"
+        )
+    return adapter._json_bytes(row)
+
+
 def _transform_identity_validated(
     *,
     source: Path,
@@ -316,6 +353,9 @@ def _transform_identity_validated(
     adapter,
     conn: sqlite3.Connection,
     start_record_index: int,
+    json_backend: str,
+    orjson_module,
+    insert_batch_size: int,
 ) -> tuple[int, int, int]:
     expected_size = int(marker["identity_size_bytes"])
     expected_rows = int(marker["selected_rows"])
@@ -323,6 +363,10 @@ def _transform_identity_validated(
     input_size = 0
     rows = 0
     next_record = start_record_index
+    batch: list[tuple[str, int]] = []
+
+    if insert_batch_size < 1:
+        raise FinalMergeError("insert_batch_size must be >= 1")
 
     conn.execute("BEGIN IMMEDIATE")
     try:
@@ -334,7 +378,11 @@ def _transform_identity_validated(
                 if not text:
                     continue
                 try:
-                    row = json.loads(text)
+                    row = _decode_identity_json(
+                        text,
+                        backend=json_backend,
+                        orjson_module=orjson_module,
+                    )
                 except Exception as exc:
                     raise FinalMergeError(
                         f"invalid identity JSON index={marker['index']}: "
@@ -342,23 +390,26 @@ def _transform_identity_validated(
                     ) from exc
 
                 provider_id = str(row["provider_identity"])
-                try:
-                    conn.execute(
-                        """
-                        INSERT INTO seen(provider_identity, member_index)
-                        VALUES (?, ?)
-                        """,
-                        (provider_id, int(marker["index"])),
-                    )
-                except sqlite3.IntegrityError as exc:
-                    raise FinalMergeError(
-                        "duplicate provider identity in selected DEDALE "
-                        f"corpus: {provider_id}"
-                    ) from exc
+                batch.append((provider_id, int(marker["index"])))
+                if len(batch) >= insert_batch_size:
+                    try:
+                        conn.executemany(
+                            """
+                            INSERT INTO seen(provider_identity, member_index)
+                            VALUES (?, ?)
+                            """,
+                            batch,
+                        )
+                    except sqlite3.IntegrityError as exc:
+                        raise FinalMergeError(
+                            "duplicate provider identity in selected DEDALE "
+                            f"corpus near provider: {provider_id}"
+                        ) from exc
+                    batch.clear()
 
                 next_record += 1
                 dst.write(
-                    adapter._json_bytes(
+                    _identity_output_bytes(
                         {
                             "record_index": next_record,
                             "provider_identity": provider_id,
@@ -367,10 +418,29 @@ def _transform_identity_validated(
                             "source_row_sha256": str(
                                 row["source_row_sha256"]
                             ),
-                        }
+                        },
+                        backend=json_backend,
+                        orjson_module=orjson_module,
+                        adapter=adapter,
                     )
                 )
                 rows += 1
+
+            if batch:
+                try:
+                    conn.executemany(
+                        """
+                        INSERT INTO seen(provider_identity, member_index)
+                        VALUES (?, ?)
+                        """,
+                        batch,
+                    )
+                except sqlite3.IntegrityError as exc:
+                    raise FinalMergeError(
+                        "duplicate provider identity in selected DEDALE "
+                        f"corpus near provider: {batch[-1][0]}"
+                    ) from exc
+                batch.clear()
 
             dst.flush()
             os.fsync(dst.fileno())
@@ -397,6 +467,7 @@ def _transform_identity_validated(
         conn.rollback()
         temp_out.unlink(missing_ok=True)
         raise
+
 
 
 def _append_identity_temp(
@@ -426,6 +497,9 @@ def advance(
     expected_members: int,
     max_seconds: float,
     max_members: int,
+    json_backend: str,
+    orjson_root: Path,
+    insert_batch_size: int,
 ) -> dict[str, Any]:
     work_dir = work_dir.resolve()
     adapter_path = adapter_path.resolve()
@@ -436,6 +510,24 @@ def advance(
     if _git_blob_sha1(adapter_path) != EXPECTED_ADAPTER_GIT_BLOB_SHA1:
         raise FinalMergeError("amended adapter Git blob SHA-1 mismatch")
     adapter = _load_module(adapter_path, "p2_37_final_merge_adapter")
+
+    orjson_module = None
+    if json_backend == "orjson":
+        root = orjson_root.resolve()
+        if not root.is_dir():
+            raise FinalMergeError(f"orjson root not found: {root}")
+        sys.path.insert(0, str(root))
+        try:
+            import orjson as imported_orjson
+        except Exception as exc:
+            raise FinalMergeError(
+                f"unable to import orjson from {root}: {exc}"
+            ) from exc
+        orjson_module = imported_orjson
+    elif json_backend != "stdlib":
+        raise FinalMergeError(f"unsupported json backend: {json_backend}")
+    if insert_batch_size < 1:
+        raise FinalMergeError("insert_batch_size must be >= 1")
 
     markers = _load_markers(
         work_dir=work_dir,
@@ -497,6 +589,8 @@ def advance(
             ),
             "corpus_size_bytes": out_corpus.stat().st_size,
             "identity_size_bytes": out_identity.stat().st_size,
+            "json_backend": json_backend,
+            "insert_batch_size": insert_batch_size,
             "labels_read": False,
             "detection_rules_executed": False,
         }
@@ -602,6 +696,9 @@ def advance(
                     adapter=adapter,
                     conn=conn,
                     start_record_index=prior_record_index,
+                    json_backend=json_backend,
+                    orjson_module=orjson_module,
+                    insert_batch_size=insert_batch_size,
                 )
             )
 
@@ -730,6 +827,8 @@ def advance(
             if complete else int(state["identity_committed_size"])
         ),
         "elapsed_seconds": time.monotonic() - started,
+        "json_backend": json_backend,
+        "insert_batch_size": insert_batch_size,
         "labels_read": False,
         "detection_rules_executed": False,
     }
@@ -747,6 +846,13 @@ def parser() -> argparse.ArgumentParser:
     ap.add_argument("--expected-members", type=int, default=672)
     ap.add_argument("--max-seconds", type=float, default=55.0)
     ap.add_argument("--max-members", type=int, default=8)
+    ap.add_argument(
+        "--json-backend",
+        choices=("stdlib", "orjson"),
+        default="stdlib",
+    )
+    ap.add_argument("--orjson-root", default=".")
+    ap.add_argument("--insert-batch-size", type=int, default=1)
     return ap
 
 
@@ -763,6 +869,9 @@ def main() -> int:
         expected_members=args.expected_members,
         max_seconds=args.max_seconds,
         max_members=args.max_members,
+        json_backend=args.json_backend,
+        orjson_root=Path(args.orjson_root),
+        insert_batch_size=args.insert_batch_size,
     )
     print(json.dumps(result, sort_keys=True))
     return 0
