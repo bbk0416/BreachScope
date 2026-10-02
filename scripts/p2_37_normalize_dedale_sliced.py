@@ -349,16 +349,48 @@ def _process_slice(
 
             provider_id = adapter.provider_identity(row)
             normalized = adapter.normalize_winlogbeat_row(row)
-            corpus_handle.write(adapter._json_bytes(normalized))
-            identity_handle.write(
-                adapter._json_bytes(
+            if backend == "orjson":
+                if orjson_module is None:
+                    raise SlicedNormalizationError(
+                        "orjson backend selected without orjson module"
+                    )
+                corpus_bytes = (
+                    orjson_module.dumps(
+                        normalized,
+                        option=orjson_module.OPT_SORT_KEYS,
+                    )
+                    + b"\n"
+                )
+                raw_canonical = orjson_module.dumps(
+                    row,
+                    option=orjson_module.OPT_SORT_KEYS,
+                )
+                source_row_sha256 = hashlib.sha256(
+                    raw_canonical
+                ).hexdigest()
+                identity_bytes = (
+                    orjson_module.dumps(
+                        {
+                            "provider_identity": provider_id,
+                            "source_line": physical_line,
+                            "source_row_sha256": source_row_sha256,
+                        },
+                        option=orjson_module.OPT_SORT_KEYS,
+                    )
+                    + b"\n"
+                )
+            else:
+                corpus_bytes = adapter._json_bytes(normalized)
+                source_row_sha256 = adapter._row_digest(row)
+                identity_bytes = adapter._json_bytes(
                     {
                         "provider_identity": provider_id,
                         "source_line": physical_line,
-                        "source_row_sha256": adapter._row_digest(row),
+                        "source_row_sha256": source_row_sha256,
                     }
                 )
-            )
+            corpus_handle.write(corpus_bytes)
+            identity_handle.write(identity_bytes)
             selected_delta += 1
 
         end_offset = source_handle.tell()
