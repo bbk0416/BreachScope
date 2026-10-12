@@ -1,0 +1,24 @@
+{
+  "bound_manifest_sha256": "d0a4ca4141a02bd43b158b50602e2bc38f1e0a044d5a8dc6678e638c7ded4b42",
+  "created_utc": "2026-10-12T01:17:41.725855+00:00",
+  "evaluation_class": "external_baseline",
+  "evaluator_index_sha256": "7a3b7d8de33ca3ee4feb5333c21b56161f130fa2b7690eedccae8e82b6ebbfb7",
+  "evaluator_repo_commit": "d758595a4bfe698539f08613ad3a815c3387c65c",
+  "final_blind_holdout": false,
+  "identity_map_sha256": "24d3910917e7ec9728056dc50dbbbb0cd63810d4c1a9484344decdc8b548eaab",
+  "labels": {
+    "benign_complement": 93793194,
+    "combined_class_1_and_2": 10593,
+    "ignored_derived_class_2": 1027,
+    "malicious_class_1": 9566
+  },
+  "labels_sha256": "ff01e4f6ff8dac61cce2957614a9bb5b2ec0f71adb0b6a7a0c67bd048e2b9e3a",
+  "merge_required_before_scoring": true,
+  "normalized_corpus_sha256": "cefe99af11afbb2ff065babad02ff901f517a880bb747d8b0f625b5a80c45110",
+  "rules_tree_sha256": "61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88",
+  "schema": "breachscope.p2_37.execution_binding_rebuild.v2",
+  "scoring_authorized": false,
+  "scoring_executed": false,
+  "selected_events": 93803787,
+  "status": "LOCAL_EVIDENCE_VALIDATED_MERGE_NOT_CONFIRMED"
+}
