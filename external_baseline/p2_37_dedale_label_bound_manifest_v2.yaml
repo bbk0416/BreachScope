@@ -1,0 +1,21 @@
+schema: breachscope.external_holdout.v1
+kind: external_blind_holdout
+evaluation_class: external_baseline
+protocol:
+  independent_from_rule_authoring: true
+  ground_truth_prepared_without_breachscope_findings: true
+  final_holdout_seen_before_rule_freeze: true
+provenance:
+  source: DEDALE 2.0, doi:10.57745/Y5JLDG, Winlogbeat last 14 UTC dates (2025-01-06
+    through 2025-01-19)
+  acquired_at: Not independently verified; execution contract recorded 2026-10-01
+  license_or_permission: Provider dataset terms require separate review
+  notes: Restored from frozen source; not an unseen final blind holdout. Freeze rules
+    hash 61132f090861e56f3257c4da808fbe1f6839841a3be07367d352c66f3ac9ce88. No detection
+    has been run during rebuild.
+files:
+- path: P2_37_DEDALE_NORMALIZED_REBUILD_V2.jsonl
+  sha256: cefe99af11afbb2ff065babad02ff901f517a880bb747d8b0f625b5a80c45110
+  format: jsonl
+labels:
+  sha256: ff01e4f6ff8dac61cce2957614a9bb5b2ec0f71adb0b6a7a0c67bd048e2b9e3a
