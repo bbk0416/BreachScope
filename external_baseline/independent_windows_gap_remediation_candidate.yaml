@@ -1,0 +1,124 @@
+schema: breachscope.independent_windows_gap_remediation_candidate.v1
+status: CANDIDATE_NOT_CURRENT_RULEPACK
+created_date: 2026-09-26
+
+base:
+  repository_commit: 25cda4ce74eb9032796a5d042079482f3c41c507
+  current_rule_count: 69
+  current_rules_sha256: 1b27fca60c7b87566a73c20697c1a074ab1806ac25247c5a1e07ee07f65a4df7
+  current_detection_evidence_must_remain_unchanged: true
+
+candidate:
+  path: candidate_rules/independent_windows_gap_remediation_v1.yml
+  rule_count: 6
+  current_rulepack_path_modified: false
+  candidate_rule_ids:
+    - C-NETCFG-BUILTIN-DISCOVERY
+    - C-PERM-GROUPS-LOCAL-NET
+    - C-PERM-GROUPS-DOMAIN-NET
+    - C-SMB-ADMIN-SHARE-NET-USE
+    - C-REG-RUNKEY-HKLM-CMD
+    - C-WMI-REMOTE-PROCESS-CREATE
+
+motivation:
+  sealed_brawl_result_is_immutable: true
+  sealed_brawl_analysis_id: brawl-independent-attack-step-technique-holdout-v1
+  brawl_posthoc_analysis_id: brawl-posthoc-miss-diagnosis-v1
+  brawl_may_not_be_reused_as_fresh_holdout_for_promotion: true
+  note: the sealed BRAWL result identified coverage and observable-shape gaps, but candidate rule semantics are based on independent public ATT&CK/Microsoft behavior descriptions and synthetic fixtures rather than fitting the BRAWL score
+
+independent_evidence:
+  T1016:
+    technique: System Network Configuration Discovery
+    sources:
+      - https://attack.mitre.org/techniques/T1016/
+      - https://attack.mitre.org/detectionstrategies/DET0195/
+      - https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nbtstat
+    supported_shapes:
+      - ipconfig and ipconfig /all
+      - nbtstat local/session/name-table queries
+      - route print
+      - netsh interface show queries
+  T1069:
+    technique: Permission Groups Discovery
+    sources:
+      - https://attack.mitre.org/techniques/T1069/
+      - https://attack.mitre.org/techniques/T1069/001/
+      - https://attack.mitre.org/techniques/T1069/002/
+    supported_shapes:
+      - query-only net localgroup
+      - query-only net group /domain
+    mutation_commands_excluded: true
+  T1021_002:
+    technique: SMB/Windows Admin Shares
+    sources:
+      - https://attack.mitre.org/techniques/T1021/
+      - https://attack.mitre.org/software/S0039/
+    supported_shapes:
+      - net use connection to ADMIN$, IPC$, or drive-letter administrative shares
+    disconnect_delete_commands_excluded: true
+  T1547_001:
+    technique: Registry Run Keys / Startup Folder
+    sources:
+      - https://attack.mitre.org/techniques/T1547/001/
+    supported_shapes:
+      - reg.exe add to HKLM or HKEY_LOCAL_MACHINE Run
+      - reg.exe add to HKLM or HKEY_LOCAL_MACHINE RunOnce
+    note: current command rule already covers HKCU Run; this candidate only fills the HKLM command gap
+  T1047:
+    technique: Windows Management Instrumentation
+    sources:
+      - https://attack.mitre.org/techniques/T1047/
+      - https://attack.mitre.org/detectionstrategies/DET0364/
+      - https://learn.microsoft.com/en-us/windows/win32/wmisdk/creating-processes-remotely
+    supported_shapes:
+      - remote WMIC /node process call create
+    note: current local WMIC and other WMI rules remain unchanged
+
+explicit_non_remediation:
+  T1105:
+    action: DO_NOT_ADD_SMB_COPY_PATTERN
+    reason: BRAWL uses a historical Remote File Copy mapping while current ATT&CK T1105 is Ingress Tool Transfer; adding SMB copy solely to improve the observed BRAWL result would risk semantic drift and post-hoc overfitting
+
+synthetic_test_contract:
+  path: tests/test_independent_windows_gap_remediation_candidates.py
+  required_positive_coverage:
+    - T1016 built-in discovery utilities
+    - T1069.001 local group query
+    - T1069.002 domain group query
+    - T1021.002 administrative-share connection
+    - T1547.001 HKLM Run/RunOnce add
+    - T1047 remote WMIC process creation
+  required_negative_coverage:
+    - ipconfig flushdns
+    - route modification
+    - unrelated netsh firewall query
+    - localgroup membership modification
+    - domain-group membership modification
+    - net use disconnect/delete
+    - ordinary non-administrative share
+    - HKCU Run key candidate overlap
+    - registry query
+    - local-only WMIC process create
+    - remote WMIC non-process query
+    - wrong process image
+    - wrong provider or event id
+
+promotion_gate:
+  - candidate-only tests must pass
+  - full repository test suite must pass with current rules unchanged
+  - current detection evidence verifier must remain PASS
+  - project readiness and quality gate must remain PASS
+  - no candidate rule may be copied into rules/ before a separate promotion contract is frozen
+  - promotion requires a new analysis_id
+  - promotion requires fresh or separately frozen attack evidence not used to derive these candidates
+  - promotion requires separately frozen benign evidence or a documented benign-noise assessment
+  - BRAWL canonical result must not be rerun or replaced
+  - historical P2-35M evidence must not be rewritten
+
+claim_boundaries:
+  current_rulepack_improved: NOT_CLAIMED
+  production_accuracy_improved: NOT_CLAIMED
+  production_recall_improved: NOT_CLAIMED
+  production_false_positive_rate: NOT_CLAIMED
+  brawl_score_improved: NOT_MEASURED

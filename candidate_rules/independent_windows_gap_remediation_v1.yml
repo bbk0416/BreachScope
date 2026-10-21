@@ -1,0 +1,116 @@
+- id: C-NETCFG-BUILTIN-DISCOVERY
+  name: Candidate Built-in Network Configuration Discovery
+  description: Candidate Sysmon process rule for Windows built-in network configuration discovery commands supported by public ATT&CK examples.
+  field: Image
+  operator: regex
+  pattern: '\\(?:ipconfig|nbtstat|route|netsh)\.exe$'
+  severity: low
+  mitre_technique: T1016
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '(?:\bipconfig(?:\.exe)?"?(?:\s+/all)?\s*$|\bnbtstat(?:\.exe)?"?\s+[/-](?:n|s|r)\s*$|\broute(?:\.exe)?"?\s+print\s*$|\bnetsh(?:\.exe)?"?\s+interface\s+(?:ip|ipv4|ipv6)\s+show\b.*$)'
+
+- id: C-PERM-GROUPS-LOCAL-NET
+  name: Candidate Local Group Discovery via Net
+  description: Candidate Sysmon process rule for query-only net/net1 localgroup enumeration.
+  field: Image
+  operator: regex
+  pattern: '\\net1?\.exe$'
+  severity: low
+  mitre_technique: T1069.001
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\bnet1?(?:\.exe)?"?\s+localgroup(?:\s+(?:"[^"]+"|[^\s/]+))?\s*$'
+
+- id: C-PERM-GROUPS-DOMAIN-NET
+  name: Candidate Domain Group Discovery via Net
+  description: Candidate Sysmon process rule for query-only net/net1 domain group enumeration.
+  field: Image
+  operator: regex
+  pattern: '\\net1?\.exe$'
+  severity: low
+  mitre_technique: T1069.002
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\bnet1?(?:\.exe)?"?\s+group(?:\s+(?:"[^"]+"|[^\s/]+))?\s+/domain\s*$'
+
+- id: C-SMB-ADMIN-SHARE-NET-USE
+  name: Candidate SMB Admin Share Connection via Net Use
+  description: Candidate Sysmon process rule for establishing a connection to a Windows administrative share with net/net1 use, excluding delete/disconnect commands.
+  field: Image
+  operator: regex
+  pattern: '\\net1?\.exe$'
+  severity: medium
+  mitre_technique: T1021.002
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '^(?!.*\s/(?:delete|d)\b).*\bnet1?(?:\.exe)?"?\s+use\s+(?:[A-Za-z]:\s+)?\\\\[^\\\s]+\\(?:ADMIN\$|IPC\$|[A-Za-z]\$)(?:\s+.*)?$'
+
+- id: C-REG-RUNKEY-HKLM-CMD
+  name: Candidate HKLM Run Key Modification via Reg
+  description: Candidate Sysmon process rule for reg.exe adding HKLM Run or RunOnce persistence, complementing the current HKCU command rule.
+  field: Image
+  operator: endswith
+  pattern: '\reg.exe'
+  severity: low
+  mitre_technique: T1547.001
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '\breg(?:\.exe)?"?\s+add\s+"?(?:HKLM|HKEY_LOCAL_MACHINE)\\Software\\Microsoft\\Windows\\CurrentVersion\\Run(?:Once)?"?(?:\s|$)'
+
+- id: C-WMI-REMOTE-PROCESS-CREATE
+  name: Candidate Remote WMIC Process Creation
+  description: Candidate Sysmon process rule for remote WMIC Win32_Process creation with /node options before the process call.
+  field: Image
+  operator: endswith
+  pattern: '\wmic.exe'
+  severity: medium
+  mitre_technique: T1047
+  all_of:
+    - field: source
+      operator: equals
+      pattern: Microsoft-Windows-Sysmon
+    - field: event_id
+      operator: equals
+      pattern: "1"
+    - field: command_line
+      operator: regex
+      pattern: '(?:^|\s)/node\s*:'
+    - field: command_line
+      operator: regex
+      pattern: '\bwmic(?:\.exe)?\b.*\bprocess\s+call\s+create\b'
